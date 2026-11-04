@@ -59,6 +59,7 @@ import (
 	"github.com/kaito-project/kaito/pkg/workspace/inference"
 	"github.com/kaito-project/kaito/pkg/workspace/inference/modelstreaming"
 	"github.com/kaito-project/kaito/pkg/workspace/inference/modelstreaming/registry"
+	metadata "github.com/kaito-project/kaito/presets/workspace/models"
 )
 
 func TestSelectWorkspaceNodes(t *testing.T) {
@@ -1941,7 +1942,7 @@ func TestSetWorkspaceCondition(t *testing.T) {
 
 func TestShouldUpgradeBaseImage(t *testing.T) {
 	t.Setenv("PRESET_REGISTRY_NAME", "mcr.microsoft.com/aks/kaito")
-	baseTag, err := inference.GetImageTag(inference.GetBaseImageName())
+	baseTag, err := inference.GetBaseImageTag(metadata.MustGet("base"))
 	require.NoError(t, err)
 	baseImage := "mcr.microsoft.com/aks/kaito/kaito-base:" + baseTag
 	tests := []struct {
@@ -2170,7 +2171,7 @@ func TestShouldUpgradeBaseImage(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got := shouldUpgradeBaseImage(tt.ws, tt.existing, tt.desired)
+			got := shouldUpgradeBaseImage(tt.ws, tt.existing, tt.desired, metadata.MustGet("base"))
 			assert.Equal(t, tt.expect, got)
 		})
 	}

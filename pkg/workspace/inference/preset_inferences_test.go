@@ -55,6 +55,11 @@ import (
 	metadata "github.com/kaito-project/kaito/presets/workspace/models"
 )
 
+func getCPUVLLMImageName() string {
+	presetObj := metadata.MustGet("base-vllm-cpu")
+	return utils.GetPresetImageName(presetObj.Registry, presetObj.Name, presetObj.Tag)
+}
+
 var ValidStrength string = "0.5"
 
 // flashInferSamplerEnvVar is injected into every vLLM inference container to
@@ -2698,6 +2703,7 @@ func TestGeneratePresetInference_ExplicitTransformersCPU(t *testing.T) {
 	ss, err := GeneratePresetInference(context.Background(), ws, test.MockWorkspaceWithPresetHash, plugin.KaitoModelRegister.MustGet("test-model"), nil, nil)
 	require.NoError(t, err)
 	statefulSet := ss.Workload.(*appsv1.StatefulSet)
+	require.Equal(t, metadata.MustGet("base"), ss.BaseImage, "explicit Transformers CPU uses the generic catalog entry")
 	require.Equal(t, "true", statefulSet.Spec.Template.Labels[cpuInferenceWorkloadLabel])
 	require.NotContains(t, statefulSet.Spec.Selector.MatchLabels, cpuInferenceWorkloadLabel)
 	pod := statefulSet.Spec.Template.Spec
@@ -2910,9 +2916,20 @@ func TestGeneratePresetInference_CapturedTarget(t *testing.T) {
 			_, err = getGPUConfig(gctx)
 			require.ErrorContains(t, err, "inventory changed", "a later generation must resolve afresh")
 			inventoryAvailable = true
+			readsBeforeGeneration := reads
 			result, err := GeneratePresetInference(context.Background(), ws, "0", gctx.Model, c, nil)
 			require.NoError(t, err)
+			require.Equal(t, readsAtCapture, reads-readsBeforeGeneration, "image and tag selection must not add node lookups")
+			expectedBaseImage := metadata.MustGet("base")
+			if cpu {
+				expectedBaseImage = metadata.MustGet("base-vllm-cpu")
+			}
+			require.Equal(t, expectedBaseImage, result.BaseImage)
+			tag, err := GetBaseImageTag(result.BaseImage)
+			require.NoError(t, err)
+			require.Equal(t, expectedBaseImage.Tag, tag)
 			complete := result.Workload.(*appsv1.StatefulSet).Spec.Template.Spec
+			require.Equal(t, utils.GetPresetImageName(result.BaseImage.Registry, result.BaseImage.Name, tag), complete.Containers[0].Image)
 			require.Equal(t, spec.Containers[0].Image, complete.Containers[0].Image)
 			require.Equal(t, spec.Containers[0].Resources, complete.Containers[0].Resources)
 			require.Equal(t, spec.Containers[0].ReadinessProbe, complete.Containers[0].ReadinessProbe)

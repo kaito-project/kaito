@@ -22,6 +22,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/distribution/reference"
 	"github.com/samber/lo"
 	"gopkg.in/yaml.v2"
 	appsv1 "k8s.io/api/apps/v1"
@@ -30,6 +31,7 @@ import (
 	"k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/util/intstr"
+	"k8s.io/apimachinery/pkg/util/validation"
 	"k8s.io/klog/v2"
 	"k8s.io/utils/ptr"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -74,7 +76,9 @@ const (
 
 // PresetInferenceResult wraps the generated workload object.
 type PresetInferenceResult struct {
-	Workload client.Object
+	// BaseImage shares the captured CPU/GPU target used to generate Workload.
+	BaseImage pkgmodel.Metadata
+	Workload  client.Object
 }
 
 const (
@@ -342,7 +346,10 @@ func GeneratePresetInference(ctx context.Context, workspaceObj *v1beta1.Workspac
 			workload.Spec.Template.Labels = podLabels
 		}
 	}
-	result := &PresetInferenceResult{Workload: workload}
+	result := &PresetInferenceResult{
+		Workload:  workload,
+		BaseImage: getPresetInferenceBaseImage(v1beta1.GetWorkspaceRuntimeName(workspaceObj), isCPUInference),
+	}
 	return result, err
 }
 
@@ -549,40 +556,79 @@ func GetBaseImageName() string {
 	return utils.GetPresetImageName(presetObj.Registry, presetObj.Name, presetObj.Tag)
 }
 
-func getCPUVLLMImageName() string {
-	presetObj := metadata.MustGet("base-vllm-cpu")
-	return utils.GetPresetImageName(presetObj.Registry, presetObj.Name, presetObj.Tag)
+// GetBaseImageTag returns the selected base image's catalog tag, unchanged,
+// for upgrade authorization. This is the image version, not the inference engine
+// version packaged inside the image. Missing tags, digest-pinned references, and
+// tags unsuitable for Kubernetes labels fail closed.
+//
+// Examples (current catalog entries):
+//
+//	GetBaseImageTag(metadata.MustGet("base"))          // "0.6.4", nil
+//	GetBaseImageTag(metadata.MustGet("base-vllm-cpu")) // "0.0.2", nil
+//	GetBaseImageTag(pkgmodel.Metadata{Registry: "localhost:5000", Name: "base", Tag: "v0.0.3"}) // "v0.0.3", nil
+//	GetBaseImageTag(pkgmodel.Metadata{Registry: "registry.example", Name: "base"}) // "", error (no explicit tag)
+func GetBaseImageTag(baseImage pkgmodel.Metadata) (string, error) {
+	if baseImage.Tag == "" {
+		return "", fmt.Errorf("base image %q has no explicit catalog tag", baseImage.Name)
+	}
+	if errs := validation.IsValidLabelValue(baseImage.Tag); len(errs) > 0 {
+		return "", fmt.Errorf("base image tag %q is not a valid upgrade label: %v", baseImage.Tag, errs)
+	}
+	image := utils.GetPresetImageName(baseImage.Registry, baseImage.Name, baseImage.Tag)
+	ref, err := reference.ParseNormalizedNamed(image)
+	if err != nil {
+		return "", fmt.Errorf("invalid base image reference %q: %w", image, err)
+	}
+	if _, ok := ref.(reference.Digested); ok {
+		return "", fmt.Errorf("base image %q is digest-pinned; upgrade authorization requires a tag-only reference", image)
+	}
+	return baseImage.Tag, nil
 }
 
 func getPresetInferenceImageName(runtimeName pkgmodel.RuntimeName, isCPU bool) string {
-	if !isCPU {
-		return GetBaseImageName()
+	baseImage := getPresetInferenceBaseImage(runtimeName, isCPU)
+	if baseImage.Name == "" {
+		return ""
+	}
+	return utils.GetPresetImageName(baseImage.Registry, baseImage.Name, baseImage.Tag)
+}
+
+func getPresetInferenceBaseImage(runtimeName pkgmodel.RuntimeName, isCPU bool) pkgmodel.Metadata {
+	if !isCPU || runtimeName == pkgmodel.RuntimeNameHuggingfaceTransformers {
+		return metadata.MustGet("base")
 	}
 	if runtimeName == pkgmodel.RuntimeNameVLLM {
-		return getCPUVLLMImageName()
-	}
-	if runtimeName == pkgmodel.RuntimeNameHuggingfaceTransformers {
-		return GetBaseImageName()
+		return metadata.MustGet("base-vllm-cpu")
 	}
 	// Never silently select an image for an unsupported CPU runtime.
-	return ""
+	return pkgmodel.Metadata{}
 }
 
 // GetDesiredInferenceImageNameWithResolution returns the runtime-aware image after
 // resolving BYO CPU selectors when instanceType is empty.
 func GetDesiredInferenceImageNameWithResolution(ctx context.Context, ws *v1beta1.Workspace, kubeClient client.Client) (string, error) {
-	if ws == nil || ws.Inference == nil || ws.Inference.Preset == nil {
-		return GetBaseImageName(), nil
-	}
-	isCPUInference, err := v1beta1.ResolveCPUInferenceWorkspace(ctx, ws, kubeClient)
+	baseImage, err := GetDesiredInferenceBaseImageWithResolution(ctx, ws, kubeClient)
 	if err != nil {
 		return "", err
 	}
+	return utils.GetPresetImageName(baseImage.Registry, baseImage.Name, baseImage.Tag), nil
+}
+
+// GetDesiredInferenceBaseImageWithResolution selects catalog metadata once so the
+// desired image and its upgrade tag use the same runtime and CPU/GPU target.
+func GetDesiredInferenceBaseImageWithResolution(ctx context.Context, ws *v1beta1.Workspace, kubeClient client.Client) (pkgmodel.Metadata, error) {
+	if ws == nil || ws.Inference == nil || ws.Inference.Preset == nil {
+		return metadata.MustGet("base"), nil
+	}
+	isCPUInference, err := v1beta1.ResolveCPUInferenceWorkspace(ctx, ws, kubeClient)
+	if err != nil {
+		return pkgmodel.Metadata{}, err
+	}
 	runtimeName := v1beta1.GetWorkspaceRuntimeName(ws)
 	if isCPUInference && runtimeName != pkgmodel.RuntimeNameVLLM && !v1beta1.IsExplicitTransformersCPUWorkspace(ws) {
-		return "", fmt.Errorf("CPU preset inference requires vllm or explicit transformers with a declared CPU instanceType, got %s", runtimeName)
+		return pkgmodel.Metadata{}, fmt.Errorf("CPU preset inference requires vllm or explicit transformers with a declared CPU instanceType, got %s", runtimeName)
 	}
-	return getPresetInferenceImageName(runtimeName, isCPUInference), nil
+	return getPresetInferenceBaseImage(runtimeName, isCPUInference), nil
 }
 
 // GetBaseRuntimeVersion returns the inference engine version baked into the base

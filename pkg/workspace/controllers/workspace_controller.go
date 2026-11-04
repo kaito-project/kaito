@@ -760,7 +760,7 @@ func (c *WorkspaceReconciler) applyInference(ctx context.Context, wObj *kaitov1b
 
 	baseImageUpgrade := false
 	if existingErr == nil {
-		baseImageUpgrade = shouldUpgradeBaseImage(wObj, existingObj, desiredStatefulSet)
+		baseImageUpgrade = shouldUpgradeBaseImage(wObj, existingObj, desiredStatefulSet, result.BaseImage)
 		if !baseImageUpgrade {
 			// Without auto-upgrade, keep the LMCache setup supported by the deployed
 			// KAITO base image. Adding the sidecar to an older image would reference a
@@ -862,10 +862,11 @@ func syncInferenceMutablePodSpec(existingSpec, desiredSpec *corev1.PodSpec) {
 	existingSpec.Volumes = desiredSpec.Volumes
 }
 
-func shouldUpgradeBaseImage(wObj *kaitov1beta1.Workspace, existingObj, desiredStatefulSet *appsv1.StatefulSet) bool {
+func shouldUpgradeBaseImage(wObj *kaitov1beta1.Workspace, existingObj, desiredStatefulSet *appsv1.StatefulSet, baseImage pkgmodel.Metadata) bool {
 	upgradeVersion := wObj.Labels[kaitov1alpha1.LabelUpgradeToVersion]
-	desiredTag, err := inference.GetImageTag(workspace.GetInferenceContainerImage(desiredStatefulSet))
+	desiredTag, err := inference.GetBaseImageTag(baseImage)
 	return err == nil && upgradeVersion != "" && upgradeVersion == desiredTag &&
+		workspace.GetInferenceContainerImage(desiredStatefulSet) == utils.GetPresetImageName(baseImage.Registry, baseImage.Name, baseImage.Tag) &&
 		workspace.GetInferenceContainerImage(existingObj) != workspace.GetInferenceContainerImage(desiredStatefulSet)
 }
 

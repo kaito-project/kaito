@@ -15,6 +15,7 @@ package autoupgrade
 
 import (
 	"context"
+	"strings"
 	"testing"
 	"time"
 
@@ -30,9 +31,11 @@ import (
 
 	kaitov1alpha1 "github.com/kaito-project/kaito/api/v1alpha1"
 	kaitov1beta1 "github.com/kaito-project/kaito/api/v1beta1"
+	pkgmodel "github.com/kaito-project/kaito/pkg/model"
 	"github.com/kaito-project/kaito/pkg/utils/consts"
 	inferencesetutil "github.com/kaito-project/kaito/pkg/utils/inferenceset"
 	"github.com/kaito-project/kaito/pkg/workspace/inference"
+	metadata "github.com/kaito-project/kaito/presets/workspace/models"
 )
 
 // testScheme returns a scheme with all types needed for fake client tests.
@@ -691,7 +694,7 @@ func TestReconcileInferenceSet_AllUpToDate_CPUPresetUsesRuntimeAwareDesiredImage
 
 func TestReconcileInferenceSet_WaitsForUpgrading(t *testing.T) {
 	setTestRegistry(t)
-	desiredTag, err := inference.GetImageTag(inference.GetBaseImageName())
+	desiredTag, err := inference.GetBaseImageTag(metadata.MustGet("base"))
 	require.NoError(t, err)
 	const (
 		ns     = "default"
@@ -724,7 +727,7 @@ func TestReconcileInferenceSet_WaitsForUpgrading(t *testing.T) {
 
 func TestReconcileInferenceSet_MarkSuccessOnDriftTransition(t *testing.T) {
 	desiredImage := setTestRegistry(t)
-	desiredTag, err := inference.GetImageTag(inference.GetBaseImageName())
+	desiredTag, err := inference.GetBaseImageTag(metadata.MustGet("base"))
 	require.NoError(t, err)
 	const (
 		ns     = "default"
@@ -962,10 +965,12 @@ func TestReconcileInferenceSet_CPURuntimeUpgradeVersion(t *testing.T) {
 	catalogImage, err := inference.GetDesiredInferenceImageNameWithResolution(t.Context(), inferencesetutil.NewWorkspaceForInferenceSet(cpu), nil)
 	require.NoError(t, err)
 	require.Contains(t, catalogImage, "kaito-base-vllm-cpu:")
-	catalogTag, err := inference.GetImageTag(catalogImage)
+	catalogBaseImage, err := inference.GetDesiredInferenceBaseImageWithResolution(t.Context(), inferencesetutil.NewWorkspaceForInferenceSet(cpu), nil)
+	require.NoError(t, err)
+	catalogTag, err := inference.GetBaseImageTag(catalogBaseImage)
 	require.NoError(t, err)
 
-	gpuTag, err := inference.GetImageTag(inference.GetBaseImageName())
+	gpuTag, err := inference.GetBaseImageTag(metadata.MustGet("base"))
 	require.NoError(t, err)
 	for _, tags := range []struct {
 		name   string
@@ -977,7 +982,8 @@ func TestReconcileInferenceSet_CPURuntimeUpgradeVersion(t *testing.T) {
 	} {
 		t.Run(tags.name, func(t *testing.T) {
 			desiredTag := tags.cpuTag
-			desiredImage := "mcr.microsoft.com/aks/kaito/kaito-base-vllm-cpu:" + desiredTag
+			desiredBaseImage := catalogBaseImage
+			desiredBaseImage.Tag = desiredTag
 			oldTags := []string{desiredTag + "-old"}
 			if desiredTag != gpuTag {
 				oldTags = append(oldTags, gpuTag)
@@ -996,14 +1002,19 @@ func TestReconcileInferenceSet_CPURuntimeUpgradeVersion(t *testing.T) {
 							})
 							ss := makeStatefulSet(ws.Name, ws.Namespace, "mcr.microsoft.com/aks/kaito/kaito-base-vllm-cpu:"+desiredTag+"-old")
 							cl := newFakeClient(is.DeepCopy(), ws, ss)
-							r := &AutoUpgradeRunner{Client: cl, resolveDesiredImage: func(_ context.Context, selected *kaitov1beta1.Workspace, _ client.Client) (string, error) {
+							resolutions := 0
+							r := &AutoUpgradeRunner{Client: cl, resolveBaseImage: func(_ context.Context, selected *kaitov1beta1.Workspace, _ client.Client) (pkgmodel.Metadata, error) {
+								resolutions++
 								require.Equal(t, "Standard_D8s_v5", selected.Resource.InstanceType)
-								return desiredImage, nil
+								return desiredBaseImage, nil
 							}}
 							if tags.name == "release-catalog" {
-								r.resolveDesiredImage = nil
+								r.resolveBaseImage = nil
 							}
 							r.reconcileInferenceSet(context.Background(), is.DeepCopy())
+							if tags.name != "release-catalog" {
+								require.Equal(t, 1, resolutions, "image and tag must share one target resolution")
+							}
 
 							updated := &kaitov1beta1.Workspace{}
 							require.NoError(t, cl.Get(context.Background(), client.ObjectKeyFromObject(ws), updated))
@@ -1054,5 +1065,33 @@ func TestReconcileInferenceSet_InvalidSelectedImageFailsClosed(t *testing.T) {
 			require.NoError(t, cl.Get(context.Background(), client.ObjectKeyFromObject(is), updated))
 			assert.Nil(t, updated.Status.AutoUpgrade)
 		})
+	}
+}
+
+// Bad catalog metadata must not authorize an upgrade or create a surge workspace.
+func TestReconcileInferenceSet_InvalidBaseImageMetadataFailsClosed(t *testing.T) {
+	setTestRegistry(t)
+	for _, tag := range []string{"", "0.0.2@sha256:" + strings.Repeat("a", 64), "_invalid", strings.Repeat("a", 64)} {
+		for _, strategy := range []kaitov1beta1.AutoUpgradeStrategy{kaitov1beta1.InPlaceUpgradeStrategy, kaitov1beta1.SurgeBasedUpgradeStrategy} {
+			t.Run(string(strategy)+"/"+tag, func(t *testing.T) {
+				is := makeSurgeInferenceSet("invalid-metadata", "default")
+				is.Spec.AutoUpgrade.Strategy = strategy
+				ws := makeWorkspace("old", is.Namespace, is.Name, kaitov1beta1.WorkspaceStateReady, nil)
+				ss := makeStatefulSet(ws.Name, ws.Namespace, "registry.example/kaito-base:old")
+				cl := newFakeClient(is, ws, ss)
+				r := &AutoUpgradeRunner{Client: cl, resolveBaseImage: func(context.Context, *kaitov1beta1.Workspace, client.Client) (pkgmodel.Metadata, error) {
+					baseImage := metadata.MustGet("base")
+					baseImage.Tag = tag
+					return baseImage, nil
+				}}
+				r.reconcileInferenceSet(t.Context(), is)
+				all := listWorkspacesInNamespace(t, cl, is.Namespace)
+				require.Len(t, all, 1)
+				assert.Empty(t, all[0].Labels[kaitov1alpha1.LabelUpgradeToVersion])
+				updated := &kaitov1beta1.InferenceSet{}
+				require.NoError(t, cl.Get(t.Context(), client.ObjectKeyFromObject(is), updated))
+				assert.Nil(t, updated.Status.AutoUpgrade)
+			})
+		}
 	}
 }

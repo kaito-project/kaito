@@ -44,6 +44,7 @@ import (
 	"github.com/kaito-project/kaito/pkg/utils/consts"
 	"github.com/kaito-project/kaito/pkg/utils/test"
 	"github.com/kaito-project/kaito/pkg/workspace/inference"
+	metadata "github.com/kaito-project/kaito/presets/workspace/models"
 )
 
 func seedCompletedBenchmark(ws *v1beta1.Workspace) {
@@ -106,7 +107,7 @@ func TestBenchmarkResetOnSameRuntimeImageUpgrade(t *testing.T) {
 			require.NoError(t, r.applyInference(t.Context(), ws))
 			before := &appsv1.StatefulSet{}
 			require.NoError(t, c.Get(t.Context(), client.ObjectKeyFromObject(ws), before))
-			desiredTag, err := inference.GetImageTag(before.Spec.Template.Spec.Containers[0].Image)
+			desiredTag, err := inference.GetBaseImageTag(metadata.MustGet("base"))
 			require.NoError(t, err)
 			before.Spec.Template.Spec.Containers[0].Image = "mcr.microsoft.com/kaito/kaito-base:deployed-old"
 			require.NoError(t, c.Update(t.Context(), before))

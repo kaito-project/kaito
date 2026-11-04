@@ -24,6 +24,7 @@ import (
 
 	v1alpha1 "github.com/kaito-project/kaito/api/v1alpha1"
 	v1beta1 "github.com/kaito-project/kaito/api/v1beta1"
+	pkgmodel "github.com/kaito-project/kaito/pkg/model"
 )
 
 func TestRuntimeUpgradeAuthorizationUsesSelectedImageTag(t *testing.T) {
@@ -32,22 +33,25 @@ func TestRuntimeUpgradeAuthorizationUsesSelectedImageTag(t *testing.T) {
 	}
 	for _, tc := range []struct {
 		name, label, desired, existing string
+		baseName, baseTag              string
 		want                           bool
 	}{
-		{"CPU current authorization", "0.0.2", "registry:5000/kaito-base-vllm-cpu:0.0.2", "registry:5000/kaito-base-vllm-cpu:old", true},
-		{"GPU tag cannot authorize CPU", "0.0.1", "registry:5000/kaito-base-vllm-cpu:0.0.2", "registry:5000/kaito-base-vllm-cpu:old", false},
-		{"old CPU authorization cannot approve next release", "0.0.2", "registry:5000/kaito-base-vllm-cpu:0.0.3", "registry:5000/kaito-base-vllm-cpu:0.0.2", false},
-		{"next CPU authorization", "0.0.3", "registry:5000/kaito-base-vllm-cpu:0.0.3", "registry:5000/kaito-base-vllm-cpu:0.0.2", true},
-		{"GPU behavior unchanged", "0.0.1", "registry:5000/kaito-base:0.0.1", "registry:5000/kaito-base:old", true},
-		{"no authorization", "", "registry:5000/kaito-base:0.0.1", "registry:5000/kaito-base:old", false},
-		{"image already current", "0.0.2", "registry:5000/kaito-base-vllm-cpu:0.0.2", "registry:5000/kaito-base-vllm-cpu:0.0.2", false},
-		{"untagged", "latest", "registry:5000/kaito-base-vllm-cpu", "registry:5000/kaito-base-vllm-cpu:old", false},
-		{"digest only", "0.0.2", "registry:5000/kaito-base-vllm-cpu@sha256:" + strings.Repeat("a", 64), "registry:5000/kaito-base-vllm-cpu:old", false},
-		{"tag plus digest", "0.0.2", "registry:5000/kaito-base-vllm-cpu:0.0.2@sha256:" + strings.Repeat("a", 64), "registry:5000/kaito-base-vllm-cpu:old", false},
+		{"metadata cannot authorize another image", "0.0.2", "registry:5000/kaito-base:0.0.2", "registry:5000/kaito-base:old", "base-vllm-cpu", "0.0.2", false},
+		{"v prefix preserved", "v0.0.3", "registry:5000/kaito-base-vllm-cpu:v0.0.3", "registry:5000/kaito-base-vllm-cpu:old", "base-vllm-cpu", "v0.0.3", true},
+		{"CPU current authorization", "0.0.2", "registry:5000/kaito-base-vllm-cpu:0.0.2", "registry:5000/kaito-base-vllm-cpu:old", "base-vllm-cpu", "0.0.2", true},
+		{"GPU tag cannot authorize CPU", "0.0.1", "registry:5000/kaito-base-vllm-cpu:0.0.2", "registry:5000/kaito-base-vllm-cpu:old", "base-vllm-cpu", "0.0.2", false},
+		{"old CPU authorization cannot approve next release", "0.0.2", "registry:5000/kaito-base-vllm-cpu:0.0.3", "registry:5000/kaito-base-vllm-cpu:0.0.2", "base-vllm-cpu", "0.0.3", false},
+		{"next CPU authorization", "0.0.3", "registry:5000/kaito-base-vllm-cpu:0.0.3", "registry:5000/kaito-base-vllm-cpu:0.0.2", "base-vllm-cpu", "0.0.3", true},
+		{"GPU behavior unchanged", "0.0.1", "registry:5000/kaito-base:0.0.1", "registry:5000/kaito-base:old", "base", "0.0.1", true},
+		{"no authorization", "", "registry:5000/kaito-base:0.0.1", "registry:5000/kaito-base:old", "base", "0.0.1", false},
+		{"image already current", "0.0.2", "registry:5000/kaito-base-vllm-cpu:0.0.2", "registry:5000/kaito-base-vllm-cpu:0.0.2", "base-vllm-cpu", "0.0.2", false},
+		{"untagged", "latest", "registry:5000/kaito-base-vllm-cpu", "registry:5000/kaito-base-vllm-cpu:old", "base-vllm-cpu", "", false},
+		{"digest only", "0.0.2", "registry:5000/kaito-base-vllm-cpu@sha256:" + strings.Repeat("a", 64), "registry:5000/kaito-base-vllm-cpu:old", "base-vllm-cpu", "@sha256:" + strings.Repeat("a", 64), false},
+		{"tag plus digest", "0.0.2", "registry:5000/kaito-base-vllm-cpu:0.0.2@sha256:" + strings.Repeat("a", 64), "registry:5000/kaito-base-vllm-cpu:old", "base-vllm-cpu", "0.0.2@sha256:" + strings.Repeat("a", 64), false},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
 			ws := &v1beta1.Workspace{ObjectMeta: metav1.ObjectMeta{Labels: map[string]string{v1alpha1.LabelUpgradeToVersion: tc.label}}}
-			require.Equal(t, tc.want, shouldUpgradeBaseImage(ws, makeSTS(tc.existing), makeSTS(tc.desired)))
+			require.Equal(t, tc.want, shouldUpgradeBaseImage(ws, makeSTS(tc.existing), makeSTS(tc.desired), pkgmodel.Metadata{Registry: "registry:5000", Name: tc.baseName, Tag: tc.baseTag}))
 		})
 	}
 }

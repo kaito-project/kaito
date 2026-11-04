@@ -16,6 +16,7 @@ package v1beta1
 import (
 	"context"
 	"fmt"
+	"strings"
 	"testing"
 	"time"
 
@@ -730,5 +731,46 @@ func TestBYOCPUInferenceIsArchitectureAgnostic(t *testing.T) {
 				}
 			}
 		})
+	}
+}
+
+func TestResolveCPUInferenceTargetUncataloguedAzureAccelerators(t *testing.T) {
+	t.Setenv("CLOUD_PROVIDER", consts.AzureCloudName)
+	old := featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning]
+	t.Cleanup(func() { featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning] = old })
+	featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning] = true
+	inference := &InferenceSpec{Preset: &PresetSpec{PresetMeta: PresetMeta{Name: "facebook/opt-125m"}}}
+	selector := &metav1.LabelSelector{MatchLabels: map[string]string{"pool": "byo"}}
+
+	for _, instanceType := range []string{"Standard_NC6s_v3", "standard_nc6s_v3", "Standard_ND999s_v99", "Standard_NV999s_v99"} {
+		for _, mixed := range []bool{false, true} {
+			t.Run(fmt.Sprintf("%s/mixed=%t", instanceType, mixed), func(t *testing.T) {
+				gpuNode := &corev1.Node{
+					ObjectMeta: metav1.ObjectMeta{Name: "gpu", Labels: map[string]string{"pool": "byo", corev1.LabelInstanceTypeStable: instanceType}},
+					Spec:       corev1.NodeSpec{ProviderID: "azure:///gpu"},
+					// Ready can precede NVIDIA device-plugin capacity and discovery labels.
+					Status: corev1.NodeStatus{Conditions: []corev1.NodeCondition{{Type: corev1.NodeReady, Status: corev1.ConditionTrue}}},
+				}
+				objects := []ctrlclient.Object{gpuNode}
+				if mixed {
+					cpuNode := gpuNode.DeepCopy()
+					cpuNode.Name = "cpu"
+					cpuNode.Spec.ProviderID = "azure:///cpu"
+					cpuNode.Labels[corev1.LabelInstanceTypeStable] = "Standard_D8s_v5"
+					objects = append(objects, cpuNode)
+				}
+				isCPU, err := ResolveCPUInferenceTarget(context.Background(), inference, "", selector, newCPUValidationClient(t, objects...))
+				if isCPU {
+					t.Fatal("Azure N-series node without discovery signals must not select CPU inference")
+				}
+				if mixed {
+					if err == nil || !strings.Contains(err.Error(), "mix of CPU-only and GPU nodes") {
+						t.Fatalf("expected mixed CPU/GPU selector error, got %v", err)
+					}
+				} else if err != nil {
+					t.Fatalf("GPU-only selector should stay on the GPU path without error, got %v", err)
+				}
+			})
+		}
 	}
 }

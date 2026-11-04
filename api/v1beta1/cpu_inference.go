@@ -84,6 +84,11 @@ func nodeHasGPUSignals(node *corev1.Node) bool {
 	}
 
 	if instanceType := strings.TrimSpace(node.Labels[corev1.LabelInstanceTypeStable]); instanceType != "" {
+		// Azure N-series remain accelerator targets even before device discovery
+		// and when the SKU is not present in the local catalog.
+		if isAzureGPUOrAcceleratorSKU(instanceType) {
+			return true
+		}
 		if gpuConfig, _ := sku.GetGPUConfigBySKU(instanceType); gpuConfig != nil {
 			return true
 		}

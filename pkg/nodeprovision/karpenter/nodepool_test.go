@@ -23,7 +23,6 @@ import (
 	karpenterv1 "sigs.k8s.io/karpenter/pkg/apis/v1"
 
 	kaitov1beta1 "github.com/kaito-project/kaito/api/v1beta1"
-	"github.com/kaito-project/kaito/pkg/featuregates"
 	"github.com/kaito-project/kaito/pkg/utils/consts"
 )
 
@@ -315,12 +314,6 @@ func TestGenerateNodePool_InferenceSet(t *testing.T) {
 }
 
 func TestGenerateNodePool_CPUWorkspaceOmitsGPUTaint(t *testing.T) {
-	oldGate := featuregates.FeatureGates[consts.FeatureFlagEnableCPUInference]
-	defer func() {
-		featuregates.FeatureGates[consts.FeatureFlagEnableCPUInference] = oldGate
-	}()
-	featuregates.FeatureGates[consts.FeatureFlagEnableCPUInference] = true
-
 	one := 1
 	ws := &kaitov1beta1.Workspace{
 		ObjectMeta: metav1.ObjectMeta{Name: "cpu-ws", Namespace: "default"},

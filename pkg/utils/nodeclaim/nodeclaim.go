@@ -251,7 +251,7 @@ func GenerateNodeClaimManifestWithOptions(storageRequirement string, obj client.
 		nodeClaimObj.Spec.Requirements = append(nodeClaimObj.Spec.Requirements, nodeSelector)
 	}
 
-	if cloudName == consts.AWSCloudName && !isCPUWorkspace {
+	if cloudName == consts.AWSCloudName {
 		nodeSelector := karpenterv1.NodeSelectorRequirementWithMinValues{
 			Key:      "karpenter.k8s.aws/instance-gpu-count",
 			Operator: corev1.NodeSelectorOpGt,

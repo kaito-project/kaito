@@ -20,17 +20,10 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
 	kaitov1beta1 "github.com/kaito-project/kaito/api/v1beta1"
-	"github.com/kaito-project/kaito/pkg/featuregates"
 	"github.com/kaito-project/kaito/pkg/utils/consts"
 )
 
 func TestGenerateNodeClaimManifestWithOptions_CPUWorkspaceUsesCPUTaint(t *testing.T) {
-	oldGate := featuregates.FeatureGates[consts.FeatureFlagEnableCPUInference]
-	defer func() {
-		featuregates.FeatureGates[consts.FeatureFlagEnableCPUInference] = oldGate
-	}()
-	featuregates.FeatureGates[consts.FeatureFlagEnableCPUInference] = true
-
 	t.Setenv("CLOUD_PROVIDER", consts.AzureCloudName)
 	one := 1
 	ws := &kaitov1beta1.Workspace{
@@ -61,4 +54,26 @@ func TestGenerateNodeClaimManifestWithOptions_CPUWorkspaceUsesCPUTaint(t *testin
 	if got := nc.Labels[consts.SKUString]; got != consts.CPUString {
 		t.Fatalf("expected cpu sku label, got %q", got)
 	}
+}
+
+func TestAWSNodeClaimPreservesGPURequirement(t *testing.T) {
+	t.Setenv("CLOUD_PROVIDER", consts.AWSCloudName)
+	ws := &kaitov1beta1.Workspace{
+		ObjectMeta: metav1.ObjectMeta{Name: "gpu-ws", Namespace: "default"},
+		Resource:   kaitov1beta1.ResourceSpec{InstanceType: "g5.xlarge"},
+		Inference:  &kaitov1beta1.InferenceSpec{Template: &corev1.PodTemplateSpec{Spec: corev1.PodSpec{Containers: []corev1.Container{{Name: "custom", Image: "example.com/custom:v1"}}}}},
+	}
+	nc := GenerateNodeClaimManifest("0", ws)
+	if nc == nil {
+		t.Fatal("expected AWS GPU NodeClaim")
+	}
+	if len(nc.Spec.Taints) != 1 || nc.Spec.Taints[0].Value != consts.GPUString {
+		t.Fatalf("expected GPU taint, got %v", nc.Spec.Taints)
+	}
+	for _, req := range nc.Spec.Requirements {
+		if req.Key == "karpenter.k8s.aws/instance-gpu-count" && req.Operator == corev1.NodeSelectorOpGt && len(req.Values) == 1 && req.Values[0] == "0" {
+			return
+		}
+	}
+	t.Fatal("missing AWS GPU count requirement")
 }

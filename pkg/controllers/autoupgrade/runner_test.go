@@ -30,7 +30,6 @@ import (
 
 	kaitov1alpha1 "github.com/kaito-project/kaito/api/v1alpha1"
 	kaitov1beta1 "github.com/kaito-project/kaito/api/v1beta1"
-	"github.com/kaito-project/kaito/pkg/featuregates"
 	"github.com/kaito-project/kaito/pkg/utils/consts"
 	inferencesetutil "github.com/kaito-project/kaito/pkg/utils/inferenceset"
 	"github.com/kaito-project/kaito/pkg/workspace/inference"
@@ -671,10 +670,6 @@ func TestReconcileInferenceSet_AllUpToDate_CPUPresetUsesRuntimeAwareDesiredImage
 		isName = "test-is-cpu"
 	)
 
-	oldGate := featuregates.FeatureGates[consts.FeatureFlagEnableCPUInference]
-	defer func() { featuregates.FeatureGates[consts.FeatureFlagEnableCPUInference] = oldGate }()
-	featuregates.FeatureGates[consts.FeatureFlagEnableCPUInference] = true
-
 	is := makeInferenceSet(isName, ns, true, nil)
 	is.Spec.Template.Resource.InstanceType = "Standard_D8s_v5"
 	is.Spec.Template.Inference.Preset = &kaitov1beta1.PresetSpec{PresetMeta: kaitov1beta1.PresetMeta{Name: "test-model"}}
@@ -960,9 +955,6 @@ func TestReconcileSurge_OutsideMaintenanceWindow(t *testing.T) {
 // must resolve the CPU image independently of the generic GPU base image version.
 func TestReconcileInferenceSet_CPURuntimeUpgradeVersion(t *testing.T) {
 	setTestRegistry(t)
-	oldGate := featuregates.FeatureGates[consts.FeatureFlagEnableCPUInference]
-	t.Cleanup(func() { featuregates.FeatureGates[consts.FeatureFlagEnableCPUInference] = oldGate })
-	featuregates.FeatureGates[consts.FeatureFlagEnableCPUInference] = true
 
 	// Check real runtime selection without imposing any relation between release tags.
 	cpu := makeSurgeInferenceSet("cpu-upgrade", "default")

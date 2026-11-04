@@ -80,10 +80,8 @@ func newCPUValidationClient(t *testing.T, objects ...ctrlclient.Object) ctrlclie
 
 func TestValidateCPUInferenceConstraints(t *testing.T) {
 	registerCPUValidationTestModels()
-	oldGate := featuregates.FeatureGates[consts.FeatureFlagEnableCPUInference]
 	oldDisableNAP := featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning]
 	defer func() {
-		featuregates.FeatureGates[consts.FeatureFlagEnableCPUInference] = oldGate
 		featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning] = oldDisableNAP
 	}()
 
@@ -120,21 +118,7 @@ func TestValidateCPUInferenceConstraints(t *testing.T) {
 		}
 	}
 
-	t.Run("feature gate disabled skips cpu-specific validation", func(t *testing.T) {
-		featuregates.FeatureGates[consts.FeatureFlagEnableCPUInference] = false
-		ws := baseWorkspace()
-		ws.Resource.Count = &two
-		ws.Annotations[AnnotationWorkspaceRuntime] = "invalid-runtime"
-		if IsCPUInferenceWorkspace(ws) {
-			t.Fatalf("expected workspace to not be detected as cpu inference when feature gate is disabled")
-		}
-		if err := ws.validateCPUInferenceConstraints(context.Background(), nil); err != nil {
-			t.Fatalf("expected cpu-specific validation to be skipped when enableCPUInference is disabled, got %v", err)
-		}
-	})
-
 	t.Run("single node only", func(t *testing.T) {
-		featuregates.FeatureGates[consts.FeatureFlagEnableCPUInference] = true
 		ws := baseWorkspace()
 		ws.Resource.Count = &two
 		err := ws.validateCPUInferenceConstraints(context.Background(), nil)
@@ -144,7 +128,6 @@ func TestValidateCPUInferenceConstraints(t *testing.T) {
 	})
 
 	t.Run("valid cpu workspace", func(t *testing.T) {
-		featuregates.FeatureGates[consts.FeatureFlagEnableCPUInference] = true
 		ws := baseWorkspace()
 		if !IsCPUInferenceWorkspace(ws) {
 			t.Fatalf("expected workspace to be detected as cpu inference")
@@ -155,7 +138,6 @@ func TestValidateCPUInferenceConstraints(t *testing.T) {
 	})
 
 	t.Run("mig template is not detected as cpu inference", func(t *testing.T) {
-		featuregates.FeatureGates[consts.FeatureFlagEnableCPUInference] = true
 		ws := baseWorkspace()
 		ws.Inference.Template.Spec.Containers[0].Resources.Requests = corev1.ResourceList{
 			corev1.ResourceName("nvidia.com/mig-1g.10gb"): resource.MustParse("1"),
@@ -172,7 +154,6 @@ func TestValidateCPUInferenceConstraints(t *testing.T) {
 	})
 
 	t.Run("init container gpu request is not detected as cpu inference", func(t *testing.T) {
-		featuregates.FeatureGates[consts.FeatureFlagEnableCPUInference] = true
 		ws := baseWorkspace()
 		ws.Inference.Template.Spec.InitContainers = []corev1.Container{{
 			Name:  "gpu-init",
@@ -188,7 +169,6 @@ func TestValidateCPUInferenceConstraints(t *testing.T) {
 	})
 
 	t.Run("invalid runtime annotation", func(t *testing.T) {
-		featuregates.FeatureGates[consts.FeatureFlagEnableCPUInference] = true
 		ws := baseWorkspace()
 		ws.Annotations[AnnotationWorkspaceRuntime] = "invalid-runtime"
 		err := ws.validateCPUInferenceConstraints(context.Background(), nil)
@@ -198,7 +178,6 @@ func TestValidateCPUInferenceConstraints(t *testing.T) {
 	})
 
 	t.Run("cpu-compatible preset with cpu instance type is detected", func(t *testing.T) {
-		featuregates.FeatureGates[consts.FeatureFlagEnableCPUInference] = true
 		ws := &Workspace{
 			ObjectMeta: metav1.ObjectMeta{Name: "cpu-preset", Namespace: "default"},
 			Resource: ResourceSpec{
@@ -219,7 +198,6 @@ func TestValidateCPUInferenceConstraints(t *testing.T) {
 	})
 
 	t.Run("built-in preset on cpu instance type is allowed", func(t *testing.T) {
-		featuregates.FeatureGates[consts.FeatureFlagEnableCPUInference] = true
 		ws := &Workspace{
 			ObjectMeta: metav1.ObjectMeta{Name: "cpu-preset", Namespace: "default"},
 			Resource: ResourceSpec{
@@ -237,7 +215,6 @@ func TestValidateCPUInferenceConstraints(t *testing.T) {
 	})
 
 	t.Run("generic hf model id with builtin mapping is allowed on cpu instance type", func(t *testing.T) {
-		featuregates.FeatureGates[consts.FeatureFlagEnableCPUInference] = true
 		ws := &Workspace{
 			ObjectMeta: metav1.ObjectMeta{Name: "cpu-preset-generic", Namespace: "default"},
 			Resource: ResourceSpec{
@@ -258,7 +235,6 @@ func TestValidateCPUInferenceConstraints(t *testing.T) {
 	})
 
 	t.Run("cpu-compatible preset on byo cpu nodes is detected", func(t *testing.T) {
-		featuregates.FeatureGates[consts.FeatureFlagEnableCPUInference] = true
 		featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning] = true
 
 		nodeClient := newCPUValidationClient(t, &corev1.Node{
@@ -280,7 +256,6 @@ func TestValidateCPUInferenceConstraints(t *testing.T) {
 	})
 
 	t.Run("cpu node detection sanitizes reserved selector labels", func(t *testing.T) {
-		featuregates.FeatureGates[consts.FeatureFlagEnableCPUInference] = true
 		featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning] = true
 
 		nodeClient := newCPUValidationClient(t, &corev1.Node{
@@ -302,7 +277,6 @@ func TestValidateCPUInferenceConstraints(t *testing.T) {
 	})
 
 	t.Run("gpu preset with nil selector does not scan the whole cluster for cpu detection", func(t *testing.T) {
-		featuregates.FeatureGates[consts.FeatureFlagEnableCPUInference] = true
 		featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning] = true
 
 		nodeClient := newCPUValidationClient(t,
@@ -330,7 +304,6 @@ func TestValidateCPUInferenceConstraints(t *testing.T) {
 	})
 
 	t.Run("gpu sku without discovery labels is still treated as gpu for byo cpu resolution", func(t *testing.T) {
-		featuregates.FeatureGates[consts.FeatureFlagEnableCPUInference] = true
 		featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning] = true
 		t.Setenv("CLOUD_PROVIDER", consts.AzureCloudName)
 
@@ -357,7 +330,6 @@ func TestValidateCPUInferenceConstraints(t *testing.T) {
 	})
 
 	t.Run("vllm preset on arm64 byo cpu nodes is rejected", func(t *testing.T) {
-		featuregates.FeatureGates[consts.FeatureFlagEnableCPUInference] = true
 		featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning] = true
 
 		nodeClient := newCPUValidationClient(t, &corev1.Node{
@@ -390,13 +362,10 @@ func TestValidateCPUInferenceConstraints(t *testing.T) {
 
 func TestCPUInferencePresetRuntimeSelection(t *testing.T) {
 	registerCPUValidationTestModels()
-	oldCPU := featuregates.FeatureGates[consts.FeatureFlagEnableCPUInference]
 	oldVLLM := featuregates.FeatureGates[consts.FeatureFlagVLLM]
 	t.Cleanup(func() {
-		featuregates.FeatureGates[consts.FeatureFlagEnableCPUInference] = oldCPU
 		featuregates.FeatureGates[consts.FeatureFlagVLLM] = oldVLLM
 	})
-	featuregates.FeatureGates[consts.FeatureFlagEnableCPUInference] = true
 	for _, tc := range []struct {
 		name, runtime          string
 		vllmEnabled, wantError bool
@@ -425,9 +394,6 @@ func TestCPUInferencePresetRuntimeSelection(t *testing.T) {
 
 func TestIsExplicitTransformersCPUWorkspace(t *testing.T) {
 	registerCPUValidationTestModels()
-	old := featuregates.FeatureGates[consts.FeatureFlagEnableCPUInference]
-	t.Cleanup(func() { featuregates.FeatureGates[consts.FeatureFlagEnableCPUInference] = old })
-	featuregates.FeatureGates[consts.FeatureFlagEnableCPUInference] = true
 	for _, tc := range []struct {
 		name, instance, runtime string
 		want                    bool
@@ -450,11 +416,6 @@ func TestIsExplicitTransformersCPUWorkspace(t *testing.T) {
 			if got := IsExplicitTransformersCPUWorkspace(ws); got != tc.want {
 				t.Fatalf("got %v, want %v", got, tc.want)
 			}
-			featuregates.FeatureGates[consts.FeatureFlagEnableCPUInference] = false
-			if IsExplicitTransformersCPUWorkspace(ws) {
-				t.Fatal("CPU gate must be enabled")
-			}
-			featuregates.FeatureGates[consts.FeatureFlagEnableCPUInference] = true
 		})
 	}
 	if IsExplicitTransformersCPUWorkspace(nil) || IsExplicitTransformersCPUWorkspace(&Workspace{}) {
@@ -464,13 +425,10 @@ func TestIsExplicitTransformersCPUWorkspace(t *testing.T) {
 
 func TestResolveCPUInferenceSetUsesChildNodeSelector(t *testing.T) {
 	registerCPUValidationTestModels()
-	oldCPU := featuregates.FeatureGates[consts.FeatureFlagEnableCPUInference]
 	oldBYO := featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning]
 	defer func() {
-		featuregates.FeatureGates[consts.FeatureFlagEnableCPUInference] = oldCPU
 		featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning] = oldBYO
 	}()
-	featuregates.FeatureGates[consts.FeatureFlagEnableCPUInference] = true
 	featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning] = true
 	kubeClient := newCPUValidationClient(t, &corev1.Node{
 		ObjectMeta: metav1.ObjectMeta{Name: "cpu", Labels: map[string]string{"pool": "cpu", corev1.LabelArchStable: "amd64"}},
@@ -497,13 +455,10 @@ func TestResolveCPUInferenceSetUsesChildNodeSelector(t *testing.T) {
 
 func TestAzureCPUInstanceTypeCaseInsensitive(t *testing.T) {
 	registerCPUValidationTestModels()
-	oldCPU := featuregates.FeatureGates[consts.FeatureFlagEnableCPUInference]
 	oldVLLM := featuregates.FeatureGates[consts.FeatureFlagVLLM]
 	t.Cleanup(func() {
-		featuregates.FeatureGates[consts.FeatureFlagEnableCPUInference] = oldCPU
 		featuregates.FeatureGates[consts.FeatureFlagVLLM] = oldVLLM
 	})
-	featuregates.FeatureGates[consts.FeatureFlagEnableCPUInference] = true
 	featuregates.FeatureGates[consts.FeatureFlagVLLM] = true
 	for _, tc := range []struct {
 		instance        string
@@ -532,7 +487,7 @@ func TestAzureCPUInstanceTypeCaseInsensitive(t *testing.T) {
 			if got := isAzureGPUOrAcceleratorSKU(tc.instance); got != tc.gpu {
 				t.Fatalf("GPU classification = %v, want %v", got, tc.gpu)
 			}
-			if got := isCPUInstanceType(tc.instance); got != tc.cpu {
+			if got := isAzureCPUInstanceType(tc.instance); got != tc.cpu {
 				t.Fatalf("CPU classification = %v, want %v", got, tc.cpu)
 			}
 			if got := IsAMD64CompatibleVLLMCPUInstanceType(tc.instance); got != tc.amd64 {
@@ -612,6 +567,56 @@ func TestAzureCPUInstanceTypeForNAPVersionSuffix(t *testing.T) {
 		t.Run(tc.instance, func(t *testing.T) {
 			if err := ValidateCPUInstanceTypeForNAP(tc.instance); (err == nil) != tc.valid {
 				t.Fatalf("NAP validation error = %v, want valid = %v", err, tc.valid)
+			}
+		})
+	}
+}
+
+// CPU inference is available without opt-in, but AWS targets keep the existing
+// GPU path. Unknown-provider BYO nodes do not need an Azure SKU label.
+func TestCPUInferenceProviderScope(t *testing.T) {
+	registerCPUValidationTestModels()
+	old := featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning]
+	t.Cleanup(func() { featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning] = old })
+	featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning] = true
+	for _, tc := range []struct {
+		name, provider, instance string
+		want                     bool
+	}{
+		{"Azure CPU", consts.AzureCloudName, "Standard_D8s_v5", true},
+		{"Azure GPU", consts.AzureCloudName, "Standard_NC6s_v3", false},
+		{"AWS CPU", consts.AWSCloudName, "m6i.2xlarge", false},
+		{"AWS GPU", consts.AWSCloudName, "g5.xlarge", false},
+		{"AWS label-only", consts.AWSCloudName, "", false},
+		{"AWS SKU without provider", "", "m6i.2xlarge", false},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Setenv("CLOUD_PROVIDER", tc.provider)
+			inf := &InferenceSpec{Preset: &PresetSpec{PresetMeta: PresetMeta{Name: "test-model"}}}
+			if got := IsCPUInferenceTarget(inf, tc.instance); got != tc.want {
+				t.Fatalf("CPU target=%v, want %v", got, tc.want)
+			}
+			got, err := ResolveCPUInferenceTarget(t.Context(), inf, tc.instance, nil, nil)
+			if err != nil || got != tc.want {
+				t.Fatalf("CPU resolution=%v, %v, want %v", got, err, tc.want)
+			}
+		})
+	}
+	t.Setenv("CLOUD_PROVIDER", "")
+	for _, tc := range []struct {
+		name, providerID, instance string
+		want                       bool
+	}{
+		{"generic BYO", "", "", true},
+		{"Azure BYO", "azure:///node", "Standard_D8s_v5", true},
+		{"AWS BYO provider", "aws:///zone/node", "", false},
+		{"generic BYO custom SKU", "", "custom.vm", true},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			node := &corev1.Node{ObjectMeta: metav1.ObjectMeta{Name: "cpu", Labels: map[string]string{"pool": "cpu", corev1.LabelInstanceTypeStable: tc.instance, corev1.LabelArchStable: "amd64"}}, Spec: corev1.NodeSpec{ProviderID: tc.providerID}, Status: corev1.NodeStatus{Conditions: []corev1.NodeCondition{{Type: corev1.NodeReady, Status: corev1.ConditionTrue}}}}
+			got, err := ResolveCPUInferenceTarget(t.Context(), &InferenceSpec{Preset: &PresetSpec{PresetMeta: PresetMeta{Name: "test-model"}}}, "", &metav1.LabelSelector{MatchLabels: map[string]string{"pool": "cpu"}}, newCPUValidationClient(t, node))
+			if got != tc.want || (tc.want && err != nil) {
+				t.Fatalf("CPU resolution=%v, %v, want %v", got, err, tc.want)
 			}
 		})
 	}

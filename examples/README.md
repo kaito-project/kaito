@@ -23,7 +23,6 @@ CPU-compatible preset examples:
 - NAP InferenceSet (explicit CPU `transformers`): [Gemma Transformers CPU, text only](inference/kaito_inferenceset_gemma_4_e4b_it_cpu_transformers.yaml)
 
 Notes:
-- enable the `enableCPUInference` feature gate first
 - default CPU preset inference uses `vllm` on amd64 nodes and requires the `vllm` feature gate
 - explicit `kaito.sh/runtime: transformers` with an amd64 CPU `instanceType` reuses the configured ordinary `kaito-base` image; no separate CPU-TFS image/build or `vllm` gate is needed
 - Transformers runs one CPU process with `device_map=cpu` and `torch_dtype=bfloat16`; label-only BYO CPU selection remains vLLM-only

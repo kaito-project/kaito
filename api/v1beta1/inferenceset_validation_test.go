@@ -111,12 +111,6 @@ func TestValidateInferenceSetMaintenanceWindow(t *testing.T) {
 }
 
 func TestInferenceSetBenchmarkHelpers(t *testing.T) {
-	oldCPUInferenceGate := featuregates.FeatureGates[consts.FeatureFlagEnableCPUInference]
-	defer func() {
-		featuregates.FeatureGates[consts.FeatureFlagEnableCPUInference] = oldCPUInferenceGate
-	}()
-	featuregates.FeatureGates[consts.FeatureFlagEnableCPUInference] = true
-
 	is := &InferenceSet{
 		ObjectMeta: metav1.ObjectMeta{
 			Annotations: map[string]string{},
@@ -249,13 +243,10 @@ func TestInferenceSetValidateSelector(t *testing.T) {
 }
 
 func TestResolveInferenceSetBenchmarkApplicability_BYOCPUPresetSkipsParentBenchmark(t *testing.T) {
-	oldCPU := featuregates.FeatureGates[consts.FeatureFlagEnableCPUInference]
 	oldNAP := featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning]
 	defer func() {
-		featuregates.FeatureGates[consts.FeatureFlagEnableCPUInference] = oldCPU
 		featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning] = oldNAP
 	}()
-	featuregates.FeatureGates[consts.FeatureFlagEnableCPUInference] = true
 	featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning] = true
 
 	scheme := runtime.NewScheme()

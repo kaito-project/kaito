@@ -73,20 +73,6 @@ func TestParseFeatureGates(t *testing.T) {
 			expectedValue: false,
 		},
 		{
-			name:          "WithEnableCPUInference",
-			featureGates:  "enableCPUInference=true",
-			expectedError: false,
-			targetFeature: "enableCPUInference",
-			expectedValue: true,
-		},
-		{
-			name:          "WithDisableCPUInference",
-			featureGates:  "enableCPUInference=false",
-			expectedError: false,
-			targetFeature: "enableCPUInference",
-			expectedValue: false,
-		},
-		{
 			name:          "WithEmptyFeatureGates",
 			featureGates:  "",
 			expectedError: false,

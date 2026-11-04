@@ -1,4 +1,3 @@
-# Requires enableCPUInference=true on the workspace manager.
 # Explicit Transformers on a CPU VM reuses the configured kaito-base image.
 # No separate Transformers CPU image, GPU resources, or post-load benchmark.
 # Accept the Gemma license and create a same-namespace hf-token Secret with

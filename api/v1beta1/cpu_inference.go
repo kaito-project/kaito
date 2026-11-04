@@ -16,6 +16,7 @@ package v1beta1
 import (
 	"context"
 	"fmt"
+	"os"
 	"regexp"
 	"strings"
 
@@ -31,9 +32,6 @@ import (
 )
 
 var (
-	awsCPUInstanceTypePattern = regexp.MustCompile(`^[a-z][a-z0-9-]*\.[a-z0-9]+$`)
-	awsInstanceFamilyPattern  = regexp.MustCompile(`^([a-z]+)`)
-	awsArmCPUFamilyPattern    = regexp.MustCompile(`^(?:a1|[a-z]+[0-9]+g[a-z]*)$`)
 	// Azure CPU SKUs include both unversioned names (e.g. Standard_B2s) and versioned names.
 	azureCPUInstancePattern    = regexp.MustCompile(`(?i)^standard_[a-z]+[0-9]+(?:-[0-9]+)?[a-z]*(?:_v[0-9]+)?$`)
 	azureArmCPUInstancePattern = regexp.MustCompile(`(?i)^standard_[a-z]+[0-9]+(?:-[0-9]+)?p[a-z]*(?:_v[0-9]+)?$`)
@@ -93,64 +91,16 @@ func isAzureCPUInstanceType(instanceType string) bool {
 	return azureCPUInstancePattern.MatchString(instanceType) && !isAzureGPUOrAcceleratorSKU(instanceType)
 }
 
-func isAWSGPUOrAcceleratorInstanceType(instanceType string) bool {
-	if !awsCPUInstanceTypePattern.MatchString(instanceType) {
-		return false
-	}
-
-	familyPart := strings.ToLower(strings.SplitN(instanceType, ".", 2)[0])
-	matches := awsInstanceFamilyPattern.FindStringSubmatch(familyPart)
-	if len(matches) < 2 {
-		return false
-	}
-
-	switch matches[1] {
-	case "g", "gr", "p", "inf", "trn", "dl":
-		return true
-	default:
-		return false
-	}
-}
-
-func isCPUInstanceType(instanceType string) bool {
-	if instanceType == "" {
-		return false
-	}
-
-	if strings.HasPrefix(strings.ToLower(instanceType), "standard_") {
-		return !isAzureGPUOrAcceleratorSKU(instanceType)
-	}
-
-	if !awsCPUInstanceTypePattern.MatchString(instanceType) {
-		return false
-	}
-
-	return !isAWSGPUOrAcceleratorInstanceType(instanceType)
-}
-
-func isAWSARMCPUInstanceType(instanceType string) bool {
-	if !awsCPUInstanceTypePattern.MatchString(instanceType) {
-		return false
-	}
-
-	familyPart := strings.ToLower(strings.SplitN(instanceType, ".", 2)[0])
-	return awsArmCPUFamilyPattern.MatchString(familyPart)
-}
-
 func isAzureARMCPUInstanceType(instanceType string) bool {
 	return azureArmCPUInstancePattern.MatchString(instanceType)
 }
 
 func IsAMD64CompatibleVLLMCPUInstanceType(instanceType string) bool {
-	if !isCPUInstanceType(instanceType) {
+	if !isAzureCPUInstanceType(instanceType) {
 		return false
 	}
 
-	if strings.HasPrefix(strings.ToLower(instanceType), "standard_") {
-		return !isAzureARMCPUInstanceType(instanceType)
-	}
-
-	return !isAWSARMCPUInstanceType(instanceType)
+	return !isAzureARMCPUInstanceType(instanceType)
 }
 
 func nodeHasGPUSignals(node *corev1.Node) bool {
@@ -214,6 +164,10 @@ func AreLabelSelectedReadyNodesCPU(ctx context.Context, labelSelector *metav1.La
 		}
 		if !isReady {
 			continue
+		}
+
+		if !nodeHasGPUSignals(node) && strings.HasPrefix(node.Spec.ProviderID, "aws://") {
+			return false, fmt.Errorf("AWS CPU nodes are not supported for basic CPU inference")
 		}
 
 		if nodeHasGPUSignals(node) {
@@ -283,7 +237,7 @@ func AreLabelSelectedReadyNodesAMD64(ctx context.Context, labelSelector *metav1.
 
 // ResolveCPUInferenceTarget reports whether the inference spec resolves to the basic CPU path.
 func ResolveCPUInferenceTarget(ctx context.Context, inference *InferenceSpec, instanceType string, labelSelector *metav1.LabelSelector, kubeClient client.Client) (bool, error) {
-	if !featuregates.FeatureGates[consts.FeatureFlagEnableCPUInference] {
+	if os.Getenv("CLOUD_PROVIDER") == consts.AWSCloudName {
 		return false, nil
 	}
 	if inference == nil {
@@ -295,7 +249,7 @@ func ResolveCPUInferenceTarget(ctx context.Context, inference *InferenceSpec, in
 	if inference.Preset == nil || !IsCPUCompatiblePreset(inference.Preset.Name) {
 		return false, nil
 	}
-	if isCPUInstanceType(instanceType) {
+	if isAzureCPUInstanceType(instanceType) {
 		return true, nil
 	}
 	if !featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning] {
@@ -312,7 +266,7 @@ func ResolveCPUInferenceTarget(ctx context.Context, inference *InferenceSpec, in
 
 // IsCPUInferenceTarget reports whether the inference spec resolves to the basic CPU path.
 func IsCPUInferenceTarget(inference *InferenceSpec, instanceType string) bool {
-	if !featuregates.FeatureGates[consts.FeatureFlagEnableCPUInference] {
+	if os.Getenv("CLOUD_PROVIDER") == consts.AWSCloudName {
 		return false
 	}
 	if inference == nil {
@@ -321,7 +275,7 @@ func IsCPUInferenceTarget(inference *InferenceSpec, instanceType string) bool {
 	if IsInferenceTemplateCPUTarget(inference.Template) {
 		return true
 	}
-	return inference.Preset != nil && IsCPUCompatiblePreset(inference.Preset.Name) && isCPUInstanceType(instanceType)
+	return inference.Preset != nil && IsCPUCompatiblePreset(inference.Preset.Name) && isAzureCPUInstanceType(instanceType)
 }
 
 // IsExplicitTransformersCPUWorkspace permits the existing Transformers base image

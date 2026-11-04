@@ -35,11 +35,10 @@ func TestCPUInferenceCreateAndUnchangedReconcile(t *testing.T) {
 	t.Setenv("CLOUD_PROVIDER", consts.AzureCloudName)
 	t.Setenv("PRESET_REGISTRY_NAME", "mcr.microsoft.com/aks/kaito")
 	test.RegisterTestModel()
-	for _, gate := range []string{consts.FeatureFlagEnableCPUInference, consts.FeatureFlagVLLM, consts.FeatureFlagDisableNodeAutoProvisioning} {
+	for _, gate := range []string{consts.FeatureFlagVLLM, consts.FeatureFlagDisableNodeAutoProvisioning} {
 		old := featuregates.FeatureGates[gate]
 		t.Cleanup(func() { featuregates.FeatureGates[gate] = old })
 	}
-	featuregates.FeatureGates[consts.FeatureFlagEnableCPUInference] = true
 	featuregates.FeatureGates[consts.FeatureFlagVLLM] = true
 	featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning] = false
 	for _, runtimeName := range []string{"vllm", "transformers"} {
@@ -88,12 +87,12 @@ func TestWorkspaceHashPreservesUpstreamInputs(t *testing.T) {
 }
 
 // Replica drift alone must not expand reconciliation into a template rollout.
-// This also protects GPU workloads while CPU inference is disabled.
+// This also protects existing GPU workloads.
 func TestInferenceMatchingRevisionPreservesReplicaDrift(t *testing.T) {
 	t.Setenv("CLOUD_PROVIDER", consts.AzureCloudName)
 	t.Setenv("PRESET_REGISTRY_NAME", "mcr.microsoft.com/aks/kaito")
 	test.RegisterTestModel()
-	for _, gate := range []string{consts.FeatureFlagEnableCPUInference, consts.FeatureFlagVLLM, consts.FeatureFlagDisableNodeAutoProvisioning} {
+	for _, gate := range []string{consts.FeatureFlagVLLM, consts.FeatureFlagDisableNodeAutoProvisioning} {
 		old := featuregates.FeatureGates[gate]
 		t.Cleanup(func() { featuregates.FeatureGates[gate] = old })
 	}
@@ -101,13 +100,11 @@ func TestInferenceMatchingRevisionPreservesReplicaDrift(t *testing.T) {
 	featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning] = false
 	for _, tc := range []struct {
 		name, instanceType string
-		cpuEnabled         bool
 	}{
-		{"GPU with CPU gate off", "Standard_NC24ads_A100_v4", false},
-		{"CPU", "Standard_D8s_v5", true},
+		{"GPU", "Standard_NC24ads_A100_v4"},
+		{"CPU", "Standard_D8s_v5"},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
-			featuregates.FeatureGates[consts.FeatureFlagEnableCPUInference] = tc.cpuEnabled
 			ws := test.MockWorkspaceWithPresetVLLM.DeepCopy()
 			ws.Resource.InstanceType = tc.instanceType
 			ws.Status.TargetNodeCount = 1

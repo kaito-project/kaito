@@ -1,4 +1,3 @@
-# Requires the workspace manager to enable the enableCPUInference feature gate.
 apiVersion: kaito.sh/v1beta1
 kind: InferenceSet
 metadata:

@@ -198,10 +198,6 @@ func (w *Workspace) validateAnnotations() (errs *apis.FieldError) {
 }
 
 func (w *Workspace) validateCPUInferenceConstraints(ctx context.Context, kubeClient client.Client) (errs *apis.FieldError) {
-	if !featuregates.FeatureGates[consts.FeatureFlagEnableCPUInference] {
-		return nil
-	}
-
 	isCPUTarget, resolveErr := ResolveCPUInferenceTarget(ctx, w.Inference, w.Resource.InstanceType, w.Resource.LabelSelector, kubeClient)
 	if resolveErr != nil {
 		errs = errs.Also(apis.ErrGeneric(fmt.Sprintf("failed to resolve CPU inference target: %v", resolveErr), "resource.labelSelector"))
@@ -1033,32 +1029,8 @@ func ValidateCPUInstanceTypeForNAP(instanceType string) *apis.FieldError {
 			)
 		}
 		return nil
-	case consts.AWSCloudName:
-		if !awsCPUInstanceTypePattern.MatchString(instanceType) {
-			return apis.ErrInvalidValue(
-				fmt.Sprintf("unsupported CPU instance type %s. Expected a well-formed AWS CPU instance type such as m6i.2xlarge or r7i.4xlarge", instanceType),
-				"instanceType",
-			)
-		}
-
-		familyPart := strings.ToLower(strings.SplitN(instanceType, ".", 2)[0])
-		matches := awsInstanceFamilyPattern.FindStringSubmatch(familyPart)
-		if len(matches) < 2 {
-			return apis.ErrInvalidValue(
-				fmt.Sprintf("unsupported CPU instance type %s. Expected a well-formed AWS CPU instance type such as m6i.2xlarge or r7i.4xlarge", instanceType),
-				"instanceType",
-			)
-		}
-
-		if isAWSGPUOrAcceleratorInstanceType(instanceType) {
-			return apis.ErrInvalidValue(
-				fmt.Sprintf("unsupported CPU instance type %s. GPU/accelerator-oriented AWS families (g*, p*, inf*, trn*, dl*) are not allowed for the basic CPU path", instanceType),
-				"instanceType",
-			)
-		}
-		return nil
 	default:
-		return nil
+		return apis.ErrInvalidValue("CPU node auto-provisioning is only supported on Azure", "instanceType")
 	}
 }
 

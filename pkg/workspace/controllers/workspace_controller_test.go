@@ -2736,7 +2736,7 @@ func TestEnsureModelMirror_StaticAnnotationsCarryReason(t *testing.T) {
 
 func TestUpdateWorkspaceTargetNodeCountBYOCPUInitialization(t *testing.T) {
 	test.RegisterTestModel()
-	for _, gate := range []string{consts.FeatureFlagEnableCPUInference, consts.FeatureFlagDisableNodeAutoProvisioning} {
+	for _, gate := range []string{consts.FeatureFlagDisableNodeAutoProvisioning} {
 		old := featuregates.FeatureGates[gate]
 		defer func(g string, v bool) { featuregates.FeatureGates[g] = v }(gate, old)
 		featuregates.FeatureGates[gate] = true

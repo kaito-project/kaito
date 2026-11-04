@@ -3546,11 +3546,11 @@ func TestValidateCreate_InvalidSpeculativeDecodingValueReportedOnce(t *testing.T
 // for metadata changes or ordinary same-runtime image upgrades.
 func TestValidateUpdateBYOCPUDoesNotRevalidateNodeInventory(t *testing.T) {
 	registerCPUValidationTestModels()
-	oldCPU, oldNAP, oldClient := featuregates.FeatureGates[consts.FeatureFlagEnableCPUInference], featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning], k8sclient.Client
+	oldNAP, oldClient := featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning], k8sclient.Client
 	t.Cleanup(func() {
-		featuregates.FeatureGates[consts.FeatureFlagEnableCPUInference], featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning], k8sclient.Client = oldCPU, oldNAP, oldClient
+		featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning], k8sclient.Client = oldNAP, oldClient
 	})
-	featuregates.FeatureGates[consts.FeatureFlagEnableCPUInference], featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning] = true, true
+	featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning] = true
 	scheme := runtime.NewScheme()
 	if err := v1.AddToScheme(scheme); err != nil {
 		t.Fatal(err)

@@ -1459,12 +1459,6 @@ func TestSetAdapterPuller(t *testing.T) {
 }
 
 func TestDefaultTolerations(t *testing.T) {
-	oldGate := featuregates.FeatureGates[consts.FeatureFlagEnableCPUInference]
-	defer func() {
-		featuregates.FeatureGates[consts.FeatureFlagEnableCPUInference] = oldGate
-	}()
-	featuregates.FeatureGates[consts.FeatureFlagEnableCPUInference] = true
-
 	testcases := map[string]struct {
 		cloudProvider string
 		workspace     *v1beta1.Workspace
@@ -2405,13 +2399,10 @@ func TestGeneratePresetInferenceNodeImageWeights(t *testing.T) {
 
 func TestGetDesiredInferenceImageNameWithResolution_BYOCPUPresetUsesCPUImage(t *testing.T) {
 	test.RegisterTestModel()
-	oldCPUInferenceGate := featuregates.FeatureGates[consts.FeatureFlagEnableCPUInference]
 	oldNAPGate := featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning]
 	defer func() {
-		featuregates.FeatureGates[consts.FeatureFlagEnableCPUInference] = oldCPUInferenceGate
 		featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning] = oldNAPGate
 	}()
-	featuregates.FeatureGates[consts.FeatureFlagEnableCPUInference] = true
 	featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning] = true
 
 	scheme := runtime.NewScheme()
@@ -2445,13 +2436,10 @@ func TestGetDesiredInferenceImageNameWithResolution_BYOCPUPresetUsesCPUImage(t *
 
 func TestGeneratePresetInference_BYOCPUPresetUsesCPUToleration(t *testing.T) {
 	test.RegisterTestModel()
-	oldCPUInferenceGate := featuregates.FeatureGates[consts.FeatureFlagEnableCPUInference]
 	oldNAPGate := featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning]
 	defer func() {
-		featuregates.FeatureGates[consts.FeatureFlagEnableCPUInference] = oldCPUInferenceGate
 		featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning] = oldNAPGate
 	}()
-	featuregates.FeatureGates[consts.FeatureFlagEnableCPUInference] = true
 	featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning] = true
 
 	scheme := runtime.NewScheme()
@@ -2612,9 +2600,6 @@ func TestGeneratePresetInferenceCUDAToolkitProvisioner(t *testing.T) {
 	})
 
 	t.Run("cpu preset path skips cuda toolkit provisioning even for deepgemm models", func(t *testing.T) {
-		oldGate := featuregates.FeatureGates[consts.FeatureFlagEnableCPUInference]
-		defer func() { featuregates.FeatureGates[consts.FeatureFlagEnableCPUInference] = oldGate }()
-		featuregates.FeatureGates[consts.FeatureFlagEnableCPUInference] = true
 
 		mockClient := test.NewClient()
 		mockClient.On("Get", mock.IsType(context.TODO()), mock.Anything, mock.IsType(&corev1.ConfigMap{}), mock.Anything).Return(nil)
@@ -2655,13 +2640,10 @@ func TestGeneratePresetInferenceCUDAToolkitProvisioner(t *testing.T) {
 
 func TestPresetInferenceRuntimeImages(t *testing.T) {
 	test.RegisterTestModel()
-	oldCPU := featuregates.FeatureGates[consts.FeatureFlagEnableCPUInference]
 	oldVLLM := featuregates.FeatureGates[consts.FeatureFlagVLLM]
 	t.Cleanup(func() {
-		featuregates.FeatureGates[consts.FeatureFlagEnableCPUInference] = oldCPU
 		featuregates.FeatureGates[consts.FeatureFlagVLLM] = oldVLLM
 	})
-	featuregates.FeatureGates[consts.FeatureFlagEnableCPUInference] = true
 	for _, tc := range []struct {
 		name, instanceType, runtime     string
 		vllmEnabled, wantCPU, wantError bool
@@ -2702,13 +2684,10 @@ func TestPresetInferenceRuntimeImages(t *testing.T) {
 
 func TestGeneratePresetInference_ExplicitTransformersCPU(t *testing.T) {
 	test.RegisterTestModel()
-	oldCPU := featuregates.FeatureGates[consts.FeatureFlagEnableCPUInference]
 	oldVLLM := featuregates.FeatureGates[consts.FeatureFlagVLLM]
 	t.Cleanup(func() {
-		featuregates.FeatureGates[consts.FeatureFlagEnableCPUInference] = oldCPU
 		featuregates.FeatureGates[consts.FeatureFlagVLLM] = oldVLLM
 	})
-	featuregates.FeatureGates[consts.FeatureFlagEnableCPUInference] = true
 	featuregates.FeatureGates[consts.FeatureFlagVLLM] = false
 	ws := test.MockWorkspaceWithPreset.DeepCopy()
 	ws.Resource.InstanceType = "Standard_D16s_v6"
@@ -2792,13 +2771,10 @@ func assertNoLMCacheSidecar(t *testing.T, spec *corev1.PodSpec) {
 
 func TestGeneratePresetInference_VLLMCPUSkipsLMCache(t *testing.T) {
 	test.RegisterTestModel()
-	oldCPU := featuregates.FeatureGates[consts.FeatureFlagEnableCPUInference]
 	oldVLLM := featuregates.FeatureGates[consts.FeatureFlagVLLM]
 	t.Cleanup(func() {
-		featuregates.FeatureGates[consts.FeatureFlagEnableCPUInference] = oldCPU
 		featuregates.FeatureGates[consts.FeatureFlagVLLM] = oldVLLM
 	})
-	featuregates.FeatureGates[consts.FeatureFlagEnableCPUInference] = true
 	featuregates.FeatureGates[consts.FeatureFlagVLLM] = true
 	for _, runtimeName := range []string{"", "vllm"} {
 		t.Run("runtime="+runtimeName, func(t *testing.T) {
@@ -2886,11 +2862,11 @@ func TestGeneratePresetInference_CapturedTarget(t *testing.T) {
 	test.RegisterTestModel()
 	t.Setenv("CLOUD_PROVIDER", consts.AzureCloudName)
 	t.Setenv("PRESET_REGISTRY_NAME", "test-registry")
-	oldCPU, oldNAP, oldVLLM := featuregates.FeatureGates[consts.FeatureFlagEnableCPUInference], featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning], featuregates.FeatureGates[consts.FeatureFlagVLLM]
+	oldNAP, oldVLLM := featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning], featuregates.FeatureGates[consts.FeatureFlagVLLM]
 	t.Cleanup(func() {
-		featuregates.FeatureGates[consts.FeatureFlagEnableCPUInference], featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning], featuregates.FeatureGates[consts.FeatureFlagVLLM] = oldCPU, oldNAP, oldVLLM
+		featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning], featuregates.FeatureGates[consts.FeatureFlagVLLM] = oldNAP, oldVLLM
 	})
-	featuregates.FeatureGates[consts.FeatureFlagEnableCPUInference], featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning], featuregates.FeatureGates[consts.FeatureFlagVLLM] = true, true, true
+	featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning], featuregates.FeatureGates[consts.FeatureFlagVLLM] = true, true
 	for _, cpu := range []bool{true, false} {
 		t.Run(fmt.Sprintf("CPU=%t", cpu), func(t *testing.T) {
 			scheme := runtime.NewScheme()

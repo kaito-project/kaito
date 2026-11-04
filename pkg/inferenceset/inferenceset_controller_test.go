@@ -1180,9 +1180,6 @@ func TestAddOrUpdateInferenceSet_PropagatesCacheAnnotationToWorkspace(t *testing
 
 func TestSelectWorkspacesToDelete_UsesRuntimeAwareDesiredImageForCPU(t *testing.T) {
 	ctx := context.Background()
-	oldGate := featuregates.FeatureGates[consts.FeatureFlagEnableCPUInference]
-	defer func() { featuregates.FeatureGates[consts.FeatureFlagEnableCPUInference] = oldGate }()
-	featuregates.FeatureGates[consts.FeatureFlagEnableCPUInference] = true
 
 	iObj := test.MockInferenceSetWithPresetVLLM.DeepCopy()
 	iObj.Spec.Template.Resource.InstanceType = "Standard_D8s_v5"
@@ -1215,11 +1212,9 @@ func TestSelectWorkspacesToDelete_UsesRuntimeAwareDesiredImageForCPU(t *testing.
 
 func TestEnsureGatewayAPIInferenceExtensionCPUSelectorResolution(t *testing.T) {
 	test.RegisterTestModel()
-	oldCPU := featuregates.FeatureGates[consts.FeatureFlagEnableCPUInference]
 	oldBYO := featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning]
 	oldGateway := featuregates.FeatureGates[consts.FeatureFlagGatewayAPIInferenceExtension]
 	t.Cleanup(func() {
-		featuregates.FeatureGates[consts.FeatureFlagEnableCPUInference] = oldCPU
 		featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning] = oldBYO
 		featuregates.FeatureGates[consts.FeatureFlagGatewayAPIInferenceExtension] = oldGateway
 	})
@@ -1229,19 +1224,16 @@ func TestEnsureGatewayAPIInferenceExtensionCPUSelectorResolution(t *testing.T) {
 
 	for _, tt := range []struct {
 		name          string
-		cpuEnabled    bool
 		hasWorkspaces bool
 		instanceType  string
 		nodeListErr   error
 	}{
-		{name: "CPU uses existing workspace resource selector", cpuEnabled: true, hasWorkspaces: true},
-		{name: "CPU lookup error is propagated", cpuEnabled: true, hasWorkspaces: true, nodeListErr: listErr},
-		{name: "explicit CPU workspace skips GWIE", cpuEnabled: true, hasWorkspaces: true, instanceType: "Standard_D8s_v5"},
-		{name: "no workspaces skips node lookup even with CPU enabled", cpuEnabled: true},
-		{name: "no workspaces skips node lookup with CPU disabled"},
+		{name: "CPU uses existing workspace resource selector", hasWorkspaces: true},
+		{name: "CPU lookup error is propagated", hasWorkspaces: true, nodeListErr: listErr},
+		{name: "explicit CPU workspace skips GWIE", hasWorkspaces: true, instanceType: "Standard_D8s_v5"},
+		{name: "no workspaces skips node lookup"},
 	} {
 		t.Run(tt.name, func(t *testing.T) {
-			featuregates.FeatureGates[consts.FeatureFlagEnableCPUInference] = tt.cpuEnabled
 			iObj := test.MockInferenceSetWithPresetVLLM.DeepCopy()
 			iObj.Spec.Template.Resource.InstanceType = ""
 			iObj.Spec.Selector = &v1.LabelSelector{MatchLabels: map[string]string{"app": "workspaces"}}

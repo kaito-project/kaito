@@ -149,10 +149,14 @@ func (w *Workspace) ValidateCreate(ctx context.Context) (errs *apis.FieldError) 
 		}
 
 		runtime := GetWorkspaceRuntimeName(w)
-		errs = errs.Also(w.validateCPUInferenceConstraints(ctx, k8sclient.Client))
+		isCPUTarget, cpuResolveErr := ResolveCPUInferenceTarget(ctx, w.Inference, w.Resource.InstanceType, w.Resource.LabelSelector, k8sclient.Client)
+		errs = errs.Also(w.validateCPUInferenceConstraintsWithResolution(isCPUTarget, cpuResolveErr))
+		// Reuse this create's result, including errors. Resource validation still
+		// checks its preset/selector early returns before consuming the result.
+		resolveCPUTarget := func() (bool, error) { return isCPUTarget, cpuResolveErr }
 		// TODO: Add Adapter Spec Validation - Including DataSource Validation for Adapter
 		errs = errs.Also(
-			w.Resource.validateCreateWithInference(ctx, w.Inference, bypassResourceChecks, runtime, w.Namespace).ViaField("resource"),
+			w.Resource.validateCreateWithInferenceTarget(ctx, w.Inference, bypassResourceChecks, runtime, w.Namespace, resolveCPUTarget).ViaField("resource"),
 			w.Inference.validateCreate(ctx, runtime, w.Namespace).ViaField("inference"),
 			w.validateInferenceConfig(ctx),
 			w.validateCustomModelStreaming(),
@@ -197,8 +201,12 @@ func (w *Workspace) validateAnnotations() (errs *apis.FieldError) {
 	return errs
 }
 
-func (w *Workspace) validateCPUInferenceConstraints(ctx context.Context, kubeClient client.Client) (errs *apis.FieldError) {
+func (w *Workspace) validateCPUInferenceConstraints(ctx context.Context, kubeClient client.Client) *apis.FieldError {
 	isCPUTarget, resolveErr := ResolveCPUInferenceTarget(ctx, w.Inference, w.Resource.InstanceType, w.Resource.LabelSelector, kubeClient)
+	return w.validateCPUInferenceConstraintsWithResolution(isCPUTarget, resolveErr)
+}
+
+func (w *Workspace) validateCPUInferenceConstraintsWithResolution(isCPUTarget bool, resolveErr error) (errs *apis.FieldError) {
 	if resolveErr != nil {
 		errs = errs.Also(apis.ErrGeneric(fmt.Sprintf("failed to resolve CPU inference target: %v", resolveErr), "resource.labelSelector"))
 		return errs
@@ -209,23 +217,20 @@ func (w *Workspace) validateCPUInferenceConstraints(ctx context.Context, kubeCli
 
 	runtimeName := GetWorkspaceRuntimeName(w)
 	runtimeAnnotation := w.GetAnnotations()[AnnotationWorkspaceRuntime]
-	if runtimeAnnotation != "" && runtimeAnnotation != string(model.RuntimeNameVLLM) && !IsExplicitTransformersCPUWorkspace(w) {
+	explicitTransformersCPU := IsExplicitTransformersCPUWorkspace(w)
+	if runtimeAnnotation != "" && runtimeAnnotation != string(model.RuntimeNameVLLM) && !explicitTransformersCPU {
 		errs = errs.Also(apis.ErrInvalidValue(
 			fmt.Sprintf("CPU inference requires vllm or explicit transformers with a declared CPU instanceType; %s is not supported", runtimeAnnotation),
 			fmt.Sprintf("metadata.annotations[%s]", AnnotationWorkspaceRuntime),
 		))
-	} else if w.Inference != nil && w.Inference.Preset != nil && runtimeName != model.RuntimeNameVLLM && !IsExplicitTransformersCPUWorkspace(w) {
+	} else if w.Inference != nil && w.Inference.Preset != nil && runtimeName != model.RuntimeNameVLLM && !explicitTransformersCPU {
 		errs = errs.Also(apis.ErrInvalidValue(
 			"CPU preset inference requires the vllm feature gate to be enabled",
 			"inference.preset",
 		))
 	}
 
-	count := 1
-	if w.Resource.Count != nil {
-		count = *w.Resource.Count
-	}
-	if count != 1 {
+	if w.Resource.Count != nil && *w.Resource.Count != 1 {
 		errs = errs.Also(apis.ErrInvalidValue("basic CPU inference only supports a single node per Workspace", "resource.count"))
 	}
 
@@ -614,7 +619,14 @@ func (r *ResourceSpec) validateCreateWithTuning(tuning *TuningSpec) (errs *apis.
 	return errs
 }
 
-func (r *ResourceSpec) validateCreateWithInference(ctx context.Context, inference *InferenceSpec, bypassResourceChecks bool, runtime model.RuntimeName, wsNamespace string) (errs *apis.FieldError) {
+func (r *ResourceSpec) validateCreateWithInference(ctx context.Context, inference *InferenceSpec, bypassResourceChecks bool, runtime model.RuntimeName, wsNamespace string) *apis.FieldError {
+	return r.validateCreateWithInferenceTarget(ctx, inference, bypassResourceChecks, runtime, wsNamespace, func() (bool, error) {
+		return ResolveCPUInferenceTarget(ctx, inference, r.InstanceType, r.LabelSelector, k8sclient.Client)
+	})
+}
+
+// resolveCPUTarget is called only after the preset and selector early returns.
+func (r *ResourceSpec) validateCreateWithInferenceTarget(ctx context.Context, inference *InferenceSpec, bypassResourceChecks bool, runtime model.RuntimeName, wsNamespace string, resolveCPUTarget func() (bool, error)) (errs *apis.FieldError) {
 	var presetName, secretName string
 	configMapName := inference.Config
 	if inference.Preset != nil {
@@ -660,7 +672,7 @@ func (r *ResourceSpec) validateCreateWithInference(ctx context.Context, inferenc
 	}
 
 	napDisabled := featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning]
-	isCPUInference, cpuResolveErr := ResolveCPUInferenceTarget(ctx, inference, instanceType, r.LabelSelector, k8sclient.Client)
+	isCPUInference, cpuResolveErr := resolveCPUTarget()
 	if cpuResolveErr != nil {
 		errs = errs.Also(apis.ErrGeneric(fmt.Sprintf("failed to resolve CPU inference target: %v", cpuResolveErr), "labelSelector"))
 		return errs

@@ -131,11 +131,12 @@ func AreLabelSelectedReadyNodesCPU(ctx context.Context, labelSelector *metav1.La
 			continue
 		}
 
-		if !nodeHasGPUSignals(node) && strings.HasPrefix(node.Spec.ProviderID, "aws://") {
+		hasGPU := nodeHasGPUSignals(node)
+		if !hasGPU && strings.HasPrefix(node.Spec.ProviderID, "aws://") {
 			return false, fmt.Errorf("AWS CPU nodes are not supported for basic CPU inference")
 		}
 
-		if nodeHasGPUSignals(node) {
+		if hasGPU {
 			seenReadyGPU = true
 		} else {
 			seenReadyCPU = true

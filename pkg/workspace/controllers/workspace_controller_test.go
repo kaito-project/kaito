@@ -2760,3 +2760,52 @@ func TestUpdateWorkspaceTargetNodeCountBYOCPUInitialization(t *testing.T) {
 	require.Equal(t, int32(1), stored.Status.TargetNodeCount)
 	require.NoError(t, r.UpdateWorkspaceTargetNodeCount(context.Background(), ws))
 }
+
+func TestUpdateWorkspaceTargetNodeCountCPUPresetsAndCustomTemplates(t *testing.T) {
+	test.RegisterTestModel()
+	t.Setenv("CLOUD_PROVIDER", consts.AzureCloudName)
+	for gate, enabled := range map[string]bool{
+		consts.FeatureFlagVLLM:                        true,
+		consts.FeatureFlagDisableNodeAutoProvisioning: false,
+	} {
+		old := featuregates.FeatureGates[gate]
+		t.Cleanup(func() { featuregates.FeatureGates[gate] = old })
+		featuregates.FeatureGates[gate] = enabled
+	}
+	for _, runtimeName := range []string{"vllm", "transformers"} {
+		for _, preset := range []bool{false, true} {
+			t.Run(fmt.Sprintf("runtime=%s/preset=%t", runtimeName, preset), func(t *testing.T) {
+				count := 2
+				inferenceSpec := &v1beta1.InferenceSpec{Template: &corev1.PodTemplateSpec{
+					Spec: corev1.PodSpec{Containers: []corev1.Container{{Name: "custom", Image: "example.com/custom:v1"}}},
+				}}
+				if preset {
+					count = 1
+					inferenceSpec = &v1beta1.InferenceSpec{Preset: &v1beta1.PresetSpec{PresetMeta: v1beta1.PresetMeta{Name: "test-model"}}}
+				}
+				// Custom templates admitted by the served alpha API retain Resource.Count
+				// on both the estimator and non-vLLM paths, even on Azure CPU SKUs.
+				ws := &v1beta1.Workspace{
+					ObjectMeta: v1.ObjectMeta{Name: "cpu-target-count", Namespace: "default", Annotations: map[string]string{v1beta1.AnnotationWorkspaceRuntime: runtimeName}},
+					Resource: v1beta1.ResourceSpec{
+						//nolint:staticcheck //SA1019: preserve legacy custom-template Resource.Count behavior
+						Count: &count, InstanceType: "Standard_D8s_v5",
+					},
+					Inference: inferenceSpec,
+				}
+				scheme := runtime.NewScheme()
+				require.NoError(t, corev1.AddToScheme(scheme))
+				require.NoError(t, v1beta1.AddToScheme(scheme))
+				c := fake.NewClientBuilder().WithScheme(scheme).WithStatusSubresource(ws).WithObjects(ws).Build()
+				r := &WorkspaceReconciler{Client: c, Estimator: &nodesestimator.NodeEstimator{}}
+				require.NoError(t, r.UpdateWorkspaceTargetNodeCount(context.Background(), ws))
+				require.Equal(t, int32(count), ws.Status.TargetNodeCount)
+				stored := &v1beta1.Workspace{}
+				require.NoError(t, c.Get(context.Background(), client.ObjectKeyFromObject(ws), stored))
+				require.Equal(t, int32(count), stored.Status.TargetNodeCount)
+				require.NoError(t, r.UpdateWorkspaceTargetNodeCount(context.Background(), ws))
+				require.Equal(t, int32(count), ws.Status.TargetNodeCount)
+			})
+		}
+	}
+}

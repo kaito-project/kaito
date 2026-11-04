@@ -1731,7 +1731,7 @@ func formatWorkspaceStatusChanges(oldStatus, newStatus kaitov1beta1.WorkspaceSta
 	return strings.Join(changes, "; ")
 }
 
-// UpdateWorkspaceTargetNodeCount initializes the node estimate, using one node for basic CPU inference.
+// UpdateWorkspaceTargetNodeCount initializes the node estimate, using one node for basic CPU presets.
 func (c *WorkspaceReconciler) UpdateWorkspaceTargetNodeCount(ctx context.Context, wObj *kaitov1beta1.Workspace) error {
 	var err error
 	targetNodeCount := int32(1)
@@ -1740,7 +1740,7 @@ func (c *WorkspaceReconciler) UpdateWorkspaceTargetNodeCount(ctx context.Context
 		if resolveErr != nil {
 			return fmt.Errorf("failed to resolve CPU inference target: %w", resolveErr)
 		}
-		if isCPU {
+		if isCPU && wObj.Inference.Preset != nil {
 			if err := workspace.UpdateWorkspaceStatus(ctx, c.Client, &client.ObjectKey{Namespace: wObj.Namespace, Name: wObj.Name}, func(status *kaitov1beta1.WorkspaceStatus) error {
 				status.TargetNodeCount = 1
 				return nil

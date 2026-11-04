@@ -580,7 +580,7 @@ func GetDesiredInferenceImageNameWithResolution(ctx context.Context, ws *v1beta1
 	}
 	runtimeName := v1beta1.GetWorkspaceRuntimeName(ws)
 	if isCPUInference && runtimeName != pkgmodel.RuntimeNameVLLM && !v1beta1.IsExplicitTransformersCPUWorkspace(ws) {
-		return "", fmt.Errorf("CPU preset inference requires vllm or explicit transformers with an amd64 CPU instanceType, got %s", runtimeName)
+		return "", fmt.Errorf("CPU preset inference requires vllm or explicit transformers with a declared CPU instanceType, got %s", runtimeName)
 	}
 	return getPresetInferenceImageName(runtimeName, isCPUInference), nil
 }
@@ -638,7 +638,7 @@ func GenerateInferencePodSpec(gpuConfig *sku.GPUConfig, numNodes int, streamingM
 
 		isCPUInference := gpuConfig == nil
 		if isCPUInference && v1beta1.GetWorkspaceRuntimeName(ctx.Workspace) != pkgmodel.RuntimeNameVLLM && !v1beta1.IsExplicitTransformersCPUWorkspace(ctx.Workspace) {
-			return fmt.Errorf("CPU preset inference requires vllm or explicit transformers with an amd64 CPU instanceType")
+			return fmt.Errorf("CPU preset inference requires vllm or explicit transformers with a declared CPU instanceType")
 		}
 
 		volumes, volumeMounts, cudaHome := configureCUDAToolkitVolume(
@@ -1248,24 +1248,6 @@ func applyCPUDedicatedPlacement(ws *v1beta1.Workspace, spec *corev1.PodSpec, isC
 	}
 	if spec.Affinity == nil {
 		spec.Affinity = &corev1.Affinity{}
-	}
-	// Required node selector terms are ORed. Add the image architecture to
-	// every term so no alternate placement path can admit an arm64 node.
-	if spec.Affinity.NodeAffinity == nil {
-		spec.Affinity.NodeAffinity = &corev1.NodeAffinity{}
-	}
-	nodeSelector := spec.Affinity.NodeAffinity.RequiredDuringSchedulingIgnoredDuringExecution
-	if nodeSelector == nil {
-		nodeSelector = &corev1.NodeSelector{}
-		spec.Affinity.NodeAffinity.RequiredDuringSchedulingIgnoredDuringExecution = nodeSelector
-	}
-	if len(nodeSelector.NodeSelectorTerms) == 0 {
-		nodeSelector.NodeSelectorTerms = []corev1.NodeSelectorTerm{{}}
-	}
-	for i := range nodeSelector.NodeSelectorTerms {
-		nodeSelector.NodeSelectorTerms[i].MatchExpressions = append(nodeSelector.NodeSelectorTerms[i].MatchExpressions, corev1.NodeSelectorRequirement{
-			Key: corev1.LabelArchStable, Operator: corev1.NodeSelectorOpIn, Values: []string{"amd64"},
-		})
 	}
 	if spec.Affinity.PodAntiAffinity == nil {
 		spec.Affinity.PodAntiAffinity = &corev1.PodAntiAffinity{}

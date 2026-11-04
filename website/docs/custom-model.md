@@ -23,7 +23,9 @@ The script downloads model weights during server bootstrap, eliminating the need
 
 ## Basic CPU preset support
 
-KAITO also supports basic CPU preset inference referenced through `inference.preset.name`. CPU auto-provisioning supports Azure amd64 CPU SKUs; AWS CPU inference is not supported. Label-only BYO selection remains available for non-AWS CPU nodes. CPU inference defaults to vLLM. Built-in presets and generic Hugging Face model IDs are allowed when supported by the selected runtime. To use Transformers, explicitly set `metadata.annotations["kaito.sh/runtime"]: transformers` and an amd64 CPU VM `resource.instanceType`; this reuses the configured `kaito-base` image (no separate Transformers CPU image). Transformers requires a preset with existing Transformers parameters; label-only BYO CPU selection remains vLLM-only.
+KAITO also supports basic CPU preset inference referenced through `inference.preset.name`. CPU auto-provisioning classifies Azure CPU SKUs without architecture checks; AWS CPU inference is not supported. Label-only BYO selection remains available for non-AWS CPU nodes. CPU inference defaults to vLLM. Built-in presets and generic Hugging Face model IDs are allowed when supported by the selected runtime. To use Transformers, explicitly set `metadata.annotations["kaito.sh/runtime"]: transformers` and a declared CPU VM `resource.instanceType`; this reuses the configured `kaito-base` image (no separate Transformers CPU image). Transformers requires a preset with existing Transformers parameters; label-only BYO CPU selection remains vLLM-only.
+
+CPU classification, admission, and generated placement are architecture-agnostic; they do not establish runtime image compatibility. The current vLLM CPU image is based on `vllm/vllm-openai-cpu:v0.30.0-x86_64` and supports only x86_64/amd64. ARM64 runtime support is out of scope and untested: accepting an ARM CPU SKU or node does **not** make it a supported deployment with the current image. No multi-architecture image support is added. Use nodes compatible with the selected runtime image.
 
 ### Preset CPU examples
 
@@ -40,8 +42,8 @@ Both examples use `google/gemma-4-E4B-it`. Both request `Standard_D16s_v6`. For 
 | Scenario | Status | Notes |
 |---|---|---|
 | Preset InferenceSet on CPU | supported | retained example uses default CPU `vllm` runtime |
-| CPU preset with NAP | supported | specify an Azure amd64 CPU instance type |
-| Transformers preset inference on CPU | supported | explicit runtime annotation + amd64 CPU instance type; existing `kaito-base` image and compatible preset |
+| CPU preset with NAP | supported | specify an Azure CPU instance type; runtime image architecture must match |
+| Transformers preset inference on CPU | supported | explicit runtime annotation + declared CPU instance type; existing `kaito-base` image and compatible preset |
 | Post-load benchmark stage on CPU | skipped | basic CPU paths do not run the benchmark stage |
 | Multi-node CPU inference | not supported | basic CPU support is single-node only |
 

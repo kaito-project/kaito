@@ -2666,11 +2666,11 @@ func TestPresetInferenceRuntimeImages(t *testing.T) {
 			ws.Annotations = map[string]string{v1beta1.AnnotationWorkspaceRuntime: tc.runtime}
 			image, err := GetDesiredInferenceImageNameWithResolution(context.Background(), ws, nil)
 			if tc.wantError {
-				require.ErrorContains(t, err, "CPU preset inference requires vllm or explicit transformers with an amd64 CPU instanceType")
+				require.ErrorContains(t, err, "CPU preset inference requires vllm or explicit transformers with a declared CPU instanceType")
 				assert.Empty(t, image)
 				ws.Status.TargetNodeCount = 1
 				_, err = GeneratePresetInference(context.Background(), ws, test.MockWorkspaceWithPresetHash, plugin.KaitoModelRegister.MustGet("test-model"), nil, nil)
-				require.ErrorContains(t, err, "CPU preset inference requires vllm or explicit transformers with an amd64 CPU instanceType")
+				require.ErrorContains(t, err, "CPU preset inference requires vllm or explicit transformers with a declared CPU instanceType")
 				return
 			}
 			require.NoError(t, err)
@@ -2834,7 +2834,7 @@ func TestConfigureLMCacheSidecarCPUAndGPU(t *testing.T) {
 	}
 }
 
-func TestCPUPlacementRequiresAMD64InEveryAlternative(t *testing.T) {
+func TestCPUPlacementPreservesNodeAffinity(t *testing.T) {
 	ws := &v1beta1.Workspace{ObjectMeta: metav1.ObjectMeta{Name: "cpu"}}
 	for _, terms := range []int{0, 1, 2} {
 		spec := &corev1.PodSpec{Affinity: &corev1.Affinity{NodeAffinity: &corev1.NodeAffinity{RequiredDuringSchedulingIgnoredDuringExecution: &corev1.NodeSelector{}}}}
@@ -2845,14 +2845,8 @@ func TestCPUPlacementRequiresAMD64InEveryAlternative(t *testing.T) {
 		applyCPUDedicatedPlacement(ws, spec, false)
 		require.Equal(t, original, spec, "GPU affinity must stay unchanged")
 		applyCPUDedicatedPlacement(ws, spec, true)
-		actual := spec.Affinity.NodeAffinity.RequiredDuringSchedulingIgnoredDuringExecution.NodeSelectorTerms
-		require.Len(t, actual, max(terms, 1))
-		for _, term := range actual {
-			require.Contains(t, term.MatchExpressions, corev1.NodeSelectorRequirement{Key: corev1.LabelArchStable, Operator: corev1.NodeSelectorOpIn, Values: []string{"amd64"}})
-			if terms > 0 {
-				require.Contains(t, term.MatchExpressions, original.Affinity.NodeAffinity.RequiredDuringSchedulingIgnoredDuringExecution.NodeSelectorTerms[0].MatchExpressions[0])
-			}
-		}
+		require.Equal(t, original.Affinity.NodeAffinity, spec.Affinity.NodeAffinity, "CPU placement must not impose an architecture")
+		require.Len(t, spec.Affinity.PodAntiAffinity.RequiredDuringSchedulingIgnoredDuringExecution, 1)
 	}
 }
 

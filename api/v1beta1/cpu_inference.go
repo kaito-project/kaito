@@ -31,11 +31,9 @@ import (
 	"github.com/kaito-project/kaito/pkg/utils/plugin"
 )
 
-var (
-	// Azure CPU SKUs include both unversioned names (e.g. Standard_B2s) and versioned names.
-	azureCPUInstancePattern    = regexp.MustCompile(`(?i)^standard_[a-z]+[0-9]+(?:-[0-9]+)?[a-z]*(?:_v[0-9]+)?$`)
-	azureArmCPUInstancePattern = regexp.MustCompile(`(?i)^standard_[a-z]+[0-9]+(?:-[0-9]+)?p[a-z]*(?:_v[0-9]+)?$`)
-)
+// Azure CPU SKUs include both unversioned names (e.g. Standard_B2s) and versioned names.
+// CPU classification is architecture-agnostic; it does not establish image compatibility.
+var azureCPUInstancePattern = regexp.MustCompile(`(?i)^standard_[a-z]+[0-9]+(?:-[0-9]+)?[a-z]*(?:_v[0-9]+)?$`)
 
 func hasNVIDIAAcceleratorResource(resources corev1.ResourceList) bool {
 	for resourceName, qty := range resources {
@@ -68,18 +66,6 @@ func isAzureGPUOrAcceleratorSKU(instanceType string) bool {
 
 func isAzureCPUInstanceType(instanceType string) bool {
 	return azureCPUInstancePattern.MatchString(instanceType) && !isAzureGPUOrAcceleratorSKU(instanceType)
-}
-
-func isAzureARMCPUInstanceType(instanceType string) bool {
-	return azureArmCPUInstancePattern.MatchString(instanceType)
-}
-
-func IsAMD64CompatibleVLLMCPUInstanceType(instanceType string) bool {
-	if !isAzureCPUInstanceType(instanceType) {
-		return false
-	}
-
-	return !isAzureARMCPUInstanceType(instanceType)
 }
 
 func nodeHasGPUSignals(node *corev1.Node) bool {
@@ -162,58 +148,6 @@ func AreLabelSelectedReadyNodesCPU(ctx context.Context, labelSelector *metav1.La
 	return seenReadyCPU && !seenReadyGPU, nil
 }
 
-// AreLabelSelectedReadyNodesAMD64 reports whether the ready nodes matching the
-// selector are uniformly amd64.
-func AreLabelSelectedReadyNodesAMD64(ctx context.Context, labelSelector *metav1.LabelSelector, instanceType string, kubeClient client.Client) (bool, error) {
-	if kubeClient == nil {
-		return false, nil
-	}
-
-	var matchLabels client.MatchingLabels
-	if labelSelector != nil {
-		matchLabels = SanitizedMatchLabels(labelSelector)
-	}
-
-	nodeList := &corev1.NodeList{}
-	if err := kubeClient.List(ctx, nodeList, matchLabels); err != nil {
-		return false, err
-	}
-
-	seenReadyAMD64 := false
-	seenReadyNonAMD64 := false
-	for i := range nodeList.Items {
-		node := &nodeList.Items[i]
-		if node.DeletionTimestamp != nil {
-			continue
-		}
-		if instanceType != "" && node.Labels[corev1.LabelInstanceTypeStable] != instanceType {
-			continue
-		}
-
-		isReady := false
-		for _, condition := range node.Status.Conditions {
-			if condition.Type == corev1.NodeReady && condition.Status == corev1.ConditionTrue {
-				isReady = true
-				break
-			}
-		}
-		if !isReady {
-			continue
-		}
-
-		if strings.EqualFold(node.Labels[corev1.LabelArchStable], "amd64") {
-			seenReadyAMD64 = true
-		} else {
-			seenReadyNonAMD64 = true
-		}
-		if seenReadyAMD64 && seenReadyNonAMD64 {
-			return false, fmt.Errorf("labelSelector matches a mix of amd64 and non-amd64 nodes; vLLM CPU inference requires homogeneous amd64 nodes")
-		}
-	}
-
-	return seenReadyAMD64 && !seenReadyNonAMD64, nil
-}
-
 // ResolveCPUInferenceTarget reports whether the inference spec resolves to the basic CPU path.
 func ResolveCPUInferenceTarget(ctx context.Context, inference *InferenceSpec, instanceType string, labelSelector *metav1.LabelSelector, kubeClient client.Client) (bool, error) {
 	if os.Getenv("CLOUD_PROVIDER") == consts.AWSCloudName {
@@ -258,12 +192,12 @@ func IsCPUInferenceTarget(inference *InferenceSpec, instanceType string) bool {
 }
 
 // IsExplicitTransformersCPUWorkspace permits the existing Transformers base image
-// only for an explicitly selected runtime and a declared amd64 CPU VM instance type.
+// only for an explicitly selected runtime and a declared CPU VM instance type.
 // Label-only BYO targets retain the vLLM-only CPU contract.
 func IsExplicitTransformersCPUWorkspace(ws *Workspace) bool {
 	return ws != nil && ws.Inference != nil && ws.Inference.Preset != nil &&
 		ws.GetAnnotations()[AnnotationWorkspaceRuntime] == "transformers" &&
-		IsCPUInferenceTarget(ws.Inference, ws.Resource.InstanceType) && IsAMD64CompatibleVLLMCPUInstanceType(ws.Resource.InstanceType)
+		IsCPUInferenceTarget(ws.Inference, ws.Resource.InstanceType)
 }
 
 // IsCPUInferenceWorkspace reports whether the workspace matches the basic CPU path.

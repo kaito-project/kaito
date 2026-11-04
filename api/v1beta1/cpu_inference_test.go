@@ -332,35 +332,6 @@ func TestValidateCPUInferenceConstraints(t *testing.T) {
 		}
 	})
 
-	t.Run("vllm preset on arm64 byo cpu nodes is rejected", func(t *testing.T) {
-		featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning] = true
-
-		nodeClient := newCPUValidationClient(t, &corev1.Node{
-			ObjectMeta: metav1.ObjectMeta{
-				Name:   "cpu-arm-node",
-				Labels: map[string]string{"kaito.sh/cpu-inference": "true", corev1.LabelArchStable: "arm64"},
-			},
-			Status: corev1.NodeStatus{Conditions: []corev1.NodeCondition{{Type: corev1.NodeReady, Status: corev1.ConditionTrue}}},
-		})
-
-		ws := &Workspace{
-			ObjectMeta: metav1.ObjectMeta{
-				Name:      "cpu-preset-byo-arm",
-				Namespace: "default",
-				Annotations: map[string]string{
-					AnnotationWorkspaceRuntime: string(model.RuntimeNameVLLM),
-				},
-			},
-			Resource: ResourceSpec{
-				Count:         &one,
-				LabelSelector: &metav1.LabelSelector{MatchLabels: map[string]string{"kaito.sh/cpu-inference": "true"}},
-			},
-			Inference: &InferenceSpec{Preset: &PresetSpec{PresetMeta: PresetMeta{Name: ModelName("test-model")}}},
-		}
-		if err := ws.validateCPUInferenceConstraints(context.Background(), nodeClient); err == nil {
-			t.Fatalf("expected arm64 byo nodes to be rejected for vllm cpu preset path")
-		}
-	})
 }
 
 func TestCPUInferencePresetRuntimeSelection(t *testing.T) {
@@ -396,6 +367,7 @@ func TestCPUInferencePresetRuntimeSelection(t *testing.T) {
 }
 
 func TestIsExplicitTransformersCPUWorkspace(t *testing.T) {
+	t.Setenv("CLOUD_PROVIDER", consts.AzureCloudName)
 	registerCPUValidationTestModels()
 	for _, tc := range []struct {
 		name, instance, runtime string
@@ -403,7 +375,7 @@ func TestIsExplicitTransformersCPUWorkspace(t *testing.T) {
 	}{
 		{"explicit CPU", "Standard_D16s_v6", "transformers", true},
 		{"GPU", "Standard_NC6s_v3", "transformers", false},
-		{"Azure ARM", "Standard_D16ps_v6", "transformers", false},
+		{"Azure ARM", "Standard_D16ps_v6", "transformers", true},
 		{"AWS ARM", "m7g.4xlarge", "transformers", false},
 		{"label only BYO", "", "transformers", false},
 		{"default runtime", "Standard_D16s_v6", "", false},
@@ -420,6 +392,19 @@ func TestIsExplicitTransformersCPUWorkspace(t *testing.T) {
 				t.Fatalf("got %v, want %v", got, tc.want)
 			}
 		})
+	}
+	ws := &Workspace{
+		ObjectMeta: metav1.ObjectMeta{Annotations: map[string]string{AnnotationWorkspaceRuntime: "transformers"}},
+		Resource:   ResourceSpec{InstanceType: "Standard_D16ps_v6"},
+		Inference:  &InferenceSpec{Template: &corev1.PodTemplateSpec{}},
+	}
+	if IsExplicitTransformersCPUWorkspace(ws) {
+		t.Fatal("custom templates must not qualify for the preset runtime exception")
+	}
+	ws.Inference = &InferenceSpec{Preset: &PresetSpec{PresetMeta: PresetMeta{Name: "test-model"}}}
+	t.Setenv("CLOUD_PROVIDER", consts.AWSCloudName)
+	if IsExplicitTransformersCPUWorkspace(ws) {
+		t.Fatal("AWS must not qualify for the CPU runtime exception")
 	}
 	if IsExplicitTransformersCPUWorkspace(nil) || IsExplicitTransformersCPUWorkspace(&Workspace{}) {
 		t.Fatal("empty workspace cannot select CPU Transformers")
@@ -464,27 +449,27 @@ func TestAzureCPUInstanceTypeCaseInsensitive(t *testing.T) {
 	})
 	featuregates.FeatureGates[consts.FeatureFlagVLLM] = true
 	for _, tc := range []struct {
-		instance        string
-		cpu, amd64, gpu bool
+		instance string
+		cpu, gpu bool
 	}{
-		{"Standard_B2s", true, true, false},
-		{"standard_b2s", true, true, false},
-		{"Standard_F16s", true, true, false},
-		{"STANDARD_F16S", true, true, false},
-		{"Standard_A1", true, true, false},
-		{"Standard_DS4_v2", true, true, false},
-		{"Standard_D16s_v6", true, true, false},
-		{"standard_d16s_v6", true, true, false},
-		{"STANDARD_D16S_V6", true, true, false},
-		{"standard_d16ps_v6", true, false, false},
-		{"StAnDaRd_D16pS_v6", true, false, false},
-		{"standard_nc6s_v3", false, false, true},
-		{"STANDARD_ND96ASR_V4", false, false, true},
-		{"StAnDaRd_NV12s_v3", false, false, true},
-		{"Standard_NC6", false, false, true},
-		{"Standard_NV12", false, false, true},
-		// An omitted version suffix must not bypass the ARM-family exclusion.
-		{"Standard_D16ps", true, false, false},
+		{"Standard_B2s", true, false},
+		{"standard_b2s", true, false},
+		{"Standard_F16s", true, false},
+		{"STANDARD_F16S", true, false},
+		{"Standard_A1", true, false},
+		{"Standard_DS4_v2", true, false},
+		{"Standard_D16s_v6", true, false},
+		{"standard_d16s_v6", true, false},
+		{"STANDARD_D16S_V6", true, false},
+		{"standard_d16ps_v6", true, false},
+		{"StAnDaRd_D16pS_v6", true, false},
+		{"standard_nc6s_v3", false, true},
+		{"STANDARD_ND96ASR_V4", false, true},
+		{"StAnDaRd_NV12s_v3", false, true},
+		{"Standard_NC6", false, true},
+		{"Standard_NV12", false, true},
+		// ARM-style names follow the same CPU classification, with or without a version.
+		{"Standard_D16ps", true, false},
 	} {
 		t.Run(tc.instance, func(t *testing.T) {
 			if got := isAzureGPUOrAcceleratorSKU(tc.instance); got != tc.gpu {
@@ -492,9 +477,6 @@ func TestAzureCPUInstanceTypeCaseInsensitive(t *testing.T) {
 			}
 			if got := isAzureCPUInstanceType(tc.instance); got != tc.cpu {
 				t.Fatalf("CPU classification = %v, want %v", got, tc.cpu)
-			}
-			if got := IsAMD64CompatibleVLLMCPUInstanceType(tc.instance); got != tc.amd64 {
-				t.Fatalf("amd64 classification = %v, want %v", got, tc.amd64)
 			}
 			inference := &InferenceSpec{Preset: &PresetSpec{PresetMeta: PresetMeta{Name: "test-model"}}}
 			got, err := ResolveCPUInferenceTarget(context.Background(), inference, tc.instance, nil, nil)
@@ -504,8 +486,8 @@ func TestAzureCPUInstanceTypeCaseInsensitive(t *testing.T) {
 			if tc.cpu {
 				ws := &Workspace{Resource: ResourceSpec{InstanceType: tc.instance}, Inference: inference}
 				err := ws.validateCPUInferenceConstraints(context.Background(), nil)
-				if (err == nil) != tc.amd64 {
-					t.Fatalf("vLLM CPU admission error = %v, amd64 = %v", err, tc.amd64)
+				if err != nil {
+					t.Fatalf("CPU admission must not depend on architecture: %v", err)
 				}
 			}
 		})
@@ -536,9 +518,6 @@ func TestSingleValueExpressionCPUSelector(t *testing.T) {
 	if cpu, err := AreLabelSelectedReadyNodesCPU(context.Background(), selector, "", c); err != nil || !cpu {
 		t.Fatalf("single-value expression must resolve the CPU node: cpu=%v, err=%v", cpu, err)
 	}
-	if amd64, err := AreLabelSelectedReadyNodesAMD64(context.Background(), selector, "", c); err != nil || !amd64 {
-		t.Fatalf("single-value expression must validate CPU architecture: amd64=%v, err=%v", amd64, err)
-	}
 	selector.MatchExpressions[0].Values = []string{"cpu", "gpu"}
 	if got := SanitizedMatchLabels(selector); got != nil {
 		t.Fatalf("unsupported multi-value expression must not broaden node selection: %v", got)
@@ -558,6 +537,8 @@ func TestAzureCPUInstanceTypeForNAPVersionSuffix(t *testing.T) {
 		{"Standard_DS4_v2", true},
 		{"Standard_D16s_v6", true},
 		{"Standard_E8s_v5", true},
+		{"Standard_D16ps_v5", true},
+		{"Standard_D16ps", true},
 		{"Standard_NC6", false},
 		{"Standard_NV12", false},
 		{"Standard_ND96asr_v4", false},
@@ -680,5 +661,74 @@ func TestCustomTemplateCPUInferenceUsesInstanceType(t *testing.T) {
 				}
 			})
 		}
+	}
+}
+
+// Routing/admission tests do not establish runtime image support for ARM64.
+func TestBYOCPUInferenceIsArchitectureAgnostic(t *testing.T) {
+	registerCPUValidationTestModels()
+	t.Setenv("CLOUD_PROVIDER", consts.AzureCloudName)
+	oldBYO := featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning]
+	oldVLLM := featuregates.FeatureGates[consts.FeatureFlagVLLM]
+	t.Cleanup(func() {
+		featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning] = oldBYO
+		featuregates.FeatureGates[consts.FeatureFlagVLLM] = oldVLLM
+	})
+	featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning] = true
+	featuregates.FeatureGates[consts.FeatureFlagVLLM] = true
+	for _, tc := range []struct {
+		name               string
+		architectures      []string
+		gpuResource        corev1.ResourceName
+		aws                bool
+		wantCPU, wantError bool
+	}{
+		{name: "amd64", architectures: []string{"amd64"}, wantCPU: true},
+		{name: "arm64", architectures: []string{"arm64"}, wantCPU: true},
+		{name: "missing architecture", architectures: []string{""}, wantCPU: true},
+		{name: "mixed CPU architectures", architectures: []string{"amd64", "arm64", ""}, wantCPU: true},
+		{name: "ARM NVIDIA GPU", architectures: []string{"arm64"}, gpuResource: consts.NvidiaGPU},
+		{name: "ARM NVIDIA MIG", architectures: []string{"arm64"}, gpuResource: "nvidia.com/mig-1g.10gb"},
+		{name: "mixed CPU GPU", architectures: []string{"amd64", "arm64"}, gpuResource: consts.NvidiaGPU, wantError: true},
+		{name: "AWS ARM remains excluded", architectures: []string{"arm64"}, aws: true, wantError: true},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			var nodes []ctrlclient.Object
+			for i, arch := range tc.architectures {
+				node := &corev1.Node{
+					ObjectMeta: metav1.ObjectMeta{Name: fmt.Sprintf("node-%d", i), Labels: map[string]string{"pool": "cpu"}},
+					Status:     corev1.NodeStatus{Conditions: []corev1.NodeCondition{{Type: corev1.NodeReady, Status: corev1.ConditionTrue}}},
+				}
+				if arch != "" {
+					node.Labels[corev1.LabelArchStable] = arch
+				}
+				if tc.gpuResource != "" && i == len(tc.architectures)-1 {
+					node.Status.Capacity = corev1.ResourceList{tc.gpuResource: resource.MustParse("1")}
+				}
+				if tc.aws {
+					node.Spec.ProviderID = "aws:///zone/node"
+				}
+				nodes = append(nodes, node)
+			}
+			c := newCPUValidationClient(t, nodes...)
+			ws := &Workspace{
+				ObjectMeta: metav1.ObjectMeta{Annotations: map[string]string{AnnotationWorkspaceRuntime: "vllm"}},
+				Resource:   ResourceSpec{LabelSelector: &metav1.LabelSelector{MatchLabels: map[string]string{"pool": "cpu"}}},
+				Inference:  &InferenceSpec{Preset: &PresetSpec{PresetMeta: PresetMeta{Name: "test-model"}}},
+			}
+			cpu, err := ResolveCPUInferenceWorkspace(t.Context(), ws, c)
+			if cpu != tc.wantCPU || (err != nil) != tc.wantError {
+				t.Fatalf("CPU resolution = %v, %v; want CPU=%v error=%v", cpu, err, tc.wantCPU, tc.wantError)
+			}
+			if err := ws.validateCPUInferenceConstraints(t.Context(), c); (err != nil) != tc.wantError {
+				t.Fatalf("CPU constraints = %v; want error=%v", err, tc.wantError)
+			}
+			if tc.wantCPU {
+				ws.Annotations[AnnotationWorkspaceRuntime] = "transformers"
+				if err := ws.validateCPUInferenceConstraints(t.Context(), c); err == nil {
+					t.Fatal("label-only CPU targets must still require vllm")
+				}
+			}
+		})
 	}
 }

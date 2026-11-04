@@ -54,6 +54,8 @@ func TestValidateCreateWithInference_AllowsCPUNAPInstanceTypes(t *testing.T) {
 		instanceType string
 	}{
 		{name: "azure e-series cpu instance type", provider: consts.AzureCloudName, instanceType: "Standard_E8s_v5"},
+		{name: "azure arm-style cpu instance type", provider: consts.AzureCloudName, instanceType: "Standard_D16ps_v5"},
+		{name: "azure unversioned arm-style cpu instance type", provider: consts.AzureCloudName, instanceType: "Standard_D16ps"},
 	}
 
 	for _, tt := range tests {
@@ -82,20 +84,19 @@ func TestValidateCreateWithInference_AllowsCPUNAPInstanceTypes(t *testing.T) {
 		}
 	})
 
-	armCases := []struct {
+	unsupportedProviderCases := []struct {
 		name         string
 		provider     string
 		instanceType string
 	}{
 		{name: "aws cpu instance type unsupported", provider: consts.AWSCloudName, instanceType: "m6i.2xlarge"},
-		{name: "aws arm cpu instance type rejected for vllm", provider: consts.AWSCloudName, instanceType: "m6g.2xlarge"},
-		{name: "aws arm a1 cpu instance type rejected for vllm", provider: consts.AWSCloudName, instanceType: "a1.4xlarge"},
-		{name: "aws arm cpu local-nvme variant rejected for vllm", provider: consts.AWSCloudName, instanceType: "m6gd.2xlarge"},
-		{name: "aws arm cpu network-optimized variant rejected for vllm", provider: consts.AWSCloudName, instanceType: "c7gn.2xlarge"},
-		{name: "azure arm cpu instance type rejected for vllm", provider: consts.AzureCloudName, instanceType: "Standard_D16ps_v5"},
+		{name: "aws arm cpu instance type unsupported provider", provider: consts.AWSCloudName, instanceType: "m6g.2xlarge"},
+		{name: "aws arm a1 cpu instance type unsupported provider", provider: consts.AWSCloudName, instanceType: "a1.4xlarge"},
+		{name: "aws arm cpu local-nvme variant unsupported provider", provider: consts.AWSCloudName, instanceType: "m6gd.2xlarge"},
+		{name: "aws arm cpu network-optimized variant unsupported provider", provider: consts.AWSCloudName, instanceType: "c7gn.2xlarge"},
 	}
 
-	for _, tt := range armCases {
+	for _, tt := range unsupportedProviderCases {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Setenv("CLOUD_PROVIDER", tt.provider)
 			resourceSpec := &ResourceSpec{
@@ -104,7 +105,7 @@ func TestValidateCreateWithInference_AllowsCPUNAPInstanceTypes(t *testing.T) {
 				LabelSelector: &metav1.LabelSelector{MatchLabels: map[string]string{"kaito.sh/cpu-inference": "true"}},
 			}
 			if err := resourceSpec.validateCreateWithInference(context.TODO(), cpuInference, false, model.RuntimeNameVLLM, ""); err == nil {
-				t.Fatalf("expected arm cpu instance type %s to be rejected for vllm cpu path", tt.instanceType)
+				t.Fatalf("expected AWS CPU instance type %s to be rejected for CPU inference", tt.instanceType)
 			}
 		})
 	}

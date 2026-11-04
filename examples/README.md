@@ -24,7 +24,8 @@ CPU-compatible preset examples:
 
 Notes:
 - default CPU preset inference uses `vllm` on amd64 nodes and requires the `vllm` feature gate
-- explicit `kaito.sh/runtime: transformers` with an amd64 CPU `instanceType` reuses the configured ordinary `kaito-base` image; no separate CPU-TFS image/build or `vllm` gate is needed
+- explicit `kaito.sh/runtime: transformers` with a declared CPU `instanceType` reuses the configured ordinary `kaito-base` image; no separate CPU-TFS image/build or `vllm` gate is needed
+- CPU classification, admission, and generated placement do not check architecture; the current vLLM CPU image (`vllm/vllm-openai-cpu:v0.30.0-x86_64`) remains x86_64-only. ARM64 runtime support is out of scope and untested; an accepted ARM request is not a supported deployment with this image
 - Transformers runs one CPU process with `device_map=cpu` and `torch_dtype=bfloat16`; label-only BYO CPU selection remains vLLM-only
 - these examples use `google/gemma-4-E4B-it`
 - built-in presets and generic Hugging Face model IDs are supported on the basic CPU preset path

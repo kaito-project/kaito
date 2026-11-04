@@ -211,7 +211,7 @@ func (w *Workspace) validateCPUInferenceConstraints(ctx context.Context, kubeCli
 	runtimeAnnotation := w.GetAnnotations()[AnnotationWorkspaceRuntime]
 	if runtimeAnnotation != "" && runtimeAnnotation != string(model.RuntimeNameVLLM) && !IsExplicitTransformersCPUWorkspace(w) {
 		errs = errs.Also(apis.ErrInvalidValue(
-			fmt.Sprintf("CPU inference requires vllm or explicit transformers with an amd64 CPU instanceType; %s is not supported", runtimeAnnotation),
+			fmt.Sprintf("CPU inference requires vllm or explicit transformers with a declared CPU instanceType; %s is not supported", runtimeAnnotation),
 			fmt.Sprintf("metadata.annotations[%s]", AnnotationWorkspaceRuntime),
 		))
 	} else if w.Inference != nil && w.Inference.Preset != nil && runtimeName != model.RuntimeNameVLLM && !IsExplicitTransformersCPUWorkspace(w) {
@@ -219,25 +219,6 @@ func (w *Workspace) validateCPUInferenceConstraints(ctx context.Context, kubeCli
 			"CPU preset inference requires the vllm feature gate to be enabled",
 			"inference.preset",
 		))
-	}
-	if runtimeName == model.RuntimeNameVLLM && w.Inference != nil {
-		if w.Resource.InstanceType != "" && !IsAMD64CompatibleVLLMCPUInstanceType(w.Resource.InstanceType) {
-			errs = errs.Also(apis.ErrInvalidValue(
-				fmt.Sprintf("vLLM CPU runtime only supports amd64 CPU instance types; %s is not supported", w.Resource.InstanceType),
-				"resource.instanceType",
-			))
-		}
-		if featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning] && w.Resource.InstanceType == "" {
-			isAMD64, err := AreLabelSelectedReadyNodesAMD64(ctx, w.Resource.LabelSelector, "", kubeClient)
-			if err != nil {
-				errs = errs.Also(apis.ErrGeneric(fmt.Sprintf("failed to validate CPU node architecture: %v", err), "resource.labelSelector"))
-			} else if !isAMD64 {
-				errs = errs.Also(apis.ErrInvalidValue(
-					"vLLM CPU runtime only supports amd64 BYO nodes; matched ready nodes must report kubernetes.io/arch=amd64",
-					"resource.labelSelector",
-				))
-			}
-		}
 	}
 
 	count := 1
@@ -825,12 +806,7 @@ func (r *ResourceSpec) validateCreateWithInference(ctx context.Context, inferenc
 			if err := ValidateCPUInstanceTypeForNAP(instanceType); err != nil {
 				errs = errs.Also(err)
 			}
-			if runtime == model.RuntimeNameVLLM && !IsAMD64CompatibleVLLMCPUInstanceType(instanceType) {
-				errs = errs.Also(apis.ErrInvalidValue(
-					fmt.Sprintf("vLLM CPU runtime only supports amd64 CPU instance types; %s is not supported", instanceType),
-					"instanceType",
-				))
-			}
+
 			return errs
 		}
 		// Regardless of if preset is empty or not, we do want to make sure the instance type is valid for NAP and can't skip node validation like BYO.

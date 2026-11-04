@@ -150,28 +150,17 @@ func AreLabelSelectedReadyNodesCPU(ctx context.Context, labelSelector *metav1.La
 
 // ResolveCPUInferenceTarget reports whether the inference spec resolves to the basic CPU path.
 func ResolveCPUInferenceTarget(ctx context.Context, inference *InferenceSpec, instanceType string, labelSelector *metav1.LabelSelector, kubeClient client.Client) (bool, error) {
-	if os.Getenv("CLOUD_PROVIDER") == consts.AWSCloudName {
+	if os.Getenv("CLOUD_PROVIDER") == consts.AWSCloudName || inference == nil {
 		return false, nil
 	}
-	if inference == nil {
-		return false, nil
+	// Custom templates never infer CPU intent from selected nodes.
+	if inference.Template != nil || instanceType != "" {
+		return IsCPUInferenceTarget(inference, instanceType), nil
 	}
-	if inference.Template != nil {
-		return isAzureCPUInstanceType(instanceType), nil
-	}
-	if inference.Preset == nil || !IsCPUCompatiblePreset(inference.Preset.Name) {
-		return false, nil
-	}
-	if isAzureCPUInstanceType(instanceType) {
-		return true, nil
-	}
-	if !featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning] {
-		return false, nil
-	}
-	if instanceType != "" {
-		return false, nil
-	}
-	if len(SanitizedMatchLabels(labelSelector)) == 0 {
+	// Only label-only BYO presets need node-based resolution.
+	if inference.Preset == nil || !IsCPUCompatiblePreset(inference.Preset.Name) ||
+		!featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning] ||
+		len(SanitizedMatchLabels(labelSelector)) == 0 {
 		return false, nil
 	}
 	return AreLabelSelectedReadyNodesCPU(ctx, labelSelector, "", kubeClient)

@@ -50,27 +50,6 @@ func hasNVIDIAAcceleratorResource(resources corev1.ResourceList) bool {
 	return false
 }
 
-// IsInferenceTemplateCPUTarget returns true when the custom template does not
-// request GPU resources in either app or init containers.
-func IsInferenceTemplateCPUTarget(template *corev1.PodTemplateSpec) bool {
-	if template == nil || len(template.Spec.Containers) == 0 {
-		return false
-	}
-
-	for _, container := range template.Spec.Containers {
-		if hasNVIDIAAcceleratorResource(container.Resources.Requests) || hasNVIDIAAcceleratorResource(container.Resources.Limits) {
-			return false
-		}
-	}
-	for _, container := range template.Spec.InitContainers {
-		if hasNVIDIAAcceleratorResource(container.Resources.Requests) || hasNVIDIAAcceleratorResource(container.Resources.Limits) {
-			return false
-		}
-	}
-
-	return true
-}
-
 // IsCPUCompatiblePreset reports whether the preset reference is eligible for the
 // Basic CPU preset path. Legal built-in presets and generic Hugging Face
 // model IDs are allowed; full model resolution/compatibility is validated in the
@@ -243,8 +222,8 @@ func ResolveCPUInferenceTarget(ctx context.Context, inference *InferenceSpec, in
 	if inference == nil {
 		return false, nil
 	}
-	if IsInferenceTemplateCPUTarget(inference.Template) {
-		return true, nil
+	if inference.Template != nil {
+		return isAzureCPUInstanceType(instanceType), nil
 	}
 	if inference.Preset == nil || !IsCPUCompatiblePreset(inference.Preset.Name) {
 		return false, nil
@@ -272,8 +251,8 @@ func IsCPUInferenceTarget(inference *InferenceSpec, instanceType string) bool {
 	if inference == nil {
 		return false
 	}
-	if IsInferenceTemplateCPUTarget(inference.Template) {
-		return true
+	if inference.Template != nil {
+		return isAzureCPUInstanceType(instanceType)
 	}
 	return inference.Preset != nil && IsCPUCompatiblePreset(inference.Preset.Name) && isAzureCPUInstanceType(instanceType)
 }
@@ -297,7 +276,7 @@ func IsCPUInferenceWorkspace(ws *Workspace) bool {
 }
 
 // ResolveCPUInferenceWorkspace reports whether the workspace resolves to the basic CPU path,
-// including BYO selector-based detection when instanceType is empty.
+// including preset BYO selector-based detection when instanceType is empty.
 func ResolveCPUInferenceWorkspace(ctx context.Context, ws *Workspace, kubeClient client.Client) (bool, error) {
 	if ws == nil {
 		return false, nil
@@ -306,7 +285,7 @@ func ResolveCPUInferenceWorkspace(ctx context.Context, ws *Workspace, kubeClient
 }
 
 // ResolveCPUInferenceSetTarget reports whether the InferenceSet template resolves to the
-// basic CPU path, including BYO selector-based detection when instanceType is empty.
+// basic CPU path, including preset BYO selector-based detection when instanceType is empty.
 func ResolveCPUInferenceSetTarget(ctx context.Context, iObj *InferenceSet, kubeClient client.Client) (bool, error) {
 	if iObj == nil {
 		return false, nil

@@ -1479,6 +1479,7 @@ func TestDefaultTolerations(t *testing.T) {
 			cloudProvider: consts.AzureCloudName,
 			workspace: &v1beta1.Workspace{
 				ObjectMeta: metav1.ObjectMeta{Name: "cpu-workspace"},
+				Resource:   v1beta1.ResourceSpec{InstanceType: "Standard_D8s_v5"},
 				Inference: &v1beta1.InferenceSpec{
 					Template: &corev1.PodTemplateSpec{
 						Spec: corev1.PodSpec{Containers: []corev1.Container{{

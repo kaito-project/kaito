@@ -33,6 +33,7 @@ func TestCreateTemplateInference_CPUWorkspaceOmitsDefaultGPUTolerations(t *testi
 		ObjectMeta: metav1.ObjectMeta{Name: "cpu-ws", Namespace: "default"},
 		Resource: kaitov1beta1.ResourceSpec{
 			Count:         &one,
+			InstanceType:  "Standard_D8s_v5",
 			LabelSelector: &metav1.LabelSelector{MatchLabels: map[string]string{"kaito.sh/cpu-inference": "true"}},
 		},
 		Inference: &kaitov1beta1.InferenceSpec{

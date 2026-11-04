@@ -15,6 +15,7 @@ package v1beta1
 
 import (
 	"context"
+	"fmt"
 	"testing"
 	"time"
 
@@ -99,6 +100,7 @@ func TestValidateCPUInferenceConstraints(t *testing.T) {
 			},
 			Resource: ResourceSpec{
 				Count:         &one,
+				InstanceType:  "Standard_D8s_v5",
 				LabelSelector: &metav1.LabelSelector{MatchLabels: map[string]string{"kaito.sh/cpu-inference": "true"}},
 			},
 			Inference: &InferenceSpec{
@@ -137,7 +139,7 @@ func TestValidateCPUInferenceConstraints(t *testing.T) {
 		}
 	})
 
-	t.Run("mig template is not detected as cpu inference", func(t *testing.T) {
+	t.Run("mig template on cpu instance type is detected as cpu inference", func(t *testing.T) {
 		ws := baseWorkspace()
 		ws.Inference.Template.Spec.Containers[0].Resources.Requests = corev1.ResourceList{
 			corev1.ResourceName("nvidia.com/mig-1g.10gb"): resource.MustParse("1"),
@@ -145,15 +147,16 @@ func TestValidateCPUInferenceConstraints(t *testing.T) {
 		ws.Inference.Template.Spec.Containers[0].Resources.Limits = corev1.ResourceList{
 			corev1.ResourceName("nvidia.com/mig-1g.10gb"): resource.MustParse("1"),
 		}
-		if IsCPUInferenceWorkspace(ws) {
-			t.Fatalf("expected mig-backed template workspace to not be detected as cpu inference")
+		if !IsCPUInferenceWorkspace(ws) {
+			t.Fatalf("expected cpu instance type to select cpu inference regardless of mig resources")
 		}
-		if err := ws.validateCPUInferenceConstraints(context.Background(), nil); err != nil {
-			t.Fatalf("expected non-cpu mig template to skip cpu validation, got %v", err)
+		ws.Resource.Count = &two
+		if err := ws.validateCPUInferenceConstraints(context.Background(), nil); err == nil {
+			t.Fatalf("expected cpu single-node validation regardless of mig resources")
 		}
 	})
 
-	t.Run("init container gpu request is not detected as cpu inference", func(t *testing.T) {
+	t.Run("init container gpu request does not override cpu instance type", func(t *testing.T) {
 		ws := baseWorkspace()
 		ws.Inference.Template.Spec.InitContainers = []corev1.Container{{
 			Name:  "gpu-init",
@@ -163,8 +166,8 @@ func TestValidateCPUInferenceConstraints(t *testing.T) {
 				Limits:   corev1.ResourceList{corev1.ResourceName(consts.NvidiaGPU): resource.MustParse("1")},
 			},
 		}}
-		if IsCPUInferenceWorkspace(ws) {
-			t.Fatalf("expected template with gpu init container to not be detected as cpu inference")
+		if !IsCPUInferenceWorkspace(ws) {
+			t.Fatalf("expected cpu instance type to select cpu inference regardless of gpu init container")
 		}
 	})
 
@@ -619,5 +622,63 @@ func TestCPUInferenceProviderScope(t *testing.T) {
 				t.Fatalf("CPU resolution=%v, %v, want %v", got, err, tc.want)
 			}
 		})
+	}
+}
+
+func TestCustomTemplateCPUInferenceUsesInstanceType(t *testing.T) {
+	old := featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning]
+	t.Cleanup(func() { featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning] = old })
+
+	selector := &metav1.LabelSelector{MatchLabels: map[string]string{"pool": "cpu"}}
+	kubeClient := newCPUValidationClient(t, &corev1.Node{
+		ObjectMeta: metav1.ObjectMeta{Name: "cpu-node", Labels: selector.MatchLabels},
+		Status:     corev1.NodeStatus{Conditions: []corev1.NodeCondition{{Type: corev1.NodeReady, Status: corev1.ConditionTrue}}},
+	})
+	for _, napDisabled := range []bool{false, true} {
+		featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning] = napDisabled
+		for _, tc := range []struct {
+			name, provider, instance string
+			want                     bool
+		}{
+			{"Azure CPU", consts.AzureCloudName, "Standard_D8s_v5", true},
+			{"Azure unversioned CPU", consts.AzureCloudName, "Standard_B2s", true},
+			{"Azure ARM CPU", consts.AzureCloudName, "Standard_D8ps_v6", true},
+			{"Azure GPU", consts.AzureCloudName, "Standard_NC6s_v3", false},
+			{"empty instance type with CPU selector", consts.AzureCloudName, "", false},
+			{"unknown instance type with CPU selector", consts.AzureCloudName, "custom.vm", false},
+			{"AWS CPU", consts.AWSCloudName, "m6i.2xlarge", false},
+			{"AWS provider excludes Azure CPU SKU", consts.AWSCloudName, "Standard_D8s_v5", false},
+		} {
+			t.Run(fmt.Sprintf("%s/NAPDisabled=%v", tc.name, napDisabled), func(t *testing.T) {
+				t.Setenv("CLOUD_PROVIDER", tc.provider)
+				for _, templateCase := range []struct {
+					name string
+					spec corev1.PodSpec
+				}{
+					{"no containers", corev1.PodSpec{}},
+					{"no GPU resources", corev1.PodSpec{Containers: []corev1.Container{{Name: "custom"}}}},
+					{"GPU request", corev1.PodSpec{Containers: []corev1.Container{{Name: "custom", Resources: corev1.ResourceRequirements{
+						Requests: corev1.ResourceList{corev1.ResourceName(consts.NvidiaGPU): resource.MustParse("1")},
+					}}}}},
+					{"MIG limit", corev1.PodSpec{Containers: []corev1.Container{{Name: "custom", Resources: corev1.ResourceRequirements{
+						Limits: corev1.ResourceList{corev1.ResourceName("nvidia.com/mig-1g.10gb"): resource.MustParse("1")},
+					}}}}},
+					{"init GPU limit", corev1.PodSpec{Containers: []corev1.Container{{Name: "custom"}}, InitContainers: []corev1.Container{{Name: "init", Resources: corev1.ResourceRequirements{
+						Limits: corev1.ResourceList{corev1.ResourceName(consts.NvidiaGPU): resource.MustParse("1")},
+					}}}}},
+				} {
+					t.Run(templateCase.name, func(t *testing.T) {
+						inf := &InferenceSpec{Template: &corev1.PodTemplateSpec{Spec: templateCase.spec}}
+						if got := IsCPUInferenceTarget(inf, tc.instance); got != tc.want {
+							t.Fatalf("CPU target=%v, want %v", got, tc.want)
+						}
+						got, err := ResolveCPUInferenceTarget(t.Context(), inf, tc.instance, selector, kubeClient)
+						if err != nil || got != tc.want {
+							t.Fatalf("CPU resolution=%v, %v, want %v", got, err, tc.want)
+						}
+					})
+				}
+			})
+		}
 	}
 }

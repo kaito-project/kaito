@@ -28,7 +28,6 @@ import (
 	"github.com/kaito-project/kaito/pkg/ragengine/manifests"
 	"github.com/kaito-project/kaito/pkg/sku"
 	"github.com/kaito-project/kaito/pkg/utils"
-	"github.com/kaito-project/kaito/pkg/utils/consts"
 	"github.com/kaito-project/kaito/pkg/utils/nodes"
 	"github.com/kaito-project/kaito/pkg/utils/resources"
 )
@@ -66,19 +65,7 @@ var (
 		PeriodSeconds:       10,
 	}
 
-	tolerations = []corev1.Toleration{
-		{
-			Effect:   corev1.TaintEffectNoSchedule,
-			Operator: corev1.TolerationOpExists,
-			Key:      nodes.CapacityNvidiaGPU,
-		},
-		{
-			Effect:   corev1.TaintEffectNoSchedule,
-			Value:    consts.GPUString,
-			Key:      consts.SKUString,
-			Operator: corev1.TolerationOpEqual,
-		},
-	}
+	tolerations = nodes.GPUTolerations()
 )
 
 type ImageConfig struct {

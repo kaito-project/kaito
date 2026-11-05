@@ -137,33 +137,6 @@ var (
 	}
 )
 
-func defaultTolerations(ws *v1beta1.Workspace) []corev1.Toleration {
-	tolerations := []corev1.Toleration{
-		{
-			Effect:   corev1.TaintEffectNoSchedule,
-			Operator: corev1.TolerationOpExists,
-			Key:      nodes.CapacityNvidiaGPU,
-		},
-		{
-			Effect:   corev1.TaintEffectNoSchedule,
-			Value:    consts.GPUString,
-			Key:      consts.SKUString,
-			Operator: corev1.TolerationOpEqual,
-		},
-	}
-
-	if sku.IsAzureCloudProvider() {
-		tolerations = append(tolerations, corev1.Toleration{
-			Effect:   corev1.TaintEffectNoSchedule,
-			Key:      consts.SpotInstanceKey,
-			Operator: corev1.TolerationOpEqual,
-			Value:    consts.SpotInstanceValue,
-		})
-	}
-
-	return tolerations
-}
-
 func GetInferenceImageInfo(ctx context.Context, workspaceObj *v1beta1.Workspace) []corev1.LocalObjectReference {
 	imagePullSecretRefs := []corev1.LocalObjectReference{}
 	// Check if the workspace preset's access mode is private
@@ -710,7 +683,7 @@ func GenerateInferencePodSpec(gpuConfig *sku.GPUConfig, numNodes int, streamingM
 			injectRoutingSidecar(spec)
 		}
 
-		spec.Tolerations = defaultTolerations(ctx.Workspace)
+		spec.Tolerations = nodes.WorkspaceTolerations()
 		// Add MIG-specific toleration so pods can schedule onto MIG-tainted nodes
 		// if the cluster operator taints them (the NVIDIA device plugin does not by default).
 		// Only the spec-driven "mixed" path has a per-profile taint key.

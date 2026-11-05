@@ -75,6 +75,34 @@ func TestParseExplicitMaxModelLen(t *testing.T) {
 			wantFound: false,
 		},
 		{
+			name:      "trailing comment",
+			content:   "vllm:\n  gpu-memory-utilization: 0.95  # Controls GPU memory usage\n  max-model-len: 131072         # Maximum sequence length\n",
+			wantVal:   131072,
+			wantFound: true,
+		},
+		{
+			name:      "quoted value",
+			content:   "vllm:\n  max-model-len: \"8192\"\n",
+			wantVal:   8192,
+			wantFound: true,
+		},
+		{
+			name:      "four space indentation",
+			content:   "max_probe_steps: 6\nvllm:\n    max-model-len: 2048\n",
+			wantVal:   2048,
+			wantFound: true,
+		},
+		{
+			name:      "nested max-model-len is ignored",
+			content:   "vllm:\n  speculative-config:\n    max-model-len: 1024\n",
+			wantFound: false,
+		},
+		{
+			name:      "auto is not an explicit size",
+			content:   "vllm:\n  max-model-len: auto\n",
+			wantFound: false,
+		},
+		{
 			name:      "empty content",
 			content:   "",
 			wantFound: false,

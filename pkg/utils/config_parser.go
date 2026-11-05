@@ -35,34 +35,29 @@ func ParseInferenceRuntimeConfig(content string) (InferenceRuntimeConfig, error)
 	return config, nil
 }
 
-// ParseExplicitMaxModelLen scans YAML content for a top-level (under vllm:) 'max-model-len:' value.
-// Returns (value,true) only if an explicit non-empty positive integer is found; otherwise (0,false).
+// ParseExplicitMaxModelLen returns the max-model-len set under the top-level vllm: key.
+// Returns (value,true) only if it is a positive integer, given as a number or a numeric string; otherwise (0,false).
 func ParseExplicitMaxModelLen(content string) (int, bool) {
-	lines := strings.Split(content, "\n")
-	inVLLM := false
-	baseIndent := ""
-	for _, l := range lines {
-		trim := strings.TrimSpace(l)
-		if !inVLLM {
-			if strings.HasPrefix(trim, "vllm:") {
-				inVLLM = true
-				baseIndent = l[:len(l)-len(strings.TrimLeft(l, " \t"))] + "  "
-			}
-			continue
-		}
-		currentIndent := l[:len(l)-len(strings.TrimLeft(l, " \t"))]
-		if trim != "" && !strings.HasPrefix(trim, "#") && len(currentIndent) < len(baseIndent) {
-			break
-		}
-		if strings.HasPrefix(strings.TrimSpace(l), "max-model-len:") {
-			valStr := strings.TrimSpace(strings.TrimPrefix(strings.TrimSpace(l), "max-model-len:"))
-			if valStr != "" {
-				if v, err := strconv.Atoi(valStr); err == nil && v > 0 {
-					return v, true
-				}
-			}
-			break
-		}
+	var config struct {
+		VLLM map[string]interface{} `yaml:"vllm"`
 	}
-	return 0, false
+	if err := yaml.Unmarshal([]byte(content), &config); err != nil {
+		return 0, false
+	}
+	var v int
+	var err error
+	switch value := config.VLLM["max-model-len"].(type) {
+	case int:
+		v = value
+	case string:
+		if v, err = strconv.Atoi(strings.TrimSpace(value)); err != nil {
+			return 0, false
+		}
+	default:
+		return 0, false
+	}
+	if v <= 0 {
+		return 0, false
+	}
+	return v, true
 }

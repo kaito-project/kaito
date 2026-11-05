@@ -56,7 +56,7 @@ import (
 )
 
 func getCPUVLLMImageName() string {
-	presetObj := metadata.MustGet("base-vllm-cpu")
+	presetObj := metadata.MustGet("base-cpu")
 	return utils.GetPresetImageName(presetObj.Registry, presetObj.Name, presetObj.Tag)
 }
 
@@ -2768,7 +2768,7 @@ func TestGeneratePresetInference_CapturedTarget(t *testing.T) {
 			require.Equal(t, readsAtCapture, reads-readsBeforeGeneration, "image and tag selection must not add node lookups")
 			expectedBaseImage := metadata.MustGet("base")
 			if cpu {
-				expectedBaseImage = metadata.MustGet("base-vllm-cpu")
+				expectedBaseImage = metadata.MustGet("base-cpu")
 			}
 			require.Equal(t, expectedBaseImage, result.BaseImage)
 			tag, err := GetBaseImageTag(result.BaseImage)

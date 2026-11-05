@@ -17,7 +17,7 @@ metadata:
 
 ### Basic CPU preset example
 
-[Gemma vLLM CPU InferenceSet](inference/kaito_inferenceset_gemma_4_e4b_it_cpu_vllm.yaml)
+[Gemma vLLM CPU InferenceSet](inference/kaito_inferenceset_gemma_4_e4b_it_cpu.yaml)
 uses `google/gemma-4-E4B-it` with `Standard_D16s_v6`.
 
 - CPU preset inference supports **vLLM only** and requires the `vllm` feature gate.

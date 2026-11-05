@@ -26,7 +26,7 @@ import (
 
 func TestGetBaseImageTagCatalog(t *testing.T) {
 	t.Setenv("PRESET_REGISTRY_NAME", "registry.example")
-	for _, name := range []string{"base", "base-vllm-cpu"} {
+	for _, name := range []string{"base", "base-cpu"} {
 		t.Run(name, func(t *testing.T) {
 			baseImage := metadata.MustGet(name)
 			got, err := GetBaseImageTag(baseImage)
@@ -42,7 +42,7 @@ func TestGetBaseImageTagValidation(t *testing.T) {
 		name, registry, imageName, tag, want string
 		wantErr                              bool
 	}{
-		{name: "CPU version", registry: "registry.example", imageName: "base-vllm-cpu", tag: "0.0.2", want: "0.0.2"},
+		{name: "CPU version", registry: "registry.example", imageName: "base-cpu", tag: "0.0.2", want: "0.0.2"},
 		{name: "GPU version", registry: "registry.example", imageName: "base", tag: "0.6.4", want: "0.6.4"},
 		{name: "registry port and v prefix", registry: "localhost:5000", imageName: "base", tag: "v0.0.3", want: "v0.0.3"},
 		{name: "missing tag", registry: "registry.example", imageName: "base", wantErr: true},

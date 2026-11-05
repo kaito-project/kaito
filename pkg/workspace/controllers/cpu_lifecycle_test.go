@@ -55,7 +55,7 @@ func TestCPUInferenceCreateAndUnchangedReconcile(t *testing.T) {
 			require.NotContains(t, ss.Annotations, v1beta1.AnnotationWorkspaceRuntime)
 			require.EqualValues(t, 1, *ss.Spec.Replicas)
 			require.NotContains(t, ss.Spec.Template.Spec.Containers[0].Resources.Requests, corev1.ResourceName("nvidia.com/gpu"))
-			require.Contains(t, ss.Spec.Template.Spec.Containers[0].Image, "vllm-cpu")
+			require.Contains(t, ss.Spec.Template.Spec.Containers[0].Image, "kaito-base-cpu:")
 			// An unchanged reconcile must preserve a deployed tag and local customizations.
 			ss.Spec.Template.Spec.Containers[0].Image = "example.com/kaito:deployed"
 			ss.Spec.Template.Spec.Containers[0].StartupProbe = &corev1.Probe{InitialDelaySeconds: 999}

@@ -563,7 +563,7 @@ func GetBaseImageName() string {
 // Examples (current catalog entries):
 //
 //	GetBaseImageTag(metadata.MustGet("base"))          // "0.6.4", nil
-//	GetBaseImageTag(metadata.MustGet("base-vllm-cpu")) // "0.0.2", nil
+//	GetBaseImageTag(metadata.MustGet("base-cpu")) // "0.0.2", nil
 //	GetBaseImageTag(pkgmodel.Metadata{Registry: "localhost:5000", Name: "base", Tag: "v0.0.3"}) // "v0.0.3", nil
 //	GetBaseImageTag(pkgmodel.Metadata{Registry: "registry.example", Name: "base"}) // "", error (no explicit tag)
 func GetBaseImageTag(baseImage pkgmodel.Metadata) (string, error) {
@@ -597,7 +597,7 @@ func getPresetInferenceBaseImage(runtimeName pkgmodel.RuntimeName, isCPU bool) p
 		return metadata.MustGet("base")
 	}
 	if runtimeName == pkgmodel.RuntimeNameVLLM {
-		return metadata.MustGet("base-vllm-cpu")
+		return metadata.MustGet("base-cpu")
 	}
 	// Never silently select an image for an unsupported CPU runtime.
 	return pkgmodel.Metadata{}
@@ -620,7 +620,7 @@ func GetDesiredInferenceBaseImage(ws *v1beta1.Workspace) (pkgmodel.Metadata, err
 	if v1beta1.GetWorkspaceRuntimeName(ws) != pkgmodel.RuntimeNameVLLM {
 		return pkgmodel.Metadata{}, fmt.Errorf("CPU preset inference supports only vllm")
 	}
-	return metadata.MustGet("base-vllm-cpu"), nil
+	return metadata.MustGet("base-cpu"), nil
 }
 
 // GetBaseRuntimeVersion returns the inference engine version baked into the base

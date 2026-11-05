@@ -208,8 +208,8 @@ runs:
           --builder img-builder \
           --platform linux/amd64 \
           --build-arg VERSION=$VERSION \
-          --output type=image,name=$REGISTRY/kaito-base-vllm-cpu:$VERSION,push=true,compression=zstd \
-          -f ./docker/presets/models/vllm-cpu/Dockerfile .
+          --output type=image,name=$REGISTRY/kaito-base-cpu:$VERSION,push=true,compression=zstd \
+          -f ./docker/presets/models/cpu/Dockerfile .
 
     - name: Verify vLLM arch list is up-to-date
       shell: bash

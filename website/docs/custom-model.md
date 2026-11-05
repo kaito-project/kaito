@@ -29,7 +29,7 @@ Declare a non-GPU, non-ARM Azure VM SKU in `resource.instanceType`, such as
 Transformers CPU inference, AWS CPU, and ARM64 are not supported. The CPU image
 uses `vllm/vllm-openai-cpu:v0.30.0-x86_64`.
 
-See the [Gemma vLLM CPU InferenceSet example](https://github.com/kaito-project/kaito/tree/main/examples/inference/kaito_inferenceset_gemma_4_e4b_it_cpu_vllm.yaml).
+See the [Gemma vLLM CPU InferenceSet example](https://github.com/kaito-project/kaito/tree/main/examples/inference/kaito_inferenceset_gemma_4_e4b_it_cpu.yaml).
 Built-in presets and generic Hugging Face model IDs are supported subject to vLLM
 compatibility and available memory. For gated models, accept the model license
 and configure `presetOptions.modelAccessSecret` with an `HF_TOKEN` secret.

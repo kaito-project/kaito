@@ -36,18 +36,18 @@ func TestRuntimeUpgradeAuthorizationUsesSelectedImageTag(t *testing.T) {
 		baseName, baseTag              string
 		want                           bool
 	}{
-		{"metadata cannot authorize another image", "0.0.2", "registry:5000/kaito-base:0.0.2", "registry:5000/kaito-base:old", "base-vllm-cpu", "0.0.2", false},
-		{"v prefix preserved", "v0.0.3", "registry:5000/kaito-base-vllm-cpu:v0.0.3", "registry:5000/kaito-base-vllm-cpu:old", "base-vllm-cpu", "v0.0.3", true},
-		{"CPU current authorization", "0.0.2", "registry:5000/kaito-base-vllm-cpu:0.0.2", "registry:5000/kaito-base-vllm-cpu:old", "base-vllm-cpu", "0.0.2", true},
-		{"GPU tag cannot authorize CPU", "0.0.1", "registry:5000/kaito-base-vllm-cpu:0.0.2", "registry:5000/kaito-base-vllm-cpu:old", "base-vllm-cpu", "0.0.2", false},
-		{"old CPU authorization cannot approve next release", "0.0.2", "registry:5000/kaito-base-vllm-cpu:0.0.3", "registry:5000/kaito-base-vllm-cpu:0.0.2", "base-vllm-cpu", "0.0.3", false},
-		{"next CPU authorization", "0.0.3", "registry:5000/kaito-base-vllm-cpu:0.0.3", "registry:5000/kaito-base-vllm-cpu:0.0.2", "base-vllm-cpu", "0.0.3", true},
+		{"metadata cannot authorize another image", "0.0.2", "registry:5000/kaito-base:0.0.2", "registry:5000/kaito-base:old", "base-cpu", "0.0.2", false},
+		{"v prefix preserved", "v0.0.3", "registry:5000/kaito-base-cpu:v0.0.3", "registry:5000/kaito-base-cpu:old", "base-cpu", "v0.0.3", true},
+		{"CPU current authorization", "0.0.2", "registry:5000/kaito-base-cpu:0.0.2", "registry:5000/kaito-base-cpu:old", "base-cpu", "0.0.2", true},
+		{"GPU tag cannot authorize CPU", "0.0.1", "registry:5000/kaito-base-cpu:0.0.2", "registry:5000/kaito-base-cpu:old", "base-cpu", "0.0.2", false},
+		{"old CPU authorization cannot approve next release", "0.0.2", "registry:5000/kaito-base-cpu:0.0.3", "registry:5000/kaito-base-cpu:0.0.2", "base-cpu", "0.0.3", false},
+		{"next CPU authorization", "0.0.3", "registry:5000/kaito-base-cpu:0.0.3", "registry:5000/kaito-base-cpu:0.0.2", "base-cpu", "0.0.3", true},
 		{"GPU behavior unchanged", "0.0.1", "registry:5000/kaito-base:0.0.1", "registry:5000/kaito-base:old", "base", "0.0.1", true},
 		{"no authorization", "", "registry:5000/kaito-base:0.0.1", "registry:5000/kaito-base:old", "base", "0.0.1", false},
-		{"image already current", "0.0.2", "registry:5000/kaito-base-vllm-cpu:0.0.2", "registry:5000/kaito-base-vllm-cpu:0.0.2", "base-vllm-cpu", "0.0.2", false},
-		{"untagged", "latest", "registry:5000/kaito-base-vllm-cpu", "registry:5000/kaito-base-vllm-cpu:old", "base-vllm-cpu", "", false},
-		{"digest only", "0.0.2", "registry:5000/kaito-base-vllm-cpu@sha256:" + strings.Repeat("a", 64), "registry:5000/kaito-base-vllm-cpu:old", "base-vllm-cpu", "@sha256:" + strings.Repeat("a", 64), false},
-		{"tag plus digest", "0.0.2", "registry:5000/kaito-base-vllm-cpu:0.0.2@sha256:" + strings.Repeat("a", 64), "registry:5000/kaito-base-vllm-cpu:old", "base-vllm-cpu", "0.0.2@sha256:" + strings.Repeat("a", 64), false},
+		{"image already current", "0.0.2", "registry:5000/kaito-base-cpu:0.0.2", "registry:5000/kaito-base-cpu:0.0.2", "base-cpu", "0.0.2", false},
+		{"untagged", "latest", "registry:5000/kaito-base-cpu", "registry:5000/kaito-base-cpu:old", "base-cpu", "", false},
+		{"digest only", "0.0.2", "registry:5000/kaito-base-cpu@sha256:" + strings.Repeat("a", 64), "registry:5000/kaito-base-cpu:old", "base-cpu", "@sha256:" + strings.Repeat("a", 64), false},
+		{"tag plus digest", "0.0.2", "registry:5000/kaito-base-cpu:0.0.2@sha256:" + strings.Repeat("a", 64), "registry:5000/kaito-base-cpu:old", "base-cpu", "0.0.2@sha256:" + strings.Repeat("a", 64), false},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
 			ws := &v1beta1.Workspace{ObjectMeta: metav1.ObjectMeta{Labels: map[string]string{v1alpha1.LabelUpgradeToVersion: tc.label}}}

@@ -48,7 +48,7 @@ images:
     # 0.0.1 - Initial Release
 
   # vLLM CPU runtime image with no model weights (linux/amd64 only).
-  - name: base-vllm-cpu
+  - name: base-cpu
     tag: 0.0.2
     runtimeVersion:
       vllm: 0.30.0

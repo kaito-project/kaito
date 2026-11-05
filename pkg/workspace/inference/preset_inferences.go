@@ -550,9 +550,9 @@ func buildBenchmarkStartupProbe(timeout time.Duration, wObj *v1beta1.Workspace, 
 	}
 }
 
-func GetBaseImageName() string {
-	presetObj := metadata.MustGet("base")
-	return utils.GetPresetImageName(presetObj.Registry, presetObj.Name, presetObj.Tag)
+// GetBaseImageName returns the full image reference for the selected base image.
+func GetBaseImageName(baseImage pkgmodel.Metadata) string {
+	return utils.GetPresetImageName(baseImage.Registry, baseImage.Name, baseImage.Tag)
 }
 
 // GetBaseImageTag returns the selected base image's catalog tag, unchanged,
@@ -573,7 +573,7 @@ func GetBaseImageTag(baseImage pkgmodel.Metadata) (string, error) {
 	if errs := validation.IsValidLabelValue(baseImage.Tag); len(errs) > 0 {
 		return "", fmt.Errorf("base image tag %q is not a valid upgrade label: %v", baseImage.Tag, errs)
 	}
-	image := utils.GetPresetImageName(baseImage.Registry, baseImage.Name, baseImage.Tag)
+	image := GetBaseImageName(baseImage)
 	ref, err := reference.ParseNormalizedNamed(image)
 	if err != nil {
 		return "", fmt.Errorf("invalid base image reference %q: %w", image, err)
@@ -589,7 +589,7 @@ func getPresetInferenceImageName(runtimeName pkgmodel.RuntimeName, isCPU bool) s
 	if baseImage.Name == "" {
 		return ""
 	}
-	return utils.GetPresetImageName(baseImage.Registry, baseImage.Name, baseImage.Tag)
+	return GetBaseImageName(baseImage)
 }
 
 func getPresetInferenceBaseImage(runtimeName pkgmodel.RuntimeName, isCPU bool) pkgmodel.Metadata {
@@ -609,7 +609,7 @@ func GetDesiredInferenceImageName(ws *v1beta1.Workspace) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	return utils.GetPresetImageName(baseImage.Registry, baseImage.Name, baseImage.Tag), nil
+	return GetBaseImageName(baseImage), nil
 }
 
 // GetDesiredInferenceBaseImage keeps image and upgrade-tag selection consistent.

@@ -30,7 +30,6 @@ import (
 	kaitov1alpha1 "github.com/kaito-project/kaito/api/v1alpha1"
 	kaitov1beta1 "github.com/kaito-project/kaito/api/v1beta1"
 	pkgmodel "github.com/kaito-project/kaito/pkg/model"
-	"github.com/kaito-project/kaito/pkg/utils"
 	inferencesetutil "github.com/kaito-project/kaito/pkg/utils/inferenceset"
 	"github.com/kaito-project/kaito/pkg/utils/resources"
 	"github.com/kaito-project/kaito/pkg/utils/workspace"
@@ -87,7 +86,7 @@ func (r *AutoUpgradeRunner) NeedLeaderElection() bool { return true }
 
 // reconcileAll lists all InferenceSets with autoUpgrade enabled and processes each.
 func (r *AutoUpgradeRunner) reconcileAll(ctx context.Context) {
-	klog.InfoS("AutoUpgradeRunner: reconcileAll tick", "desiredImage", inference.GetBaseImageName())
+	klog.InfoS("AutoUpgradeRunner: reconcileAll tick")
 	inferenceSetList := &kaitov1beta1.InferenceSetList{}
 	if err := r.Client.List(ctx, inferenceSetList); err != nil {
 		klog.ErrorS(err, "AutoUpgradeRunner: failed to list InferenceSets")
@@ -134,7 +133,7 @@ func (r *AutoUpgradeRunner) reconcileInPlace(ctx context.Context, inferenceSetOb
 		klog.ErrorS(err, "AutoUpgradeRunner: failed to resolve desired image", "inferenceset", klog.KObj(inferenceSetObj))
 		return
 	}
-	desiredImage := utils.GetPresetImageName(baseImage.Registry, baseImage.Name, baseImage.Tag)
+	desiredImage := inference.GetBaseImageName(baseImage)
 	desiredTag, err := inference.GetBaseImageTag(baseImage)
 	if err != nil {
 		klog.ErrorS(err, "AutoUpgradeRunner: cannot authorize upgrade", "image", desiredImage)
@@ -351,7 +350,7 @@ func (r *AutoUpgradeRunner) reconcileSurge(ctx context.Context, inferenceSetObj 
 		klog.ErrorS(err, "AutoUpgradeRunner: failed to resolve desired image", "inferenceset", klog.KObj(inferenceSetObj))
 		return
 	}
-	desiredImage := utils.GetPresetImageName(baseImage.Registry, baseImage.Name, baseImage.Tag)
+	desiredImage := inference.GetBaseImageName(baseImage)
 	desiredTag, err := inference.GetBaseImageTag(baseImage)
 	if err != nil {
 		klog.ErrorS(err, "AutoUpgradeRunner: cannot authorize upgrade", "image", desiredImage)

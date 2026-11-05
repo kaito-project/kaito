@@ -1980,7 +1980,7 @@ func TestInjectLMCacheSidecar(t *testing.T) {
 	spec := &corev1.PodSpec{
 		Containers: []corev1.Container{{
 			Name:    "workspace",
-			Image:   GetBaseImageName(),
+			Image:   GetBaseImageName(metadata.MustGet("base")),
 			Command: []string{"/bin/sh", "-c", "python3 /workspace/vllm/inference_api.py --tensor-parallel-size=2"},
 			VolumeMounts: []corev1.VolumeMount{{
 				Name: "config-volume", MountPath: utils.DefaultConfigMapMountPath,
@@ -1994,7 +1994,7 @@ func TestInjectLMCacheSidecar(t *testing.T) {
 	require.Len(t, spec.InitContainers, 1)
 	sidecar := spec.InitContainers[0]
 	assert.Equal(t, lmCacheSidecarName, sidecar.Name)
-	assert.Equal(t, GetBaseImageName(), sidecar.Image)
+	assert.Equal(t, GetBaseImageName(metadata.MustGet("base")), sidecar.Image)
 	require.NotNil(t, sidecar.RestartPolicy)
 	assert.Equal(t, corev1.ContainerRestartPolicyAlways, *sidecar.RestartPolicy)
 	assert.Empty(t, sidecar.Resources.Requests)
@@ -2579,7 +2579,7 @@ func TestPresetInferenceRuntimeImages(t *testing.T) {
 				return
 			}
 			require.NoError(t, err)
-			want := GetBaseImageName()
+			want := GetBaseImageName(metadata.MustGet("base"))
 			if tc.wantCPU {
 				want = getCPUVLLMImageName()
 			}

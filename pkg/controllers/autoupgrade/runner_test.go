@@ -57,12 +57,11 @@ func newFakeClient(objs ...client.Object) client.Client {
 		Build()
 }
 
-// setTestRegistry configures PRESET_REGISTRY_NAME and returns the base image
-// that inference.GetBaseImageName() will produce during the test.
+// setTestRegistry configures PRESET_REGISTRY_NAME and returns the GPU base image.
 func setTestRegistry(t *testing.T) string {
 	t.Helper()
 	t.Setenv("PRESET_REGISTRY_NAME", "mcr.microsoft.com/aks/kaito")
-	return inference.GetBaseImageName()
+	return inference.GetBaseImageName(metadata.MustGet("base"))
 }
 
 func makeInferenceSet(name, namespace string, enabled bool, window *kaitov1beta1.MaintenanceWindow) *kaitov1beta1.InferenceSet {

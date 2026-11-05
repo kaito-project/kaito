@@ -24,7 +24,7 @@ import (
 	metadata "github.com/kaito-project/kaito/presets/workspace/models"
 )
 
-func TestGetBaseImageTagCatalog(t *testing.T) {
+func TestGetBaseImageNameAndTagCatalog(t *testing.T) {
 	t.Setenv("PRESET_REGISTRY_NAME", "registry.example")
 	for _, name := range []string{"base", "base-cpu"} {
 		t.Run(name, func(t *testing.T) {
@@ -32,6 +32,7 @@ func TestGetBaseImageTagCatalog(t *testing.T) {
 			got, err := GetBaseImageTag(baseImage)
 			require.NoError(t, err)
 			assert.Equal(t, baseImage.Tag, got)
+			assert.Equal(t, "registry.example/kaito-"+name+":"+got, GetBaseImageName(baseImage))
 		})
 	}
 }

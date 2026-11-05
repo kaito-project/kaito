@@ -171,9 +171,59 @@ class TestDispatchNoOp:
             return "OK"
 
         mw = rate_limit.RateLimitMiddleware(app=MagicMock())
-        for path in ("/health", "/metrics", "/v1/models"):
+        for path in (
+            "/health",
+            "/metrics",
+            "/v1/models",
+            # Sub-resources of a guarded route must stay reachable under load,
+            # in particular cancelling a background response.
+            "/v1/responses/resp_123",
+            "/v1/responses/resp_123/cancel",
+            "/v1/messages/count_tokens",
+            "/v1/chat/completions/render",
+        ):
             result = _run(mw.dispatch(_make_request(path), call_next))
             assert result == "OK", f"path={path} should be unguarded"
+
+
+class TestGuardedPaths:
+    @pytest.mark.parametrize(
+        "path",
+        [
+            "/v1/completions",
+            "/v1/chat/completions",
+            "/v1/chat/completions/batch",
+            "/v1/responses",
+            "/v1/messages",
+            "/cohere/v2/chat",
+            "/inference/v1/generate",
+            "/generative_scoring",
+            "/v1/audio/transcriptions",
+            "/v1/audio/translations",
+            "/v1/embeddings",
+            "/v2/embed",
+            "/pooling",
+            "/classify",
+            "/score",
+            "/v1/score",
+            "/rerank",
+            "/v1/rerank",
+            "/v2/rerank",
+            "/invocations",
+            "/tokenize",
+        ],
+    )
+    def test_rejects_engine_route_when_queue_full(self, path):
+        rate_limit.configure(4)
+        _set_waiting(5)
+
+        async def call_next(_req):
+            return "OK"
+
+        mw = rate_limit.RateLimitMiddleware(app=MagicMock())
+        resp = _run(mw.dispatch(_make_request(path), call_next))
+        assert isinstance(resp, _StubJSONResponse), f"path={path} should be guarded"
+        assert resp.status_code == 429
 
 
 class TestDispatchAdmit:

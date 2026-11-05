@@ -294,7 +294,7 @@ func (c *InferenceSetReconciler) isWorkspaceOnOldImage(ctx context.Context, ws *
 //
 // Workspaces already being deleted count toward the target without issuing a new delete.
 func (c *InferenceSetReconciler) selectWorkspacesToDelete(ctx context.Context, iObj *kaitov1beta1.InferenceSet, workspaces []kaitov1beta1.Workspace, desiredReplicas, numToDelete int) ([]*kaitov1beta1.Workspace, error) {
-	desiredImage, err := inference.GetDesiredInferenceImageNameWithResolution(ctx, inferenceset.NewWorkspaceForInferenceSet(iObj), c.Client)
+	desiredImage, err := inference.GetDesiredInferenceImageName(inferenceset.NewWorkspaceForInferenceSet(iObj))
 	if err != nil {
 		return nil, fmt.Errorf("failed to resolve desired inference image: %w", err)
 	}
@@ -538,11 +538,7 @@ func (c *InferenceSetReconciler) addOrUpdateInferenceSet(ctx context.Context, iO
 	// check whether all the workspaces are ready
 	totalTPM, readyReplicas, benchmarkedReplicas, hasBenchmarkTPMResult := aggregateBenchmarkResults(wsList.Items)
 
-	benchmarkApplicable, err := kaitov1beta1.ResolveInferenceSetBenchmarkApplicability(ctx, iObj, c.Client)
-	if err != nil {
-		klog.ErrorS(err, "failed to resolve benchmark applicability", "inferenceset", klog.KObj(iObj))
-		return ctrl.Result{}, err
-	}
+	benchmarkApplicable := kaitov1beta1.ShouldRunInferenceSetBenchmark(iObj)
 
 	// update the replicas in the status
 	if err = inferenceset.UpdateInferenceSetStatus(ctx, c.Client, &client.ObjectKey{Name: iObj.Name, Namespace: iObj.Namespace}, func(status *kaitov1beta1.InferenceSetStatus) error {
@@ -690,10 +686,7 @@ func (c *InferenceSetReconciler) ensureGatewayAPIInferenceExtension(ctx context.
 		return nil
 	}
 	for i := range wsList.Items {
-		isCPUTarget, resolveErr := kaitov1beta1.ResolveCPUInferenceTarget(ctx, wsList.Items[i].Inference, wsList.Items[i].Resource.InstanceType, wsList.Items[i].Resource.LabelSelector, c.Client)
-		if resolveErr != nil {
-			return resolveErr
-		}
+		isCPUTarget := kaitov1beta1.IsCPUInferenceWorkspace(&wsList.Items[i])
 		if isCPUTarget {
 			return nil
 		}

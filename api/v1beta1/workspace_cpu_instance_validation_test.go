@@ -17,8 +17,6 @@ import (
 	"context"
 	"testing"
 
-	corev1 "k8s.io/api/core/v1"
-	"k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
 	"github.com/kaito-project/kaito/pkg/featuregates"
@@ -27,26 +25,14 @@ import (
 )
 
 func TestValidateCreateWithInference_AllowsCPUNAPInstanceTypes(t *testing.T) {
+	RegisterValidationTestModels()
 	oldNAPGate := featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning]
 	defer func() {
 		featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning] = oldNAPGate
 	}()
 	featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning] = false
 
-	cpuInference := &InferenceSpec{
-		Template: &corev1.PodTemplateSpec{
-			Spec: corev1.PodSpec{
-				Containers: []corev1.Container{{
-					Name:  "cpu",
-					Image: "example.com/cpu:latest",
-					Resources: corev1.ResourceRequirements{
-						Requests: corev1.ResourceList{corev1.ResourceCPU: resource.MustParse("2")},
-						Limits:   corev1.ResourceList{corev1.ResourceCPU: resource.MustParse("2")},
-					},
-				}},
-			},
-		},
-	}
+	cpuInference := &InferenceSpec{Preset: &PresetSpec{PresetMeta: PresetMeta{Name: "test-validation"}}}
 
 	tests := []struct {
 		name         string
@@ -54,8 +40,6 @@ func TestValidateCreateWithInference_AllowsCPUNAPInstanceTypes(t *testing.T) {
 		instanceType string
 	}{
 		{name: "azure e-series cpu instance type", provider: consts.AzureCloudName, instanceType: "Standard_E8s_v5"},
-		{name: "azure arm-style cpu instance type", provider: consts.AzureCloudName, instanceType: "Standard_D16ps_v5"},
-		{name: "azure unversioned arm-style cpu instance type", provider: consts.AzureCloudName, instanceType: "Standard_D16ps"},
 	}
 
 	for _, tt := range tests {

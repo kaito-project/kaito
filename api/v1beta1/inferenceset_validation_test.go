@@ -18,11 +18,8 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/apimachinery/pkg/runtime"
 	"knative.dev/pkg/apis"
-	"sigs.k8s.io/controller-runtime/pkg/client/fake"
 
 	"github.com/kaito-project/kaito/pkg/featuregates"
 	"github.com/kaito-project/kaito/pkg/model"
@@ -242,38 +239,15 @@ func TestInferenceSetValidateSelector(t *testing.T) {
 	}
 }
 
-func TestResolveInferenceSetBenchmarkApplicability_BYOCPUPresetSkipsParentBenchmark(t *testing.T) {
-	oldNAP := featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning]
-	defer func() {
-		featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning] = oldNAP
-	}()
-	featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning] = true
-
-	scheme := runtime.NewScheme()
-	assert.NoError(t, corev1.AddToScheme(scheme))
-	nodeClient := fake.NewClientBuilder().WithScheme(scheme).WithObjects(&corev1.Node{
-		ObjectMeta: metav1.ObjectMeta{
-			Name: "cpu-node",
-			Labels: map[string]string{
-				"kaito.sh/cpu-inference": "true",
-				corev1.LabelArchStable:   "amd64",
-			},
-		},
-		Status: corev1.NodeStatus{Conditions: []corev1.NodeCondition{{Type: corev1.NodeReady, Status: corev1.ConditionTrue}}},
-	}).Build()
-
-	is := &InferenceSet{
-		ObjectMeta: metav1.ObjectMeta{Annotations: map[string]string{}},
-		Spec: InferenceSetSpec{
-			Selector: &metav1.LabelSelector{MatchLabels: map[string]string{"app": "workspaces"}},
-			Template: InferenceSetTemplate{
-				Resource:  InferenceSetResourceSpec{LabelSelector: &metav1.LabelSelector{MatchLabels: map[string]string{"kaito.sh/cpu-inference": "true"}}},
-				Inference: InferenceSpec{Preset: &PresetSpec{PresetMeta: PresetMeta{Name: "test-model"}}},
-			},
-		},
-	}
-
-	benchmarkApplicable, err := ResolveInferenceSetBenchmarkApplicability(context.Background(), is, nodeClient)
-	assert.NoError(t, err)
-	assert.False(t, benchmarkApplicable, "BYO CPU presets with empty instanceType should skip parent benchmark applicability")
+func TestInferenceSetBenchmarkApplicabilityRequiresDeclaredCPUType(t *testing.T) {
+	old := featuregates.FeatureGates[consts.FeatureFlagVLLM]
+	t.Cleanup(func() { featuregates.FeatureGates[consts.FeatureFlagVLLM] = old })
+	featuregates.FeatureGates[consts.FeatureFlagVLLM] = true
+	t.Setenv("CLOUD_PROVIDER", consts.AzureCloudName)
+	is := &InferenceSet{Spec: InferenceSetSpec{Template: InferenceSetTemplate{Inference: InferenceSpec{Preset: &PresetSpec{PresetMeta: PresetMeta{Name: "test-model"}}}}}}
+	assert.True(t, ShouldRunInferenceSetBenchmark(is), "label-only targets do not select CPU")
+	is.Spec.Template.Resource.InstanceType = "Standard_D16s_v6"
+	assert.False(t, ShouldRunInferenceSetBenchmark(is), "declared CPU skips benchmark")
+	is.Spec.Template.Resource.InstanceType = "Standard_NC6s_v3"
+	assert.True(t, ShouldRunInferenceSetBenchmark(is), "GPU behavior unchanged")
 }

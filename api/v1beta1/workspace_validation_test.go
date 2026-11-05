@@ -3542,10 +3542,9 @@ func TestValidateCreate_InvalidSpeculativeDecodingValueReportedOnce(t *testing.T
 	}
 }
 
-// Existing BYO CPU workloads must not depend on the admission-time node inventory
+// Existing label-only workloads must not depend on the admission-time node inventory
 // for metadata changes or ordinary same-runtime image upgrades.
-func TestValidateUpdateBYOCPUDoesNotRevalidateNodeInventory(t *testing.T) {
-	registerCPUValidationTestModels()
+func TestValidateUpdateLabelOnlyDoesNotRevalidateNodeInventory(t *testing.T) {
 	oldNAP, oldClient := featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning], k8sclient.Client
 	t.Cleanup(func() {
 		featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning], k8sclient.Client = oldNAP, oldClient

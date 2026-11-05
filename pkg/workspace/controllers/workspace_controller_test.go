@@ -2735,7 +2735,7 @@ func TestEnsureModelMirror_StaticAnnotationsCarryReason(t *testing.T) {
 	}
 }
 
-func TestUpdateWorkspaceTargetNodeCountBYOCPUInitialization(t *testing.T) {
+func TestUpdateWorkspaceTargetNodeCountDeclaredCPUInitialization(t *testing.T) {
 	test.RegisterTestModel()
 	for _, gate := range []string{consts.FeatureFlagDisableNodeAutoProvisioning} {
 		old := featuregates.FeatureGates[gate]
@@ -2747,7 +2747,7 @@ func TestUpdateWorkspaceTargetNodeCountBYOCPUInitialization(t *testing.T) {
 	require.NoError(t, appsv1.AddToScheme(scheme))
 	require.NoError(t, v1beta1.AddToScheme(scheme))
 	ws := &v1beta1.Workspace{ObjectMeta: v1.ObjectMeta{Name: "cpu-workspace", Namespace: "default"},
-		Resource:  v1beta1.ResourceSpec{LabelSelector: &v1.LabelSelector{MatchLabels: map[string]string{"pool": "cpu"}}},
+		Resource:  v1beta1.ResourceSpec{InstanceType: "Standard_D16s_v6", LabelSelector: &v1.LabelSelector{MatchLabels: map[string]string{"pool": "cpu"}}},
 		Inference: &v1beta1.InferenceSpec{Preset: &v1beta1.PresetSpec{PresetMeta: v1beta1.PresetMeta{Name: "test-model"}}},
 		Status:    v1beta1.WorkspaceStatus{}}
 	node := &corev1.Node{ObjectMeta: v1.ObjectMeta{Name: "cpu", Labels: map[string]string{"pool": "cpu", corev1.LabelArchStable: "amd64"}}, Status: corev1.NodeStatus{Conditions: []corev1.NodeCondition{{Type: corev1.NodeReady, Status: corev1.ConditionTrue}}}}

@@ -27,7 +27,8 @@ import (
 	"github.com/kaito-project/kaito/pkg/utils/test"
 )
 
-func TestCreateTemplateInference_CPUWorkspaceOmitsDefaultGPUTolerations(t *testing.T) {
+func TestCreateTemplateInferenceDoesNotSelectCPUPresetBehavior(t *testing.T) {
+	t.Setenv("CLOUD_PROVIDER", consts.AzureCloudName)
 	one := 1
 	workspace := &kaitov1beta1.Workspace{
 		ObjectMeta: metav1.ObjectMeta{Name: "cpu-ws", Namespace: "default"},
@@ -68,10 +69,10 @@ func TestCreateTemplateInference_CPUWorkspaceOmitsDefaultGPUTolerations(t *testi
 			hasCPU = true
 		}
 	}
-	if hasGPU {
-		t.Fatalf("expected cpu template inference to omit default gpu tolerations, got %v", ss.Spec.Template.Spec.Tolerations)
+	if !hasGPU {
+		t.Fatalf("expected custom template inference to preserve default gpu tolerations, got %v", ss.Spec.Template.Spec.Tolerations)
 	}
-	if !hasCPU {
-		t.Fatalf("expected cpu template inference to keep cpu dedicated toleration, got %v", ss.Spec.Template.Spec.Tolerations)
+	if hasCPU {
+		t.Fatalf("expected custom template inference not to add CPU preset tolerations, got %v", ss.Spec.Template.Spec.Tolerations)
 	}
 }

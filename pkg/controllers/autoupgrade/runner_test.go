@@ -677,7 +677,7 @@ func TestReconcileInferenceSet_AllUpToDate_CPUPresetUsesRuntimeAwareDesiredImage
 	is.Spec.Template.Resource.InstanceType = "Standard_D8s_v5"
 	is.Spec.Template.Inference.Preset = &kaitov1beta1.PresetSpec{PresetMeta: kaitov1beta1.PresetMeta{Name: "test-model"}}
 	ws := makeWorkspace("ws-1", ns, isName, kaitov1beta1.WorkspaceStateReady, nil)
-	desiredImage, err := inference.GetDesiredInferenceImageNameWithResolution(t.Context(), inferencesetutil.NewWorkspaceForInferenceSet(is), nil)
+	desiredImage, err := inference.GetDesiredInferenceImageName(inferencesetutil.NewWorkspaceForInferenceSet(is))
 	require.NoError(t, err)
 	ss := makeStatefulSet("ws-1", ns, desiredImage)
 	cl := newFakeClient(is, ws, ss)
@@ -962,10 +962,10 @@ func TestReconcileInferenceSet_CPURuntimeUpgradeVersion(t *testing.T) {
 	// Check real runtime selection without imposing any relation between release tags.
 	cpu := makeSurgeInferenceSet("cpu-upgrade", "default")
 	cpu.Spec.Template.Resource.InstanceType = "Standard_D8s_v5"
-	catalogImage, err := inference.GetDesiredInferenceImageNameWithResolution(t.Context(), inferencesetutil.NewWorkspaceForInferenceSet(cpu), nil)
+	catalogImage, err := inference.GetDesiredInferenceImageName(inferencesetutil.NewWorkspaceForInferenceSet(cpu))
 	require.NoError(t, err)
 	require.Contains(t, catalogImage, "kaito-base-vllm-cpu:")
-	catalogBaseImage, err := inference.GetDesiredInferenceBaseImageWithResolution(t.Context(), inferencesetutil.NewWorkspaceForInferenceSet(cpu), nil)
+	catalogBaseImage, err := inference.GetDesiredInferenceBaseImage(inferencesetutil.NewWorkspaceForInferenceSet(cpu))
 	require.NoError(t, err)
 	catalogTag, err := inference.GetBaseImageTag(catalogBaseImage)
 	require.NoError(t, err)
@@ -1026,7 +1026,7 @@ func TestReconcileInferenceSet_CPURuntimeUpgradeVersion(t *testing.T) {
 								require.Len(t, all, 2)
 								for i := range all {
 									if all[i].Name != ws.Name {
-										image, err := inference.GetDesiredInferenceImageNameWithResolution(t.Context(), &all[i], cl)
+										image, err := inference.GetDesiredInferenceImageName(&all[i])
 										require.NoError(t, err)
 										assert.Equal(t, catalogImage, image)
 									}

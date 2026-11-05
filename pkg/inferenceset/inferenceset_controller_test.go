@@ -783,7 +783,7 @@ func TestSelectWorkspacesToDelete(t *testing.T) {
 	ctx := context.Background()
 	const ns = "default"
 	iObj := test.MockInferenceSetWithPresetVLLM.DeepCopy()
-	desiredImage, err := inference.GetDesiredInferenceImageNameWithResolution(ctx, utilsinferenceset.NewWorkspaceForInferenceSet(iObj), nil)
+	desiredImage, err := inference.GetDesiredInferenceImageName(utilsinferenceset.NewWorkspaceForInferenceSet(iObj))
 	require.NoError(t, err)
 	oldImage := desiredImage + "-old"
 
@@ -1183,7 +1183,7 @@ func TestSelectWorkspacesToDelete_UsesRuntimeAwareDesiredImageForCPU(t *testing.
 
 	iObj := test.MockInferenceSetWithPresetVLLM.DeepCopy()
 	iObj.Spec.Template.Resource.InstanceType = "Standard_D8s_v5"
-	desiredImage, err := inference.GetDesiredInferenceImageNameWithResolution(ctx, utilsinferenceset.NewWorkspaceForInferenceSet(iObj), nil)
+	desiredImage, err := inference.GetDesiredInferenceImageName(utilsinferenceset.NewWorkspaceForInferenceSet(iObj))
 	require.NoError(t, err)
 	// Exercise an ordinary CPU image version upgrade, not GPU-to-CPU migration.
 	oldCPUImage := desiredImage[:strings.LastIndex(desiredImage, ":")+1] + "old-version"
@@ -1210,71 +1210,19 @@ func TestSelectWorkspacesToDelete_UsesRuntimeAwareDesiredImageForCPU(t *testing.
 	assert.Equal(t, "old-cpu", toDelete[0].Name)
 }
 
-func TestEnsureGatewayAPIInferenceExtensionCPUSelectorResolution(t *testing.T) {
-	test.RegisterTestModel()
-	oldBYO := featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning]
-	oldGateway := featuregates.FeatureGates[consts.FeatureFlagGatewayAPIInferenceExtension]
-	t.Cleanup(func() {
-		featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning] = oldBYO
-		featuregates.FeatureGates[consts.FeatureFlagGatewayAPIInferenceExtension] = oldGateway
-	})
-	featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning] = true
+func TestEnsureGatewayAPIInferenceExtensionDeclaredCPU(t *testing.T) {
+	t.Setenv("CLOUD_PROVIDER", consts.AzureCloudName)
+	old := featuregates.FeatureGates[consts.FeatureFlagGatewayAPIInferenceExtension]
+	t.Cleanup(func() { featuregates.FeatureGates[consts.FeatureFlagGatewayAPIInferenceExtension] = old })
 	featuregates.FeatureGates[consts.FeatureFlagGatewayAPIInferenceExtension] = true
-	listErr := errors.New("node lookup unavailable")
-
-	for _, tt := range []struct {
-		name          string
-		hasWorkspaces bool
-		instanceType  string
-		nodeListErr   error
-	}{
-		{name: "CPU uses existing workspace resource selector", hasWorkspaces: true},
-		{name: "CPU lookup error is propagated", hasWorkspaces: true, nodeListErr: listErr},
-		{name: "explicit CPU workspace skips GWIE", hasWorkspaces: true, instanceType: "Standard_D8s_v5"},
-		{name: "no workspaces skips node lookup"},
-	} {
-		t.Run(tt.name, func(t *testing.T) {
-			iObj := test.MockInferenceSetWithPresetVLLM.DeepCopy()
-			iObj.Spec.Template.Resource.InstanceType = ""
-			iObj.Spec.Selector = &v1.LabelSelector{MatchLabels: map[string]string{"app": "workspaces"}}
-			iObj.Spec.Template.Resource.LabelSelector = &v1.LabelSelector{MatchLabels: map[string]string{"pool": "cpu"}}
-			mockClient := test.NewClient()
-			mockClient.On("List", mock.Anything, mock.IsType(&v1beta1.WorkspaceList{}), mock.Anything).Run(func(args mock.Arguments) {
-				if tt.hasWorkspaces {
-					ws := utilsinferenceset.NewWorkspaceForInferenceSet(iObj)
-					// Existing replicas, rather than the parent template, determine the target.
-					ws.Resource.LabelSelector = &v1.LabelSelector{MatchLabels: map[string]string{"pool": "existing-cpu"}}
-					ws.Resource.InstanceType = tt.instanceType
-					args.Get(1).(*v1beta1.WorkspaceList).Items = []v1beta1.Workspace{*ws}
-				}
-			}).Return(nil).Once()
-			if tt.hasWorkspaces && tt.instanceType == "" {
-				mockClient.On("List", mock.Anything, mock.IsType(&corev1.NodeList{}), mock.Anything).Run(func(args mock.Arguments) {
-					options := &client.ListOptions{}
-					for _, option := range args.Get(2).([]client.ListOption) {
-						option.ApplyToList(options)
-					}
-					assert.Equal(t, "pool=existing-cpu", options.LabelSelector.String(), "must query the existing Workspace selector, not either parent selector")
-					nodes := args.Get(1).(*corev1.NodeList)
-					nodes.Items = []corev1.Node{{
-						ObjectMeta: v1.ObjectMeta{Name: "cpu", Labels: map[string]string{"pool": "existing-cpu", corev1.LabelArchStable: "amd64"}},
-						Status:     corev1.NodeStatus{Conditions: []corev1.NodeCondition{{Type: corev1.NodeReady, Status: corev1.ConditionTrue}}},
-					}}
-				}).Return(tt.nodeListErr).Once()
-			}
-			c := &InferenceSetReconciler{Client: mockClient}
-			err := c.ensureGatewayAPIInferenceExtension(context.Background(), iObj)
-			if tt.nodeListErr != nil {
-				assert.ErrorIs(t, err, tt.nodeListErr)
-			} else {
-				assert.NoError(t, err)
-			}
-			mockClient.AssertExpectations(t)
-			if !tt.hasWorkspaces || tt.instanceType != "" {
-				mockClient.AssertNotCalled(t, "List", mock.Anything, mock.IsType(&corev1.NodeList{}), mock.Anything)
-			}
-			mockClient.AssertNotCalled(t, "Create", mock.Anything, mock.Anything, mock.Anything)
-			mockClient.AssertNotCalled(t, "Update", mock.Anything, mock.Anything, mock.Anything)
-		})
-	}
+	iObj := test.MockInferenceSetWithPresetVLLM.DeepCopy()
+	ws := utilsinferenceset.NewWorkspaceForInferenceSet(iObj)
+	ws.Resource.InstanceType = "Standard_D16s_v6"
+	c := test.NewClient()
+	c.On("List", mock.Anything, mock.IsType(&v1beta1.WorkspaceList{}), mock.Anything).Run(func(args mock.Arguments) { args.Get(1).(*v1beta1.WorkspaceList).Items = []v1beta1.Workspace{*ws} }).Return(nil).Once()
+	r := &InferenceSetReconciler{Client: c}
+	require.NoError(t, r.ensureGatewayAPIInferenceExtension(context.Background(), iObj))
+	c.AssertExpectations(t)
+	c.AssertNotCalled(t, "List", mock.Anything, mock.IsType(&corev1.NodeList{}), mock.Anything)
+	c.AssertNotCalled(t, "Create", mock.Anything, mock.Anything, mock.Anything)
 }

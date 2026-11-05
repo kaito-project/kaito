@@ -1554,25 +1554,12 @@ func TestNewWorkspaceForInferenceSetCPUSelectorConsistency(t *testing.T) {
 	})
 	featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning] = true
 
-	scheme := runtime.NewScheme()
-	assert.NoError(t, corev1.AddToScheme(scheme))
-	kubeClient := fake.NewClientBuilder().WithScheme(scheme).WithObjects(
-		&corev1.Node{
-			ObjectMeta: metav1.ObjectMeta{Name: "cpu", Labels: map[string]string{"pool": "cpu", corev1.LabelArchStable: "amd64"}},
-			Status:     corev1.NodeStatus{Conditions: []corev1.NodeCondition{{Type: corev1.NodeReady, Status: corev1.ConditionTrue}}},
-		},
-		&corev1.Node{
-			ObjectMeta: metav1.ObjectMeta{Name: "gpu-decoy", Labels: map[string]string{"app": "workspaces", consts.NvidiaGPUCount: "1"}},
-			Status:     corev1.NodeStatus{Conditions: []corev1.NodeCondition{{Type: corev1.NodeReady, Status: corev1.ConditionTrue}}},
-		},
-	).Build()
-
 	for _, tt := range []struct {
 		name         string
 		nodeSelector *metav1.LabelSelector
 		wantCPU      bool
 	}{
-		{name: "explicit CPU pool wins over GPU Workspace selector", nodeSelector: &metav1.LabelSelector{MatchLabels: map[string]string{"pool": "cpu"}}, wantCPU: true},
+		{name: "label-only CPU pool does not select CPU", nodeSelector: &metav1.LabelSelector{MatchLabels: map[string]string{"pool": "cpu"}}, wantCPU: false},
 		{name: "GPU pool stays GPU", nodeSelector: &metav1.LabelSelector{MatchLabels: map[string]string{"app": "workspaces"}}},
 		{name: "BYO nil selector does not inherit Workspace labels"},
 		{name: "BYO empty selector does not inherit Workspace labels", nodeSelector: &metav1.LabelSelector{}},
@@ -1586,11 +1573,9 @@ func TestNewWorkspaceForInferenceSetCPUSelectorConsistency(t *testing.T) {
 			ws := NewWorkspaceForInferenceSet(iObj)
 			assert.Equal(t, tt.nodeSelector, ws.Resource.LabelSelector)
 			assert.Equal(t, "workspaces", ws.Labels["app"])
-			got, err := kaitov1beta1.ResolveCPUInferenceSetTarget(context.Background(), iObj, kubeClient)
-			assert.NoError(t, err)
+			got := kaitov1beta1.IsCPUInferenceTarget(&iObj.Spec.Template.Inference, iObj.Spec.Template.Resource.InstanceType)
 			assert.Equal(t, tt.wantCPU, got)
-			childCPU, err := kaitov1beta1.ResolveCPUInferenceWorkspace(context.Background(), ws, kubeClient)
-			assert.NoError(t, err)
+			childCPU := kaitov1beta1.IsCPUInferenceWorkspace(ws)
 			assert.Equal(t, got, childCPU)
 			assert.Equal(t, before, iObj, "construction and CPU resolution must not mutate the parent")
 		})

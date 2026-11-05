@@ -15,38 +15,16 @@ metadata:
 
 ---
 
-### Basic CPU preset examples
+### Basic CPU preset example
 
-CPU-compatible preset examples:
+[Gemma vLLM CPU InferenceSet](inference/kaito_inferenceset_gemma_4_e4b_it_cpu_vllm.yaml)
+uses `google/gemma-4-E4B-it` with `Standard_D16s_v6`.
 
-- NAP InferenceSet (default CPU `vllm`): [Gemma vLLM CPU](inference/kaito_inferenceset_gemma_4_e4b_it_cpu_vllm.yaml)
-- NAP InferenceSet (explicit CPU `transformers`): [Gemma Transformers CPU, text only](inference/kaito_inferenceset_gemma_4_e4b_it_cpu_transformers.yaml)
-
-Notes:
-- default CPU preset inference uses `vllm` on amd64 nodes and requires the `vllm` feature gate
-- explicit `kaito.sh/runtime: transformers` with a declared CPU `instanceType` reuses the configured ordinary `kaito-base` image; no separate CPU-TFS image/build or `vllm` gate is needed
-- CPU classification, admission, and generated placement do not check architecture; the current vLLM CPU image (`vllm/vllm-openai-cpu:v0.30.0-x86_64`) remains x86_64-only. ARM64 runtime support is out of scope and untested; an accepted ARM request is not a supported deployment with this image
-- Transformers runs one CPU process with `device_map=cpu` and `torch_dtype=bfloat16`; label-only BYO CPU selection remains vLLM-only
-- these examples use `google/gemma-4-E4B-it`
-- built-in presets and generic Hugging Face model IDs are supported on the basic CPU preset path
-- the post-load benchmark stage is automatically skipped on basic CPU paths
-
-For the gated Gemma model, accept its license on Hugging Face and create a Secret
-in the InferenceSet namespace using a token with access to the model:
-
-```bash
-# Set HF_TOKEN securely in your environment; do not commit it to the manifest.
-kubectl create secret generic hf-token --from-literal=HF_TOKEN="$HF_TOKEN"
-kubectl apply -f examples/inference/kaito_inferenceset_gemma_4_e4b_it_cpu_transformers.yaml
-```
-
-The example passes `presetOptions.modelAccessSecret` through to the inference
-container as `HF_TOKEN`. Transformers 5.15.0 in the existing base image maps the
-Gemma 4 config through `AutoModelForCausalLM` to `Gemma4ForConditionalGeneration`.
-This is **text-only serving, not text-only weight loading**: the existing loader
-also instantiates the checkpoint's vision/audio components. Size memory for the
-full checkpoint and runtime overhead, not only the E4B active parameter count.
-`Standard_D16s_v6` is an example target, not a live-E2E or capacity guarantee.
+- CPU preset inference supports **vLLM only** and requires the `vllm` feature gate.
+- Declare a non-GPU, non-ARM Azure `resource.instanceType`; label-only BYO and custom-template CPU inference are not supported.
+- The CPU image is x86_64-only. AWS CPU and ARM64 are not supported.
+- Basic CPU inference is single-node and skips the post-load benchmark.
+- For gated models, accept the Hugging Face license and configure `presetOptions.modelAccessSecret` with an `HF_TOKEN` secret. Size memory for the full checkpoint and runtime overhead.
 
 ---
 

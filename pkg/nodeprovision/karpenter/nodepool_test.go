@@ -318,14 +318,8 @@ func TestGenerateNodePool_CPUWorkspaceOmitsGPUTaint(t *testing.T) {
 	ws := &kaitov1beta1.Workspace{
 		ObjectMeta: metav1.ObjectMeta{Name: "cpu-ws", Namespace: "default"},
 		Resource:   kaitov1beta1.ResourceSpec{Count: &one, InstanceType: "Standard_D8s_v5"},
-		Inference: &kaitov1beta1.InferenceSpec{
-			Template: &corev1.PodTemplateSpec{
-				Spec: corev1.PodSpec{
-					Containers: []corev1.Container{{Name: "cpu", Image: "example.com/cpu:latest"}},
-				},
-			},
-		},
-		Status: kaitov1beta1.WorkspaceStatus{TargetNodeCount: 1},
+		Inference:  &kaitov1beta1.InferenceSpec{Preset: &kaitov1beta1.PresetSpec{PresetMeta: kaitov1beta1.PresetMeta{Name: "test-model"}}},
+		Status:     kaitov1beta1.WorkspaceStatus{TargetNodeCount: 1},
 	}
 
 	np := generateNodePool(ws, testConfig, testConfig.DefaultName, consts.KarpenterCapacityTypeOnDemand)

@@ -1736,10 +1736,7 @@ func (c *WorkspaceReconciler) UpdateWorkspaceTargetNodeCount(ctx context.Context
 	var err error
 	targetNodeCount := int32(1)
 	if wObj.Status.TargetNodeCount == 0 {
-		isCPU, resolveErr := kaitov1beta1.ResolveCPUInferenceTarget(ctx, wObj.Inference, wObj.Resource.InstanceType, wObj.Resource.LabelSelector, c.Client)
-		if resolveErr != nil {
-			return fmt.Errorf("failed to resolve CPU inference target: %w", resolveErr)
-		}
+		isCPU := kaitov1beta1.IsCPUInferenceWorkspace(wObj)
 		if isCPU && wObj.Inference.Preset != nil {
 			if err := workspace.UpdateWorkspaceStatus(ctx, c.Client, &client.ObjectKey{Namespace: wObj.Namespace, Name: wObj.Name}, func(status *kaitov1beta1.WorkspaceStatus) error {
 				status.TargetNodeCount = 1

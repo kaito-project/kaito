@@ -62,7 +62,9 @@ type AutoUpgradeRunner struct {
 func (r *AutoUpgradeRunner) desiredBaseImage(ctx context.Context, is *kaitov1beta1.InferenceSet) (pkgmodel.Metadata, error) {
 	resolve := r.resolveBaseImage
 	if resolve == nil {
-		resolve = inference.GetDesiredInferenceBaseImageWithResolution
+		resolve = func(_ context.Context, ws *kaitov1beta1.Workspace, _ client.Client) (pkgmodel.Metadata, error) {
+			return inference.GetDesiredInferenceBaseImage(ws)
+		}
 	}
 	return resolve(ctx, inferencesetutil.NewWorkspaceForInferenceSet(is), r.Client)
 }

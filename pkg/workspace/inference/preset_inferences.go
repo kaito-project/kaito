@@ -356,11 +356,10 @@ func GeneratePresetInference(ctx context.Context, workspaceObj *v1beta1.Workspac
 // getGPUConfig resolves the inference target once per generation. A nil config with
 // no error denotes CPU; every successful GPU path returns a non-nil config.
 func getGPUConfig(ctx *generator.WorkspaceGeneratorContext) (*sku.GPUConfig, error) {
-	isCPUInference, err := v1beta1.ResolveCPUInferenceTarget(ctx.Ctx, ctx.Workspace.Inference, ctx.Workspace.Resource.InstanceType, ctx.Workspace.Resource.LabelSelector, ctx.KubeClient)
-	if err != nil {
-		return nil, err
-	}
-	if isCPUInference {
+	if v1beta1.IsCPUInferenceWorkspace(ctx.Workspace) {
+		if v1beta1.GetWorkspaceRuntimeName(ctx.Workspace) != pkgmodel.RuntimeNameVLLM {
+			return nil, fmt.Errorf("CPU preset inference supports only vllm")
+		}
 		return nil, nil
 	}
 
@@ -594,7 +593,7 @@ func getPresetInferenceImageName(runtimeName pkgmodel.RuntimeName, isCPU bool) s
 }
 
 func getPresetInferenceBaseImage(runtimeName pkgmodel.RuntimeName, isCPU bool) pkgmodel.Metadata {
-	if !isCPU || runtimeName == pkgmodel.RuntimeNameHuggingfaceTransformers {
+	if !isCPU {
 		return metadata.MustGet("base")
 	}
 	if runtimeName == pkgmodel.RuntimeNameVLLM {
@@ -604,31 +603,24 @@ func getPresetInferenceBaseImage(runtimeName pkgmodel.RuntimeName, isCPU bool) p
 	return pkgmodel.Metadata{}
 }
 
-// GetDesiredInferenceImageNameWithResolution returns the runtime-aware image after
-// resolving BYO CPU selectors when instanceType is empty.
-func GetDesiredInferenceImageNameWithResolution(ctx context.Context, ws *v1beta1.Workspace, kubeClient client.Client) (string, error) {
-	baseImage, err := GetDesiredInferenceBaseImageWithResolution(ctx, ws, kubeClient)
+// GetDesiredInferenceImageName returns the image for the declared preset target.
+func GetDesiredInferenceImageName(ws *v1beta1.Workspace) (string, error) {
+	baseImage, err := GetDesiredInferenceBaseImage(ws)
 	if err != nil {
 		return "", err
 	}
 	return utils.GetPresetImageName(baseImage.Registry, baseImage.Name, baseImage.Tag), nil
 }
 
-// GetDesiredInferenceBaseImageWithResolution selects catalog metadata once so the
-// desired image and its upgrade tag use the same runtime and CPU/GPU target.
-func GetDesiredInferenceBaseImageWithResolution(ctx context.Context, ws *v1beta1.Workspace, kubeClient client.Client) (pkgmodel.Metadata, error) {
-	if ws == nil || ws.Inference == nil || ws.Inference.Preset == nil {
+// GetDesiredInferenceBaseImage keeps image and upgrade-tag selection consistent.
+func GetDesiredInferenceBaseImage(ws *v1beta1.Workspace) (pkgmodel.Metadata, error) {
+	if !v1beta1.IsCPUInferenceWorkspace(ws) {
 		return metadata.MustGet("base"), nil
 	}
-	isCPUInference, err := v1beta1.ResolveCPUInferenceWorkspace(ctx, ws, kubeClient)
-	if err != nil {
-		return pkgmodel.Metadata{}, err
+	if v1beta1.GetWorkspaceRuntimeName(ws) != pkgmodel.RuntimeNameVLLM {
+		return pkgmodel.Metadata{}, fmt.Errorf("CPU preset inference supports only vllm")
 	}
-	runtimeName := v1beta1.GetWorkspaceRuntimeName(ws)
-	if isCPUInference && runtimeName != pkgmodel.RuntimeNameVLLM && !v1beta1.IsExplicitTransformersCPUWorkspace(ws) {
-		return pkgmodel.Metadata{}, fmt.Errorf("CPU preset inference requires vllm or explicit transformers with a declared CPU instanceType, got %s", runtimeName)
-	}
-	return getPresetInferenceBaseImage(runtimeName, isCPUInference), nil
+	return metadata.MustGet("base-vllm-cpu"), nil
 }
 
 // GetBaseRuntimeVersion returns the inference engine version baked into the base
@@ -683,8 +675,8 @@ func GenerateInferencePodSpec(gpuConfig *sku.GPUConfig, numNodes int, streamingM
 			streamingModelPath, localModelWeightsPath, volumes, volumeMounts)
 
 		isCPUInference := gpuConfig == nil
-		if isCPUInference && v1beta1.GetWorkspaceRuntimeName(ctx.Workspace) != pkgmodel.RuntimeNameVLLM && !v1beta1.IsExplicitTransformersCPUWorkspace(ctx.Workspace) {
-			return fmt.Errorf("CPU preset inference requires vllm or explicit transformers with a declared CPU instanceType")
+		if isCPUInference && v1beta1.GetWorkspaceRuntimeName(ctx.Workspace) != pkgmodel.RuntimeNameVLLM {
+			return fmt.Errorf("CPU preset inference supports only vllm")
 		}
 
 		volumes, volumeMounts, cudaHome := configureCUDAToolkitVolume(

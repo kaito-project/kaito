@@ -32,13 +32,7 @@ func TestGenerateNodeClaimManifestWithOptions_CPUWorkspaceUsesCPUTaint(t *testin
 			Count:        &one,
 			InstanceType: "Standard_D8s_v5",
 		},
-		Inference: &kaitov1beta1.InferenceSpec{
-			Template: &corev1.PodTemplateSpec{
-				Spec: corev1.PodSpec{
-					Containers: []corev1.Container{{Name: "cpu", Image: "example.com/cpu:latest"}},
-				},
-			},
-		},
+		Inference: &kaitov1beta1.InferenceSpec{Preset: &kaitov1beta1.PresetSpec{PresetMeta: kaitov1beta1.PresetMeta{Name: "test-model"}}},
 	}
 
 	nc := GenerateNodeClaimManifestWithOptions("0", ws, ManifestOptions{})

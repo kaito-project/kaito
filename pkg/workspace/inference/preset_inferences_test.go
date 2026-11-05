@@ -1485,18 +1485,7 @@ func TestDefaultTolerations(t *testing.T) {
 			workspace: &v1beta1.Workspace{
 				ObjectMeta: metav1.ObjectMeta{Name: "cpu-workspace"},
 				Resource:   v1beta1.ResourceSpec{InstanceType: "Standard_D8s_v5"},
-				Inference: &v1beta1.InferenceSpec{
-					Template: &corev1.PodTemplateSpec{
-						Spec: corev1.PodSpec{Containers: []corev1.Container{{
-							Name:  "cpu",
-							Image: "example.com/cpu:latest",
-							Resources: corev1.ResourceRequirements{
-								Requests: corev1.ResourceList{corev1.ResourceCPU: resource.MustParse("2")},
-								Limits:   corev1.ResourceList{corev1.ResourceCPU: resource.MustParse("2")},
-							},
-						}}},
-					},
-				},
+				Inference:  &v1beta1.InferenceSpec{Preset: &v1beta1.PresetSpec{PresetMeta: v1beta1.PresetMeta{Name: "test-model"}}},
 			},
 			expectSpot: true,
 			expectGPU:  false,
@@ -1549,7 +1538,7 @@ func TestDefaultTolerations(t *testing.T) {
 func TestApplyCPUDedicatedPlacement(t *testing.T) {
 	cpuWS := &v1beta1.Workspace{ObjectMeta: metav1.ObjectMeta{Name: "ws-a", Namespace: "ns-a"}}
 	cpuWS.Labels = map[string]string{consts.WorkspaceCreatedByInferenceSetLabel: "iset-a"}
-	cpuWS.Inference = &v1beta1.InferenceSpec{Template: &corev1.PodTemplateSpec{Spec: corev1.PodSpec{Containers: []corev1.Container{{Name: "cpu", Image: "example.com/cpu:latest"}}}}}
+	cpuWS.Inference = &v1beta1.InferenceSpec{Preset: &v1beta1.PresetSpec{PresetMeta: v1beta1.PresetMeta{Name: "test-model"}}}
 	cpuWS.Resource = v1beta1.ResourceSpec{InstanceType: "Standard_D16s_v6"}
 
 	spec := &corev1.PodSpec{}
@@ -2403,98 +2392,6 @@ func TestGeneratePresetInferenceNodeImageWeights(t *testing.T) {
 	}
 }
 
-func TestGetDesiredInferenceImageNameWithResolution_BYOCPUPresetUsesCPUImage(t *testing.T) {
-	test.RegisterTestModel()
-	oldNAPGate := featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning]
-	defer func() {
-		featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning] = oldNAPGate
-	}()
-	featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning] = true
-
-	scheme := runtime.NewScheme()
-	if err := corev1.AddToScheme(scheme); err != nil {
-		t.Fatalf("failed to add corev1 scheme: %v", err)
-	}
-	kubeClient := fake.NewClientBuilder().WithScheme(scheme).WithObjects(&corev1.Node{
-		ObjectMeta: metav1.ObjectMeta{
-			Name: "cpu-node",
-			Labels: map[string]string{
-				"kaito.sh/cpu-inference": "true",
-				corev1.LabelArchStable:   "amd64",
-			},
-		},
-		Status: corev1.NodeStatus{Conditions: []corev1.NodeCondition{{Type: corev1.NodeReady, Status: corev1.ConditionTrue}}},
-	}).Build()
-
-	workspace := test.MockWorkspaceWithPresetVLLM.DeepCopy()
-	workspace.Resource.InstanceType = ""
-	workspace.Resource.LabelSelector = &metav1.LabelSelector{MatchLabels: map[string]string{"kaito.sh/cpu-inference": "true"}}
-
-	imageName, err := GetDesiredInferenceImageNameWithResolution(context.Background(), workspace, kubeClient)
-	if err != nil {
-		t.Fatalf("expected BYO CPU preset image resolution to succeed, got %v", err)
-	}
-	expectedImageName := getCPUVLLMImageName()
-	if imageName != expectedImageName {
-		t.Fatalf("expected BYO CPU preset to use %q, got %q", expectedImageName, imageName)
-	}
-}
-
-func TestGeneratePresetInference_BYOCPUPresetUsesCPUToleration(t *testing.T) {
-	test.RegisterTestModel()
-	oldNAPGate := featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning]
-	defer func() {
-		featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning] = oldNAPGate
-	}()
-	featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning] = true
-
-	scheme := runtime.NewScheme()
-	if err := corev1.AddToScheme(scheme); err != nil {
-		t.Fatalf("failed to add corev1 scheme: %v", err)
-	}
-	kubeClient := fake.NewClientBuilder().WithScheme(scheme).WithObjects(&corev1.Node{
-		ObjectMeta: metav1.ObjectMeta{
-			Name: "cpu-node",
-			Labels: map[string]string{
-				"kaito.sh/cpu-inference": "true",
-				corev1.LabelArchStable:   "amd64",
-			},
-		},
-		Status: corev1.NodeStatus{Conditions: []corev1.NodeCondition{{Type: corev1.NodeReady, Status: corev1.ConditionTrue}}},
-	}).Build()
-
-	workspace := test.MockWorkspaceWithPresetVLLM.DeepCopy()
-	workspace.Resource.InstanceType = ""
-	workspace.Resource.LabelSelector = &metav1.LabelSelector{MatchExpressions: []metav1.LabelSelectorRequirement{{Key: "kaito.sh/cpu-inference", Operator: metav1.LabelSelectorOpIn, Values: []string{"true"}}}}
-	workspace.Status.TargetNodeCount = 1
-
-	result, err := GeneratePresetInference(context.Background(), workspace, test.MockWorkspaceWithPresetHash, plugin.KaitoModelRegister.MustGet("test-model"), kubeClient, nil)
-	if err != nil {
-		t.Fatalf("expected BYO CPU preset generation to succeed, got %v", err)
-	}
-	ss := result.Workload.(*appsv1.StatefulSet)
-	assertNoLMCacheSidecar(t, &ss.Spec.Template.Spec)
-	require.Equal(t, getCPUVLLMImageName(), ss.Spec.Template.Spec.Containers[0].Image)
-	requirements := ss.Spec.Template.Spec.Affinity.NodeAffinity.RequiredDuringSchedulingIgnoredDuringExecution.NodeSelectorTerms[0].MatchExpressions
-	require.Contains(t, requirements, corev1.NodeSelectorRequirement{Key: "kaito.sh/cpu-inference", Operator: corev1.NodeSelectorOpIn, Values: []string{"true"}})
-	hasCPUToleration := false
-	hasGPUToleration := false
-	for _, toleration := range ss.Spec.Template.Spec.Tolerations {
-		if toleration.Key == consts.SKUString && toleration.Value == consts.CPUString {
-			hasCPUToleration = true
-		}
-		if toleration.Key == consts.SKUString && toleration.Value == consts.GPUString {
-			hasGPUToleration = true
-		}
-	}
-	if !hasCPUToleration {
-		t.Fatalf("expected BYO CPU preset to include cpu dedicated toleration, got %v", ss.Spec.Template.Spec.Tolerations)
-	}
-	if hasGPUToleration {
-		t.Fatalf("expected BYO CPU preset to omit gpu toleration, got %v", ss.Spec.Template.Spec.Tolerations)
-	}
-}
-
 // TestGeneratePresetInferenceCUDAToolkitProvisioner verifies that CUDA toolkit
 // provisioning is gated on models that require runtime CUDA compilation: such a model gets a
 // cuda-toolkit-provisioner init container and a read-write hostPath at the
@@ -2656,12 +2553,15 @@ func TestPresetInferenceRuntimeImages(t *testing.T) {
 	}{
 		{"cpu vllm", "Standard_D8s_v5", "vllm", true, true, false},
 		{"cpu default runtime", "Standard_D8s_v5", "", true, true, false},
-		{"cpu transformers existing base", "Standard_D8s_v5", "transformers", true, false, false},
-		{"cpu transformers without vllm gate", "Standard_D8s_v5", "transformers", false, false, false},
+		{"cpu transformers rejected", "Standard_D8s_v5", "transformers", true, false, true},
+		{"cpu transformers without vllm gate rejected", "Standard_D8s_v5", "transformers", false, false, true},
 		{"cpu requires vllm gate", "Standard_D8s_v5", "vllm", false, false, true},
 		{"cpu default requires vllm gate", "Standard_D8s_v5", "", false, false, true},
 		{"gpu transformers unchanged", "Standard_NC6s_v3", "transformers", true, false, false},
 		{"gpu vllm unchanged", "Standard_NC6s_v3", "vllm", true, false, false},
+		{"ARM does not select CPU image", "Standard_D16ps_v5", "vllm", true, false, false},
+		{"label-only does not select CPU image", "", "vllm", true, false, false},
+		{"unknown does not select CPU image", "unknown", "vllm", true, false, false},
 		{"gpu default without vllm unchanged", "Standard_NC6s_v3", "", false, false, false},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
@@ -2669,13 +2569,13 @@ func TestPresetInferenceRuntimeImages(t *testing.T) {
 			ws := test.MockWorkspaceWithPresetVLLM.DeepCopy()
 			ws.Resource.InstanceType = tc.instanceType
 			ws.Annotations = map[string]string{v1beta1.AnnotationWorkspaceRuntime: tc.runtime}
-			image, err := GetDesiredInferenceImageNameWithResolution(context.Background(), ws, nil)
+			image, err := GetDesiredInferenceImageName(ws)
 			if tc.wantError {
-				require.ErrorContains(t, err, "CPU preset inference requires vllm or explicit transformers with a declared CPU instanceType")
+				require.ErrorContains(t, err, "CPU preset inference supports only vllm")
 				assert.Empty(t, image)
 				ws.Status.TargetNodeCount = 1
 				_, err = GeneratePresetInference(context.Background(), ws, test.MockWorkspaceWithPresetHash, plugin.KaitoModelRegister.MustGet("test-model"), nil, nil)
-				require.ErrorContains(t, err, "CPU preset inference requires vllm or explicit transformers with a declared CPU instanceType")
+				require.ErrorContains(t, err, "CPU preset inference supports only vllm")
 				return
 			}
 			require.NoError(t, err)
@@ -2688,70 +2588,8 @@ func TestPresetInferenceRuntimeImages(t *testing.T) {
 	}
 }
 
-func TestGeneratePresetInference_ExplicitTransformersCPU(t *testing.T) {
-	test.RegisterTestModel()
-	oldVLLM := featuregates.FeatureGates[consts.FeatureFlagVLLM]
-	t.Cleanup(func() {
-		featuregates.FeatureGates[consts.FeatureFlagVLLM] = oldVLLM
-	})
-	featuregates.FeatureGates[consts.FeatureFlagVLLM] = false
-	ws := test.MockWorkspaceWithPreset.DeepCopy()
-	ws.Resource.InstanceType = "Standard_D16s_v6"
-	ws.Annotations = map[string]string{v1beta1.AnnotationWorkspaceRuntime: "transformers"}
-	ws.Status.TargetNodeCount = 1
-	ws.Inference.Preset.PresetOptions.ModelAccessSecret = "hf-token"
-	ss, err := GeneratePresetInference(context.Background(), ws, test.MockWorkspaceWithPresetHash, plugin.KaitoModelRegister.MustGet("test-model"), nil, nil)
-	require.NoError(t, err)
-	statefulSet := ss.Workload.(*appsv1.StatefulSet)
-	require.Equal(t, metadata.MustGet("base"), ss.BaseImage, "explicit Transformers CPU uses the generic catalog entry")
-	require.Equal(t, "true", statefulSet.Spec.Template.Labels[cpuInferenceWorkloadLabel])
-	require.NotContains(t, statefulSet.Spec.Selector.MatchLabels, cpuInferenceWorkloadLabel)
-	pod := statefulSet.Spec.Template.Spec
-	container := pod.Containers[0]
-	assert.Equal(t, GetBaseImageName(), container.Image)
-	var hfToken *corev1.EnvVar
-	for i := range container.Env {
-		if container.Env[i].Name == "HF_TOKEN" {
-			hfToken = &container.Env[i]
-			break
-		}
-	}
-	require.NotNil(t, hfToken)
-	require.NotNil(t, hfToken.ValueFrom)
-	require.NotNil(t, hfToken.ValueFrom.SecretKeyRef)
-	assert.Equal(t, "hf-token", hfToken.ValueFrom.SecretKeyRef.Name)
-	assert.Equal(t, "HF_TOKEN", hfToken.ValueFrom.SecretKeyRef.Key)
-	command := strings.Join(container.Command, " ")
-	assert.Contains(t, command, "--cpu")
-	assert.Contains(t, command, "--num_processes=1")
-	assert.Contains(t, command, "--device_map=cpu")
-	assert.Contains(t, command, "--torch_dtype=bfloat16")
-
-	assert.NotContains(t, command, "--multi_gpu")
-	assert.NotContains(t, command, "--num_processes=0")
-	assert.NotContains(t, command, "VLLM_TARGET_DEVICE")
-	for _, c := range append(pod.Containers, pod.InitContainers...) {
-		for _, resources := range []corev1.ResourceList{c.Resources.Requests, c.Resources.Limits} {
-			for name := range resources {
-				assert.NotContains(t, string(name), "nvidia.com/")
-			}
-		}
-	}
-	hasCPU := false
-	for _, toleration := range pod.Tolerations {
-		if toleration.Key == consts.SKUString {
-			assert.NotEqual(t, consts.GPUString, toleration.Value)
-			hasCPU = hasCPU || toleration.Value == consts.CPUString
-		}
-	}
-	assert.True(t, hasCPU)
-	require.NotNil(t, container.StartupProbe.HTTPGet)
-	assert.Equal(t, "/health", container.StartupProbe.HTTPGet.Path)
-	assert.Nil(t, container.StartupProbe.Exec)
-}
-
 // CPU inference must keep the native vLLM probes and must not depend on the
-// GPU-only LMCache server, including when a BYO target has no instance type.
+// GPU-only LMCache server, for declared CPU instance types.
 func assertNoLMCacheSidecar(t *testing.T, spec *corev1.PodSpec) {
 	t.Helper()
 	for _, c := range spec.InitContainers {
@@ -2895,6 +2733,9 @@ func TestGeneratePresetInference_CapturedTarget(t *testing.T) {
 			}}).Build()
 			ws := test.MockWorkspaceWithPresetVLLM.DeepCopy()
 			ws.Resource.InstanceType = ""
+			if cpu {
+				ws.Resource.InstanceType = "Standard_D16s_v6"
+			}
 			ws.Resource.LabelSelector = &metav1.LabelSelector{MatchLabels: map[string]string{"pool": "inference"}}
 			ws.Inference.Config = ""
 			ws.Inference.Adapters = nil
@@ -2914,7 +2755,12 @@ func TestGeneratePresetInference_CapturedTarget(t *testing.T) {
 			require.NotNil(t, spec.Containers[0].ReadinessProbe.HTTPGet)
 			require.Equal(t, defaultTolerationsForTarget(cpu), spec.Tolerations)
 			_, err = getGPUConfig(gctx)
-			require.ErrorContains(t, err, "inventory changed", "a later generation must resolve afresh")
+			if cpu {
+				require.NoError(t, err)
+				require.Zero(t, reads, "declared CPU requires no node lookup")
+			} else {
+				require.ErrorContains(t, err, "inventory changed", "a later GPU generation must resolve afresh")
+			}
 			inventoryAvailable = true
 			readsBeforeGeneration := reads
 			result, err := GeneratePresetInference(context.Background(), ws, "0", gctx.Model, c, nil)

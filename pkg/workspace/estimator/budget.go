@@ -14,8 +14,14 @@
 package estimator
 
 import (
+	"fmt"
 	"strconv"
 
+	"k8s.io/apimachinery/pkg/api/resource"
+
+	pkgmodel "github.com/kaito-project/kaito/pkg/model"
+	"github.com/kaito-project/kaito/pkg/sku"
+	"github.com/kaito-project/kaito/pkg/utils/consts"
 	presetgenerator "github.com/kaito-project/kaito/presets/workspace/generator"
 )
 
@@ -74,4 +80,42 @@ func ResolveBaseOverheadGiB(gpuModel string) float64 {
 		return v
 	}
 	return BaseOverheadGiB
+}
+
+// ResidentWeightBytes returns the bytes of model weights vLLM keeps in GPU
+// memory: the checkpoint size minus any part the runtime offloads to CPU memory.
+func ResidentWeightBytes(params *pkgmodel.PresetParam) (int64, error) {
+	total, err := resource.ParseQuantity(params.TotalSafeTensorFileSize)
+	if err != nil {
+		return 0, fmt.Errorf("invalid model size %q: %w", params.TotalSafeTensorFileSize, err)
+	}
+	resident := total.Value()
+	if params.CPUOffloadedWeightSize != "" {
+		offloaded, err := resource.ParseQuantity(params.CPUOffloadedWeightSize)
+		if err != nil {
+			return 0, fmt.Errorf("invalid CPU-offloaded weight size %q: %w", params.CPUOffloadedWeightSize, err)
+		}
+		resident -= offloaded.Value()
+	}
+	return max(resident, 0), nil
+}
+
+// KVHeadroomBytesPerGPU estimates the per-GPU memory vLLM has left for the KV
+// cache after GPU-resident weights and fixed runtime overhead, with the weights
+// sharded across every GPU of numNodes nodes. It returns false when the model
+// size or GPU memory is unknown.
+func KVHeadroomBytesPerGPU(params *pkgmodel.PresetParam, gpuConfig *sku.GPUConfig, numNodes int) (float64, bool) {
+	if params == nil || gpuConfig == nil || gpuConfig.GPUCount <= 0 || gpuConfig.GPUMem.IsZero() {
+		return 0, false
+	}
+	weights, err := ResidentWeightBytes(params)
+	if err != nil || weights == 0 {
+		return 0, false
+	}
+	numGPUs := gpuConfig.GPUCount * max(numNodes, 1)
+	gpuMemPerGPU := float64(gpuConfig.GPUMem.Value() / int64(gpuConfig.GPUCount))
+	usable := gpuMemPerGPU * ResolveGPUMemoryUtilization(gpuConfig.GPUModel)
+	weightsPerGPU := float64(weights) * WeightExpansionFactor / float64(numGPUs)
+	overhead := ResolveBaseOverheadGiB(gpuConfig.GPUModel)*float64(consts.GiBToBytes) + OverheadWeightFactor*weightsPerGPU
+	return usable - weightsPerGPU - overhead, true
 }

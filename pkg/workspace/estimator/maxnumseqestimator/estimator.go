@@ -16,7 +16,6 @@ package maxnumseqestimator
 import (
 	"strings"
 
-	"k8s.io/apimachinery/pkg/api/resource"
 	"k8s.io/klog/v2"
 
 	pkgmodel "github.com/kaito-project/kaito/pkg/model"
@@ -127,21 +126,12 @@ func (c *MaxNumSeqsEstimator) Estimate(req MaxNumSeqsEstimateRequest) (int, bool
 	if req.NumNodes > 1 {
 		return 0, false
 	}
-	weights, err := resource.ParseQuantity(params.TotalSafeTensorFileSize)
-	if err != nil || weights.IsZero() {
-		return 0, false
-	}
-
 	tp := gpuConfig.GPUCount
-	gpuMemPerGPU := float64(gpuConfig.GPUMem.Value() / int64(tp))
-	availGPUMem := gpuMemPerGPU * estimator.ResolveGPUMemoryUtilization(gpuConfig.GPUModel)
-	weightsPerGPU := float64(weights.Value()) * estimator.WeightExpansionFactor / float64(tp)
-	baseOverhead := estimator.ResolveBaseOverheadGiB(gpuConfig.GPUModel) * float64(consts.GiBToBytes)
 
 	// Memory vLLM has left for the unified KV cache / Mamba state pool after
 	// weights and fixed runtime overhead.
-	availPool := availGPUMem - weightsPerGPU - baseOverhead - estimator.OverheadWeightFactor*weightsPerGPU
-	if availPool <= 0 {
+	availPool, ok := estimator.KVHeadroomBytesPerGPU(params, gpuConfig, 1)
+	if !ok || availPool <= 0 {
 		return 0, false
 	}
 

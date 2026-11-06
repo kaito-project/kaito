@@ -10,7 +10,7 @@ This feature is supported starting in **KAITO v0.13.0**.
 
 When enabled, KAITO injects a vLLM `--speculative-config` automatically for the workload:
 
-- for a small set of presets with KAITO-tuned speculative decoding, KAITO injects a preset-specific **`mtp`** config
+- for a small set of presets with KAITO-tuned speculative decoding, KAITO injects a preset-specific **`mtp`** or **`dspark`** config
 - for every other vLLM preset, KAITO falls back to a universal **`ngram`** config
 
 This gives you a lightweight way to try speculative decoding without manually building `speculative-config` JSON for each deployment.
@@ -45,33 +45,34 @@ When the annotation is set to `"true"`, KAITO evaluates the preset and injects o
 
 | Case | Injected method | Current injected config |
 | --- | --- | --- |
-| Preset has KAITO-tuned speculative decoding config | `mtp` | `num_speculative_tokens=1` |
+| Preset has KAITO-tuned `mtp` config | `mtp` | `num_speculative_tokens=1` |
+| Preset has KAITO-tuned `dspark` config | `dspark` | per preset, from the model's vLLM recipe, plus any engine arguments the preset needs; only when the GPUs have enough memory to spare (see below) |
 | Any other vLLM preset | `ngram` | `num_speculative_tokens=5`, `prompt_lookup_max=4` |
 | User already set `vllm.speculative-config` in `inference_config.yaml` | none | KAITO leaves the user config unchanged |
 
-This means speculative decoding is available for **any vLLM preset that KAITO accepts**. Tuned presets get model-specific `mtp`; everything else gets the generic `ngram` fallback.
+This means speculative decoding is available for **any vLLM preset that KAITO accepts**. Tuned presets get model-specific `mtp` or `dspark`; everything else gets the generic `ngram` fallback.
 
-## Current preset-tuned `mtp` models
+## Current models with preset-tuned speculative decoding config
 
-As of this implementation, KAITO injects a tuned `mtp` config for these presets:
-
-- `deepseek-r1-0528`
-- `deepseek-v3-0324`
-- `deepseek-ai/DeepSeek-V3.2`
-- `zai-org/GLM-5.2-FP8`
-- `nvidia/DeepSeek-V4-Flash-NVFP4`
-- `XiaomiMiMo/MiMo-7B-Base`
-- `Qwen/Qwen3.5-2B`
-- `Qwen/Qwen3.5-4B`
-- `Qwen/Qwen3.5-9B`
-- `Qwen/Qwen3.5-122B-A10B-GPTQ-Int4`
-- `Qwen/Qwen3.5-122B-A10B`
-- `Qwen/Qwen3.5-397B-A17B-GPTQ-Int4`
-- `Qwen/Qwen3.6-35B-A3B-FP8`
-- `Qwen/Qwen3.6-35B-A3B`
-- `Qwen/Qwen3.6-27B`
-
-All other vLLM presets fall back to the universal `ngram` configuration.
+| Model | Speculative decoding method |
+| --- | --- |
+| `deepseek-r1-0528` | `mtp` |
+| `deepseek-v3-0324` | `mtp` |
+| `deepseek-ai/DeepSeek-V3.2` | `mtp` |
+| `zai-org/GLM-5.2-FP8` | `mtp` |
+| `nvidia/DeepSeek-V4-Flash-NVFP4` | `mtp` |
+| `XiaomiMiMo/MiMo-7B-Base` | `mtp` |
+| `Qwen/Qwen3.5-2B` | `mtp` |
+| `Qwen/Qwen3.5-4B` | `mtp` |
+| `Qwen/Qwen3.5-9B` | `mtp` |
+| `Qwen/Qwen3.5-122B-A10B-GPTQ-Int4` | `mtp` |
+| `Qwen/Qwen3.5-122B-A10B` | `mtp` |
+| `Qwen/Qwen3.5-397B-A17B-GPTQ-Int4` | `mtp` |
+| `Qwen/Qwen3.6-35B-A3B-FP8` | `mtp` |
+| `Qwen/Qwen3.6-35B-A3B` | `mtp` |
+| `Qwen/Qwen3.6-27B` | `mtp` |
+| `deepseek-ai/DeepSeek-V4-Flash-0731` | `dspark` |
+| `deepseek-ai/DeepSeek-V4.1-Flash-1017` | `dspark` |
 
 ## Quickstart
 
@@ -208,9 +209,15 @@ KAITO rejects invalid configurations such as:
 
 Once speculative decoding is enabled, vLLM exposes speculative decoding metrics that can be scraped alongside the rest of the inference metrics. See [Monitoring](./monitoring.md) for the current metric list.
 
+## Measuring the benefit
+
+The gain from speculative decoding depends on the model, GPU, traffic and load: it is usually largest at low concurrency and shrinks as batches fill the GPU. The [speculative decoding benchmark](https://github.com/kaito-project/kaito/tree/main/benchmarks/speculative_decoding) serves a preset with the annotation off and on, sweeps concurrency levels with `vllm bench serve`, and reports the throughput gain and per-user decode speedup at each level.
+
 ## Notes and limitations
 
 - This feature is currently implemented for **vLLM** inference only.
 - KAITO's built-in fallback is intentionally conservative: `ngram` with `num_speculative_tokens=5` and `prompt_lookup_max=4`.
-- Tuned `mtp` entries are model-specific and may expand over time as KAITO adds validated presets.
+- Tuned `mtp` and `dspark` entries are model-specific and may expand over time as KAITO adds validated presets.
+- For multi-node (pipeline-parallel) deployments, KAITO injects `dspark` without adaptive verification, because vLLM does not support it with pipeline parallelism.
+- `dspark`'s draft head needs GPU memory beyond the model weights, and on tight nodes it can shrink the context vLLM fits to a few thousand tokens. KAITO injects a `dspark` config only when it estimates at least 16 GiB per GPU remain after the weights; otherwise the workload runs without speculative decoding and the controller logs why. To use `dspark` anyway, set `vllm.speculative-config` in your inference config.
 - Real performance gains are workload-dependent. Repetition-heavy workloads usually benefit more than highly open-ended generation.

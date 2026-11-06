@@ -885,3 +885,74 @@ func TestBuildVLLMInferenceCommandNoKVCacheOverrideForNonHybrid(t *testing.T) {
 	require.Len(t, cmd, 3)
 	assert.NotContains(t, cmd[2], "kaito-kv-cache-cpu-memory-utilization")
 }
+
+func TestPresetParamDeepCopyDSparkSpeculativeDecoding(t *testing.T) {
+	original := &PresetParam{
+		SpeculativeDecoding: &SpeculativeDecodingConfig{
+			Method: "dspark",
+			DSpark: &DSparkConfig{
+				NumSpeculativeTokens:       5,
+				DraftSampleMethod:          "probabilistic",
+				RejectionSampleMethod:      "block",
+				EnableAdaptiveVerification: true,
+			},
+			EngineArgs: map[string]string{"max-num-seqs": "256"},
+		},
+	}
+
+	copied := original.DeepCopy()
+	require.NotNil(t, copied.SpeculativeDecoding)
+	require.NotNil(t, copied.SpeculativeDecoding.DSpark)
+	assert.NotSame(t, original.SpeculativeDecoding.DSpark, copied.SpeculativeDecoding.DSpark)
+	assert.Equal(t, *original.SpeculativeDecoding.DSpark, *copied.SpeculativeDecoding.DSpark)
+	assert.Equal(t, original.SpeculativeDecoding.EngineArgs, copied.SpeculativeDecoding.EngineArgs)
+
+	copied.SpeculativeDecoding.DSpark.EnableAdaptiveVerification = false
+	copied.SpeculativeDecoding.EngineArgs["max-num-seqs"] = "1024"
+	assert.True(t, original.SpeculativeDecoding.DSpark.EnableAdaptiveVerification)
+	assert.Equal(t, "256", original.SpeculativeDecoding.EngineArgs["max-num-seqs"])
+}
+
+func TestGetInferenceCommandVLLMMaxNumSeqsTighterCapWins(t *testing.T) {
+	tests := []struct {
+		name       string
+		preset     string // max-num-seqs already in ModelRunParams; "" means unset
+		rcMaxSeqs  int
+		wantFlag   string
+		wantAbsent bool
+	}{
+		{name: "estimator cap applied when unset", rcMaxSeqs: 128, wantFlag: "max-num-seqs=128"},
+		{name: "no cap leaves flag unset", wantAbsent: true},
+		{name: "preset cap kept when estimator is looser", preset: "256", rcMaxSeqs: 512, wantFlag: "max-num-seqs=256"},
+		{name: "estimator lowers looser preset cap", preset: "256", rcMaxSeqs: 64, wantFlag: "max-num-seqs=64"},
+		{name: "preset cap kept without estimator", preset: "256", wantFlag: "max-num-seqs=256"},
+	}
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			runParams := map[string]string{}
+			if tc.preset != "" {
+				runParams["max-num-seqs"] = tc.preset
+			}
+			p := &PresetParam{
+				TotalSafeTensorFileSize: "100Gi",
+				RuntimeParam: RuntimeParam{
+					VLLM: VLLMParam{BaseCommand: "vllm serve", ModelRunParams: runParams},
+				},
+			}
+			cmd := p.GetInferenceCommand(RuntimeContext{
+				RuntimeName: RuntimeNameVLLM,
+				GPUConfig:   &sku.GPUConfig{GPUMem: resource.MustParse("320Gi")},
+				SKUNumGPUs:  4,
+				NumNodes:    1,
+				MaxNumSeqs:  tc.rcMaxSeqs,
+			})
+			require.Len(t, cmd, 3)
+			if tc.wantAbsent {
+				assert.NotContains(t, cmd[2], "max-num-seqs")
+				return
+			}
+			assert.Contains(t, cmd[2], tc.wantFlag)
+			assert.Equal(t, 1, strings.Count(cmd[2], "max-num-seqs="))
+		})
+	}
+}

@@ -47,6 +47,7 @@ import (
 	"github.com/kaito-project/kaito/pkg/utils/generator"
 	"github.com/kaito-project/kaito/pkg/utils/mig"
 	"github.com/kaito-project/kaito/pkg/utils/nodes"
+	"github.com/kaito-project/kaito/pkg/workspace/estimator"
 	"github.com/kaito-project/kaito/pkg/workspace/estimator/maxnumseqestimator"
 	"github.com/kaito-project/kaito/pkg/workspace/inference/modelstreaming"
 	"github.com/kaito-project/kaito/pkg/workspace/inference/modelstreaming/registry"
@@ -72,7 +73,18 @@ const (
 	// was injected. Kept as a distinct decision so telemetry / events can
 	// distinguish "preset-tuned" from "universal fallback" injections.
 	SpecDecoInjectedNGramFallback
+	// SpecDecoSkippedLowGPUMemory means the speculative decoding config was not
+	// injected because the GPUs would have too little memory left after the
+	// weights; the workload runs without speculative decoding.
+	SpecDecoSkippedLowGPUMemory
 )
+
+// minDSparkKVHeadroomGiB is the estimated per-GPU memory, after weights and
+// runtime overhead, that a node needs before KAITO injects a preset's DSpark
+// config. DSpark's draft head and its KV cache come out of this memory, and on
+// tighter nodes they can shrink the context vLLM fits from hundreds of
+// thousands of tokens to a few thousand.
+const minDSparkKVHeadroomGiB = 16
 
 // PresetInferenceResult wraps the generated workload object.
 type PresetInferenceResult struct {
@@ -732,7 +744,8 @@ func GenerateInferencePodSpec(gpuConfig *sku.GPUConfig, numNodes int, streamingM
 			}
 			userConfigHasSpeculativeOverride = override
 		}
-		_, err := applySpeculativeDecoding(ctx.Workspace, runtimeName, inferenceParam, userConfigHasSpeculativeOverride)
+		_, err := applySpeculativeDecoding(ctx.Workspace, runtimeName, inferenceParam, userConfigHasSpeculativeOverride,
+			shouldUseDistributedInference(ctx, numNodes), gpuConfig, numNodes)
 		if err != nil {
 			return fmt.Errorf("speculative decoding: %w", err)
 		}
@@ -1517,9 +1530,12 @@ func loadUserSpeculativeConfig(ctx context.Context, kubeClient client.Client, ws
 
 // applySpeculativeDecoding evaluates the speculative-decoding annotation and,
 // when applicable, mutates inferenceParam.VLLM.ModelRunParams to include the
-// --speculative-config flag. The decision is returned so callers (and tests)
-// can assert the reason without inspecting the ModelRunParams map.
-func applySpeculativeDecoding(ws *v1beta1.Workspace, runtimeName pkgmodel.RuntimeName, inferenceParam *pkgmodel.PresetParam, userConfigHasSpeculativeOverride bool) (SpecDecoDecision, error) {
+// --speculative-config flag and any engine args the config requires.
+// pipelineParallel reports whether the workload spans nodes with pipeline
+// parallelism; gpuConfig and numNodes describe the GPUs the weights shard
+// across. The decision is returned so callers (and tests) can assert the
+// reason without inspecting the ModelRunParams map.
+func applySpeculativeDecoding(ws *v1beta1.Workspace, runtimeName pkgmodel.RuntimeName, inferenceParam *pkgmodel.PresetParam, userConfigHasSpeculativeOverride, pipelineParallel bool, gpuConfig *sku.GPUConfig, numNodes int) (SpecDecoDecision, error) {
 	if runtimeName != pkgmodel.RuntimeNameVLLM ||
 		ws.Annotations[v1beta1.AnnotationEnableSpeculativeDecoding] != "true" {
 		return SpecDecoSkip, nil
@@ -1528,18 +1544,38 @@ func applySpeculativeDecoding(ws *v1beta1.Workspace, runtimeName pkgmodel.Runtim
 		return SpecDecoConfigMapOverride, nil
 	}
 
-	// Current reachable injected methods in this PR are only preset-tuned mtp
-	// and the universal ngram fallback; both are allowed under pipeline
-	// parallelism. If KAITO later wires a method that is not PP-safe, add an
-	// explicit guard here before injection.
-	// Preset-tuned entry wins when present (e.g. mtp for DeepSeek R1/V3/V3.2). Otherwise
-	// fall back to the universal ngram default so any preset the user opts into
-	// still gets a working speculative-config injection.
+	// Preset-tuned entry wins when present (e.g. mtp for DeepSeek R1/V3/V3.2,
+	// dspark for DeepSeek-V4.1-Flash). Otherwise fall back to the universal
+	// ngram default so any preset the user opts into still gets a working
+	// speculative-config injection. mtp, ngram and dspark run under pipeline
+	// parallelism, but vLLM rejects dspark's adaptive verification there
+	// (https://github.com/vllm-project/vllm/blob/v0.30.0/vllm/config/vllm.py#L2934-L2943),
+	// so it is turned off for multi-node workloads. If KAITO later wires a method
+	// that is not PP-safe, add an explicit guard here before injection.
 	sdCfg := inferenceParam.SpeculativeDecoding
 	fallback := false
 	if sdCfg == nil {
 		sdCfg = defaultFallbackNGramConfig()
 		fallback = true
+	}
+	// DSpark's draft head needs memory beyond the weights. When the estimate is
+	// unavailable (unknown model size or GPU memory), keep the user's opt-in.
+	if sdCfg.DSpark != nil {
+		headroom, known := estimator.KVHeadroomBytesPerGPU(inferenceParam, gpuConfig, numNodes)
+		if known && headroom < minDSparkKVHeadroomGiB*float64(consts.GiBToBytes) {
+			klog.InfoS("Not injecting speculative decoding: too little GPU memory left after model weights",
+				"workspace", klog.KObj(ws), "method", sdCfg.Method,
+				"estimatedHeadroomGiBPerGPU", fmt.Sprintf("%.1f", headroom/float64(consts.GiBToBytes)),
+				"requiredGiBPerGPU", minDSparkKVHeadroomGiB)
+			return SpecDecoSkippedLowGPUMemory, nil
+		}
+	}
+	if pipelineParallel && sdCfg.DSpark != nil && sdCfg.DSpark.EnableAdaptiveVerification {
+		cfg := *sdCfg
+		dspark := *sdCfg.DSpark
+		dspark.EnableAdaptiveVerification = false
+		cfg.DSpark = &dspark
+		sdCfg = &cfg
 	}
 	blob, err := vllmFormat(sdCfg)
 	if err != nil {
@@ -1549,6 +1585,9 @@ func applySpeculativeDecoding(ws *v1beta1.Workspace, runtimeName pkgmodel.Runtim
 		inferenceParam.VLLM.ModelRunParams = map[string]string{}
 	}
 	inferenceParam.VLLM.ModelRunParams["speculative-config"] = shellSingleQuote(blob)
+	for flag, value := range sdCfg.EngineArgs {
+		inferenceParam.VLLM.ModelRunParams[flag] = value
+	}
 	if fallback {
 		return SpecDecoInjectedNGramFallback, nil
 	}
@@ -1577,6 +1616,20 @@ func vllmFormat(sd *pkgmodel.SpeculativeDecodingConfig) (string, error) {
 		}
 		m["num_speculative_tokens"] = sd.NGram.NumSpeculativeTokens
 		m["prompt_lookup_max"] = sd.NGram.PromptLookupMax
+	case "dspark":
+		if sd.DSpark == nil {
+			return "", fmt.Errorf("method=dspark requires dspark config")
+		}
+		m["num_speculative_tokens"] = sd.DSpark.NumSpeculativeTokens
+		if sd.DSpark.DraftSampleMethod != "" {
+			m["draft_sample_method"] = sd.DSpark.DraftSampleMethod
+		}
+		if sd.DSpark.RejectionSampleMethod != "" {
+			m["rejection_sample_method"] = sd.DSpark.RejectionSampleMethod
+		}
+		if sd.DSpark.EnableAdaptiveVerification {
+			m["enable_adaptive_verification"] = true
+		}
 	default:
 		return "", fmt.Errorf("unsupported speculative decoding method %q", sd.Method)
 	}

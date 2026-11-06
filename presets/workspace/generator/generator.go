@@ -37,6 +37,7 @@ const (
 	DefaultModelTokenLimit           = 2048
 	HuggingFaceWebsite               = "https://huggingface.co"
 	SpeculativeDecodingMethodMTP     = "mtp"
+	SpeculativeDecodingMethodDSpark  = "dspark"
 	mtpSpeculativeDecodingTokenCount = 1
 	defaultGPUMemoryUtilization      = "0.92"
 )
@@ -74,6 +75,41 @@ func mtpSpecDecoEntryWithModel(userFacing, draftModel string) specDecoEntry {
 			},
 		},
 	}
+}
+
+// dsparkSpecDecoEntry returns a DSpark entry. DSpark's draft block size and
+// sampling methods are trained with each checkpoint, so every preset passes
+// the configuration from its own vLLM recipe (see dsparkDeepSeekV41Flash).
+// engineArgs are the scheduler limits the preset needs alongside it.
+func dsparkSpecDecoEntry(userFacing string, dspark model.DSparkConfig, engineArgs map[string]string) specDecoEntry {
+	return specDecoEntry{
+		UserFacing: userFacing,
+		Config: &model.SpeculativeDecodingConfig{
+			Method:     SpeculativeDecodingMethodDSpark,
+			DSpark:     &dspark,
+			EngineArgs: engineArgs,
+		},
+	}
+}
+
+// dsparkDeepSeekV41Flash is the DeepSeek-V4.1-Flash recipe's DSpark config
+// for NVIDIA GPUs: the trained 5-token draft block, probabilistic drafting,
+// block rejection sampling and adaptive verification.
+// source: https://recipes.vllm.ai/deepseek-ai/DeepSeek-V4.1-Flash?features=spec_decoding
+var dsparkDeepSeekV41Flash = model.DSparkConfig{
+	NumSpeculativeTokens:       5,
+	DraftSampleMethod:          "probabilistic",
+	RejectionSampleMethod:      "block",
+	EnableAdaptiveVerification: true,
+}
+
+// dsparkDeepSeekV4Flash is the DeepSeek-V4-Flash recipe's DSpark config for
+// the 0731 checkpoint on NVIDIA GPUs: a 7-token draft block with probabilistic
+// drafting.
+// source: https://recipes.vllm.ai/deepseek-ai/DeepSeek-V4-Flash
+var dsparkDeepSeekV4Flash = model.DSparkConfig{
+	NumSpeculativeTokens: 7,
+	DraftSampleMethod:    "probabilistic",
 }
 
 var (
@@ -332,6 +368,15 @@ var (
 		"DeepseekV41ForCausalLM": `'{"cpu_offload":true}'`,
 	}
 
+	// cpuOffloadedWeightSizePrefixMap records, by model name prefix, how much of
+	// the checkpoint the Engram CPU offload above keeps in host memory, so memory
+	// estimators count only GPU-resident weights.
+	cpuOffloadedWeightSizePrefixMap = map[string]string{
+		// Two Engram tables of 196.6B FP8 entries, 183.1 GiB on disk.
+		// source: https://recipes.vllm.ai/deepseek-ai/DeepSeek-V4.1-Flash (Memory)
+		"deepseek-v4.1-flash": "183.1Gi",
+	}
+
 	// vllmKVCacheDtypeArchMap maps model architectures to their required vLLM
 	// kv-cache-dtype. Some architectures only support a specific KV cache format
 	// and assert at engine init otherwise.
@@ -410,21 +455,33 @@ var (
 	// fallback; this map is only the source of truth for per-preset tuning.
 	// Keys follow the same convention as catalogOverrides.
 	speculativeDecodingByPreset = map[string]specDecoEntry{
-		"deepseek-ai/deepseek-r1-0528":     mtpSpecDecoEntry("deepseek-r1-0528"),
-		"deepseek-ai/deepseek-v3-0324":     mtpSpecDecoEntry("deepseek-v3-0324"),
-		"deepseek-ai/deepseek-v3.2":        mtpSpecDecoEntry("deepseek-ai/DeepSeek-V3.2"),
-		"zai-org/glm-5.2-fp8":              mtpSpecDecoEntry("zai-org/GLM-5.2-FP8"),
-		"nvidia/deepseek-v4-flash-nvfp4":   mtpSpecDecoEntry("nvidia/DeepSeek-V4-Flash-NVFP4"),
-		"xiaomimimo/mimo-7b-base":          mtpSpecDecoEntry("XiaomiMiMo/MiMo-7B-Base"),
-		"qwen/qwen3.5-2b":                  mtpSpecDecoEntry("Qwen/Qwen3.5-2B"),
-		"qwen/qwen3.5-4b":                  mtpSpecDecoEntry("Qwen/Qwen3.5-4B"),
-		"qwen/qwen3.5-9b":                  mtpSpecDecoEntry("Qwen/Qwen3.5-9B"),
-		"qwen/qwen3.5-122b-a10b-gptq-int4": mtpSpecDecoEntry("Qwen/Qwen3.5-122B-A10B-GPTQ-Int4"),
-		"qwen/qwen3.5-122b-a10b":           mtpSpecDecoEntry("Qwen/Qwen3.5-122B-A10B"),
-		"qwen/qwen3.6-35b-a3b-fp8":         mtpSpecDecoEntry("Qwen/Qwen3.6-35B-A3B-FP8"),
-		"qwen/qwen3.6-35b-a3b":             mtpSpecDecoEntry("Qwen/Qwen3.6-35B-A3B"),
-		"qwen/qwen3.6-27b":                 mtpSpecDecoEntry("Qwen/Qwen3.6-27B"),
-		"qwen/qwen3.5-397b-a17b-gptq-int4": mtpSpecDecoEntry("Qwen/Qwen3.5-397B-A17B-GPTQ-Int4"),
+		"deepseek-ai/deepseek-r1-0528":       mtpSpecDecoEntry("deepseek-r1-0528"),
+		"deepseek-ai/deepseek-v3-0324":       mtpSpecDecoEntry("deepseek-v3-0324"),
+		"deepseek-ai/deepseek-v3.2":          mtpSpecDecoEntry("deepseek-ai/DeepSeek-V3.2"),
+		"zai-org/glm-5.2-fp8":                mtpSpecDecoEntry("zai-org/GLM-5.2-FP8"),
+		"nvidia/deepseek-v4-flash-nvfp4":     mtpSpecDecoEntry("nvidia/DeepSeek-V4-Flash-NVFP4"),
+		"xiaomimimo/mimo-7b-base":            mtpSpecDecoEntry("XiaomiMiMo/MiMo-7B-Base"),
+		"qwen/qwen3.5-2b":                    mtpSpecDecoEntry("Qwen/Qwen3.5-2B"),
+		"qwen/qwen3.5-4b":                    mtpSpecDecoEntry("Qwen/Qwen3.5-4B"),
+		"qwen/qwen3.5-9b":                    mtpSpecDecoEntry("Qwen/Qwen3.5-9B"),
+		"qwen/qwen3.5-122b-a10b-gptq-int4":   mtpSpecDecoEntry("Qwen/Qwen3.5-122B-A10B-GPTQ-Int4"),
+		"qwen/qwen3.5-122b-a10b":             mtpSpecDecoEntry("Qwen/Qwen3.5-122B-A10B"),
+		"qwen/qwen3.6-35b-a3b-fp8":           mtpSpecDecoEntry("Qwen/Qwen3.6-35B-A3B-FP8"),
+		"qwen/qwen3.6-35b-a3b":               mtpSpecDecoEntry("Qwen/Qwen3.6-35B-A3B"),
+		"qwen/qwen3.6-27b":                   mtpSpecDecoEntry("Qwen/Qwen3.6-27B"),
+		"qwen/qwen3.5-397b-a17b-gptq-int4":   mtpSpecDecoEntry("Qwen/Qwen3.5-397B-A17B-GPTQ-Int4"),
+		"deepseek-ai/deepseek-v4-flash-0731": dsparkSpecDecoEntry("deepseek-ai/DeepSeek-V4-Flash-0731", dsparkDeepSeekV4Flash, nil),
+		// Validated on 8x H100 80GB (TP8, vLLM 0.30.0). The recipe's H100 row
+		// caps batched tokens at 4096 to fit the sparse-attention indexer
+		// buffer; at that budget vLLM's default 1024 sequences x 5 draft slots
+		// overrun DSpark's input buffer in the startup profiling run, and
+		// adaptive verification's startup profiling above 256 sequences leaves
+		// no room for KV cache. These caps are conservative on larger GPUs.
+		"deepseek-ai/deepseek-v4.1-flash-1017": dsparkSpecDecoEntry("deepseek-ai/DeepSeek-V4.1-Flash-1017", dsparkDeepSeekV41Flash, map[string]string{
+			"max-num-batched-tokens":     "4096",
+			"max-num-seqs":               "256",
+			"max-cudagraph-capture-size": "1024",
+		}),
 	}
 
 	// maxNumSeqsTargets lists architecture/GPU pairs whose Mamba-cache-block
@@ -1146,6 +1203,9 @@ func (g *Generator) applyFamilyRunParams() {
 	for _, arch := range g.Param.Metadata.Architectures {
 		if config, ok := vllmEngramConfigArchMap[arch]; ok {
 			params["engram-config"] = config
+			if size, ok := lookupFamilyPrefix(g, cpuOffloadedWeightSizePrefixMap); ok {
+				g.Param.Metadata.CPUOffloadedWeightSize = size
+			}
 			break
 		}
 	}

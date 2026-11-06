@@ -1222,3 +1222,61 @@ func TestGetModelByName_Qwen35_4B_SpeculativeDecodingMTP(t *testing.T) {
 	assert.Equal(t, "", params.SpeculativeDecoding.MTP.Model,
 		"self-contained Qwen MTP should not inject a separate assistant model")
 }
+
+// TestGetModelByName_DeepSeekV41Flash1017_SpeculativeDecodingDSpark guards the
+// DSpark entry and its engine args through catalog resolution and registration.
+func TestGetModelByName_DeepSeekV41Flash1017_SpeculativeDecodingDSpark(t *testing.T) {
+	m, err := GetModelByNameWithToken(context.Background(), "deepseek-ai/DeepSeek-V4.1-Flash-1017", "")
+	assert.NoError(t, err)
+	if !assert.NotNil(t, m) {
+		return
+	}
+
+	params := m.GetInferenceParameters()
+	if !assert.NotNil(t, params.SpeculativeDecoding, "preset-tuned SpeculativeDecoding must survive registration") {
+		return
+	}
+	assert.Equal(t, "dspark", params.SpeculativeDecoding.Method)
+	if !assert.NotNil(t, params.SpeculativeDecoding.DSpark, "DSpark config must survive registration") {
+		return
+	}
+	assert.Equal(t, 5, params.SpeculativeDecoding.DSpark.NumSpeculativeTokens)
+	assert.True(t, params.SpeculativeDecoding.DSpark.EnableAdaptiveVerification)
+	assert.Equal(t, "256", params.SpeculativeDecoding.EngineArgs["max-num-seqs"])
+	assert.Equal(t, "4096", params.SpeculativeDecoding.EngineArgs["max-num-batched-tokens"])
+	_, inBaseParams := params.VLLM.ModelRunParams["max-num-seqs"]
+	assert.False(t, inBaseParams, "DSpark engine args must only apply when speculative decoding is enabled")
+}
+
+// TestGetModelByName_DeepSeekV4Flash0731_SpeculativeDecodingDSpark guards the
+// DeepSeek-V4-Flash-0731 DSpark entry through catalog resolution and registration.
+func TestGetModelByName_DeepSeekV4Flash0731_SpeculativeDecodingDSpark(t *testing.T) {
+	m, err := GetModelByNameWithToken(context.Background(), "deepseek-ai/DeepSeek-V4-Flash-0731", "")
+	assert.NoError(t, err)
+	if !assert.NotNil(t, m) {
+		return
+	}
+	params := m.GetInferenceParameters()
+	if !assert.NotNil(t, params.SpeculativeDecoding) || !assert.NotNil(t, params.SpeculativeDecoding.DSpark) {
+		return
+	}
+	assert.Equal(t, "dspark", params.SpeculativeDecoding.Method)
+	assert.Equal(t, 7, params.SpeculativeDecoding.DSpark.NumSpeculativeTokens)
+	assert.Equal(t, "probabilistic", params.SpeculativeDecoding.DSpark.DraftSampleMethod)
+	assert.False(t, params.SpeculativeDecoding.DSpark.EnableAdaptiveVerification)
+}
+
+// TestGetModelByName_CPUOffloadedWeightSize checks that the Engram tables
+// DeepSeek-V4.1-Flash keeps in CPU memory reach the memory estimators.
+func TestGetModelByName_CPUOffloadedWeightSize(t *testing.T) {
+	for name, want := range map[string]string{
+		"deepseek-ai/DeepSeek-V4.1-Flash-1017": "183.1Gi",
+		"deepseek-ai/DeepSeek-V4-Flash-0731":   "",
+	} {
+		m, err := GetModelByNameWithToken(context.Background(), name, "")
+		if !assert.NoError(t, err) {
+			continue
+		}
+		assert.Equal(t, want, m.GetInferenceParameters().CPUOffloadedWeightSize, name)
+	}
+}

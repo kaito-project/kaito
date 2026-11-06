@@ -104,6 +104,12 @@ type Metadata struct {
 	// +optional
 	ModelFileSize string `yaml:"modelFileSize,omitempty"`
 
+	// CPUOffloadedWeightSize is the part of ModelFileSize that the runtime keeps
+	// in CPU memory instead of GPU memory (e.g. DeepSeek-V4.1's Engram tables),
+	// example: 183.1Gi. Memory estimators subtract it from the GPU-resident weights.
+	// +optional
+	CPUOffloadedWeightSize string `yaml:"cpuOffloadedWeightSize,omitempty"`
+
 	// DiskStorageRequirement is the disk storage requirement for the model, example: 90Gi.
 	// This field is only for best effort supported vLLM models.
 	// +optional
@@ -215,10 +221,17 @@ func (m *Metadata) Validate() error {
 // speculativeDecodingByPreset map and injected into the vLLM command line
 // when the user enables speculative decoding via annotation.
 type SpeculativeDecodingConfig struct {
-	Method string       `yaml:"method"` // "mtp" / "ngram" / ...
-	MTP    *MTPConfig   `yaml:"mtp,omitempty"`
-	NGram  *NGramConfig `yaml:"ngram,omitempty"`
+	Method string        `yaml:"method"` // "mtp" / "ngram" / "dspark" / ...
+	MTP    *MTPConfig    `yaml:"mtp,omitempty"`
+	NGram  *NGramConfig  `yaml:"ngram,omitempty"`
+	DSpark *DSparkConfig `yaml:"dspark,omitempty"`
 	// future: add method-specific sub-configs as real support lands.
+
+	// EngineArgs are additional vLLM engine arguments (flag name without the
+	// leading "--" mapped to its value) injected together with
+	// --speculative-config, for methods that need specific scheduler limits to
+	// start or perform well. Keys set in the user's inference config still win.
+	EngineArgs map[string]string `yaml:"engineArgs,omitempty"`
 }
 
 // MTPConfig covers vLLM's mtp method, including both the self-contained-head
@@ -234,6 +247,23 @@ type MTPConfig struct {
 type NGramConfig struct {
 	NumSpeculativeTokens int `yaml:"numSpeculativeTokens"`
 	PromptLookupMax      int `yaml:"promptLookupMax"`
+}
+
+// DSparkConfig covers vLLM's dspark method, which drafts a block of tokens
+// with a draft head shipped inside the served checkpoint. Values come from the
+// checkpoint's vLLM recipe; empty or false fields are omitted from
+// --speculative-config so vLLM's defaults apply.
+type DSparkConfig struct {
+	NumSpeculativeTokens int `yaml:"numSpeculativeTokens"`
+	// DraftSampleMethod is vLLM's draft_sample_method ("greedy" or "probabilistic").
+	DraftSampleMethod string `yaml:"draftSampleMethod,omitempty"`
+	// RejectionSampleMethod is vLLM's rejection_sample_method ("standard", "synthetic" or "block").
+	RejectionSampleMethod string `yaml:"rejectionSampleMethod,omitempty"`
+	// EnableAdaptiveVerification verifies only high-confidence draft slots.
+	// vLLM rejects it under pipeline parallelism
+	// (https://github.com/vllm-project/vllm/blob/v0.30.0/vllm/config/vllm.py#L2934-L2943),
+	// so KAITO turns it off for multi-node deployments.
+	EnableAdaptiveVerification bool `yaml:"enableAdaptiveVerification,omitempty"`
 }
 
 // PresetParam defines the preset inference parameters for a model.
@@ -321,6 +351,11 @@ func (p *PresetParam) DeepCopy() *PresetParam {
 			ng := *p.SpeculativeDecoding.NGram
 			sd.NGram = &ng
 		}
+		if p.SpeculativeDecoding.DSpark != nil {
+			ds := *p.SpeculativeDecoding.DSpark
+			sd.DSpark = &ds
+		}
+		sd.EngineArgs = maps.Clone(p.SpeculativeDecoding.EngineArgs)
 		out.SpeculativeDecoding = &sd
 	}
 	return out
@@ -471,10 +506,15 @@ func (p *PresetParam) buildVLLMInferenceCommand(rc RuntimeContext) []string {
 
 	// Cap --max-num-seqs for hybrid Mamba/Gated-DeltaNet models so vLLM engine init
 	// does not fail when the default (1024) exceeds the available Mamba cache blocks.
-	// A user-provided max-num-seqs in the inference config still wins: inference_api.py
-	// applies --kaito-config-file after these CLI args.
-	if _, set := p.VLLM.ModelRunParams["max-num-seqs"]; !set && rc.MaxNumSeqs > 0 {
-		p.VLLM.ModelRunParams["max-num-seqs"] = strconv.Itoa(rc.MaxNumSeqs)
+	// A cap already present (e.g. from speculative-decoding engine args) is only
+	// lowered, never raised, so the tighter limit wins. A user-provided max-num-seqs
+	// in the inference config still wins: inference_api.py applies
+	// --kaito-config-file after these CLI args.
+	if rc.MaxNumSeqs > 0 {
+		current, set := p.VLLM.ModelRunParams["max-num-seqs"]
+		if n, err := strconv.Atoi(current); !set || (err == nil && rc.MaxNumSeqs < n) {
+			p.VLLM.ModelRunParams["max-num-seqs"] = strconv.Itoa(rc.MaxNumSeqs)
+		}
 	}
 
 	// Enable KV cache events by default so in-cluster subscribers can consume

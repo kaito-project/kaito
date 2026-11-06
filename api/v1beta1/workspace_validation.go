@@ -250,8 +250,9 @@ func (w *Workspace) validateSpeculativeDecoding(ctx context.Context) (errs *apis
 	// get their preset-tuned config (e.g. mtp for DeepSeek R1/V3/V3.2); everything else
 	// falls back to the universal ngram default at pod-spec generation time.
 	//
-	// Current reachable methods in this PR are only preset-tuned mtp and the
-	// universal ngram fallback; both are allowed under pipeline parallelism.
+	// Reachable methods are preset-tuned mtp and dspark plus the universal
+	// ngram fallback; all run under pipeline parallelism (dspark's adaptive
+	// verification is turned off there at pod-spec generation time).
 	// If KAITO later adds a speculative-decoding method that is not PP-safe,
 	// add an explicit guard here before accepting the annotation.
 

@@ -14,6 +14,7 @@
 package generator
 
 import (
+	"strconv"
 	"testing"
 
 	"github.com/kaito-project/kaito/pkg/model"
@@ -111,6 +112,17 @@ func TestSpeculativeDecodingConfigConsistency(t *testing.T) {
 			if cfg.NGram == nil {
 				t.Errorf("%s: method=ngram but NGram is nil", key)
 			}
+		case "dspark":
+			if cfg.DSpark == nil {
+				t.Errorf("%s: method=dspark but DSpark is nil", key)
+				continue
+			}
+			if cfg.MTP != nil || cfg.NGram != nil {
+				t.Errorf("%s: method=dspark but another sub-config is non-nil", key)
+			}
+			if cfg.DSpark.NumSpeculativeTokens <= 0 {
+				t.Errorf("%s: dspark.NumSpeculativeTokens must be > 0", key)
+			}
 		default:
 			t.Errorf("%s: unsupported method %q", key, cfg.Method)
 		}
@@ -152,5 +164,132 @@ func TestDeepCopySpeculativeDecoding(t *testing.T) {
 	}
 	if p.SpeculativeDecoding.MTP.Model != "example/draft-model" {
 		t.Fatal("DeepCopy: model mutation leaked to original")
+	}
+}
+
+func TestDSparkSpecDecoEntryDeepSeekV41Flash1017(t *testing.T) {
+	entry, ok := speculativeDecodingByPreset["deepseek-ai/deepseek-v4.1-flash-1017"]
+	if !ok {
+		t.Fatal("missing dspark entry for deepseek-ai/deepseek-v4.1-flash-1017")
+	}
+	if entry.UserFacing != "deepseek-ai/DeepSeek-V4.1-Flash-1017" {
+		t.Errorf("UserFacing = %q", entry.UserFacing)
+	}
+	cfg := entry.Config
+	if cfg == nil || cfg.Method != SpeculativeDecodingMethodDSpark || cfg.DSpark == nil {
+		t.Fatalf("want dspark config, got %+v", cfg)
+	}
+	want := model.DSparkConfig{
+		NumSpeculativeTokens:       5,
+		DraftSampleMethod:          "probabilistic",
+		RejectionSampleMethod:      "block",
+		EnableAdaptiveVerification: true,
+	}
+	if *cfg.DSpark != want {
+		t.Errorf("DSpark = %+v, want %+v", *cfg.DSpark, want)
+	}
+	wantArgs := map[string]string{
+		"max-num-batched-tokens":     "4096",
+		"max-num-seqs":               "256",
+		"max-cudagraph-capture-size": "1024",
+	}
+	if len(cfg.EngineArgs) != len(wantArgs) {
+		t.Errorf("EngineArgs = %v, want %v", cfg.EngineArgs, wantArgs)
+	}
+	for k, v := range wantArgs {
+		if cfg.EngineArgs[k] != v {
+			t.Errorf("EngineArgs[%q] = %q, want %q", k, cfg.EngineArgs[k], v)
+		}
+	}
+}
+
+// TestDSparkEngineArgsFitDraftSlots guards the vLLM startup crash where the
+// profiling run indexes max-num-seqs x num_speculative_tokens draft slots into
+// an input buffer sized by max-num-batched-tokens.
+func TestDSparkEngineArgsFitDraftSlots(t *testing.T) {
+	for key, entry := range speculativeDecodingByPreset {
+		cfg := entry.Config
+		if cfg == nil || cfg.DSpark == nil {
+			continue
+		}
+		seqs, seqsErr := strconv.Atoi(cfg.EngineArgs["max-num-seqs"])
+		tokens, tokensErr := strconv.Atoi(cfg.EngineArgs["max-num-batched-tokens"])
+		if tokensErr != nil {
+			continue
+		}
+		if seqsErr != nil {
+			t.Errorf("%s: max-num-batched-tokens set without max-num-seqs; vLLM's default sequence count can overflow the draft slots", key)
+			continue
+		}
+		if seqs*cfg.DSpark.NumSpeculativeTokens > tokens {
+			t.Errorf("%s: max-num-seqs (%d) x num_speculative_tokens (%d) exceeds max-num-batched-tokens (%d)",
+				key, seqs, cfg.DSpark.NumSpeculativeTokens, tokens)
+		}
+	}
+}
+
+func TestDeepCopySpeculativeDecodingDSpark(t *testing.T) {
+	p := &model.PresetParam{SpeculativeDecoding: speculativeDecodingByPreset["deepseek-ai/deepseek-v4.1-flash-1017"].Config}
+	c := p.DeepCopy()
+	c.SpeculativeDecoding.DSpark.EnableAdaptiveVerification = false
+	c.SpeculativeDecoding.EngineArgs["max-num-seqs"] = "1"
+	if !p.SpeculativeDecoding.DSpark.EnableAdaptiveVerification || p.SpeculativeDecoding.EngineArgs["max-num-seqs"] != "256" {
+		t.Fatal("DeepCopy: mutation leaked into the shared preset entry")
+	}
+}
+
+func TestDSparkSpecDecoEntryUsesGivenConfig(t *testing.T) {
+	// DeepSeek-V4-Flash's recipe drafts 7 tokens without block rejection or
+	// adaptive verification: https://recipes.vllm.ai/deepseek-ai/DeepSeek-V4-Flash
+	v4Flash := model.DSparkConfig{NumSpeculativeTokens: 7, DraftSampleMethod: "probabilistic"}
+	entry := dsparkSpecDecoEntry("example/model", v4Flash, nil)
+	if entry.Config.Method != SpeculativeDecodingMethodDSpark {
+		t.Fatalf("Method = %q", entry.Config.Method)
+	}
+	if *entry.Config.DSpark != v4Flash {
+		t.Errorf("DSpark = %+v, want %+v", *entry.Config.DSpark, v4Flash)
+	}
+
+	other := dsparkSpecDecoEntry("example/other", v4Flash, nil)
+	other.Config.DSpark.NumSpeculativeTokens = 3
+	if entry.Config.DSpark.NumSpeculativeTokens != 7 {
+		t.Error("entries built from the same config share one DSparkConfig")
+	}
+	if dsparkDeepSeekV41Flash.NumSpeculativeTokens != 5 {
+		t.Error("building an entry mutated the shared recipe config")
+	}
+}
+
+func TestDSparkSpecDecoEntryDeepSeekV4Flash0731(t *testing.T) {
+	entry, ok := speculativeDecodingByPreset["deepseek-ai/deepseek-v4-flash-0731"]
+	if !ok {
+		t.Fatal("missing dspark entry for deepseek-ai/deepseek-v4-flash-0731")
+	}
+	if entry.UserFacing != "deepseek-ai/DeepSeek-V4-Flash-0731" {
+		t.Errorf("UserFacing = %q", entry.UserFacing)
+	}
+	cfg := entry.Config
+	if cfg == nil || cfg.Method != SpeculativeDecodingMethodDSpark || cfg.DSpark == nil {
+		t.Fatalf("want dspark config, got %+v", cfg)
+	}
+	// https://recipes.vllm.ai/deepseek-ai/DeepSeek-V4-Flash
+	want := model.DSparkConfig{NumSpeculativeTokens: 7, DraftSampleMethod: "probabilistic"}
+	if *cfg.DSpark != want {
+		t.Errorf("DSpark = %+v, want %+v", *cfg.DSpark, want)
+	}
+	if len(cfg.EngineArgs) != 0 {
+		t.Errorf("EngineArgs = %v, want none", cfg.EngineArgs)
+	}
+}
+
+func TestCPUOffloadedWeightSize(t *testing.T) {
+	for name, want := range map[string]string{
+		"deepseek-v4.1-flash-1017": "183.1Gi",
+		"deepseek-v4-flash-0731":   "",
+	} {
+		got, _ := longestPrefixMatch(name, cpuOffloadedWeightSizePrefixMap)
+		if got != want {
+			t.Errorf("%s: CPU-offloaded weight size = %q, want %q", name, got, want)
+		}
 	}
 }

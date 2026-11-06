@@ -16,13 +16,77 @@
 import asyncio
 import sys
 from pathlib import Path
-from types import SimpleNamespace
+from types import ModuleType, SimpleNamespace
+from unittest.mock import MagicMock, patch
 
+# Real third-party deps of inference_api are imported up front so restoring
+# sys.modules below does not unload them for later test modules.
+import prometheus_client  # noqa: F401
 import pytest
+import yaml  # noqa: F401
 
-sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
-import inference_api  # noqa: E402
+class _StubBaseHTTPMiddleware:
+    def __init__(self, app=None):
+        self.app = app
+
+
+class _StubJSONResponse:
+    def __init__(self, status_code, content):
+        self.status_code = status_code
+        self.content = content
+
+
+def _import_inference_api():
+    """Import inference_api against stubbed heavy dependencies.
+
+    sys.modules is restored afterwards so neither the stubs nor this copy of
+    inference_api leak into other test modules, whatever the collection order.
+    """
+    starlette_base = ModuleType("starlette.middleware.base")
+    starlette_base.BaseHTTPMiddleware = _StubBaseHTTPMiddleware
+    starlette_responses = ModuleType("starlette.responses")
+    starlette_responses.JSONResponse = _StubJSONResponse
+    stubs = {
+        name: MagicMock()
+        for name in (
+            "vllm",
+            "vllm.entrypoints",
+            "vllm.entrypoints.launchers",
+            "vllm.entrypoints.launchers.api_server",
+            "vllm.entrypoints.launchers.api_server.entry",
+            "vllm.entrypoints.launchers.cli_args",
+            "vllm.entrypoints.openai",
+            "vllm.entrypoints.openai.models",
+            "vllm.entrypoints.openai.models.protocol",
+            "vllm.utils",
+            "vllm.utils.argparse_utils",
+            "vllm.v1",
+            "vllm.v1.metrics",
+            "vllm.v1.metrics.prometheus",
+            "torch",
+            "uvloop",
+            "psutil",
+            "huggingface_hub",
+        )
+    }
+    stubs.update(
+        {
+            "starlette": ModuleType("starlette"),
+            "starlette.middleware": ModuleType("starlette.middleware"),
+            "starlette.middleware.base": starlette_base,
+            "starlette.responses": starlette_responses,
+        }
+    )
+    parent = str(Path(__file__).resolve().parent.parent)
+    with patch.dict(sys.modules, stubs), patch.object(sys, "path", [parent, *sys.path]):
+        sys.modules.pop("inference_api", None)
+        import inference_api
+
+        return inference_api
+
+
+inference_api = _import_inference_api()
 
 
 @pytest.fixture

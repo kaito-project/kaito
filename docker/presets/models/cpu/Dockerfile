@@ -8,6 +8,8 @@ ARG VERSION
 WORKDIR /workspace
 
 COPY presets/workspace/inference/vllm/inference_api.py \
+    presets/workspace/inference/vllm/kaito_inference_config.py \
+    presets/workspace/inference/vllm/vllm_kv_transfer.py \
     presets/workspace/inference/vllm/multi-node-health-check.py \
     presets/workspace/inference/vllm/list_supported_llm_archs.py \
     presets/workspace/inference/vllm/benchmark_entrypoint.py \

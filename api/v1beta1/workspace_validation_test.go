@@ -24,7 +24,9 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"knative.dev/pkg/apis"
+	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/client/fake"
+	"sigs.k8s.io/controller-runtime/pkg/client/interceptor"
 
 	"github.com/kaito-project/kaito/pkg/featuregates"
 	"github.com/kaito-project/kaito/pkg/k8sclient"
@@ -153,12 +155,35 @@ func (*testModelSmallA10) SupportTuning() bool {
 	return false
 }
 
+type testModelVLLMOnly struct{}
+
+func (*testModelVLLMOnly) GetInferenceParameters() *model.PresetParam {
+	return &model.PresetParam{
+		TotalSafeTensorFileSize: "7Gi",
+		RuntimeParam: model.RuntimeParam{
+			VLLM: model.VLLMParam{
+				ModelName: "test-vllm-only",
+			},
+		},
+	}
+}
+func (*testModelVLLMOnly) GetTuningParameters() *model.PresetParam {
+	return nil
+}
+func (*testModelVLLMOnly) SupportDistributedInference() bool {
+	return false
+}
+func (*testModelVLLMOnly) SupportTuning() bool {
+	return false
+}
+
 func RegisterValidationTestModels() {
 	var test testModel
 	var testStatic testModelStatic
 	var testDownload testModelDownload
 	var testLarge testModelLarge
 	var testSmallA10 testModelSmallA10
+	var testVLLMOnly testModelVLLMOnly
 	plugin.KaitoModelRegister.Register(&plugin.Registration{
 		Name:     "test-validation",
 		Instance: &test,
@@ -178,6 +203,10 @@ func RegisterValidationTestModels() {
 	plugin.KaitoModelRegister.Register(&plugin.Registration{
 		Name:     "test-small-a10",
 		Instance: &testSmallA10,
+	})
+	plugin.KaitoModelRegister.Register(&plugin.Registration{
+		Name:     "test-vllm-only",
+		Instance: &testVLLMOnly,
 	})
 }
 
@@ -2522,6 +2551,7 @@ func TestWorkspaceValidateUpdate(t *testing.T) {
 		disableNAP   bool // Whether to disable Node Auto-Provisioning
 		expectErrs   bool
 		errFields    []string // Fields we expect to have errors
+		errContent   string
 	}{
 		{
 			name:         "Inference toggled on",
@@ -2662,6 +2692,9 @@ func TestWorkspaceValidateUpdate(t *testing.T) {
 					if !strings.Contains(errs.Error(), field) {
 						t.Errorf("validateUpdate() expected errors to contain field %s, but got %s", field, errs.Error())
 					}
+				}
+				if tt.errContent != "" && !strings.Contains(errs.Error(), tt.errContent) {
+					t.Errorf("validateUpdate() expected errors to contain %q, but got %s", tt.errContent, errs.Error())
 				}
 			}
 		})
@@ -3506,5 +3539,42 @@ func TestValidateCreate_InvalidSpeculativeDecodingValueReportedOnce(t *testing.T
 	fieldRef := fmt.Sprintf("metadata.annotations[%s]", AnnotationEnableSpeculativeDecoding)
 	if got := strings.Count(errs.Error(), fieldRef); got != 1 {
 		t.Fatalf("expected exactly one validation error for %s, got %d: %v", fieldRef, got, errs)
+	}
+}
+
+// Existing label-only workloads must not depend on the admission-time node inventory
+// for metadata changes or ordinary same-runtime image upgrades.
+func TestValidateUpdateLabelOnlyDoesNotRevalidateNodeInventory(t *testing.T) {
+	oldNAP, oldClient := featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning], k8sclient.Client
+	t.Cleanup(func() {
+		featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning], k8sclient.Client = oldNAP, oldClient
+	})
+	featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning] = true
+	scheme := runtime.NewScheme()
+	if err := v1.AddToScheme(scheme); err != nil {
+		t.Fatal(err)
+	}
+	k8sclient.Client = fake.NewClientBuilder().WithScheme(scheme).WithInterceptorFuncs(interceptor.Funcs{List: func(ctx context.Context, c client.WithWatch, list client.ObjectList, opts ...client.ListOption) error {
+		if _, ok := list.(*v1.NodeList); ok {
+			t.Error("update must not list nodes for create-time CPU validation")
+		}
+		return fmt.Errorf("node inventory unavailable")
+	}}).Build()
+	for _, preset := range []bool{false, true} {
+		t.Run(fmt.Sprintf("preset=%t", preset), func(t *testing.T) {
+			one := 1
+			old := &Workspace{ObjectMeta: metav1.ObjectMeta{Name: "cpu", Namespace: "default", Annotations: map[string]string{AnnotationWorkspaceRuntime: "vllm"}}, Resource: ResourceSpec{Count: &one, LabelSelector: &metav1.LabelSelector{MatchLabels: map[string]string{"pool": "cpu"}}}, Inference: &InferenceSpec{Template: &v1.PodTemplateSpec{Spec: v1.PodSpec{Containers: []v1.Container{{Name: "cpu", Image: "example.com/cpu:v1"}}}}}}
+			if preset {
+				old.Inference = &InferenceSpec{Preset: &PresetSpec{PresetMeta: PresetMeta{Name: "phi-3-mini-4k-instruct"}}}
+			}
+			updated := old.DeepCopy()
+			updated.Labels = map[string]string{"owner": "team"}
+			if !preset {
+				updated.Inference.Template.Spec.Containers[0].Image = "example.com/cpu:v2"
+			}
+			if errs := updated.ValidateUpdate(context.Background(), old); errs != nil {
+				t.Fatalf("ordinary CPU update rejected: %v", errs)
+			}
+		})
 	}
 }

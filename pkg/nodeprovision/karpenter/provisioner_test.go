@@ -16,6 +16,7 @@ package karpenter
 import (
 	"context"
 	"errors"
+	"reflect"
 	"testing"
 
 	"github.com/awslabs/operatorpkg/status"
@@ -1228,4 +1229,13 @@ func TestCollectNodeStatusInfo_SurfacesProvisioningError(t *testing.T) {
 	resCond := byType[string(kaitov1beta1.ConditionTypeResourceStatus)]
 	assert.Equal(t, consts.ReasonQuotaExceeded, resCond.Reason)
 	assert.Equal(t, "CreateInstanceFailed: creating instance failed, subscription level on-demand vCPU quota for Standard_NC24ads_A100_v4 has been reached", resCond.Message)
+}
+
+func TestBuildNodeSelectorCPUUsesWorkspaceIsolation(t *testing.T) {
+	ws := &kaitov1beta1.Workspace{ObjectMeta: metav1.ObjectMeta{Name: "cpu-child", Namespace: "default", Labels: map[string]string{consts.WorkspaceCreatedByInferenceSetLabel: "parent"}}, Resource: kaitov1beta1.ResourceSpec{InstanceType: "Standard_D16s_v6"}, Inference: &kaitov1beta1.InferenceSpec{Template: &corev1.PodTemplateSpec{Spec: corev1.PodSpec{Containers: []corev1.Container{{Name: "cpu", Image: "cpu:v1"}}}}}}
+	got := (&KarpenterProvisioner{}).BuildNodeSelector(context.Background(), ws)
+	want := []corev1.NodeSelectorRequirement{{Key: consts.KarpenterWorkspaceNameKey, Operator: corev1.NodeSelectorOpIn, Values: []string{ws.Name}}, {Key: consts.KarpenterWorkspaceNamespaceKey, Operator: corev1.NodeSelectorOpIn, Values: []string{ws.Namespace}}}
+	if !reflect.DeepEqual(got, want) {
+		t.Fatalf("workspace isolation requirements = %v, want %v", got, want)
+	}
 }

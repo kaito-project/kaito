@@ -276,6 +276,7 @@ func TestVLLMCompatibleModel_GetInferenceParameters_TransformerLookup(t *testing
 			modelName:                  "phi-4",
 			expectTransformerPopulated: true,
 		},
+
 		{
 			name:                       "model not in TransformerInferenceParameters map gets empty Transformers",
 			modelName:                  "unknown-dynamic-model",
@@ -292,7 +293,7 @@ func TestVLLMCompatibleModel_GetInferenceParameters_TransformerLookup(t *testing
 			assert.NotNil(t, params)
 
 			if tt.expectTransformerPopulated {
-				expected := TransformerInferenceParameters["phi-4"]
+				expected := TransformerInferenceParameters[tt.modelName]
 				assert.Equal(t, expected.BaseCommand, params.RuntimeParam.Transformers.BaseCommand)
 				assert.Equal(t, tt.modelName, params.RuntimeParam.Transformers.ModelName)
 				assert.Equal(t, expected.InferenceMainFile, params.RuntimeParam.Transformers.InferenceMainFile)

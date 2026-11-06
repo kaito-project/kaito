@@ -735,6 +735,31 @@ func TestComputeInferenceSetHash(t *testing.T) {
 		assert.Equal(t, hash1, hash2)
 	})
 
+	t.Run("Should preserve spec hash when runtime annotation changes", func(t *testing.T) {
+		inferenceset1 := &kaitov1beta1.InferenceSet{
+			ObjectMeta: metav1.ObjectMeta{
+				Annotations: map[string]string{kaitov1beta1.AnnotationWorkspaceRuntime: "vllm"},
+			},
+			Spec: kaitov1beta1.InferenceSetSpec{
+				Replicas: lo.ToPtr(int32(3)),
+			},
+		}
+
+		inferenceset2 := &kaitov1beta1.InferenceSet{
+			ObjectMeta: metav1.ObjectMeta{
+				Annotations: map[string]string{kaitov1beta1.AnnotationWorkspaceRuntime: "transformers"},
+			},
+			Spec: kaitov1beta1.InferenceSetSpec{
+				Replicas: lo.ToPtr(int32(3)),
+			},
+		}
+
+		hash1 := ComputeInferenceSetHash(inferenceset1)
+		hash2 := ComputeInferenceSetHash(inferenceset2)
+
+		assert.Equal(t, hash1, hash2)
+	})
+
 	t.Run("Should handle empty InferenceSet", func(t *testing.T) {
 		inferenceset := &kaitov1beta1.InferenceSet{}
 
@@ -1104,6 +1129,22 @@ func TestNewWorkspaceForInferenceSetSelectors(t *testing.T) {
 			}, ws.Labels)
 		})
 	}
+}
+
+func TestNewWorkspaceForInferenceSetPropagatesRuntimeAnnotation(t *testing.T) {
+	is := &kaitov1beta1.InferenceSet{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      "test-is",
+			Namespace: "default",
+			Annotations: map[string]string{
+				kaitov1beta1.AnnotationWorkspaceRuntime: "transformers",
+			},
+		},
+		Spec: kaitov1beta1.InferenceSetSpec{},
+	}
+
+	ws := NewWorkspaceForInferenceSet(is)
+	assert.Equal(t, "transformers", ws.Annotations[kaitov1beta1.AnnotationWorkspaceRuntime])
 }
 
 func TestValidateWorkspaceForInferenceSet(t *testing.T) {
@@ -1501,4 +1542,42 @@ func TestValidateWorkspaceForInferenceSet_NAPDoesNotPanicOnNilCount(t *testing.T
 	assert.NotPanics(t, func() {
 		_ = ValidateWorkspaceForInferenceSet(context.Background(), is)
 	})
+}
+
+// CPU detection must inspect the same nodes as the generated Workspace, not
+// similarly labeled nodes selected by the InferenceSet's Workspace selector.
+func TestNewWorkspaceForInferenceSetCPUSelectorConsistency(t *testing.T) {
+	test.RegisterTestModel()
+	oldBYO := featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning]
+	t.Cleanup(func() {
+		featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning] = oldBYO
+	})
+	featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning] = true
+
+	for _, tt := range []struct {
+		name         string
+		nodeSelector *metav1.LabelSelector
+		wantCPU      bool
+	}{
+		{name: "label-only CPU pool does not select CPU", nodeSelector: &metav1.LabelSelector{MatchLabels: map[string]string{"pool": "cpu"}}, wantCPU: false},
+		{name: "GPU pool stays GPU", nodeSelector: &metav1.LabelSelector{MatchLabels: map[string]string{"app": "workspaces"}}},
+		{name: "BYO nil selector does not inherit Workspace labels"},
+		{name: "BYO empty selector does not inherit Workspace labels", nodeSelector: &metav1.LabelSelector{}},
+	} {
+		t.Run(tt.name, func(t *testing.T) {
+			iObj := test.MockInferenceSetWithPresetVLLM.DeepCopy()
+			iObj.Spec.Template.Resource.InstanceType = ""
+			iObj.Spec.Selector = &metav1.LabelSelector{MatchLabels: map[string]string{"app": "workspaces"}}
+			iObj.Spec.Template.Resource.LabelSelector = tt.nodeSelector
+			before := iObj.DeepCopy()
+			ws := NewWorkspaceForInferenceSet(iObj)
+			assert.Equal(t, tt.nodeSelector, ws.Resource.LabelSelector)
+			assert.Equal(t, "workspaces", ws.Labels["app"])
+			got := kaitov1beta1.IsCPUInferenceTarget(&iObj.Spec.Template.Inference, iObj.Spec.Template.Resource.InstanceType)
+			assert.Equal(t, tt.wantCPU, got)
+			childCPU := kaitov1beta1.IsCPUInferenceWorkspace(ws)
+			assert.Equal(t, got, childCPU)
+			assert.Equal(t, before, iObj, "construction and CPU resolution must not mutate the parent")
+		})
+	}
 }

@@ -313,6 +313,22 @@ func TestGenerateNodePool_InferenceSet(t *testing.T) {
 	assert.Equal(t, "prod", np.Spec.Template.Labels[consts.KarpenterInferenceSetNamespaceKey])
 }
 
+func TestGenerateNodePool_CPUWorkspaceOmitsGPUTaint(t *testing.T) {
+	one := 1
+	ws := &kaitov1beta1.Workspace{
+		ObjectMeta: metav1.ObjectMeta{Name: "cpu-ws", Namespace: "default"},
+		Resource:   kaitov1beta1.ResourceSpec{Count: &one, InstanceType: "Standard_D8s_v5"},
+		Inference:  &kaitov1beta1.InferenceSpec{Preset: &kaitov1beta1.PresetSpec{PresetMeta: kaitov1beta1.PresetMeta{Name: "test-model"}}},
+		Status:     kaitov1beta1.WorkspaceStatus{TargetNodeCount: 1},
+	}
+
+	np := generateNodePool(ws, testConfig, testConfig.DefaultName, consts.KarpenterCapacityTypeOnDemand)
+	assert.Equal(t, 1, len(np.Spec.Template.Spec.Taints))
+	assert.Equal(t, consts.SKUString, np.Spec.Template.Spec.Taints[0].Key)
+	assert.Equal(t, consts.CPUString, np.Spec.Template.Spec.Taints[0].Value)
+	assert.Equal(t, consts.CPUString, np.Spec.Template.Labels[consts.SKUString])
+}
+
 func TestGenerateNodePool_WithAnnotation(t *testing.T) {
 	setAllowedNodeClasses(t, "image-family-ubuntu", "image-family-azure-linux")
 	ws := newTestWorkspace("default", "ws1", "Standard_D4s_v3", 1, nil, map[string]string{

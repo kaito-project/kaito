@@ -40,11 +40,7 @@ class BenchmarkControlMiddleware(BaseHTTPMiddleware):
         engine = request.app.state.engine_client
         error = None
         try:
-            await engine.pause_generation(
-                mode="abort",
-                wait_for_inflight_requests=False,
-                clear_cache=True,
-            )
+            await engine.pause_generation(mode="abort", clear_cache=True)
         except Exception as exc:
             logger.exception("Failed to abort benchmark requests")
             error = exc

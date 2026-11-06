@@ -1,7 +1,7 @@
 # syntax=docker/dockerfile:1
 # Keep the vLLM version aligned with presets/workspace/dependencies/requirements.txt.
 # This upstream CPU image supports linux/amd64 only.
-FROM vllm/vllm-openai-cpu:v0.30.0-x86_64
+FROM vllm/vllm-openai-cpu:v0.32.0-x86_64
 
 ARG VERSION
 

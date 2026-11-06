@@ -1680,6 +1680,7 @@ func TestApplyGeneratorRuntimeOverrides(t *testing.T) {
 		modelName     string
 		architectures []string
 		gpuModel      string
+		gpuCount      int
 		runParams     map[string]string
 		want          map[string]string
 	}{
@@ -1720,6 +1721,26 @@ func TestApplyGeneratorRuntimeOverrides(t *testing.T) {
 			},
 		},
 		{
+			name:      "model memory policy overrides GPU default on 8xH100",
+			modelName: "deepseek-v4-flash-0731",
+			gpuModel:  "NVIDIA H100",
+			gpuCount:  8,
+			want: map[string]string{
+				"gpu-memory-utilization":            "0.90",
+				"compilation-config.cudagraph_mode": "NONE",
+			},
+		},
+		{
+			name:      "model memory policy does not apply to 2xH100",
+			modelName: "deepseek-v4-flash-0731",
+			gpuModel:  "NVIDIA H100",
+			gpuCount:  2,
+			want: map[string]string{
+				"gpu-memory-utilization":            "0.92",
+				"compilation-config.cudagraph_mode": "NONE",
+			},
+		},
+		{
 			name:      "A100 selects Marlin",
 			modelName: "mistral-medium-3.5-128b",
 			gpuModel:  "NVIDIA A100",
@@ -1751,7 +1772,7 @@ func TestApplyGeneratorRuntimeOverrides(t *testing.T) {
 					ModelRunParams: tc.runParams,
 				}},
 			}
-			applyGeneratorRuntimeOverrides(params, &sku.GPUConfig{GPUModel: tc.gpuModel})
+			applyGeneratorRuntimeOverrides(params, &sku.GPUConfig{GPUModel: tc.gpuModel, GPUCount: tc.gpuCount})
 			if !reflect.DeepEqual(params.VLLM.ModelRunParams, tc.want) {
 				t.Fatalf("runtime overrides = %#v, want %#v", params.VLLM.ModelRunParams, tc.want)
 			}

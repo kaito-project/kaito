@@ -24,15 +24,17 @@ func TestResolveGPUMemoryUtilization(t *testing.T) {
 		name      string
 		modelName string
 		gpuModel  string
+		gpuCount  int
 		want      float64
 	}{
-		{"default", "other-model", "NVIDIA H100", 0.92},
-		{"GPU policy", "other-model", "NVIDIA A10", 0.82},
-		{"model and GPU policy", "deepseek-v4.1-flash-1017", "NVIDIA H100", 0.90},
-		{"model policy does not apply to other GPUs", "deepseek-v4.1-flash-1017", "NVIDIA A100", 0.92},
+		{"default", "other-model", "NVIDIA H100", 8, 0.92},
+		{"GPU policy", "other-model", "NVIDIA A10", 1, 0.82},
+		{"model policy on 8xH100", "deepseek-v4-flash-0731", "NVIDIA H100", 8, 0.90},
+		{"model policy does not apply to 2xH100", "deepseek-v4-flash-0731", "NVIDIA H100", 2, 0.92},
+		{"model policy does not apply to other GPUs", "deepseek-v4-flash-0731", "NVIDIA A100", 8, 0.92},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
-			assert.Equal(t, tc.want, ResolveGPUMemoryUtilization(tc.modelName, tc.gpuModel))
+			assert.Equal(t, tc.want, ResolveGPUMemoryUtilization(tc.modelName, tc.gpuModel, tc.gpuCount))
 		})
 	}
 }

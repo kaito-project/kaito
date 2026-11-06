@@ -441,14 +441,17 @@ var (
 		"NVIDIA A10": "0.82",
 	}
 
-	// gpuMemoryUtilizationByModelAndGPU overrides the per-GPU utilization for
-	// models that need extra runtime headroom, using model name prefixes. An
-	// empty GPU model applies to every GPU; the longest matching prefix wins
-	// within each GPU scope.
-	gpuMemoryUtilizationByModelAndGPU = map[modelGPUKey]string{
-		// The first request OOMs at 0.92 on 8xH100; 0.90 is validated.
-		// source: https://github.com/kaito-project/kaito/issues/2501
-		{modelName: "deepseek-v4.1-flash", gpuModel: "NVIDIA H100"}: "0.90",
+	// gpuMemoryUtilizationByGPUCount overrides the per-GPU utilization for models
+	// that need extra runtime headroom on nodes with a specific GPU count, using
+	// model name prefixes. It is scoped by count because a lower value can push a
+	// model that barely fits a smaller SKU onto an extra node. An empty GPU model
+	// applies to every GPU; the longest matching prefix wins within each GPU scope.
+	gpuMemoryUtilizationByGPUCount = map[int]map[modelGPUKey]string{
+		8: {
+			// The first request OOMs at 0.92 on 8xH100; 0.90 is validated.
+			// source: https://github.com/kaito-project/kaito/issues/2501
+			{modelName: "deepseek-v4-flash-0731", gpuModel: "NVIDIA H100"}: "0.90",
+		},
 	}
 
 	// cudagraphModeByModelAndGPU overrides vLLM's default graph mode for known
@@ -492,10 +495,10 @@ func SupportsMaxNumSeqsEstimate(architectures []string, gpuModel string) bool {
 }
 
 // ResolveGPUMemoryUtilization returns the vLLM GPU memory utilization for the
-// model on the target GPU. Model-specific policies take precedence over the
-// per-GPU default.
-func ResolveGPUMemoryUtilization(modelName, gpuModel string) string {
-	if utilization, ok := resolveModelGPUPolicy(gpuMemoryUtilizationByModelAndGPU, modelName, gpuModel); ok {
+// model on a node with gpuCount GPUs of type gpuModel. Model-specific policies
+// take precedence over the per-GPU default.
+func ResolveGPUMemoryUtilization(modelName, gpuModel string, gpuCount int) string {
+	if utilization, ok := resolveModelGPUPolicy(gpuMemoryUtilizationByGPUCount[gpuCount], modelName, gpuModel); ok {
 		return utilization
 	}
 	if utilization, ok := gpuMemoryUtilizationByGPUModel[sku.CanonicalGPUModel(gpuModel)]; ok {

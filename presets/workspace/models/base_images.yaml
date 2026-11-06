@@ -1,11 +1,12 @@
 images:
   # base image with no model weights
   - name: base
-    tag: 0.6.4
+    tag: 0.7.0
     runtimeVersion:
-      vllm: 0.30.0
-      transformers: 5.15.0
+      vllm: 0.32.0
+      transformers: 5.19.0
     # Tag history:
+    # 0.7.0 - bump vllm to 0.32.0, transformers to 5.19.0, lmcache to 0.5.6, ray to 2.59.1 and datasets to 5.0.1; pin fsspec to 2026.6.0 and trl to 1.16.0; drop unused ray jars, virtualenv seed wheels and uv cache
     # 0.6.4 - migrate CPU KV cache offload to use LMCacheMPConnector
     # 0.6.3 - security fix
     # 0.6.2 - resolve startup benchmark tokenizer from vLLM's Run:ai streamer cache
@@ -49,9 +50,10 @@ images:
 
   # vLLM CPU runtime image with no model weights (linux/amd64 only).
   - name: base-cpu
-    tag: 0.0.2
+    tag: 0.0.3
     runtimeVersion:
-      vllm: 0.30.0
+      vllm: 0.32.0
     # Tag history:
+    # 0.0.3 - bump vllm to 0.32.0
     # 0.0.2 - CPU memory defaults and native KV cache without LMCache sidecar
     # 0.0.1 - Initial vLLM CPU runtime image

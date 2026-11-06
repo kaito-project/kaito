@@ -512,6 +512,25 @@ def configure_middlewares(args: argparse.Namespace) -> None:
         args.middleware.append("rate_limit.RateLimitMiddleware")
 
 
+def _wrap_build_and_serve(hook):
+    """Chain a pre-serve hook onto api_server_entry.build_and_serve.
+
+    hook(engine_client) runs after the engine is built (so
+    engine_client.vllm_config is fully resolved) but before uvicorn
+    starts accepting requests. Each wrap becomes the outermost layer, so
+    the most recently registered hook runs first. All other arguments are
+    forwarded unchanged so the wrapper keeps working when vLLM extends the
+    build_and_serve signature.
+    """
+    prev = api_server_entry.build_and_serve
+
+    async def wrapped(engine_client, *args, **kwargs):
+        hook(engine_client)
+        return await prev(engine_client, *args, **kwargs)
+
+    api_server_entry.build_and_serve = wrapped
+
+
 if __name__ == "__main__":
     parser = KAITOArgumentParser(description="KAITO wrapper of vLLM serving server")
     args = parser.parse_args()
@@ -523,22 +542,6 @@ if __name__ == "__main__":
     configure_kv_transfer_and_lmcache(args)
 
     logger.info(f"Starting server on port {args.port}")
-
-    def _wrap_build_and_serve(hook):
-        """Chain a pre-serve hook onto api_server_entry.build_and_serve.
-
-        hook(engine_client) runs after the engine is built (so
-        engine_client.vllm_config is fully resolved) but before uvicorn
-        starts accepting requests. Multiple wraps compose in registration
-        order.
-        """
-        prev = api_server_entry.build_and_serve
-
-        async def wrapped(engine_client, listen_address, sock, bargs, **kw):
-            hook(engine_client)
-            return await prev(engine_client, listen_address, sock, bargs, **kw)
-
-        api_server_entry.build_and_serve = wrapped
 
     # Always start the download monitor so both metrics are always exposed.
     # For local model paths _run returns 0 immediately; for HF repo IDs it

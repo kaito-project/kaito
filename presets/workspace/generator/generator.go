@@ -465,6 +465,16 @@ var (
 		{architecture: "Qwen4ExpForCausalLM", gpuModel: "NVIDIA A100"}:              "bf16",
 		{architecture: "Qwen4ExpForConditionalGeneration", gpuModel: "NVIDIA A100"}: "bf16",
 	}
+
+	// engramConfigByArchitectureAndGPU sets a GPU-specific vLLM Engram
+	// configuration, replacing any architecture-level value from
+	// vllmEngramConfigArchMap. Ampere cannot run Qwen4Exp's pinned-host FP8 PLE
+	// lookup kernel, so keep the PLE table resident on-device.
+	// source: https://github.com/vllm-project/vllm/blob/v0.32.0/docs/features/engram.md
+	engramConfigByArchitectureAndGPU = map[architectureGPUKey]string{
+		{architecture: "Qwen4ExpForCausalLM", gpuModel: "NVIDIA A100"}:              `'{"cpu_offload":false}'`,
+		{architecture: "Qwen4ExpForConditionalGeneration", gpuModel: "NVIDIA A100"}: `'{"cpu_offload":false}'`,
+	}
 )
 
 // SupportsMaxNumSeqsEstimate reports whether max-num-seqs estimation is enabled
@@ -527,6 +537,21 @@ func ResolveIndexerKVDtype(architectures []string, gpuModel string) (string, boo
 			gpuModel:     canonicalGPUModel,
 		}]; ok {
 			return dtype, true
+		}
+	}
+	return "", false
+}
+
+// ResolveEngramConfig returns the vLLM Engram configuration for a model's
+// architecture and target GPU.
+func ResolveEngramConfig(architectures []string, gpuModel string) (string, bool) {
+	canonicalGPUModel := sku.CanonicalGPUModel(gpuModel)
+	for _, architecture := range architectures {
+		if config, ok := engramConfigByArchitectureAndGPU[architectureGPUKey{
+			architecture: architecture,
+			gpuModel:     canonicalGPUModel,
+		}]; ok {
+			return config, true
 		}
 	}
 	return "", false

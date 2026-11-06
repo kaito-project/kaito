@@ -29,6 +29,7 @@ import (
 	"github.com/kaito-project/kaito/pkg/featuregates"
 	"github.com/kaito-project/kaito/pkg/utils/consts"
 	inferencesetutil "github.com/kaito-project/kaito/pkg/utils/inferenceset"
+	mriutil "github.com/kaito-project/kaito/pkg/utils/multiroleinference"
 )
 
 // Wire the InferenceSet admission webhook to validate the child Workspace it
@@ -36,6 +37,7 @@ import (
 // util package that builds the Workspace.
 func init() {
 	kaitov1beta1.ValidateInferenceSetWorkspace = inferencesetutil.ValidateWorkspaceForInferenceSet
+	kaitov1alpha1.ValidateMultiRoleInferenceChildren = mriutil.ValidateInferenceSetsForMultiRoleInference
 }
 
 func NewControllerWebhooks() []knativeinjection.ControllerConstructor {

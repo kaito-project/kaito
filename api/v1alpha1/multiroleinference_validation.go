@@ -23,8 +23,6 @@ import (
 	"k8s.io/klog/v2"
 	"knative.dev/pkg/apis"
 
-	kaitov1beta1 "github.com/kaito-project/kaito/api/v1beta1"
-	"github.com/kaito-project/kaito/pkg/utils/consts"
 	"github.com/kaito-project/kaito/pkg/utils/speculativedecoding"
 )
 
@@ -41,6 +39,11 @@ func (m *MultiRoleInference) SupportedVerbs() []admissionregistrationv1.Operatio
 }
 
 func (m *MultiRoleInference) Validate(ctx context.Context) (errs *apis.FieldError) {
+	if !m.DeletionTimestamp.IsZero() {
+		klog.V(2).InfoS("Skip validation for deleting multiroleinference", "multiroleinference", fmt.Sprintf("%s/%s", m.Namespace, m.Name))
+		return nil
+	}
+
 	// Validate name is a valid DNS label.
 	errmsgs := validation.IsDNS1123Label(m.Name)
 	if len(errmsgs) > 0 {
@@ -54,12 +57,10 @@ func (m *MultiRoleInference) Validate(ctx context.Context) (errs *apis.FieldErro
 			errs = errs.Also(apis.ErrInvalidValue(fmt.Sprintf("must be no more than %d characters", MaxMultiRoleInferenceNameLength), "name"))
 		}
 		errs = errs.Also(m.validateCreate().ViaField("spec"))
-		errs = errs.Also(m.validateCapacityTypeAnnotation())
 	} else {
 		klog.InfoS("Validate update", "multiroleinference", fmt.Sprintf("%s/%s", m.Namespace, m.Name))
 		old := base.(*MultiRoleInference)
 		errs = errs.Also(m.validateUpdate(old).ViaField("spec"))
-		errs = errs.Also(m.validateCapacityTypeAnnotationUpdate(old))
 	}
 	// Speculative-decoding opt-in is validated against top-level metadata
 	// (annotation propagates to child InferenceSets -> Workspaces via the
@@ -67,8 +68,23 @@ func (m *MultiRoleInference) Validate(ctx context.Context) (errs *apis.FieldErro
 	// metadata.annotations[...] are reported correctly, matching the
 	// Workspace validators.
 	errs = errs.Also(m.validateSpeculativeDecoding())
-	return errs
+
+	// InstanceType, labelSelector immutability, template inference/config,
+	// propagated annotations, and other runtime rules are enforced by
+	// validating the child InferenceSets this MRI would create, so all three
+	// resources (MRI -> InferenceSet -> Workspace) share one rule chain.
+	if ValidateMultiRoleInferenceChildren == nil {
+		return errs.Also(apis.ErrGeneric("MultiRoleInference child InferenceSet validation is not configured", "spec", "roles"))
+	}
+	return errs.Also(ValidateMultiRoleInferenceChildren(ctx, m))
 }
+
+// ValidateMultiRoleInferenceChildren validates the child InferenceSets a
+// MultiRoleInference would create, using the admission baseline in ctx (if any)
+// as the previous MRI. Returned errors are rooted at the MRI. It is assigned at
+// startup (see pkg/workspace/webhooks) to a controller-side implementation,
+// avoiding an import cycle with the helper package that builds the children.
+var ValidateMultiRoleInferenceChildren func(ctx context.Context, m *MultiRoleInference) *apis.FieldError
 
 func (m *MultiRoleInference) validateCreate() (errs *apis.FieldError) {
 	// Validate model name is not empty.
@@ -83,7 +99,7 @@ func (m *MultiRoleInference) validateCreate() (errs *apis.FieldError) {
 		errs = errs.Also(apis.ErrInvalidValue("labelSelector must have at least one matchLabels or matchExpressions entry", "labelSelector"))
 	}
 
-	// Validate roles.
+	// Validate role topology and MRI-local invariants.
 	errs = errs.Also(m.validateRoles())
 
 	return errs
@@ -98,43 +114,10 @@ func (m *MultiRoleInference) validateUpdate(old *MultiRoleInference) (errs *apis
 		))
 	}
 
-	// Validate roles (same as create).
+	// Validate role topology and MRI-local invariants.
 	errs = errs.Also(m.validateRoles())
 
 	return errs
-}
-
-func (m *MultiRoleInference) validateCapacityTypeAnnotation() *apis.FieldError {
-	if !consts.IsKarpenterProvisioner() {
-		return nil
-	}
-	capacityType := m.GetAnnotations()[kaitov1beta1.AnnotationCapacityType]
-	if consts.IsSupportedKarpenterCapacityType(capacityType) {
-		return nil
-	}
-	return apis.ErrInvalidValue(
-		fmt.Sprintf("%q is not a supported capacity type; choose one of: %s, %s",
-			capacityType, consts.KarpenterCapacityTypeOnDemand, consts.KarpenterCapacityTypeSpot),
-		fmt.Sprintf("metadata.annotations[%s]", kaitov1beta1.AnnotationCapacityType),
-	)
-}
-
-func (m *MultiRoleInference) validateCapacityTypeAnnotationUpdate(old *MultiRoleInference) *apis.FieldError {
-	if !consts.IsKarpenterProvisioner() {
-		return nil
-	}
-	oldValue := old.GetAnnotations()[kaitov1beta1.AnnotationCapacityType]
-	newValue := m.GetAnnotations()[kaitov1beta1.AnnotationCapacityType]
-	if oldValue == newValue {
-		return nil
-	}
-	if !consts.IsSupportedKarpenterCapacityType(oldValue) {
-		return m.validateCapacityTypeAnnotation()
-	}
-	return apis.ErrGeneric(
-		fmt.Sprintf("annotation %s is immutable after creation", kaitov1beta1.AnnotationCapacityType),
-		fmt.Sprintf("metadata.annotations[%s]", kaitov1beta1.AnnotationCapacityType),
-	)
 }
 
 func (m *MultiRoleInference) validateRoles() (errs *apis.FieldError) {
@@ -169,21 +152,6 @@ func (m *MultiRoleInference) validateRoles() (errs *apis.FieldError) {
 				fmt.Sprintf("unsupported role type %q, must be prefill or decode", role.Type),
 				field+".type",
 			))
-		}
-
-		// Validate instanceType based on active node provisioner.
-		switch consts.ActiveNodeProvisioner {
-		case consts.NodeProvisionerBYO:
-			if role.InstanceType != "" {
-				errs = errs.Also(apis.ErrInvalidValue(role.InstanceType, field+".instanceType",
-					"instanceType must be empty when nodeProvisioner is byo"))
-			}
-		case consts.NodeProvisionerKarpenter, consts.NodeProvisionerAzureGPU:
-			if role.InstanceType == "" {
-				errs = errs.Also(apis.ErrMissingField(field + ".instanceType"))
-			}
-		default:
-			// Unknown or unset provisioner: no validation (backward compat).
 		}
 
 		// Validate replicas >= 1 when specified (nil means autoscaling).

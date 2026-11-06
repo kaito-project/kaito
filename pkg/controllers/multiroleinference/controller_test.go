@@ -109,3 +109,53 @@ func TestReconcileInferenceSetClearsAnnotationsWhenMRIAnnotationsRemoved(t *test
 	require.NoError(t, cl.Get(context.Background(), client.ObjectKey{Name: "mri-test-prefill", Namespace: "default"}, got))
 	assert.Nil(t, got.Spec.Template.Annotations)
 }
+
+func TestReconcileInferenceSetPreservesChildOwnedFields(t *testing.T) {
+	for _, explicitReplicas := range []bool{false, true} {
+		t.Run(map[bool]string{false: "autoscaled", true: "explicit replicas"}[explicitReplicas], func(t *testing.T) {
+			scheme := runtime.NewScheme()
+			require.NoError(t, kaitov1alpha1.AddToScheme(scheme))
+			require.NoError(t, kaitov1beta1.AddToScheme(scheme))
+			mri := &kaitov1alpha1.MultiRoleInference{
+				ObjectMeta: metav1.ObjectMeta{Name: "mri", Namespace: "default"},
+				Spec: kaitov1alpha1.MultiRoleInferenceSpec{
+					LabelSelector: &metav1.LabelSelector{MatchLabels: map[string]string{"app": "mri"}},
+					Model:         kaitov1alpha1.MultiRoleInferenceModelSpec{Name: "gemma-3-4b-instruct"},
+				},
+			}
+			role := kaitov1alpha1.MultiRoleInferenceRoleSpec{
+				Type:         kaitov1alpha1.MultiRoleInferenceRolePrefill,
+				InstanceType: "Standard_NV36ads_A10_v5", RuntimeConfig: "new-runtime-config",
+			}
+			five, two := int32(5), int32(2)
+			if explicitReplicas {
+				role.Replicas = &two
+			}
+			child := &kaitov1beta1.InferenceSet{
+				ObjectMeta: metav1.ObjectMeta{Name: "mri-prefill", Namespace: "default", Labels: map[string]string{"external": "keep"}},
+				Spec: kaitov1beta1.InferenceSetSpec{
+					Replicas:    &five,
+					AutoUpgrade: &kaitov1beta1.AutoUpgradePolicy{Enabled: true, Strategy: kaitov1beta1.SurgeBasedUpgradeStrategy},
+				},
+			}
+			cl := fake.NewClientBuilder().WithScheme(scheme).WithObjects(mri, child).Build()
+			r := &MultiRoleInferenceReconciler{Client: cl, Scheme: scheme}
+			// Repeated reconciliation must not reset externally managed fields.
+			for i := 0; i < 2; i++ {
+				require.NoError(t, r.reconcileInferenceSet(context.Background(), mri, role))
+				got := &kaitov1beta1.InferenceSet{}
+				require.NoError(t, cl.Get(context.Background(), client.ObjectKeyFromObject(child), got))
+				expected := five
+				if explicitReplicas {
+					expected = two
+				}
+				require.NotNil(t, got.Spec.Replicas)
+				assert.Equal(t, expected, *got.Spec.Replicas)
+				assert.Equal(t, child.Spec.AutoUpgrade, got.Spec.AutoUpgrade)
+				assert.Equal(t, "keep", got.Labels["external"])
+				assert.Equal(t, "new-runtime-config", got.Spec.Template.Inference.Config)
+				assert.Equal(t, role.InstanceType, got.Spec.Template.Resource.InstanceType)
+			}
+		})
+	}
+}

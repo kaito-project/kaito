@@ -746,6 +746,29 @@ func TestResolveIndexerKVDtype(t *testing.T) {
 	assert.False(t, ok)
 }
 
+func TestResolveEngramConfig(t *testing.T) {
+	for _, tc := range []struct {
+		name          string
+		architectures []string
+		gpuModel      string
+		want          string
+		wantOK        bool
+	}{
+		{name: "Qwen4Exp causal LM on A100", architectures: []string{"Qwen4ExpForCausalLM"}, gpuModel: "NVIDIA A100", want: `'{"cpu_offload":false}'`, wantOK: true},
+		{name: "Qwen4Exp multimodal on A100", architectures: []string{"Qwen4ExpForConditionalGeneration"}, gpuModel: "NVIDIA A100", want: `'{"cpu_offload":false}'`, wantOK: true},
+		{name: "Qwen4Exp on BYO A100 label", architectures: []string{"Qwen4ExpForConditionalGeneration"}, gpuModel: "A100-SXM4-80GB", want: `'{"cpu_offload":false}'`, wantOK: true},
+		{name: "Qwen4Exp on H100 keeps vLLM default", architectures: []string{"Qwen4ExpForConditionalGeneration"}, gpuModel: "NVIDIA H100"},
+		{name: "DeepSeek V4.1 on A100 not overridden", architectures: []string{"DeepseekV41ForCausalLM"}, gpuModel: "NVIDIA A100"},
+		{name: "unknown architecture", architectures: []string{"OtherArchitecture"}, gpuModel: "NVIDIA A100"},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			config, ok := ResolveEngramConfig(tc.architectures, tc.gpuModel)
+			assert.Equal(t, tc.wantOK, ok)
+			assert.Equal(t, tc.want, config)
+		})
+	}
+}
+
 func TestResolveGPUModelPolicies(t *testing.T) {
 	assert.Equal(t, "0.82", ResolveGPUMemoryUtilization("NVIDIA-A10"))
 	assert.Equal(t, "0.92", ResolveGPUMemoryUtilization("NVIDIA A100"))

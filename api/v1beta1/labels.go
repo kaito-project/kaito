@@ -235,6 +235,9 @@ var reservedSelectorLabelKeys = map[string]struct{}{
 	consts.KarpenterWorkspaceNamespaceKey:    {},
 	consts.KarpenterInferenceSetKey:          {},
 	consts.KarpenterInferenceSetNamespaceKey: {},
+
+	// Controller-owned workload isolation labels.
+	consts.WorkspaceCreatedByInferenceSetLabel: {},
 }
 
 // IsReservedSelectorLabel reports whether the given label key is reserved by
@@ -257,17 +260,23 @@ func (r *ResourceSpec) AutoSelectsSKU() bool {
 	return r.InstanceType == "" && IsEmptyLabelSelector(r.LabelSelector)
 }
 
-// SanitizedMatchLabels returns the MatchLabels of selector with any
+// SanitizedMatchLabels normalizes matchLabels and supported single-value In
+// matchExpressions into a map with any
 // KAITO-reserved keys removed. Returns nil when selector is nil or has no
 // non-reserved entries. The returned map is always a fresh copy when at
 // least one entry is preserved; callers must not assume identity with the
 // input map.
 func SanitizedMatchLabels(selector *metav1.LabelSelector) map[string]string {
-	if selector == nil || len(selector.MatchLabels) == 0 {
+	if selector == nil {
 		return nil
 	}
-	out := make(map[string]string, len(selector.MatchLabels))
-	for k, v := range selector.MatchLabels {
+	// Admission accepts exactly the selectors supported by LabelSelectorAsMap.
+	matchLabels, err := metav1.LabelSelectorAsMap(selector)
+	if err != nil {
+		return nil
+	}
+	out := make(map[string]string, len(matchLabels))
+	for k, v := range matchLabels {
 		if IsReservedSelectorLabel(k) {
 			continue
 		}
@@ -311,5 +320,6 @@ func IsInferenceSetBenchmarkEnabled(iObj *InferenceSet) bool {
 func ShouldRunInferenceSetBenchmark(iObj *InferenceSet) bool {
 	return IsInferenceSetBenchmarkEnabled(iObj) &&
 		GetInferenceSetRuntimeName(iObj) == model.RuntimeNameVLLM &&
-		iObj.Spec.Template.Inference.Preset != nil
+		iObj.Spec.Template.Inference.Preset != nil &&
+		!IsCPUInferenceTarget(&iObj.Spec.Template.Inference, iObj.Spec.Template.Resource.InstanceType)
 }

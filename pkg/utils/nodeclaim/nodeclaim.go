@@ -172,6 +172,10 @@ func GenerateNodeClaimManifestWithOptions(storageRequirement string, obj client.
 	}
 
 	cloudName := os.Getenv("CLOUD_PROVIDER")
+	isCPUWorkspace := false
+	if workspaceObj, ok := obj.(*kaitov1beta1.Workspace); ok {
+		isCPUWorkspace = kaitov1beta1.IsCPUInferenceWorkspace(workspaceObj)
+	}
 
 	var nodeClassRefKind string
 	var nodeClassRefGroup string
@@ -198,13 +202,6 @@ func GenerateNodeClaimManifestWithOptions(storageRequirement string, obj client.
 				Kind:  nodeClassRefKind,
 				Group: nodeClassRefGroup,
 			},
-			Taints: []corev1.Taint{
-				{
-					Key:    consts.SKUString,
-					Value:  consts.GPUString,
-					Effect: corev1.TaintEffectNoSchedule,
-				},
-			},
 			Requirements: []karpenterv1.NodeSelectorRequirementWithMinValues{
 				{
 					Key:      consts.LabelNodePool,
@@ -228,6 +225,21 @@ func GenerateNodeClaimManifestWithOptions(storageRequirement string, obj client.
 				},
 			},
 		},
+	}
+
+	if isCPUWorkspace {
+		nodeClaimLabels[consts.SKUString] = consts.CPUString
+		nodeClaimObj.Spec.Taints = []corev1.Taint{{
+			Key:    consts.SKUString,
+			Value:  consts.CPUString,
+			Effect: corev1.TaintEffectNoSchedule,
+		}}
+	} else {
+		nodeClaimObj.Spec.Taints = []corev1.Taint{{
+			Key:    consts.SKUString,
+			Value:  consts.GPUString,
+			Effect: corev1.TaintEffectNoSchedule,
+		}}
 	}
 
 	if cloudName == consts.AzureCloudName {

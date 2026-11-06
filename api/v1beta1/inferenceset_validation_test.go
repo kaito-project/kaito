@@ -20,6 +20,10 @@ import (
 	"github.com/stretchr/testify/assert"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"knative.dev/pkg/apis"
+
+	"github.com/kaito-project/kaito/pkg/featuregates"
+	"github.com/kaito-project/kaito/pkg/model"
+	"github.com/kaito-project/kaito/pkg/utils/consts"
 )
 
 func TestInferenceSetValidate(t *testing.T) {
@@ -108,10 +112,24 @@ func TestInferenceSetBenchmarkHelpers(t *testing.T) {
 		ObjectMeta: metav1.ObjectMeta{
 			Annotations: map[string]string{},
 		},
+		Spec: InferenceSetSpec{
+			Template: InferenceSetTemplate{
+				Resource: InferenceSetResourceSpec{InstanceType: "Standard_NC24ads_A100_v4"},
+				Inference: InferenceSpec{
+					Preset: &PresetSpec{PresetMeta: PresetMeta{Name: "test-model"}},
+				},
+			},
+		},
 	}
-	_ = GetInferenceSetRuntimeName(is)
-	_ = IsInferenceSetBenchmarkEnabled(is)
-	_ = ShouldRunInferenceSetBenchmark(is)
+	assert.Equal(t, model.RuntimeNameVLLM, GetInferenceSetRuntimeName(is))
+	assert.True(t, IsInferenceSetBenchmarkEnabled(is))
+	assert.True(t, ShouldRunInferenceSetBenchmark(is))
+
+	is.Spec.Template.Resource.InstanceType = "Standard_D8s_v5"
+	assert.False(t, ShouldRunInferenceSetBenchmark(is), "basic CPU inference should skip parent benchmark applicability")
+
+	is.Annotations[AnnotationDisableBenchmark] = "true"
+	assert.False(t, ShouldRunInferenceSetBenchmark(is))
 }
 
 func TestInferenceSetValidatePassesBaselineToWorkspaceValidation(t *testing.T) {
@@ -219,4 +237,17 @@ func TestInferenceSetValidateSelector(t *testing.T) {
 			assert.Contains(t, errs.Error(), tt.wantErr)
 		})
 	}
+}
+
+func TestInferenceSetBenchmarkApplicabilityRequiresDeclaredCPUType(t *testing.T) {
+	old := featuregates.FeatureGates[consts.FeatureFlagVLLM]
+	t.Cleanup(func() { featuregates.FeatureGates[consts.FeatureFlagVLLM] = old })
+	featuregates.FeatureGates[consts.FeatureFlagVLLM] = true
+	t.Setenv("CLOUD_PROVIDER", consts.AzureCloudName)
+	is := &InferenceSet{Spec: InferenceSetSpec{Template: InferenceSetTemplate{Inference: InferenceSpec{Preset: &PresetSpec{PresetMeta: PresetMeta{Name: "test-model"}}}}}}
+	assert.True(t, ShouldRunInferenceSetBenchmark(is), "label-only targets do not select CPU")
+	is.Spec.Template.Resource.InstanceType = "Standard_D16s_v6"
+	assert.False(t, ShouldRunInferenceSetBenchmark(is), "declared CPU skips benchmark")
+	is.Spec.Template.Resource.InstanceType = "Standard_NC6s_v3"
+	assert.True(t, ShouldRunInferenceSetBenchmark(is), "GPU behavior unchanged")
 }

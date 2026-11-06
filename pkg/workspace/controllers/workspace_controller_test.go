@@ -36,11 +36,13 @@ import (
 	storagev1 "k8s.io/api/storage/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/api/meta"
+	"k8s.io/apimachinery/pkg/api/resource"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
 	kubefake "k8s.io/client-go/kubernetes/fake"
 	"sigs.k8s.io/controller-runtime/pkg/client"
+	"sigs.k8s.io/controller-runtime/pkg/client/fake"
 
 	kaitov1alpha1 "github.com/kaito-project/kaito/api/v1alpha1"
 	"github.com/kaito-project/kaito/api/v1beta1"
@@ -57,6 +59,7 @@ import (
 	"github.com/kaito-project/kaito/pkg/workspace/inference"
 	"github.com/kaito-project/kaito/pkg/workspace/inference/modelstreaming"
 	"github.com/kaito-project/kaito/pkg/workspace/inference/modelstreaming/registry"
+	metadata "github.com/kaito-project/kaito/presets/workspace/models"
 )
 
 func TestSelectWorkspaceNodes(t *testing.T) {
@@ -440,8 +443,9 @@ func TestApplyInferenceWithPreset(t *testing.T) {
 						Template: corev1.PodTemplateSpec{
 							Spec: corev1.PodSpec{
 								Containers: []corev1.Container{{
-									Name:  "inference-container",
-									Image: "inference-image:latest",
+									Name:      "inference-container",
+									Image:     "inference-image:latest",
+									Resources: corev1.ResourceRequirements{Limits: corev1.ResourceList{corev1.ResourceName(consts.NvidiaGPU): resource.MustParse("1")}},
 								}},
 							},
 						},
@@ -478,8 +482,9 @@ func TestApplyInferenceWithPreset(t *testing.T) {
 						Template: corev1.PodTemplateSpec{
 							Spec: corev1.PodSpec{
 								Containers: []corev1.Container{{
-									Name:  "inference-container",
-									Image: "inference-image:latest",
+									Name:      "inference-container",
+									Image:     "inference-image:latest",
+									Resources: corev1.ResourceRequirements{Limits: corev1.ResourceList{corev1.ResourceName(consts.NvidiaGPU): resource.MustParse("1")}},
 								}},
 							},
 						},
@@ -508,7 +513,8 @@ func TestApplyInferenceWithPreset(t *testing.T) {
 				c.On("Get", mock.Anything, mock.Anything, mock.IsType(&appsv1.StatefulSet{}), mock.Anything).
 					Run(func(args mock.Arguments) {
 						ss := args.Get(2).(*appsv1.StatefulSet)
-						*ss = test.MockStatefulSetUpdated
+						*ss = *test.MockStatefulSetUpdated.DeepCopy()
+						ss.Spec.Template.Spec.Containers[0].Resources.Limits = corev1.ResourceList{corev1.ResourceName(consts.NvidiaGPU): resource.MustParse("1")}
 					}).
 					Return(nil)
 
@@ -650,44 +656,95 @@ func TestComputeHashIncludesOnlyEnabledSpeculativeDecodingState(t *testing.T) {
 }
 
 func TestSyncInferenceMutablePodSpec(t *testing.T) {
-	existing := &corev1.PodSpec{
-		Containers: []corev1.Container{{
-			Name:         "inference",
-			Command:      []string{"old-cmd"},
-			Args:         []string{"old-arg"},
-			Env:          []corev1.EnvVar{{Name: "OLD", Value: "1"}},
-			VolumeMounts: []corev1.VolumeMount{{Name: "old", MountPath: "/old"}},
-			LivenessProbe: &corev1.Probe{ProbeHandler: corev1.ProbeHandler{Exec: &corev1.ExecAction{
-				Command: []string{"python3", "/workspace/vllm/lmcache_server.py", "--health-check"},
-			}}},
-		}},
-		InitContainers: []corev1.Container{{Name: "old-init"}},
-		Volumes:        []corev1.Volume{{Name: "old-vol"}},
-	}
-	desired := &corev1.PodSpec{
-		Containers: []corev1.Container{{
-			Name:         "inference",
-			Command:      []string{"new-cmd"},
-			Args:         []string{"new-arg"},
-			Env:          []corev1.EnvVar{{Name: "NEW", Value: "2"}},
-			VolumeMounts: []corev1.VolumeMount{{Name: "new", MountPath: "/new"}},
-			LivenessProbe: &corev1.Probe{ProbeHandler: corev1.ProbeHandler{HTTPGet: &corev1.HTTPGetAction{
-				Path: "/health",
-			}}},
-		}},
-		InitContainers: []corev1.Container{{Name: "new-init"}},
-		Volumes:        []corev1.Volume{{Name: "new-vol"}},
+	makeSpecs := func() (*corev1.PodSpec, *corev1.PodSpec) {
+		existing := &corev1.PodSpec{
+			Containers: []corev1.Container{
+				{
+					Name:         "inference",
+					Image:        "old-image:latest",
+					Command:      []string{"old-cmd"},
+					Args:         []string{"old-arg"},
+					Env:          []corev1.EnvVar{{Name: "OLD", Value: "1"}},
+					VolumeMounts: []corev1.VolumeMount{{Name: "old", MountPath: "/old"}},
+					Resources: corev1.ResourceRequirements{
+						Limits: corev1.ResourceList{
+							corev1.ResourceName("nvidia.com/gpu"): resource.MustParse("1"),
+						},
+					},
+					StartupProbe:  &corev1.Probe{InitialDelaySeconds: 30},
+					LivenessProbe: &corev1.Probe{ProbeHandler: corev1.ProbeHandler{Exec: &corev1.ExecAction{Command: []string{"python3", "/workspace/vllm/lmcache_server.py", "--health-check"}}}},
+				},
+			},
+			InitContainers: []corev1.Container{{Name: "old-init"}},
+			Volumes:        []corev1.Volume{{Name: "old-vol"}},
+			Tolerations: []corev1.Toleration{
+				{
+					Key:      "nvidia.com/gpu",
+					Operator: corev1.TolerationOpExists,
+					Effect:   corev1.TaintEffectNoSchedule,
+				},
+			},
+			Affinity: &corev1.Affinity{
+				NodeAffinity: &corev1.NodeAffinity{
+					RequiredDuringSchedulingIgnoredDuringExecution: &corev1.NodeSelector{},
+				},
+			},
+		}
+		desired := &corev1.PodSpec{
+			Containers: []corev1.Container{
+				{
+					Name:          "inference",
+					Image:         "new-image:latest",
+					Command:       []string{"new-cmd"},
+					Args:          []string{"new-arg"},
+					Env:           []corev1.EnvVar{{Name: "NEW", Value: "2"}},
+					VolumeMounts:  []corev1.VolumeMount{{Name: "new", MountPath: "/new"}},
+					Resources:     corev1.ResourceRequirements{},
+					LivenessProbe: &corev1.Probe{ProbeHandler: corev1.ProbeHandler{HTTPGet: &corev1.HTTPGetAction{Path: "/health"}}},
+				},
+			},
+			InitContainers: []corev1.Container{{Name: "new-init"}},
+			Volumes:        []corev1.Volume{{Name: "new-vol"}},
+			Tolerations: []corev1.Toleration{
+				{
+					Key:      "sku",
+					Operator: corev1.TolerationOpEqual,
+					Value:    "cpu",
+					Effect:   corev1.TaintEffectNoSchedule,
+				},
+			},
+			Affinity: &corev1.Affinity{
+				PodAntiAffinity: &corev1.PodAntiAffinity{
+					RequiredDuringSchedulingIgnoredDuringExecution: []corev1.PodAffinityTerm{{}},
+				},
+			},
+		}
+		return existing, desired
 	}
 
-	syncInferenceMutablePodSpec(existing, desired)
+	t.Run("preserves target-dependent fields for same-runtime mutable spec refresh", func(t *testing.T) {
+		existing, desired := makeSpecs()
+		originalImage := existing.Containers[0].Image
+		originalResources := existing.Containers[0].Resources.DeepCopy()
+		originalStartupProbe := existing.Containers[0].StartupProbe.DeepCopy()
+		originalTolerations := append([]corev1.Toleration(nil), existing.Tolerations...)
+		originalAffinity := existing.Affinity.DeepCopy()
 
-	assert.Equal(t, desired.Containers[0].Command, existing.Containers[0].Command)
-	assert.Equal(t, desired.Containers[0].Args, existing.Containers[0].Args)
-	assert.Equal(t, desired.Containers[0].Env, existing.Containers[0].Env)
-	assert.Equal(t, desired.Containers[0].VolumeMounts, existing.Containers[0].VolumeMounts)
-	assert.Equal(t, desired.Containers[0].LivenessProbe, existing.Containers[0].LivenessProbe)
-	assert.Equal(t, desired.InitContainers, existing.InitContainers)
-	assert.Equal(t, desired.Volumes, existing.Volumes)
+		syncInferenceMutablePodSpec(existing, desired)
+
+		assert.Equal(t, originalImage, existing.Containers[0].Image)
+		assert.Equal(t, desired.Containers[0].Command, existing.Containers[0].Command)
+		assert.Equal(t, desired.Containers[0].Args, existing.Containers[0].Args)
+		assert.Equal(t, desired.Containers[0].Env, existing.Containers[0].Env)
+		assert.Equal(t, desired.Containers[0].VolumeMounts, existing.Containers[0].VolumeMounts)
+		assert.Equal(t, desired.Containers[0].LivenessProbe, existing.Containers[0].LivenessProbe)
+		assert.Equal(t, desired.InitContainers, existing.InitContainers)
+		assert.Equal(t, desired.Volumes, existing.Volumes)
+		assert.Equal(t, *originalResources, existing.Containers[0].Resources)
+		assert.Equal(t, *originalStartupProbe, *existing.Containers[0].StartupProbe)
+		assert.Equal(t, originalTolerations, existing.Tolerations)
+		assert.Equal(t, *originalAffinity, *existing.Affinity)
+	})
 }
 
 func TestSyncControllerRevision(t *testing.T) {
@@ -1884,7 +1941,9 @@ func TestSetWorkspaceCondition(t *testing.T) {
 }
 
 func TestShouldUpgradeBaseImage(t *testing.T) {
-	baseTag := inference.GetBaseImageTag()
+	t.Setenv("PRESET_REGISTRY_NAME", "mcr.microsoft.com/aks/kaito")
+	baseTag, err := inference.GetBaseImageTag(metadata.MustGet("base"))
+	require.NoError(t, err)
 	baseImage := "mcr.microsoft.com/aks/kaito/kaito-base:" + baseTag
 	tests := []struct {
 		name     string
@@ -2112,7 +2171,7 @@ func TestShouldUpgradeBaseImage(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got := shouldUpgradeBaseImage(tt.ws, tt.existing, tt.desired)
+			got := shouldUpgradeBaseImage(tt.ws, tt.existing, tt.desired, metadata.MustGet("base"))
 			assert.Equal(t, tt.expect, got)
 		})
 	}
@@ -2673,5 +2732,80 @@ func TestEnsureModelMirror_StaticAnnotationsCarryReason(t *testing.T) {
 			assert.Equal(t, reasonModelStreamingInvalidAnnotations, reason)
 			assert.Contains(t, msg, tc.wantMessage)
 		})
+	}
+}
+
+func TestUpdateWorkspaceTargetNodeCountDeclaredCPUInitialization(t *testing.T) {
+	test.RegisterTestModel()
+	for _, gate := range []string{consts.FeatureFlagDisableNodeAutoProvisioning} {
+		old := featuregates.FeatureGates[gate]
+		defer func(g string, v bool) { featuregates.FeatureGates[g] = v }(gate, old)
+		featuregates.FeatureGates[gate] = true
+	}
+	scheme := runtime.NewScheme()
+	require.NoError(t, corev1.AddToScheme(scheme))
+	require.NoError(t, appsv1.AddToScheme(scheme))
+	require.NoError(t, v1beta1.AddToScheme(scheme))
+	ws := &v1beta1.Workspace{ObjectMeta: v1.ObjectMeta{Name: "cpu-workspace", Namespace: "default"},
+		Resource:  v1beta1.ResourceSpec{InstanceType: "Standard_D16s_v6", LabelSelector: &v1.LabelSelector{MatchLabels: map[string]string{"pool": "cpu"}}},
+		Inference: &v1beta1.InferenceSpec{Preset: &v1beta1.PresetSpec{PresetMeta: v1beta1.PresetMeta{Name: "test-model"}}},
+		Status:    v1beta1.WorkspaceStatus{}}
+	node := &corev1.Node{ObjectMeta: v1.ObjectMeta{Name: "cpu", Labels: map[string]string{"pool": "cpu", corev1.LabelArchStable: "amd64"}}, Status: corev1.NodeStatus{Conditions: []corev1.NodeCondition{{Type: corev1.NodeReady, Status: corev1.ConditionTrue}}}}
+	c := fake.NewClientBuilder().WithScheme(scheme).WithStatusSubresource(ws).WithObjects(ws, node).Build()
+	r := &WorkspaceReconciler{Client: c}
+	require.NoError(t, r.UpdateWorkspaceTargetNodeCount(context.Background(), ws))
+	require.Equal(t, int32(1), ws.Status.TargetNodeCount)
+	stored := &v1beta1.Workspace{}
+	require.NoError(t, c.Get(context.Background(), client.ObjectKeyFromObject(ws), stored))
+	require.Equal(t, int32(1), stored.Status.TargetNodeCount)
+	require.NoError(t, r.UpdateWorkspaceTargetNodeCount(context.Background(), ws))
+}
+
+func TestUpdateWorkspaceTargetNodeCountCPUPresetsAndCustomTemplates(t *testing.T) {
+	test.RegisterTestModel()
+	t.Setenv("CLOUD_PROVIDER", consts.AzureCloudName)
+	for gate, enabled := range map[string]bool{
+		consts.FeatureFlagVLLM:                        true,
+		consts.FeatureFlagDisableNodeAutoProvisioning: false,
+	} {
+		old := featuregates.FeatureGates[gate]
+		t.Cleanup(func() { featuregates.FeatureGates[gate] = old })
+		featuregates.FeatureGates[gate] = enabled
+	}
+	for _, runtimeName := range []string{"vllm", "transformers"} {
+		for _, preset := range []bool{false, true} {
+			t.Run(fmt.Sprintf("runtime=%s/preset=%t", runtimeName, preset), func(t *testing.T) {
+				count := 2
+				inferenceSpec := &v1beta1.InferenceSpec{Template: &corev1.PodTemplateSpec{
+					Spec: corev1.PodSpec{Containers: []corev1.Container{{Name: "custom", Image: "example.com/custom:v1"}}},
+				}}
+				if preset {
+					count = 1
+					inferenceSpec = &v1beta1.InferenceSpec{Preset: &v1beta1.PresetSpec{PresetMeta: v1beta1.PresetMeta{Name: "test-model"}}}
+				}
+				// Custom templates admitted by the served alpha API retain Resource.Count
+				// on both the estimator and non-vLLM paths, even on Azure CPU SKUs.
+				ws := &v1beta1.Workspace{
+					ObjectMeta: v1.ObjectMeta{Name: "cpu-target-count", Namespace: "default", Annotations: map[string]string{v1beta1.AnnotationWorkspaceRuntime: runtimeName}},
+					Resource: v1beta1.ResourceSpec{
+						//nolint:staticcheck //SA1019: preserve legacy custom-template Resource.Count behavior
+						Count: &count, InstanceType: "Standard_D8s_v5",
+					},
+					Inference: inferenceSpec,
+				}
+				scheme := runtime.NewScheme()
+				require.NoError(t, corev1.AddToScheme(scheme))
+				require.NoError(t, v1beta1.AddToScheme(scheme))
+				c := fake.NewClientBuilder().WithScheme(scheme).WithStatusSubresource(ws).WithObjects(ws).Build()
+				r := &WorkspaceReconciler{Client: c, Estimator: &nodesestimator.NodeEstimator{}}
+				require.NoError(t, r.UpdateWorkspaceTargetNodeCount(context.Background(), ws))
+				require.Equal(t, int32(count), ws.Status.TargetNodeCount)
+				stored := &v1beta1.Workspace{}
+				require.NoError(t, c.Get(context.Background(), client.ObjectKeyFromObject(ws), stored))
+				require.Equal(t, int32(count), stored.Status.TargetNodeCount)
+				require.NoError(t, r.UpdateWorkspaceTargetNodeCount(context.Background(), ws))
+				require.Equal(t, int32(count), ws.Status.TargetNodeCount)
+			})
+		}
 	}
 }

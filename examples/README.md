@@ -15,6 +15,19 @@ metadata:
 
 ---
 
+### Basic CPU preset example
+
+[Gemma vLLM CPU InferenceSet](inference/kaito_inferenceset_gemma_4_e4b_it_cpu.yaml)
+uses `google/gemma-4-E4B-it` with `Standard_D16s_v6`.
+
+- CPU preset inference supports **vLLM only** and requires the `vllm` feature gate.
+- Declare a non-GPU, non-ARM Azure `resource.instanceType`; label-only BYO and custom-template CPU inference are not supported.
+- The CPU image is x86_64-only. AWS CPU and ARM64 are not supported.
+- Basic CPU inference is single-node and skips the post-load benchmark.
+- For gated models, accept the Hugging Face license and configure `presetOptions.modelAccessSecret` with an `HF_TOKEN` secret. Size memory for the full checkpoint and runtime overhead.
+
+---
+
 ### Exposing Service via LoadBalancer (Testing Only)
 
 For **testing** purposes, you may annotate your workspace resource with `kaito.sh/enablelb: "True"` to automatically create a `LoadBalancer` type service with a public IP for the inference service:

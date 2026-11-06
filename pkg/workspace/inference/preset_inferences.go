@@ -22,6 +22,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/distribution/reference"
 	"github.com/samber/lo"
 	"gopkg.in/yaml.v2"
 	appsv1 "k8s.io/api/apps/v1"
@@ -30,6 +31,7 @@ import (
 	"k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/util/intstr"
+	"k8s.io/apimachinery/pkg/util/validation"
 	"k8s.io/klog/v2"
 	"k8s.io/utils/ptr"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -74,7 +76,9 @@ const (
 
 // PresetInferenceResult wraps the generated workload object.
 type PresetInferenceResult struct {
-	Workload client.Object
+	// BaseImage shares the captured CPU/GPU target used to generate Workload.
+	BaseImage pkgmodel.Metadata
+	Workload  client.Object
 }
 
 const (
@@ -137,19 +141,29 @@ var (
 	}
 )
 
-func defaultTolerations(ws *v1beta1.Workspace) []corev1.Toleration {
-	tolerations := []corev1.Toleration{
-		{
+func defaultTolerationsForTarget(isCPUInference bool) []corev1.Toleration {
+	tolerations := make([]corev1.Toleration, 0, 3)
+	if isCPUInference {
+		tolerations = append(tolerations, corev1.Toleration{
 			Effect:   corev1.TaintEffectNoSchedule,
-			Operator: corev1.TolerationOpExists,
-			Key:      nodes.CapacityNvidiaGPU,
-		},
-		{
-			Effect:   corev1.TaintEffectNoSchedule,
-			Value:    consts.GPUString,
+			Value:    consts.CPUString,
 			Key:      consts.SKUString,
 			Operator: corev1.TolerationOpEqual,
-		},
+		})
+	} else {
+		tolerations = append(tolerations,
+			corev1.Toleration{
+				Effect:   corev1.TaintEffectNoSchedule,
+				Operator: corev1.TolerationOpExists,
+				Key:      nodes.CapacityNvidiaGPU,
+			},
+			corev1.Toleration{
+				Effect:   corev1.TaintEffectNoSchedule,
+				Value:    consts.GPUString,
+				Key:      consts.SKUString,
+				Operator: corev1.TolerationOpEqual,
+			},
+		)
 	}
 
 	if sku.IsAzureCloudProvider() {
@@ -162,6 +176,10 @@ func defaultTolerations(ws *v1beta1.Workspace) []corev1.Toleration {
 	}
 
 	return tolerations
+}
+
+func defaultTolerations(ws *v1beta1.Workspace) []corev1.Toleration {
+	return defaultTolerationsForTarget(v1beta1.IsCPUInferenceWorkspace(ws))
 }
 
 func GetInferenceImageInfo(ctx context.Context, workspaceObj *v1beta1.Workspace) []corev1.LocalObjectReference {
@@ -268,11 +286,14 @@ func GeneratePresetInference(ctx context.Context, workspaceObj *v1beta1.Workspac
 	// For multi-node distributed inference with vLLM, we need StatefulSet to ensure pods are
 	// created with individual identities (their ordinal indexes) -
 	// https://kubernetes.io/docs/concepts/workloads/controllers/statefulset/#pod-identity
-	distributed := shouldUseDistributedInference(gctx, numNodes)
+	// getGPUConfig captures the target once for this generation: nil means CPU.
+	// Reuse it for the image, pod spec and probes instead of re-reading nodes.
+	isCPUInference := gpuConfig == nil
+	distributed := !isCPUInference && shouldUseDistributedInference(gctx, numNodes)
 	if distributed {
 		podOpts = append(podOpts, SetDistributedInferenceProbe)
 	}
-	if v1beta1.ShouldRunBenchmark(workspaceObj) {
+	if v1beta1.ShouldRunBenchmark(workspaceObj) && !isCPUInference {
 		podOpts = append(podOpts, SetBenchmarkConfig(distributed))
 	}
 	podOpts = append(podOpts, ConfigureLMCacheSidecar(lmCacheConfig))
@@ -314,11 +335,34 @@ func GeneratePresetInference(ctx context.Context, workspaceObj *v1beta1.Workspac
 	ssOpts = append(ssOpts, manifests.SetStatefulSetPodSpec(podSpec))
 
 	workload, err := generator.GenerateManifest(gctx, ssOpts...)
-	result := &PresetInferenceResult{Workload: workload}
+	if err == nil {
+		if isCPUInference {
+			// Template labels must not alias the immutable StatefulSet selector.
+			podLabels := make(map[string]string, len(workload.Spec.Template.Labels)+1)
+			for key, value := range workload.Spec.Template.Labels {
+				podLabels[key] = value
+			}
+			podLabels[cpuInferenceWorkloadLabel] = "true"
+			workload.Spec.Template.Labels = podLabels
+		}
+	}
+	result := &PresetInferenceResult{
+		Workload:  workload,
+		BaseImage: getPresetInferenceBaseImage(v1beta1.GetWorkspaceRuntimeName(workspaceObj), isCPUInference),
+	}
 	return result, err
 }
 
+// getGPUConfig resolves the inference target once per generation. A nil config with
+// no error denotes CPU; every successful GPU path returns a non-nil config.
 func getGPUConfig(ctx *generator.WorkspaceGeneratorContext) (*sku.GPUConfig, error) {
+	if v1beta1.IsCPUInferenceWorkspace(ctx.Workspace) {
+		if v1beta1.GetWorkspaceRuntimeName(ctx.Workspace) != pkgmodel.RuntimeNameVLLM {
+			return nil, fmt.Errorf("CPU preset inference supports only vllm")
+		}
+		return nil, nil
+	}
+
 	partition := ctx.Workspace.Resource.Partition
 
 	// Partition path: build GPU config from the partition spec (MIG mode).
@@ -506,15 +550,77 @@ func buildBenchmarkStartupProbe(timeout time.Duration, wObj *v1beta1.Workspace, 
 	}
 }
 
-func GetBaseImageName() string {
-	presetObj := metadata.MustGet("base")
-	return utils.GetPresetImageName(presetObj.Registry, presetObj.Name, presetObj.Tag)
+// GetBaseImageName returns the full image reference for the selected base image.
+func GetBaseImageName(baseImage pkgmodel.Metadata) string {
+	return utils.GetPresetImageName(baseImage.Registry, baseImage.Name, baseImage.Tag)
 }
 
-// GetBaseImageTag returns just the tag portion of the base image reference.
-func GetBaseImageTag() string {
-	presetObj := metadata.MustGet("base")
-	return presetObj.Tag
+// GetBaseImageTag returns the selected base image's catalog tag, unchanged,
+// for upgrade authorization. This is the image version, not the inference engine
+// version packaged inside the image. Missing tags, digest-pinned references, and
+// tags unsuitable for Kubernetes labels fail closed.
+//
+// Examples (current catalog entries):
+//
+//	GetBaseImageTag(metadata.MustGet("base"))          // "0.6.4", nil
+//	GetBaseImageTag(metadata.MustGet("base-cpu")) // "0.0.2", nil
+//	GetBaseImageTag(pkgmodel.Metadata{Registry: "localhost:5000", Name: "base", Tag: "v0.0.3"}) // "v0.0.3", nil
+//	GetBaseImageTag(pkgmodel.Metadata{Registry: "registry.example", Name: "base"}) // "", error (no explicit tag)
+func GetBaseImageTag(baseImage pkgmodel.Metadata) (string, error) {
+	if baseImage.Tag == "" {
+		return "", fmt.Errorf("base image %q has no explicit catalog tag", baseImage.Name)
+	}
+	if errs := validation.IsValidLabelValue(baseImage.Tag); len(errs) > 0 {
+		return "", fmt.Errorf("base image tag %q is not a valid upgrade label: %v", baseImage.Tag, errs)
+	}
+	image := GetBaseImageName(baseImage)
+	ref, err := reference.ParseNormalizedNamed(image)
+	if err != nil {
+		return "", fmt.Errorf("invalid base image reference %q: %w", image, err)
+	}
+	if _, ok := ref.(reference.Digested); ok {
+		return "", fmt.Errorf("base image %q is digest-pinned; upgrade authorization requires a tag-only reference", image)
+	}
+	return baseImage.Tag, nil
+}
+
+func getPresetInferenceImageName(runtimeName pkgmodel.RuntimeName, isCPU bool) string {
+	baseImage := getPresetInferenceBaseImage(runtimeName, isCPU)
+	if baseImage.Name == "" {
+		return ""
+	}
+	return GetBaseImageName(baseImage)
+}
+
+func getPresetInferenceBaseImage(runtimeName pkgmodel.RuntimeName, isCPU bool) pkgmodel.Metadata {
+	if !isCPU {
+		return metadata.MustGet("base")
+	}
+	if runtimeName == pkgmodel.RuntimeNameVLLM {
+		return metadata.MustGet("base-cpu")
+	}
+	// Never silently select an image for an unsupported CPU runtime.
+	return pkgmodel.Metadata{}
+}
+
+// GetDesiredInferenceImageName returns the image for the declared preset target.
+func GetDesiredInferenceImageName(ws *v1beta1.Workspace) (string, error) {
+	baseImage, err := GetDesiredInferenceBaseImage(ws)
+	if err != nil {
+		return "", err
+	}
+	return GetBaseImageName(baseImage), nil
+}
+
+// GetDesiredInferenceBaseImage keeps image and upgrade-tag selection consistent.
+func GetDesiredInferenceBaseImage(ws *v1beta1.Workspace) (pkgmodel.Metadata, error) {
+	if !v1beta1.IsCPUInferenceWorkspace(ws) {
+		return metadata.MustGet("base"), nil
+	}
+	if v1beta1.GetWorkspaceRuntimeName(ws) != pkgmodel.RuntimeNameVLLM {
+		return pkgmodel.Metadata{}, fmt.Errorf("CPU preset inference supports only vllm")
+	}
+	return metadata.MustGet("base-cpu"), nil
 }
 
 // GetBaseRuntimeVersion returns the inference engine version baked into the base
@@ -546,6 +652,7 @@ func GetPresetQuantization(presetName string) string {
 	return m.QuantMethod
 }
 
+// GenerateInferencePodSpec reuses the captured target: nil gpuConfig denotes CPU.
 func GenerateInferencePodSpec(gpuConfig *sku.GPUConfig, numNodes int, streamingModelPath, streamingLoadFormat,
 	localModelWeightsPath string, lmCacheConfig *lmCacheResolvedConfig,
 ) func(*generator.WorkspaceGeneratorContext, *corev1.PodSpec) error {
@@ -567,8 +674,13 @@ func GenerateInferencePodSpec(gpuConfig *sku.GPUConfig, numNodes int, streamingM
 		volumes, volumeMounts = configureModelWeightsVolumes(
 			streamingModelPath, localModelWeightsPath, volumes, volumeMounts)
 
+		isCPUInference := gpuConfig == nil
+		if isCPUInference && v1beta1.GetWorkspaceRuntimeName(ctx.Workspace) != pkgmodel.RuntimeNameVLLM {
+			return fmt.Errorf("CPU preset inference supports only vllm")
+		}
+
 		volumes, volumeMounts, cudaHome := configureCUDAToolkitVolume(
-			ctx.Model, volumes, volumeMounts)
+			ctx.Model, isCPUInference, volumes, volumeMounts)
 
 		// add share memory for cross process communication
 		shmVolume, shmVolumeMount := utils.ConfigSHMVolume()
@@ -586,21 +698,24 @@ func GenerateInferencePodSpec(gpuConfig *sku.GPUConfig, numNodes int, streamingM
 			})
 		}
 		// resource requirements
-		gpuResourceName := corev1.ResourceName(nodes.CapacityNvidiaGPU)
-		// Under the "mixed" MIG strategy each profile is its own extended resource
-		// (nvidia.com/mig-<profile>). The requested profile is a workload property,
-		// so it is read from the spec. Node-detected MIG under the "single" strategy
-		// has no spec profile and keeps requesting nvidia.com/gpu.
-		if p := ctx.Workspace.Resource.Partition; p != nil && p.Mode == v1beta1.PartitionModeMIG && p.Profile != "" {
-			gpuResourceName = corev1.ResourceName(mig.MIGResourceName(p.Profile))
-		}
-		resourceReq := corev1.ResourceRequirements{
-			Requests: corev1.ResourceList{
-				gpuResourceName: *resource.NewQuantity(int64(gpuConfig.GPUCount), resource.DecimalSI),
-			},
-			Limits: corev1.ResourceList{
-				gpuResourceName: *resource.NewQuantity(int64(gpuConfig.GPUCount), resource.DecimalSI),
-			},
+		resourceReq := corev1.ResourceRequirements{}
+		if !isCPUInference {
+			gpuResourceName := corev1.ResourceName(nodes.CapacityNvidiaGPU)
+			// Under the "mixed" MIG strategy each profile is its own extended resource
+			// (nvidia.com/mig-<profile>). The requested profile is a workload property,
+			// so it is read from the spec. Node-detected MIG under the "single" strategy
+			// has no spec profile and keeps requesting nvidia.com/gpu.
+			if p := ctx.Workspace.Resource.Partition; p != nil && p.Mode == v1beta1.PartitionModeMIG && p.Profile != "" {
+				gpuResourceName = corev1.ResourceName(mig.MIGResourceName(p.Profile))
+			}
+			resourceReq = corev1.ResourceRequirements{
+				Requests: corev1.ResourceList{
+					gpuResourceName: *resource.NewQuantity(int64(gpuConfig.GPUCount), resource.DecimalSI),
+				},
+				Limits: corev1.ResourceList{
+					gpuResourceName: *resource.NewQuantity(int64(gpuConfig.GPUCount), resource.DecimalSI),
+				},
+			}
 		}
 
 		// inference command
@@ -629,8 +744,8 @@ func GenerateInferencePodSpec(gpuConfig *sku.GPUConfig, numNodes int, streamingM
 		// context that fits. An explicit max-model-len in the user's inference
 		// config still takes precedence: it is appended after this flag on the
 		// vLLM command line (see inference_api.py).
-		maxModelLen := 2048 // Default for non-vLLM runtimes.
-		if runtimeName == pkgmodel.RuntimeNameVLLM {
+		maxModelLen := defaultCPUVLLMMaxModelLen(inferenceParam)
+		if runtimeName == pkgmodel.RuntimeNameVLLM && !isCPUInference {
 			maxModelLen = pkgmodel.MaxModelLenAuto
 		}
 
@@ -647,14 +762,18 @@ func GenerateInferencePodSpec(gpuConfig *sku.GPUConfig, numNodes int, streamingM
 		maxNumSeqs := resolveMaxNumSeqs(ctx.Workspace.Name, inferenceParam, gpuConfig, numNodes)
 		applyGeneratorRuntimeOverrides(inferenceParam, gpuConfig)
 
+		skuNumGPUs := 0
+		if gpuConfig != nil {
+			skuNumGPUs = gpuConfig.GPUCount
+		}
 		commands := inferenceParam.GetInferenceCommand(pkgmodel.RuntimeContext{
 			RuntimeName:          runtimeName,
 			GPUConfig:            gpuConfig,
 			ConfigVolume:         cmVolumeMountRef,
-			SKUNumGPUs:           gpuConfig.GPUCount,
+			SKUNumGPUs:           skuNumGPUs,
 			NumNodes:             numNodes,
 			WorkspaceMetadata:    ctx.Workspace.ObjectMeta,
-			DistributedInference: ctx.Model.SupportDistributedInference(),
+			DistributedInference: !isCPUInference && ctx.Model.SupportDistributedInference(),
 			MaxModelLen:          maxModelLen,
 			MaxNumSeqs:           maxNumSeqs,
 			InferencePort:        vllmPort,
@@ -664,26 +783,17 @@ func GenerateInferencePodSpec(gpuConfig *sku.GPUConfig, numNodes int, streamingM
 				StreamingModelPath:    streamingModelPath,
 				StreamingLoadFormat:   streamingLoadFormat,
 				LocalModelWeightsPath: localModelWeightsPath,
+				TargetCPU:             isCPUInference,
 			},
 		})
 		lmCacheConfig.runtimeName = runtimeName
 		lmCacheConfig.runParams = inferenceParam.VLLM.ModelRunParams
+		lmCacheConfig.targetCPU = isCPUInference
 
 		// Only set nodeAffinity when the user supplied selector labels.
 		// An empty MatchExpressions list is rejected by the Kubernetes API server.
-		if len(nodeRequirements) > 0 {
-			spec.Affinity = &corev1.Affinity{
-				NodeAffinity: &corev1.NodeAffinity{
-					RequiredDuringSchedulingIgnoredDuringExecution: &corev1.NodeSelector{
-						NodeSelectorTerms: []corev1.NodeSelectorTerm{
-							{
-								MatchExpressions: nodeRequirements,
-							},
-						},
-					},
-				},
-			}
-		}
+		appendRequiredNodeSelectorRequirements(spec, nodeRequirements)
+		applyCPUDedicatedPlacement(ctx.Workspace, spec, isCPUInference)
 		spec.ImagePullSecrets = GetInferenceImageInfo(ctx.Ctx, ctx.Workspace)
 
 		// Use the model's ReadinessTimeout if specified; otherwise fall back to the
@@ -696,13 +806,13 @@ func GenerateInferencePodSpec(gpuConfig *sku.GPUConfig, numNodes int, streamingM
 		mainContainerEnv := buildMainContainerEnv(runtimeName, inferenceParam, gpuConfig, cudaHome, localModelWeightsPath)
 
 		ports := append([]corev1.ContainerPort(nil), containerPorts...)
-		if runtimeName == pkgmodel.RuntimeNameVLLM {
+		if runtimeName == pkgmodel.RuntimeNameVLLM && !isCPUInference {
 			ports = append(ports, vllmKVEventsContainerPort)
 		}
 
-		setInferenceContainers(spec, ctx.Workspace.Name, commands, resourceReq,
+		setInferenceContainers(spec, ctx.Workspace.Name, getPresetInferenceImageName(runtimeName, isCPUInference), commands, resourceReq,
 			volumeMounts, mainContainerEnv, readinessTimeout, vllmPort, cudaHome, ports)
-		setVLLMGracefulShutdown(spec, runtimeName, shouldUseDistributedInference(ctx, numNodes))
+		setVLLMGracefulShutdown(spec, runtimeName, !isCPUInference && shouldUseDistributedInference(ctx, numNodes))
 
 		applyInferenceRoleEnv(ctx.Workspace.Labels, ctx.Workspace.Name, spec)
 
@@ -710,7 +820,7 @@ func GenerateInferencePodSpec(gpuConfig *sku.GPUConfig, numNodes int, streamingM
 			injectRoutingSidecar(spec)
 		}
 
-		spec.Tolerations = defaultTolerations(ctx.Workspace)
+		spec.Tolerations = defaultTolerationsForTarget(isCPUInference)
 		// Add MIG-specific toleration so pods can schedule onto MIG-tainted nodes
 		// if the cluster operator taints them (the NVIDIA device plugin does not by default).
 		// Only the spec-driven "mixed" path has a per-profile taint key.
@@ -767,10 +877,10 @@ func configureModelWeightsVolumes(streamingModelPath, localModelWeightsPath stri
 // so the pod still starts on nodes that lack it), the install survives pod
 // recreation and is shared by all pods on the node — only nodes that lack it ever
 // pay the install.
-func configureCUDAToolkitVolume(model pkgmodel.Model,
+func configureCUDAToolkitVolume(model pkgmodel.Model, isCPUInference bool,
 	volumes []corev1.Volume, volumeMounts []corev1.VolumeMount,
 ) ([]corev1.Volume, []corev1.VolumeMount, string) {
-	if !model.GetInferenceParameters().RequiresCUDAToolkit() {
+	if isCPUInference || !model.GetInferenceParameters().RequiresCUDAToolkit() {
 		return volumes, volumeMounts, ""
 	}
 
@@ -902,14 +1012,14 @@ func buildMainContainerEnv(runtimeName pkgmodel.RuntimeName, inferenceParam *pkg
 // the provision script + apt) and needs no GPU. The path is passed as a positional
 // arg ($1), never interpolated, so a path with shell metacharacters cannot inject
 // commands.
-func setInferenceContainers(spec *corev1.PodSpec, containerName string, commands []string,
+func setInferenceContainers(spec *corev1.PodSpec, containerName, image string, commands []string,
 	resourceReq corev1.ResourceRequirements, volumeMounts []corev1.VolumeMount, env []corev1.EnvVar,
 	readinessTimeout time.Duration, vllmPort int32, cudaHome string, ports []corev1.ContainerPort,
 ) {
 	spec.Containers = []corev1.Container{
 		{
 			Name:           containerName,
-			Image:          GetBaseImageName(),
+			Image:          image,
 			Command:        commands,
 			Resources:      resourceReq,
 			Ports:          ports,
@@ -924,7 +1034,7 @@ func setInferenceContainers(spec *corev1.PodSpec, containerName string, commands
 	if cudaHome != "" {
 		spec.InitContainers = append([]corev1.Container{{
 			Name:  "cuda-toolkit-provisioner",
-			Image: GetBaseImageName(),
+			Image: image,
 			Command: []string{
 				"/bin/sh", "-c",
 				`flock "$1" /workspace/cuda-provision.sh "$1"`,
@@ -1141,7 +1251,14 @@ func ApplyProvisionerNodeSelector(ctx context.Context, provisioner nodeprovision
 	if len(extra) == 0 {
 		return nil
 	}
+	appendRequiredNodeSelectorRequirements(spec, extra)
+	return nil
+}
 
+func appendRequiredNodeSelectorRequirements(spec *corev1.PodSpec, reqs []corev1.NodeSelectorRequirement) {
+	if spec == nil || len(reqs) == 0 {
+		return
+	}
 	if spec.Affinity == nil {
 		spec.Affinity = &corev1.Affinity{}
 	}
@@ -1158,8 +1275,33 @@ func ApplyProvisionerNodeSelector(ctx context.Context, provisioner nodeprovision
 	if len(nodeSel.NodeSelectorTerms) == 0 {
 		nodeSel.NodeSelectorTerms = []corev1.NodeSelectorTerm{{}}
 	}
-	nodeSel.NodeSelectorTerms[0].MatchExpressions = append(nodeSel.NodeSelectorTerms[0].MatchExpressions, extra...)
-	return nil
+	nodeSel.NodeSelectorTerms[0].MatchExpressions = append(nodeSel.NodeSelectorTerms[0].MatchExpressions, reqs...)
+}
+
+const cpuInferenceWorkloadLabel = "kaito.sh/cpu-inference-workload"
+
+func applyCPUDedicatedPlacement(ws *v1beta1.Workspace, spec *corev1.PodSpec, isCPUInference bool) {
+	if spec == nil || !isCPUInference || ws == nil {
+		return
+	}
+	if spec.Affinity == nil {
+		spec.Affinity = &corev1.Affinity{}
+	}
+	if spec.Affinity.PodAntiAffinity == nil {
+		spec.Affinity.PodAntiAffinity = &corev1.PodAntiAffinity{}
+	}
+
+	spec.Affinity.PodAntiAffinity.RequiredDuringSchedulingIgnoredDuringExecution = append(
+		spec.Affinity.PodAntiAffinity.RequiredDuringSchedulingIgnoredDuringExecution,
+		corev1.PodAffinityTerm{
+			TopologyKey: corev1.LabelHostname,
+			LabelSelector: &metav1.LabelSelector{
+				MatchLabels: map[string]string{cpuInferenceWorkloadLabel: "true"},
+			},
+			// Empty NamespaceSelector matches all namespaces, not just this parent.
+			NamespaceSelector: &metav1.LabelSelector{},
+		},
+	)
 }
 
 // applyInferenceRoleEnv sets inference-related env vars on the main inference
@@ -1270,6 +1412,14 @@ func resolveMaxNumSeqs(workspaceName string, params *pkgmodel.PresetParam, gpuCo
 		NumNodes:        numNodes,
 	})
 	return maxNumSeqs
+}
+
+func defaultCPUVLLMMaxModelLen(params *pkgmodel.PresetParam) int {
+	const defaultMaxModelLen = 2048
+	if params == nil || params.ModelTokenLimit <= 0 {
+		return defaultMaxModelLen
+	}
+	return min(defaultMaxModelLen, params.ModelTokenLimit)
 }
 
 func applyGeneratorRuntimeOverrides(params *pkgmodel.PresetParam, gpuConfig *sku.GPUConfig) {

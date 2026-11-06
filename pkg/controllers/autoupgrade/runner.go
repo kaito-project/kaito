@@ -29,6 +29,7 @@ import (
 
 	kaitov1alpha1 "github.com/kaito-project/kaito/api/v1alpha1"
 	kaitov1beta1 "github.com/kaito-project/kaito/api/v1beta1"
+	pkgmodel "github.com/kaito-project/kaito/pkg/model"
 	inferencesetutil "github.com/kaito-project/kaito/pkg/utils/inferenceset"
 	"github.com/kaito-project/kaito/pkg/utils/resources"
 	"github.com/kaito-project/kaito/pkg/utils/workspace"
@@ -52,6 +53,17 @@ const (
 type AutoUpgradeRunner struct {
 	Client   client.Client
 	Interval time.Duration
+
+	// resolveBaseImage may be injected to test independently versioned runtimes.
+	resolveBaseImage func(*kaitov1beta1.Workspace) (pkgmodel.Metadata, error)
+}
+
+func (r *AutoUpgradeRunner) desiredBaseImage(is *kaitov1beta1.InferenceSet) (pkgmodel.Metadata, error) {
+	resolve := r.resolveBaseImage
+	if resolve == nil {
+		resolve = inference.GetDesiredInferenceBaseImage
+	}
+	return resolve(inferencesetutil.NewWorkspaceForInferenceSet(is))
 }
 
 // Start implements manager.Runnable. It polls every Interval and reconciles all
@@ -74,7 +86,7 @@ func (r *AutoUpgradeRunner) NeedLeaderElection() bool { return true }
 
 // reconcileAll lists all InferenceSets with autoUpgrade enabled and processes each.
 func (r *AutoUpgradeRunner) reconcileAll(ctx context.Context) {
-	klog.InfoS("AutoUpgradeRunner: reconcileAll tick", "desiredImage", inference.GetBaseImageName(), "desiredTag", inference.GetBaseImageTag())
+	klog.InfoS("AutoUpgradeRunner: reconcileAll tick")
 	inferenceSetList := &kaitov1beta1.InferenceSetList{}
 	if err := r.Client.List(ctx, inferenceSetList); err != nil {
 		klog.ErrorS(err, "AutoUpgradeRunner: failed to list InferenceSets")
@@ -115,9 +127,18 @@ func (r *AutoUpgradeRunner) reconcileInferenceSet(ctx context.Context, inference
 // Workspace controller rolls that Workspace's StatefulSet to the new base image in
 // place. Only one Workspace is upgraded at a time.
 func (r *AutoUpgradeRunner) reconcileInPlace(ctx context.Context, inferenceSetObj *kaitov1beta1.InferenceSet) {
-	// Get the current controller-embedded base image tag.
-	desiredImage := inference.GetBaseImageName()
-	desiredTag := inference.GetBaseImageTag()
+	// Get the current controller-embedded target image for this InferenceSet.
+	baseImage, err := r.desiredBaseImage(inferenceSetObj)
+	if err != nil {
+		klog.ErrorS(err, "AutoUpgradeRunner: failed to resolve desired image", "inferenceset", klog.KObj(inferenceSetObj))
+		return
+	}
+	desiredImage := inference.GetBaseImageName(baseImage)
+	desiredTag, err := inference.GetBaseImageTag(baseImage)
+	if err != nil {
+		klog.ErrorS(err, "AutoUpgradeRunner: cannot authorize upgrade", "image", desiredImage)
+		return
+	}
 
 	// List Workspaces belonging to this InferenceSet.
 	wsList, err := inferencesetutil.ListWorkspaces(ctx, inferenceSetObj, r.Client)
@@ -324,8 +345,17 @@ func (r *AutoUpgradeRunner) tagWorkspaceForUpgrade(ctx context.Context, isObj *k
 // replica count, with no explicit surge bookkeeping — repeats until no drifted Workspaces
 // remain.
 func (r *AutoUpgradeRunner) reconcileSurge(ctx context.Context, inferenceSetObj *kaitov1beta1.InferenceSet) {
-	desiredImage := inference.GetBaseImageName()
-	desiredTag := inference.GetBaseImageTag()
+	baseImage, err := r.desiredBaseImage(inferenceSetObj)
+	if err != nil {
+		klog.ErrorS(err, "AutoUpgradeRunner: failed to resolve desired image", "inferenceset", klog.KObj(inferenceSetObj))
+		return
+	}
+	desiredImage := inference.GetBaseImageName(baseImage)
+	desiredTag, err := inference.GetBaseImageTag(baseImage)
+	if err != nil {
+		klog.ErrorS(err, "AutoUpgradeRunner: cannot authorize upgrade", "image", desiredImage)
+		return
+	}
 
 	wsList, err := inferencesetutil.ListWorkspaces(ctx, inferenceSetObj, r.Client)
 	if err != nil {

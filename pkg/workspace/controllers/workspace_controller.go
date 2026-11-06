@@ -760,7 +760,7 @@ func (c *WorkspaceReconciler) applyInference(ctx context.Context, wObj *kaitov1b
 
 	baseImageUpgrade := false
 	if existingErr == nil {
-		baseImageUpgrade = shouldUpgradeBaseImage(wObj, existingObj, desiredStatefulSet)
+		baseImageUpgrade = shouldUpgradeBaseImage(wObj, existingObj, desiredStatefulSet, result.BaseImage)
 		if !baseImageUpgrade {
 			// Without auto-upgrade, keep the LMCache setup supported by the deployed
 			// KAITO base image. Adding the sidecar to an older image would reference a
@@ -822,10 +822,9 @@ func (c *WorkspaceReconciler) applyInference(ctx context.Context, wObj *kaitov1b
 		return err
 	}
 
-	// After a base image auto-upgrade, clear the recorded benchmark result and reset
-	// the BenchmarkCompleted condition so the post-load benchmark re-runs against the
-	// new image on the next reconcile, re-recording all metrics (including the runtime
-	// metadata such as engineVersion) with fresh values.
+	// After a successful workload API update for a base image upgrade, clear the
+	// recorded benchmark so it can be collected for the new image. Rollout
+	// completion is checked separately before collecting benchmark results.
 	if baseImageUpgrade {
 		if err := c.resetBenchmarkOnUpgrade(ctx, wObj); err != nil {
 			return err
@@ -863,13 +862,11 @@ func syncInferenceMutablePodSpec(existingSpec, desiredSpec *corev1.PodSpec) {
 	existingSpec.Volumes = desiredSpec.Volumes
 }
 
-// shouldUpgradeBaseImage checks if an auto-upgrade has been requested via the upgrade label
-// and the image hasn't been updated yet. The label value must match the controller's
-// current desired base image tag to prevent stale labels from triggering upgrades.
-func shouldUpgradeBaseImage(wObj *kaitov1beta1.Workspace, existingObj, desiredStatefulSet *appsv1.StatefulSet) bool {
+func shouldUpgradeBaseImage(wObj *kaitov1beta1.Workspace, existingObj, desiredStatefulSet *appsv1.StatefulSet, baseImage pkgmodel.Metadata) bool {
 	upgradeVersion := wObj.Labels[kaitov1alpha1.LabelUpgradeToVersion]
-	return upgradeVersion != "" &&
-		upgradeVersion == inference.GetBaseImageTag() &&
+	desiredTag, err := inference.GetBaseImageTag(baseImage)
+	return err == nil && upgradeVersion != "" && upgradeVersion == desiredTag &&
+		workspace.GetInferenceContainerImage(desiredStatefulSet) == utils.GetPresetImageName(baseImage.Registry, baseImage.Name, baseImage.Tag) &&
 		workspace.GetInferenceContainerImage(existingObj) != workspace.GetInferenceContainerImage(desiredStatefulSet)
 }
 
@@ -1054,6 +1051,16 @@ func (c *WorkspaceReconciler) collectInferenceReadyStatus(ctx context.Context, w
 	}
 
 	ready := ss.Status.ReadyReplicas == replicas
+	hasBenchmarkProbe = hasBenchmarkStartupProbe(ss)
+	if hasBenchmarkProbe && kaitov1beta1.ShouldRunBenchmark(wObj) {
+		// ReadyReplicas can still describe the old pods immediately after a
+		// same-size template update. Do not record their write-once benchmark:
+		// wait until the controller observes this generation and every serving
+		// pod is ready at the desired revision.
+		ready = ready && replicas > 0 && ss.Status.ObservedGeneration >= ss.Generation &&
+			ss.Status.UpdatedReplicas == replicas && ss.Status.UpdateRevision != "" &&
+			ss.Status.CurrentRevision == ss.Status.UpdateRevision
+	}
 	// When not ready, classify the underlying pod/container failure (image pull,
 	// crash loop, OOM, eviction, unschedulable, SAS token fetch) so a specific,
 	// actionable reason is surfaced on the InferenceReady condition instead of a
@@ -1062,7 +1069,7 @@ func (c *WorkspaceReconciler) collectInferenceReadyStatus(ctx context.Context, w
 		failReason, failMsg = c.classifyInferencePodFailure(ctx, wObj)
 	}
 
-	return ready, hasBenchmarkStartupProbe(ss), failReason, failMsg, nil
+	return ready, hasBenchmarkProbe, failReason, failMsg, nil
 }
 
 // Inference not-ready reason constants. These are stable enum values surfaced on
@@ -1724,11 +1731,22 @@ func formatWorkspaceStatusChanges(oldStatus, newStatus kaitov1beta1.WorkspaceSta
 	return strings.Join(changes, "; ")
 }
 
-// UpdateWorkspaceTargetNodeCount is used for updating the targetNodeCount in workspace status when it is 0.
+// UpdateWorkspaceTargetNodeCount initializes the node estimate, using one node for basic CPU presets.
 func (c *WorkspaceReconciler) UpdateWorkspaceTargetNodeCount(ctx context.Context, wObj *kaitov1beta1.Workspace) error {
 	var err error
 	targetNodeCount := int32(1)
 	if wObj.Status.TargetNodeCount == 0 {
+		isCPU := kaitov1beta1.IsCPUInferenceWorkspace(wObj)
+		if isCPU && wObj.Inference.Preset != nil {
+			if err := workspace.UpdateWorkspaceStatus(ctx, c.Client, &client.ObjectKey{Namespace: wObj.Namespace, Name: wObj.Name}, func(status *kaitov1beta1.WorkspaceStatus) error {
+				status.TargetNodeCount = 1
+				return nil
+			}); err != nil {
+				return fmt.Errorf("failed to update Workspace status targetNodeCount: %w", err)
+			}
+			wObj.Status.TargetNodeCount = 1
+			return nil
+		}
 		// Build the estimate request once, outside the status-update closure.
 		req, reqErr := workspace.NodeEstimateRequestFromWorkspace(ctx, wObj, c.Client)
 		if reqErr != nil {

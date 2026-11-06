@@ -26,6 +26,7 @@ import (
 	pkgmodel "github.com/kaito-project/kaito/pkg/model"
 	"github.com/kaito-project/kaito/pkg/utils"
 	"github.com/kaito-project/kaito/pkg/utils/generator"
+	metadata "github.com/kaito-project/kaito/presets/workspace/models"
 )
 
 const (
@@ -41,12 +42,20 @@ const (
 type lmCacheResolvedConfig struct {
 	runtimeName pkgmodel.RuntimeName
 	runParams   map[string]string
+	// Reuse the target resolved during pod generation, including label-only BYO nodes.
+	targetCPU bool
 }
 
 // ConfigureLMCacheSidecar injects LMCache as a native Kubernetes sidecar when
 // the resolved workload supports multiprocess CPU KV offload.
 func ConfigureLMCacheSidecar(resolved *lmCacheResolvedConfig) generator.TypedManifestModifier[generator.WorkspaceGeneratorContext, corev1.PodSpec] {
 	return func(ctx *generator.WorkspaceGeneratorContext, spec *corev1.PodSpec) error {
+		// CPU KV offload extends GPU inference with host memory; the LMCache
+		// server itself requires CUDA and must never gate a CPU inference pod.
+		if resolved.targetCPU {
+			klog.InfoS("LMCache sidecar disabled", "workspace", klog.KObj(ctx.Workspace), "reason", "CPU inference is unsupported")
+			return nil
+		}
 		eligible, reason := isLMCacheWorkloadEligible(ctx.Workspace, resolved.runtimeName, resolved.runParams)
 		if !eligible {
 			klog.InfoS("LMCache sidecar disabled", "workspace", klog.KObj(ctx.Workspace), "reason", reason)
@@ -178,7 +187,7 @@ func injectLMCacheSidecar(spec *corev1.PodSpec, mainContainerName, tensorParalle
 	}}}
 	spec.InitContainers = append(spec.InitContainers, corev1.Container{
 		Name:          lmCacheSidecarName,
-		Image:         GetBaseImageName(),
+		Image:         GetBaseImageName(metadata.MustGet("base")),
 		Command:       []string{"python3", "/workspace/vllm/lmcache_server.py"},
 		Args:          args,
 		RestartPolicy: &restartAlways,

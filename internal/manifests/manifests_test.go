@@ -1,0 +1,481 @@
+// Copyright (c) KAITO authors.
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+package manifests
+
+import (
+	"encoding/json"
+	"strings"
+	"testing"
+
+	helmv2 "github.com/fluxcd/helm-controller/api/v2"
+	fluxkustomize "github.com/fluxcd/pkg/apis/kustomize"
+	sourcev1 "github.com/fluxcd/source-controller/api/v1"
+	"github.com/stretchr/testify/assert"
+	appsv1 "k8s.io/api/apps/v1"
+	corev1 "k8s.io/api/core/v1"
+
+	kaitov1alpha1 "github.com/kaito-project/kaito/api/v1alpha1"
+	kaitov1beta1 "github.com/kaito-project/kaito/api/v1beta1"
+	"github.com/kaito-project/kaito/internal/testutil"
+	"github.com/kaito-project/kaito/pkg/featuregates"
+	pkgmodel "github.com/kaito-project/kaito/pkg/model"
+	"github.com/kaito-project/kaito/pkg/utils"
+	"github.com/kaito-project/kaito/pkg/utils/consts"
+)
+
+func TestGenerateInferencePoolOCIRepository(t *testing.T) {
+	workspace := testutil.MockInferenceSetWithPreset
+	repo := GenerateInferencePoolOCIRepository(workspace)
+
+	assert.Equal(t, utils.InferencePoolName(workspace.Name), repo.Name)
+	assert.Equal(t, workspace.Namespace, repo.Namespace)
+	assert.Len(t, repo.OwnerReferences, 1)
+	owner := repo.OwnerReferences[0]
+	assert.Equal(t, kaitov1beta1.GroupVersion.String(), owner.APIVersion)
+	assert.Equal(t, "InferenceSet", owner.Kind)
+	assert.Equal(t, workspace.Name, owner.Name)
+	assert.True(t, *owner.Controller)
+
+	assert.Equal(t, consts.InferencePoolChartURL, repo.Spec.URL)
+	if assert.NotNil(t, repo.Spec.Reference) {
+		assert.Equal(t, consts.InferencePoolChartVersion, repo.Spec.Reference.Tag)
+	}
+}
+
+func TestGenerateInferencePoolHelmRelease(t *testing.T) {
+	base := testutil.MockInferenceSetWithPreset.DeepCopy()
+	base.Name = "test-workspace"
+	base.Namespace = "kaito"
+
+	tests := []struct {
+		name      string
+		workspace *kaitov1beta1.InferenceSet
+		expected  map[string]any
+	}{
+
+		{
+			name:      "statefulset inference pool helm values",
+			workspace: base.DeepCopy(),
+			expected: map[string]any{
+				"router": map[string]any{
+					"epp": map[string]any{
+						"image": map[string]any{
+							"registry":   consts.EPPImageRegistry,
+							"repository": consts.EPPImageRepository,
+							"tag":        consts.EPPImageTag,
+							"pullPolicy": string(corev1.PullIfNotPresent),
+						},
+						"resources": map[string]any{
+							"requests": map[string]any{
+								"cpu":    "1",
+								"memory": "2Gi",
+							},
+							"limits": map[string]any{
+								"memory": "16Gi",
+							},
+						},
+						"flags": map[string]any{
+							"metrics-endpoint-auth": false,
+							"secure-serving":        false,
+						},
+					},
+					"modelServers": map[string]any{
+						"targetPorts": []any{
+							map[string]any{
+								"number": float64(consts.PortInferenceServer),
+							},
+						},
+						"matchLabels": map[string]any{
+							consts.WorkspaceCreatedByInferenceSetLabel: base.Name,
+							appsv1.PodIndexLabel:                       "0",
+						},
+					},
+				},
+			},
+		},
+
+		{
+			name: "decode role with vLLM uses routing sidecar port",
+			workspace: func() *kaitov1beta1.InferenceSet {
+				ws := base.DeepCopy()
+				if ws.Spec.Template.Labels == nil {
+					ws.Spec.Template.Labels = map[string]string{}
+				}
+				ws.Spec.Template.Labels[kaitov1beta1.LabelInferenceRole] = string(kaitov1alpha1.MultiRoleInferenceRoleDecode)
+				ws.Annotations[kaitov1beta1.AnnotationWorkspaceRuntime] = string(pkgmodel.RuntimeNameVLLM)
+				return ws
+			}(),
+			expected: map[string]any{
+				"router": map[string]any{
+					"epp": map[string]any{
+						"image": map[string]any{
+							"registry":   consts.EPPImageRegistry,
+							"repository": consts.EPPImageRepository,
+							"tag":        consts.EPPImageTag,
+							"pullPolicy": string(corev1.PullIfNotPresent),
+						},
+						"resources": map[string]any{
+							"requests": map[string]any{
+								"cpu":    "1",
+								"memory": "2Gi",
+							},
+							"limits": map[string]any{
+								"memory": "16Gi",
+							},
+						},
+						"flags": map[string]any{
+							"metrics-endpoint-auth": false,
+							"secure-serving":        false,
+						},
+					},
+					"modelServers": map[string]any{
+						"targetPorts": []any{
+							map[string]any{
+								"number": float64(consts.PortInferenceServer),
+							},
+						},
+						"matchLabels": map[string]any{
+							consts.WorkspaceCreatedByInferenceSetLabel: base.Name,
+							appsv1.PodIndexLabel:                       "0",
+						},
+					},
+				},
+			},
+		},
+
+		{
+			name: "decode role with default runtime (no annotation) uses routing sidecar port",
+			workspace: func() *kaitov1beta1.InferenceSet {
+				ws := base.DeepCopy()
+				if ws.Spec.Template.Labels == nil {
+					ws.Spec.Template.Labels = map[string]string{}
+				}
+				ws.Spec.Template.Labels[kaitov1beta1.LabelInferenceRole] = string(kaitov1alpha1.MultiRoleInferenceRoleDecode)
+				delete(ws.Annotations, kaitov1beta1.AnnotationWorkspaceRuntime)
+				return ws
+			}(),
+			expected: map[string]any{
+				"router": map[string]any{
+					"epp": map[string]any{
+						"image": map[string]any{
+							"registry":   consts.EPPImageRegistry,
+							"repository": consts.EPPImageRepository,
+							"tag":        consts.EPPImageTag,
+							"pullPolicy": string(corev1.PullIfNotPresent),
+						},
+						"resources": map[string]any{
+							"requests": map[string]any{
+								"cpu":    "1",
+								"memory": "2Gi",
+							},
+							"limits": map[string]any{
+								"memory": "16Gi",
+							},
+						},
+						"flags": map[string]any{
+							"metrics-endpoint-auth": false,
+							"secure-serving":        false,
+						},
+					},
+					"modelServers": map[string]any{
+						"targetPorts": []any{
+							map[string]any{
+								"number": float64(consts.PortInferenceServer),
+							},
+						},
+						"matchLabels": map[string]any{
+							consts.WorkspaceCreatedByInferenceSetLabel: base.Name,
+							appsv1.PodIndexLabel:                       "0",
+						},
+					},
+				},
+			},
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			// Explicitly set vLLM feature gate so decode-role tests are deterministic.
+			origVLLM := featuregates.FeatureGates[consts.FeatureFlagVLLM]
+			featuregates.FeatureGates[consts.FeatureFlagVLLM] = true
+			defer func() { featuregates.FeatureGates[consts.FeatureFlagVLLM] = origVLLM }()
+			origFlowControl := featuregates.FeatureGates[consts.FeatureFlagEnableEPPFlowControl]
+			featuregates.FeatureGates[consts.FeatureFlagEnableEPPFlowControl] = false
+			defer func() {
+				featuregates.FeatureGates[consts.FeatureFlagEnableEPPFlowControl] = origFlowControl
+			}()
+
+			helmRelease, err := GenerateInferencePoolHelmRelease(tc.workspace)
+			assert.NoError(t, err)
+			assert.NotNil(t, helmRelease)
+
+			assert.Equal(t, utils.InferencePoolName(base.Name), helmRelease.Name)
+			assert.Equal(t, base.Namespace, helmRelease.Namespace)
+			if assert.NotNil(t, helmRelease.Spec.ChartRef) {
+				assert.Equal(t, helmv2.CrossNamespaceSourceReference{
+					Kind:      sourcev1.OCIRepositoryKind,
+					Namespace: base.Namespace,
+					Name:      utils.InferencePoolName(base.Name),
+				}, *helmRelease.Spec.ChartRef)
+			}
+
+			assert.NotNil(t, helmRelease.Spec.Values)
+			vals := map[string]any{}
+			assert.NoError(t, json.Unmarshal(helmRelease.Spec.Values.Raw, &vals))
+			assert.Equal(t, tc.expected, vals)
+		})
+	}
+}
+
+func TestGenerateInferencePoolHelmReleaseFlowControl(t *testing.T) {
+	inferenceSet := testutil.MockInferenceSetWithPreset.DeepCopy()
+	original := featuregates.FeatureGates[consts.FeatureFlagEnableEPPFlowControl]
+	defer func() {
+		featuregates.FeatureGates[consts.FeatureFlagEnableEPPFlowControl] = original
+	}()
+
+	for _, tc := range []struct {
+		name           string
+		enabled        bool
+		expectedConfig any
+	}{
+		{name: "disabled", enabled: false, expectedConfig: nil},
+		{name: "enabled", enabled: true, expectedConfig: "flow-control-plugins.yaml"},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			featuregates.FeatureGates[consts.FeatureFlagEnableEPPFlowControl] = tc.enabled
+
+			helmRelease, err := GenerateInferencePoolHelmRelease(inferenceSet)
+			assert.NoError(t, err)
+
+			values := map[string]any{}
+			assert.NoError(t, json.Unmarshal(helmRelease.Spec.Values.Raw, &values))
+			epp := values["router"].(map[string]any)["epp"].(map[string]any)
+			assert.Equal(t, tc.expectedConfig, epp["pluginsConfigFile"])
+			if tc.enabled {
+				customConfig := epp["pluginsCustomConfig"].(map[string]any)["flow-control-plugins.yaml"].(string)
+				assert.Contains(t, customConfig, "featureGates:\n- flowControl")
+			}
+		})
+	}
+}
+
+func TestGenerateInferencePoolHelmReleaseEPPPodLabel(t *testing.T) {
+	inferenceSet := testutil.MockInferenceSetWithPreset.DeepCopy()
+	inferenceSet.Name = "model-deployment"
+
+	helmRelease, err := GenerateInferencePoolHelmRelease(inferenceSet)
+	assert.NoError(t, err)
+
+	if assert.Len(t, helmRelease.Spec.PostRenderers, 1) &&
+		assert.NotNil(t, helmRelease.Spec.PostRenderers[0].Kustomize) &&
+		assert.Len(t, helmRelease.Spec.PostRenderers[0].Kustomize.Patches, 1) {
+		patch := helmRelease.Spec.PostRenderers[0].Kustomize.Patches[0]
+		assert.Equal(t, &fluxkustomize.Selector{
+			Group:         "apps",
+			Version:       "v1",
+			Kind:          "Deployment",
+			LabelSelector: "llm-d.ai/igw-mode=llm-d-router-gateway",
+		}, patch.Target)
+
+		operations := []map[string]string{}
+		assert.NoError(t, json.Unmarshal([]byte(patch.Patch), &operations))
+		assert.Equal(t, []map[string]string{{
+			"op":   "copy",
+			"from": "/metadata/name",
+			"path": "/spec/template/metadata/labels/inferencepool",
+		}}, operations)
+	}
+}
+
+func TestGeneratePullerContainers(t *testing.T) {
+	base := testutil.MockWorkspaceWithPreset.DeepCopy()
+	base.Name = "puller-ws"
+	base.Namespace = "kaito"
+
+	strength := func(s string) *string { return &s }
+
+	volumeMounts := []corev1.VolumeMount{{Name: "shared", MountPath: "/mnt/shared"}}
+
+	tests := []struct {
+		name               string
+		adapters           []kaitov1beta1.AdapterSpec
+		volumeMounts       []corev1.VolumeMount
+		expectedContainers int
+		expectedEnvVars    map[string]string // name -> value
+		expectedVolumes    int
+		verify             func(t *testing.T, containers []corev1.Container, envVars []corev1.EnvVar, volumes []corev1.Volume)
+	}{
+		{
+			name:               "no adapters",
+			adapters:           nil,
+			volumeMounts:       volumeMounts,
+			expectedContainers: 0,
+			expectedEnvVars:    map[string]string{},
+			expectedVolumes:    0,
+		},
+		{
+			name: "single adapter with strength and secrets",
+			adapters: []kaitov1beta1.AdapterSpec{
+				{
+					Source: &kaitov1beta1.DataSource{
+						Name:             "adapterA",
+						Image:            "docker.io/library/alpine:latest",
+						ImagePullSecrets: []string{"secretA", "secretB"},
+					},
+					Strength: strength("0.5"),
+				},
+			},
+			volumeMounts:       volumeMounts,
+			expectedContainers: 1,
+			expectedEnvVars:    map[string]string{"adapterA": "0.5"},
+			expectedVolumes:    1,
+			verify: func(t *testing.T, containers []corev1.Container, envVars []corev1.EnvVar, volumes []corev1.Volume) {
+				if assert.Len(t, containers, 1) {
+					c := containers[0]
+					assert.Equal(t, "puller-adapterA", c.Name)
+					assert.Equal(t, "mcr.microsoft.com/aks/skopeo:1.14.4-15", c.Image)
+					if assert.Len(t, c.Args, 1) {
+						assert.Contains(t, c.Args[0], "/mnt/adapter/adapterA")
+					}
+					// base volumeMount + secret volumeMount
+					assert.GreaterOrEqual(t, len(c.VolumeMounts), 1)
+					assert.Equal(t, volumeMounts[0], c.VolumeMounts[0])
+					// secret volume mount appended
+					assert.Equal(t, "docker-config-adapterA-inference-adapter", c.VolumeMounts[len(c.VolumeMounts)-1].Name)
+					assert.Equal(t, "/root/.docker/config.d/adapterA-inference-adapter", c.VolumeMounts[len(c.VolumeMounts)-1].MountPath)
+				}
+				if assert.Len(t, volumes, 1) {
+					v := volumes[0]
+					assert.Equal(t, "docker-config-adapterA-inference-adapter", v.Name)
+					if assert.NotNil(t, v.VolumeSource.Projected) {
+						assert.Len(t, v.VolumeSource.Projected.Sources, 2)
+					}
+				}
+			},
+		},
+		{
+			name: "multiple adapters mixed",
+			adapters: []kaitov1beta1.AdapterSpec{
+				{
+					Source: &kaitov1beta1.DataSource{
+						Name:  "adapter1",
+						Image: "docker.io/library/busybox:latest",
+					},
+					Strength: strength("0.7"),
+				},
+				{
+					Source: &kaitov1beta1.DataSource{
+						Name:  "adapter2",
+						Image: "docker.io/library/alpine:3.19",
+					},
+				},
+			},
+			volumeMounts:       volumeMounts,
+			expectedContainers: 2,
+			expectedEnvVars:    map[string]string{"adapter1": "0.7"},
+			expectedVolumes:    0,
+			verify: func(t *testing.T, containers []corev1.Container, envVars []corev1.EnvVar, volumes []corev1.Volume) {
+				// verify ordering & fields
+				names := []string{"puller-adapter1", "puller-adapter2"}
+				gotNames := []string{containers[0].Name, containers[1].Name}
+				assert.Equal(t, names, gotNames)
+				for _, c := range containers {
+					if assert.Len(t, c.Args, 1) {
+						// ensure path for corresponding adapter is inside script
+						parts := strings.Split(c.Name, "-")
+						adapterName := parts[len(parts)-1]
+						assert.Contains(t, c.Args[0], "/mnt/adapter/"+adapterName)
+					}
+					assert.Equal(t, volumeMounts[0], c.VolumeMounts[0])
+				}
+			},
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			w := base.DeepCopy()
+			if w.Inference == nil {
+				w.Inference = &kaitov1beta1.InferenceSpec{}
+			}
+			w.Inference.Adapters = tc.adapters
+
+			containers, envVars, volumes := GeneratePullerContainers(w, tc.adapters, tc.volumeMounts)
+
+			assert.Len(t, containers, tc.expectedContainers)
+			assert.Len(t, volumes, tc.expectedVolumes)
+
+			// build map for env var assertions
+			envMap := make(map[string]string, len(envVars))
+			for _, e := range envVars {
+				envMap[e.Name] = e.Value
+			}
+			assert.Equal(t, tc.expectedEnvVars, envMap)
+
+			if tc.verify != nil {
+				tc.verify(t, containers, envVars, volumes)
+			}
+		})
+	}
+}
+
+func TestGenerateServiceManifest_KVEventsPort(t *testing.T) {
+	// Deterministically pin the vLLM feature gate for this test. Other packages'
+	// tests mutate featuregates.FeatureGates (sometimes flipping FeatureFlagVLLM
+	// to false or replacing the whole map) without restoring it, which would
+	// otherwise make kaitov1beta1.GetWorkspaceRuntimeName here flaky under
+	// parallel `go test` runs.
+	origVLLM := featuregates.FeatureGates[consts.FeatureFlagVLLM]
+	featuregates.FeatureGates[consts.FeatureFlagVLLM] = true
+	defer func() { featuregates.FeatureGates[consts.FeatureFlagVLLM] = origVLLM }()
+
+	newWS := func(runtime string) *kaitov1beta1.Workspace {
+		ws := &kaitov1beta1.Workspace{}
+		ws.Name = "ws"
+		ws.Namespace = "kaito"
+		if runtime != "" {
+			ws.Annotations = map[string]string{
+				kaitov1beta1.AnnotationWorkspaceRuntime: runtime,
+			}
+		}
+		return ws
+	}
+
+	hasKVEvents := func(svc *corev1.Service) bool {
+		for _, p := range svc.Spec.Ports {
+			if p.Name == "kv-events" {
+				if p.Port != consts.PortKVCacheEvents {
+					t.Fatalf("kv-events port = %d, want %d", p.Port, consts.PortKVCacheEvents)
+				}
+				return true
+			}
+		}
+		return false
+	}
+
+	// vLLM + ClusterIP: kv-events must be exposed for in-cluster consumers.
+	vllm := newWS(string(pkgmodel.RuntimeNameVLLM))
+	cip := GenerateServiceManifest(vllm, corev1.ServiceTypeClusterIP)
+	assert.True(t, hasKVEvents(cip), "vLLM ClusterIP Service should expose kv-events port")
+
+	// vLLM + LoadBalancer: kv-events must NOT be exposed (unauthenticated ZMQ stream).
+	lb := GenerateServiceManifest(vllm, corev1.ServiceTypeLoadBalancer)
+	assert.False(t, hasKVEvents(lb), "vLLM LoadBalancer Service must not expose kv-events port")
+
+	// Non-vLLM runtime (HuggingFace transformers) + ClusterIP: kv-events must NOT be exposed.
+	hf := newWS(string(pkgmodel.RuntimeNameHuggingfaceTransformers))
+	hfCIP := GenerateServiceManifest(hf, corev1.ServiceTypeClusterIP)
+	assert.False(t, hasKVEvents(hfCIP), "non-vLLM ClusterIP Service must not expose kv-events port")
+}

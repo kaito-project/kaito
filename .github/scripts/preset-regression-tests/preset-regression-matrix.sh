@@ -19,7 +19,7 @@
 
 set -euo pipefail
 
-MODEL_CATALOG_FILE="${MODEL_CATALOG_FILE:-presets/workspace/models/model_catalog.yaml}"
+MODEL_CATALOG_FILE="${MODEL_CATALOG_FILE:-pkg/catalog/model_catalog.yaml}"
 REGRESSION_CONFIG_FILE="${REGRESSION_CONFIG_FILE:-.github/preset-regression-config.json}"
 REGRESSION_PROFILE="${REGRESSION_PROFILE:-standard}"
 GPU="${GPU:-}"

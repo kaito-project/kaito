@@ -63,7 +63,7 @@ func (is *InferenceSet) Validate(ctx context.Context) (errs *apis.FieldError) {
 // ValidateInferenceSetWorkspace validates the child Workspace an InferenceSet
 // would create, using the admission baseline in ctx (if any) as the previous
 // InferenceSet. Returned errors are rooted at the InferenceSet. It is assigned
-// at startup (see pkg/workspace/webhooks) to a controller-side implementation,
+// at startup (see internal/webhook/workspace) to a controller-side implementation,
 // avoiding an import cycle with the util package that builds the Workspace.
 var ValidateInferenceSetWorkspace func(ctx context.Context, is *InferenceSet) *apis.FieldError
 

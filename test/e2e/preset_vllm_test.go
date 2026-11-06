@@ -42,9 +42,9 @@ import (
 
 	kaitov1alpha1 "github.com/kaito-project/kaito/api/v1alpha1"
 	kaitov1beta1 "github.com/kaito-project/kaito/api/v1beta1"
+	workspacecontroller "github.com/kaito-project/kaito/internal/controller/workspace"
 	kaitoutils "github.com/kaito-project/kaito/pkg/utils"
 	"github.com/kaito-project/kaito/pkg/utils/consts"
-	controllers "github.com/kaito-project/kaito/pkg/workspace/controllers"
 	"github.com/kaito-project/kaito/test/e2e/utils"
 )
 
@@ -1773,7 +1773,7 @@ func validateWorkspaceBenchmarkCompleted(workspaceObj *kaitov1beta1.Workspace) {
 			if workspaceObj.Status.Performance == nil {
 				return false
 			}
-			m, ok := workspaceObj.Status.Performance.Metrics[controllers.BenchmarkMetricPeakTPM]
+			m, ok := workspaceObj.Status.Performance.Metrics[workspacecontroller.BenchmarkMetricPeakTPM]
 			if !ok {
 				return false
 			}
@@ -1856,7 +1856,7 @@ func validateInferenceSetBenchmarkCompleted(inferenceSetObj *kaitov1beta1.Infere
 			if inferenceSetObj.Status.Performance == nil {
 				return false
 			}
-			m, ok := inferenceSetObj.Status.Performance.Metrics[controllers.BenchmarkMetricAggregatedPeakTPM]
+			m, ok := inferenceSetObj.Status.Performance.Metrics[workspacecontroller.BenchmarkMetricAggregatedPeakTPM]
 			if !ok {
 				return false
 			}

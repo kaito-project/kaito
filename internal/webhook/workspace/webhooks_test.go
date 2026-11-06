@@ -1,0 +1,179 @@
+// Copyright (c) KAITO authors.
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+package workspace
+
+import (
+	"context"
+	"testing"
+
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
+	otelresource "go.opentelemetry.io/otel/sdk/resource"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	knativeresource "knative.dev/pkg/observability/resource"
+	"knative.dev/pkg/observability/semconv"
+
+	kaitov1alpha1 "github.com/kaito-project/kaito/api/v1alpha1"
+	kaitov1beta1 "github.com/kaito-project/kaito/api/v1beta1"
+	"github.com/kaito-project/kaito/pkg/featuregates"
+	"github.com/kaito-project/kaito/pkg/utils/consts"
+)
+
+func TestDefaultTelemetryResource(t *testing.T) {
+	t.Setenv("SYSTEM_NAMESPACE", "kaito-system")
+	t.Setenv("POD_NAME", "workspace-controller")
+
+	for _, tt := range []struct {
+		name        string
+		override    string
+		serviceName string
+	}{
+		{name: "default service", serviceName: "webhook"},
+		{name: "environment override", override: "custom-webhook", serviceName: "custom-webhook"},
+	} {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Setenv("OTEL_SERVICE_NAME", tt.override)
+
+			var resource *otelresource.Resource
+			require.NotPanics(t, func() {
+				resource = knativeresource.Default("webhook")
+			})
+			require.NotNil(t, resource)
+			assert.Equal(t, otelresource.Default().SchemaURL(), resource.SchemaURL())
+			assert.Equal(t, semconv.SchemaURL, resource.SchemaURL())
+			assert.Contains(t, resource.Attributes(), semconv.ServiceName(tt.serviceName))
+			assert.Contains(t, resource.Attributes(), semconv.K8SNamespaceName("kaito-system"))
+			assert.Contains(t, resource.Attributes(), semconv.K8SPodName("workspace-controller"))
+		})
+	}
+}
+
+func TestNewControllerWebhooks(t *testing.T) {
+	tests := []struct {
+		name                     string
+		enableInferenceSet       bool
+		enableMRI                bool
+		expectedConstructorCount int
+	}{
+		{
+			name:                     "InferenceSet controller disabled",
+			enableInferenceSet:       false,
+			enableMRI:                false,
+			expectedConstructorCount: 2,
+		},
+		{
+			name:                     "InferenceSet controller enabled without MRI",
+			enableInferenceSet:       true,
+			enableMRI:                false,
+			expectedConstructorCount: 3, // certificates + workspace + inferenceset
+		},
+		{
+			name:                     "InferenceSet and MRI controllers enabled",
+			enableInferenceSet:       true,
+			enableMRI:                true,
+			expectedConstructorCount: 4, // certificates + workspace + inferenceset + MRI
+		},
+		{
+			name:                     "MRI controller enabled without InferenceSet",
+			enableInferenceSet:       false,
+			enableMRI:                true,
+			expectedConstructorCount: 3, // certificates + workspace + MRI
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			// Save original feature gate state
+			originalIS := featuregates.FeatureGates[consts.FeatureFlagEnableInferenceSetController]
+			originalMRI := featuregates.FeatureGates[consts.FeatureFlagEnableMultiRoleInferenceController]
+			defer func() {
+				featuregates.FeatureGates[consts.FeatureFlagEnableInferenceSetController] = originalIS
+				featuregates.FeatureGates[consts.FeatureFlagEnableMultiRoleInferenceController] = originalMRI
+			}()
+
+			// Set feature gates for test
+			featuregates.FeatureGates[consts.FeatureFlagEnableInferenceSetController] = tt.enableInferenceSet
+			featuregates.FeatureGates[consts.FeatureFlagEnableMultiRoleInferenceController] = tt.enableMRI
+
+			// Call the function
+			constructors := NewControllerWebhooks()
+
+			// Assert the expected number of constructors
+			assert.Equal(t, tt.expectedConstructorCount, len(constructors))
+
+			// Verify that the first two constructors are always present
+			assert.NotNil(t, constructors[0])
+			assert.NotNil(t, constructors[1])
+
+			// If InferenceSet is enabled, verify the third constructor
+			if tt.enableInferenceSet {
+				assert.NotNil(t, constructors[2])
+			}
+		})
+	}
+}
+
+func TestWorkspaceResources(t *testing.T) {
+	// Verify that WorkspaceResources contains the expected GVKs
+	assert.Equal(t, 2, len(WorkspaceResources))
+
+	// Check v1alpha1 Workspace
+	v1alpha1GVK := kaitov1alpha1.GroupVersion.WithKind("Workspace")
+	assert.Contains(t, WorkspaceResources, v1alpha1GVK)
+	assert.IsType(t, &kaitov1alpha1.Workspace{}, WorkspaceResources[v1alpha1GVK])
+
+	// Check v1beta1 Workspace
+	v1beta1GVK := kaitov1beta1.GroupVersion.WithKind("Workspace")
+	assert.Contains(t, WorkspaceResources, v1beta1GVK)
+	assert.IsType(t, &kaitov1beta1.Workspace{}, WorkspaceResources[v1beta1GVK])
+}
+
+func TestInferenceSetResources(t *testing.T) {
+	// Verify that InferenceSetResources contains the expected GVKs
+	assert.Equal(t, 2, len(InferenceSetResources))
+
+	// Check v1alpha1 InferenceSet (registered for backward compatibility during transition)
+	v1alpha1GVK := kaitov1alpha1.GroupVersion.WithKind("InferenceSet")
+	assert.Contains(t, InferenceSetResources, v1alpha1GVK)
+	assert.IsType(t, &kaitov1alpha1.InferenceSet{}, InferenceSetResources[v1alpha1GVK])
+
+	// Check v1beta1 InferenceSet
+	v1beta1GVK := kaitov1beta1.GroupVersion.WithKind("InferenceSet")
+	assert.Contains(t, InferenceSetResources, v1beta1GVK)
+	assert.IsType(t, &kaitov1beta1.InferenceSet{}, InferenceSetResources[v1beta1GVK])
+}
+
+// TestInferenceSetWorkspaceValidationWired verifies the package init wires the
+// InferenceSet admission webhook to the Workspace create-time validation.
+func TestInferenceSetWorkspaceValidationWired(t *testing.T) {
+	assert.NotNil(t, kaitov1beta1.ValidateInferenceSetWorkspace,
+		"InferenceSet workspace validation must be wired at startup")
+
+	is := &kaitov1beta1.InferenceSet{
+		ObjectMeta: metav1.ObjectMeta{Name: "test-is", Namespace: "default"},
+		Spec: kaitov1beta1.InferenceSetSpec{
+			Template: kaitov1beta1.InferenceSetTemplate{
+				Inference: kaitov1beta1.InferenceSpec{
+					Preset: &kaitov1beta1.PresetSpec{
+						PresetMeta: kaitov1beta1.PresetMeta{Name: "invalid-preset"},
+					},
+				},
+			},
+		},
+	}
+
+	err := is.Validate(context.Background())
+	assert.NotNil(t, err)
+	assert.Contains(t, err.Error(), "Unsupported inference preset name invalid-preset")
+}

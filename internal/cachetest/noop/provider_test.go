@@ -17,7 +17,7 @@ import (
 	"context"
 	"testing"
 
-	"github.com/kaito-project/kaito/pkg/cache"
+	"github.com/kaito-project/kaito/internal/cache"
 )
 
 func TestProvider(t *testing.T) {

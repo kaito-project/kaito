@@ -8,7 +8,7 @@ RAGENGINE_IMG_NAME ?= ragengine
 IMG_TAG ?= $(subst v,,$(VERSION))
 
 # injection variables
-INJECTION_ROOT := github.com/kaito-project/kaito/pkg/version
+INJECTION_ROOT := github.com/kaito-project/kaito/internal/version
 BUILD_DATE := $(shell date -u +%Y-%m-%dT%H:%M:%SZ)
 GIT_VERSION := $(shell git describe --tags --always --dirty)
 LDFLAGS := -X '$(INJECTION_ROOT).Version=$(GIT_VERSION)' \
@@ -128,7 +128,7 @@ compare-base-image-configs: ## Compare base_images.yaml with ConfigMap template 
 	@./hack/compare_base_image_configs.sh
 
 .PHONY: generate-vllm-arch-list
-generate-vllm-arch-list: ## Regenerate presets/workspace/models/vllm_model_arch_list.txt.
+generate-vllm-arch-list: ## Regenerate pkg/catalog/vllm_model_arch_list.txt.
 	@./hack/generate_vllm_arch_list.sh
 
 ## --------------------------------------
@@ -139,8 +139,8 @@ generate-vllm-arch-list: ## Regenerate presets/workspace/models/vllm_model_arch_
 
 .PHONY: unit-test
 unit-test: ## Run unit tests.
-	go test -v $(shell go list ./pkg/... ./api/... ./presets/... | \
-	grep -v -e /vendor -e /api/v1alpha1/zz_generated.deepcopy.go -e /api/v1beta1/zz_generated.deepcopy.go -e /pkg/utils/test/...) \
+	go test -v $(shell go list ./pkg/... ./internal/... ./api/... | \
+	grep -v -e /vendor -e /api/v1alpha1/zz_generated.deepcopy.go -e /api/v1beta1/zz_generated.deepcopy.go -e /internal/testutil) \
 	-race -coverprofile=coverage.txt -covermode=atomic
 	go tool cover -func=coverage.txt
 

@@ -27,7 +27,7 @@ import (
 
 	kaitov1alpha1 "github.com/kaito-project/kaito/api/v1alpha1"
 	kaitov1beta1 "github.com/kaito-project/kaito/api/v1beta1"
-	karpenterutils "github.com/kaito-project/kaito/pkg/utils/karpenter"
+	karpenterutils "github.com/kaito-project/kaito/internal/k8s/karpenter"
 )
 
 const (

@@ -29,7 +29,7 @@ def read_yaml(file_path):
         return None
 
 
-base_images_yaml = "presets/workspace/models/base_images.yaml"
+base_images_yaml = "pkg/catalog/base_images.yaml"
 base_images = read_yaml(base_images_yaml)
 BASE_IMAGES = {image["name"]: image for image in base_images["images"]}
 

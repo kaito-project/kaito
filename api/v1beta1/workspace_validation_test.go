@@ -2152,6 +2152,21 @@ func TestWorkspaceValidatePerformanceModeAnnotation(t *testing.T) {
 			annotations: map[string]string{AnnotationUseLocalWeights: "yes"},
 			wantErr:     true,
 		},
+		{
+			name:        "persist compile cache true is valid",
+			annotations: map[string]string{AnnotationPersistCompileCache: "true"},
+			wantErr:     false,
+		},
+		{
+			name:        "persist compile cache false is valid",
+			annotations: map[string]string{AnnotationPersistCompileCache: "false"},
+			wantErr:     false,
+		},
+		{
+			name:        "persist compile cache non-boolean is invalid",
+			annotations: map[string]string{AnnotationPersistCompileCache: "1"},
+			wantErr:     true,
+		},
 	}
 
 	for _, tt := range tests {

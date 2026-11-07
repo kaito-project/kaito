@@ -107,6 +107,22 @@ inference:
 
 When set on an InferenceSet, the annotation is propagated to all child Workspaces it creates.
 
+### Persisting the vLLM compile cache
+
+On every start, vLLM compiles the model with `torch.compile` before it serves requests, which can take a few minutes for larger models. By default that cache lives in the container, so a recreated pod compiles again from scratch.
+
+Set the `kaito.sh/persist-compile-cache` annotation to `"true"` on a Workspace or InferenceSet to keep the cache on the node:
+
+```yaml
+metadata:
+  annotations:
+    kaito.sh/persist-compile-cache: "true"
+```
+
+KAITO then mounts the node directory `/opt/kaito/vllm-cache/<namespace>` into the inference container and sets `VLLM_CACHE_ROOT` to it. A pod that is recreated on the same node, for example after a crash, an eviction, or a rollout that keeps the same model, vLLM version and engine settings, reuses the compiled artifacts. vLLM keys each entry by a hash of the model, engine config and the vLLM and PyTorch builds, so different models in the same namespace do not collide, and workloads in other namespaces never read it.
+
+The cache does not help on a fresh node, which still compiles once. The annotation adds a `hostPath` volume, so it is not available in namespaces whose Pod Security Admission level forbids `hostPath`.
+
 ### Status conditions
 
 The controller reports progress through `status.conditions`. The most relevant ones are:

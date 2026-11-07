@@ -228,6 +228,10 @@ const (
 	// VLLMWSL2EnablePinMemoryEnvName enables pinned memory when vLLM detects WSL2.
 	VLLMWSL2EnablePinMemoryEnvName = "VLLM_WSL2_ENABLE_PIN_MEMORY"
 
+	// VLLMCacheRootEnvName sets vLLM's cache root, where it keeps torch.compile
+	// artifacts.
+	VLLMCacheRootEnvName = "VLLM_CACHE_ROOT"
+
 	// ConditionReady is the condition type for a ready condition.
 	ConditionReady = "Ready"
 

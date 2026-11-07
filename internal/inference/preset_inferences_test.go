@@ -2801,3 +2801,116 @@ func TestCPUNodeExclusivityAcrossParentsAndNamespaces(t *testing.T) {
 		}
 	}
 }
+
+func TestGeneratePresetInferencePersistCompileCache(t *testing.T) {
+	testutil.RegisterTestModel()
+	t.Setenv("CLOUD_PROVIDER", consts.AzureCloudName)
+	t.Setenv("PRESET_REGISTRY_NAME", "test-registry")
+	t.Setenv("RELEASE_NAMESPACE", "kaito")
+
+	tests := []struct {
+		name        string
+		annotations map[string]string
+		wantCache   bool
+	}{
+		{
+			name:        "enabled mounts the namespace cache and sets VLLM_CACHE_ROOT",
+			annotations: map[string]string{v1beta1.AnnotationPersistCompileCache: "true"},
+			wantCache:   true,
+		},
+		{
+			name:        "disabled leaves the pod unchanged",
+			annotations: map[string]string{v1beta1.AnnotationPersistCompileCache: "false"},
+			wantCache:   false,
+		},
+		{
+			name:      "absent leaves the pod unchanged",
+			wantCache: false,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			mockClient := testutil.NewClient()
+			mockClient.On("Get", mock.IsType(context.TODO()), mock.Anything, mock.IsType(&corev1.ConfigMap{}), mock.Anything).Return(nil)
+			mockClient.On("Get", mock.IsType(context.TODO()), mock.Anything, mock.IsType(&storagev1.StorageClass{}), mock.Anything).Return(nil)
+
+			workspace := testutil.MockWorkspaceWithPresetVLLM.DeepCopy()
+			nodeCount := 1
+			//nolint:staticcheck //SA1019: deprecate Resource.Count field
+			workspace.Resource.Count = &nodeCount
+			workspace.Status.WorkerNodes = []string{"test-node-1"}
+			workspace.Status.TargetNodeCount = 1
+			workspace.Inference.Adapters = nil
+			workspace.Inference.Config = ""
+			workspace.Annotations = tt.annotations
+
+			svc := &corev1.Service{
+				ObjectMeta: metav1.ObjectMeta{Name: workspace.Name, Namespace: workspace.Namespace},
+				Spec:       corev1.ServiceSpec{ClusterIP: "10.0.0.1"},
+			}
+			mockClient.CreateOrUpdateObjectInMap(svc)
+
+			model := pkgmodel.KaitoModelRegister.MustGet("test-model")
+			result, err := GeneratePresetInference(context.TODO(), workspace, testutil.MockWorkspaceWithPresetHash, model, mockClient, nil)
+			if err != nil {
+				t.Fatalf("GeneratePresetInference returned error: %v", err)
+			}
+			podSpec := result.Workload.(*appsv1.StatefulSet).Spec.Template.Spec
+
+			var vol *corev1.Volume
+			for i := range podSpec.Volumes {
+				if podSpec.Volumes[i].Name == compileCacheHostVolumeName {
+					vol = &podSpec.Volumes[i]
+				}
+			}
+			var mount *corev1.VolumeMount
+			for i, m := range podSpec.Containers[0].VolumeMounts {
+				if m.Name == compileCacheHostVolumeName {
+					mount = &podSpec.Containers[0].VolumeMounts[i]
+				}
+			}
+			var cacheRoot string
+			for _, e := range podSpec.Containers[0].Env {
+				if e.Name == consts.VLLMCacheRootEnvName {
+					cacheRoot = e.Value
+				}
+			}
+
+			if !tt.wantCache {
+				if vol != nil || mount != nil || cacheRoot != "" {
+					t.Errorf("expected no compile cache wiring, got volume=%v mount=%v %s=%q", vol, mount, consts.VLLMCacheRootEnvName, cacheRoot)
+				}
+				return
+			}
+
+			wantHostPath := v1beta1.CompileCacheHostPathPrefix + "/" + workspace.Namespace
+			if vol == nil || vol.HostPath == nil {
+				t.Fatalf("expected %s hostPath volume, got volumes %v", compileCacheHostVolumeName, podSpec.Volumes)
+			}
+			if vol.HostPath.Path != wantHostPath {
+				t.Errorf("compile cache hostPath = %q, want %q", vol.HostPath.Path, wantHostPath)
+			}
+			if vol.HostPath.Type == nil || *vol.HostPath.Type != corev1.HostPathDirectoryOrCreate {
+				t.Errorf("compile cache hostPath type = %v, want DirectoryOrCreate", vol.HostPath.Type)
+			}
+			if mount == nil || mount.MountPath != compileCacheMountPath || mount.ReadOnly {
+				t.Errorf("expected read-write mount at %s, got %v", compileCacheMountPath, mount)
+			}
+			if cacheRoot != compileCacheMountPath {
+				t.Errorf("%s = %q, want %q", consts.VLLMCacheRootEnvName, cacheRoot, compileCacheMountPath)
+			}
+		})
+	}
+}
+
+func TestConfigureCompileCacheVolumeSkipsNonVLLM(t *testing.T) {
+	ws := &v1beta1.Workspace{ObjectMeta: metav1.ObjectMeta{
+		Namespace:   "team-a",
+		Annotations: map[string]string{v1beta1.AnnotationPersistCompileCache: "true"},
+	}}
+	volumes, mounts, env := configureCompileCacheVolume(ws, pkgmodel.RuntimeNameHuggingfaceTransformers, nil, nil, nil)
+	if len(volumes) != 0 || len(mounts) != 0 || len(env) != 0 {
+		t.Errorf("expected no compile cache wiring for transformers, got volumes=%v mounts=%v env=%v", volumes, mounts, env)
+	}
+}

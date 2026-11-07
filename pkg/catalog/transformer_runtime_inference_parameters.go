@@ -1,0 +1,273 @@
+// Copyright (c) KAITO authors.
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+package catalog
+
+import (
+	"github.com/kaito-project/kaito/pkg/model"
+)
+
+// Defaults for Transformers inference, mirrored from internal/inference to
+// avoid an import cycle (internal/inference already imports this package).
+var (
+	defaultAccelerateParams = map[string]string{
+		"num_processes": "1",
+		"num_machines":  "1",
+		"machine_rank":  "0",
+		"gpu_ids":       "all",
+	}
+	defaultTransformersMainFile = "/workspace/tfs/inference_api.py"
+)
+
+// Shared ModelRunParams for model families that use the same parameters.
+var (
+	phiRunParams = map[string]string{
+		"torch_dtype":       "auto",
+		"pipeline":          "text-generation",
+		"trust_remote_code": "",
+	}
+	mistralRunParams = map[string]string{
+		"torch_dtype":        "bfloat16",
+		"pipeline":           "text-generation",
+		"chat_template":      "/workspace/chat_templates/mistral-instruct.jinja",
+		"allow_remote_files": "",
+	}
+	gemma3RunParams = map[string]string{
+		"torch_dtype":        "auto",
+		"pipeline":           "text-generation",
+		"allow_remote_files": "",
+	}
+	qwenRunParams = map[string]string{
+		"torch_dtype": "bfloat16",
+		"pipeline":    "text-generation",
+	}
+	llamaRunParams = map[string]string{
+		"torch_dtype":        "bfloat16",
+		"pipeline":           "text-generation",
+		"chat_template":      "/workspace/chat_templates/llama-3-instruct.jinja",
+		"allow_remote_files": "",
+	}
+	gptRunParams = map[string]string{
+		"torch_dtype":        "auto",
+		"pipeline":           "text-generation",
+		"allow_remote_files": "",
+	}
+	deepseekDistillRunParams = map[string]string{
+		"torch_dtype": "bfloat16",
+		"pipeline":    "text-generation",
+	}
+	deepseekLargeRunParams = map[string]string{
+		"torch_dtype":        "bfloat16",
+		"pipeline":           "text-generation",
+		"allow_remote_files": "",
+	}
+)
+
+// TransformerInferenceParameters maps preset model names to their Huggingface
+// Transformers runtime parameters for inference. Each model's
+// GetInferenceParameters() should look up its Transformers config from this map
+// instead of hardcoding the values inline.
+var TransformerInferenceParameters = map[string]model.HuggingfaceTransformersParam{
+	// Phi-4 family
+	"phi-4": {
+		BaseCommand:       "accelerate launch",
+		AccelerateParams:  defaultAccelerateParams,
+		InferenceMainFile: defaultTransformersMainFile,
+		ModelRunParams:    phiRunParams,
+		Tag:               "0.2.0",
+	},
+	// phi-4-mini-instruct requires transformer v5.0+
+	// "phi-4-mini-instruct": {
+	// 	BaseCommand:       "accelerate launch",
+	// 	AccelerateParams:  defaultAccelerateParams,
+	// 	InferenceMainFile: defaultTransformersMainFile,
+	// 	ModelRunParams:    phiRunParams,
+	// 	Tag:               "0.2.0",
+	// },
+
+	// Phi-3 family
+	"phi-3-mini-4k-instruct": {
+		BaseCommand:       "accelerate launch",
+		AccelerateParams:  defaultAccelerateParams,
+		InferenceMainFile: defaultTransformersMainFile,
+		ModelRunParams:    phiRunParams,
+		Tag:               "0.2.0",
+	},
+	"phi-3-mini-128k-instruct": {
+		BaseCommand:       "accelerate launch",
+		AccelerateParams:  defaultAccelerateParams,
+		InferenceMainFile: defaultTransformersMainFile,
+		ModelRunParams:    phiRunParams,
+		Tag:               "0.2.0",
+	},
+	"phi-3-medium-4k-instruct": {
+		BaseCommand:       "accelerate launch",
+		AccelerateParams:  defaultAccelerateParams,
+		InferenceMainFile: defaultTransformersMainFile,
+		ModelRunParams:    phiRunParams,
+		Tag:               "0.2.0",
+	},
+	"phi-3-medium-128k-instruct": {
+		BaseCommand:       "accelerate launch",
+		AccelerateParams:  defaultAccelerateParams,
+		InferenceMainFile: defaultTransformersMainFile,
+		ModelRunParams:    phiRunParams,
+		Tag:               "0.2.0",
+	},
+	"phi-3.5-mini-instruct": {
+		BaseCommand:       "accelerate launch",
+		AccelerateParams:  defaultAccelerateParams,
+		InferenceMainFile: defaultTransformersMainFile,
+		ModelRunParams:    phiRunParams,
+		Tag:               "0.2.0",
+	},
+
+	// Mistral family
+	"mistral-7b-v0.3": {
+		BaseCommand:       "accelerate launch",
+		AccelerateParams:  defaultAccelerateParams,
+		InferenceMainFile: defaultTransformersMainFile,
+		ModelRunParams:    mistralRunParams,
+		Tag:               "0.2.0",
+	},
+	"mistral-7b-instruct-v0.3": {
+		BaseCommand:       "accelerate launch",
+		AccelerateParams:  defaultAccelerateParams,
+		InferenceMainFile: defaultTransformersMainFile,
+		ModelRunParams:    mistralRunParams,
+		Tag:               "0.2.0",
+	},
+	// ministral-3-3b/8b/14b require transformer v5.0+
+	// "ministral-3-3b-instruct-2512": {
+	// 	BaseCommand:       "accelerate launch",
+	// 	AccelerateParams:  defaultAccelerateParams,
+	// 	InferenceMainFile: defaultTransformersMainFile,
+	// 	ModelRunParams:    mistralRunParams,
+	// 	Tag:               "0.0.1",
+	// },
+	// "ministral-3-8b-instruct-2512": {
+	// 	BaseCommand:       "accelerate launch",
+	// 	AccelerateParams:  defaultAccelerateParams,
+	// 	InferenceMainFile: defaultTransformersMainFile,
+	// 	ModelRunParams:    mistralRunParams,
+	// 	Tag:               "0.0.1",
+	// },
+	// "ministral-3-14b-instruct-2512": {
+	// 	BaseCommand:       "accelerate launch",
+	// 	AccelerateParams:  defaultAccelerateParams,
+	// 	InferenceMainFile: defaultTransformersMainFile,
+	// 	ModelRunParams:    mistralRunParams,
+	// 	Tag:               "0.0.1",
+	// },
+	"mistral-large-3-675b-instruct": {
+		BaseCommand:       "accelerate launch",
+		AccelerateParams:  defaultAccelerateParams,
+		InferenceMainFile: defaultTransformersMainFile,
+		ModelRunParams:    mistralRunParams,
+		Tag:               "0.0.1",
+	},
+
+	// Gemma-3 family
+	"gemma-3-4b-it": {
+		BaseCommand:       "accelerate launch",
+		AccelerateParams:  defaultAccelerateParams,
+		InferenceMainFile: defaultTransformersMainFile,
+		ModelRunParams:    gemma3RunParams,
+		Tag:               "0.0.1",
+	},
+	"gemma-3-27b-it": {
+		BaseCommand:       "accelerate launch",
+		AccelerateParams:  defaultAccelerateParams,
+		InferenceMainFile: defaultTransformersMainFile,
+		ModelRunParams:    gemma3RunParams,
+		Tag:               "0.0.1",
+	},
+
+	// Qwen family
+	"qwen2.5-coder-7b-instruct": {
+		BaseCommand:       "accelerate launch",
+		AccelerateParams:  defaultAccelerateParams,
+		InferenceMainFile: defaultTransformersMainFile,
+		ModelRunParams:    qwenRunParams,
+		Tag:               "0.2.0",
+	},
+	"qwen2.5-coder-32b-instruct": {
+		BaseCommand:       "accelerate launch",
+		AccelerateParams:  defaultAccelerateParams,
+		InferenceMainFile: defaultTransformersMainFile,
+		ModelRunParams:    qwenRunParams,
+		Tag:               "0.2.0",
+	},
+
+	// Llama-3 family
+	"llama-3.1-8b-instruct": {
+		BaseCommand:       "accelerate launch",
+		AccelerateParams:  defaultAccelerateParams,
+		InferenceMainFile: defaultTransformersMainFile,
+		ModelRunParams:    llamaRunParams,
+		Tag:               "0.2.0",
+	},
+	"llama-3.3-70b-instruct": {
+		BaseCommand:       "accelerate launch",
+		AccelerateParams:  defaultAccelerateParams,
+		InferenceMainFile: defaultTransformersMainFile,
+		ModelRunParams:    llamaRunParams,
+		Tag:               "0.0.1",
+	},
+
+	// GPT-OSS family
+	"gpt-oss-20b": {
+		BaseCommand:       "accelerate launch",
+		AccelerateParams:  defaultAccelerateParams,
+		InferenceMainFile: defaultTransformersMainFile,
+		ModelRunParams:    gptRunParams,
+		Tag:               "0.0.2",
+	},
+	"gpt-oss-120b": {
+		BaseCommand:       "accelerate launch",
+		AccelerateParams:  defaultAccelerateParams,
+		InferenceMainFile: defaultTransformersMainFile,
+		ModelRunParams:    gptRunParams,
+		Tag:               "0.0.1",
+	},
+
+	// DeepSeek family
+	"deepseek-r1-distill-llama-8b": {
+		BaseCommand:       "accelerate launch",
+		AccelerateParams:  defaultAccelerateParams,
+		InferenceMainFile: defaultTransformersMainFile,
+		ModelRunParams:    deepseekDistillRunParams,
+		Tag:               "0.2.0",
+	},
+	"deepseek-r1-distill-qwen-14b": {
+		BaseCommand:       "accelerate launch",
+		AccelerateParams:  defaultAccelerateParams,
+		InferenceMainFile: defaultTransformersMainFile,
+		ModelRunParams:    deepseekDistillRunParams,
+		Tag:               "0.2.0",
+	},
+	"deepseek-r1-0528": {
+		BaseCommand:       "accelerate launch",
+		AccelerateParams:  defaultAccelerateParams,
+		InferenceMainFile: defaultTransformersMainFile,
+		ModelRunParams:    deepseekLargeRunParams,
+		Tag:               "0.0.1",
+	},
+	"deepseek-v3-0324": {
+		BaseCommand:       "accelerate launch",
+		AccelerateParams:  defaultAccelerateParams,
+		InferenceMainFile: defaultTransformersMainFile,
+		ModelRunParams:    deepseekLargeRunParams,
+		Tag:               "0.0.1",
+	},
+}

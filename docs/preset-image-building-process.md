@@ -4,9 +4,9 @@ This document describes how KAITO builds and publishes its shared inference runt
 
 ## Source of Truth
 
-[`presets/workspace/models/base_images.yaml`](../presets/workspace/models/base_images.yaml) records the published base image tag and the runtime versions it contains. The Workspace controller embeds this file at build time.
+[`pkg/catalog/base_images.yaml`](../pkg/catalog/base_images.yaml) records the published base image tag and the runtime versions it contains. The Workspace controller embeds this file at build time.
 
-Model metadata is maintained separately in [`presets/workspace/models/model_catalog.yaml`](../presets/workspace/models/model_catalog.yaml).
+Model metadata is maintained separately in [`pkg/catalog/model_catalog.yaml`](../pkg/catalog/model_catalog.yaml).
 
 ## Pull Request Validation
 

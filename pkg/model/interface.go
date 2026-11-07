@@ -374,7 +374,7 @@ type RuntimeContext struct {
 	DistributedInference bool
 	MaxModelLen          int // max-model-len for vLLM; MaxModelLenAuto means "auto"
 	// MaxNumSeqs caps vLLM's concurrent sequence count. Zero leaves vLLM's own
-	// default in place. Resolved by pkg/workspace/estimator/maxnumseqestimator,
+	// default in place. Resolved by pkg/estimator/maxnumseqestimator,
 	// which hybrid Mamba/Gated-DeltaNet models need to avoid exceeding the
 	// available Mamba cache blocks at engine startup.
 	MaxNumSeqs    int

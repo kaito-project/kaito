@@ -1,0 +1,367 @@
+// Copyright (c) KAITO authors.
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+package ragengine
+
+import (
+	"context"
+	"strings"
+	"testing"
+
+	"github.com/stretchr/testify/mock"
+	appsv1 "k8s.io/api/apps/v1"
+	corev1 "k8s.io/api/core/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/runtime"
+	ctrlclient "sigs.k8s.io/controller-runtime/pkg/client"
+	ctrlclientfake "sigs.k8s.io/controller-runtime/pkg/client/fake"
+
+	"github.com/kaito-project/kaito/api/v1beta1"
+	"github.com/kaito-project/kaito/internal/k8s/nodes"
+	"github.com/kaito-project/kaito/internal/rag"
+	"github.com/kaito-project/kaito/internal/testutil"
+	"github.com/kaito-project/kaito/pkg/utils/consts"
+)
+
+func TestConfigStorageVolumeMountPath(t *testing.T) {
+	tests := []struct {
+		name         string
+		mountPath    string
+		expectedPath string
+	}{
+		{
+			name:         "default mount path",
+			expectedPath: v1beta1.RAGStorageMountDefault,
+		},
+		{
+			name:         "custom mount path is normalized",
+			mountPath:    "/mnt/vector-db/customer/indexes/",
+			expectedPath: "/mnt/vector-db/customer/indexes",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			storage := &v1beta1.StorageSpec{
+				PersistentVolume: &v1beta1.PersistentVolumeConfig{
+					PersistentVolumeClaim: "vector-data",
+					MountPath:             tt.mountPath,
+				},
+			}
+
+			_, volumeMount := configStorageVolume(storage)
+			if volumeMount.MountPath != tt.expectedPath {
+				t.Errorf("MountPath = %q, want %q", volumeMount.MountPath, tt.expectedPath)
+			}
+		})
+	}
+}
+
+func TestCreatePresetRAG(t *testing.T) {
+	testutil.RegisterTestModel()
+
+	testcases := map[string]struct {
+		nodeCount            int
+		registryNameOverride string
+		imageNameOverride    string
+		imageTagOverride     string
+		callMocks            func(c *testutil.MockClient)
+		expectedCmd          string
+		expectedGPUReq       string
+		expectedImage        string
+		expectedVolume       string
+	}{
+		"test-rag-model": {
+			nodeCount: 1,
+			callMocks: func(c *testutil.MockClient) {
+				c.On("Create", mock.IsType(context.TODO()), mock.IsType(&appsv1.Deployment{}), mock.Anything).Return(nil)
+			},
+			expectedCmd:   "/bin/sh -c python3 main.py",
+			expectedImage: "aimodelsregistrytest.azurecr.io/kaito-rag-service:0.3.2", //TODO: Change to the mcr image when release
+		},
+		"test-rag-model-with-image-from-env": {
+			nodeCount:            1,
+			registryNameOverride: "mcr.microsoft.com/aks/kaito",
+			imageNameOverride:    "kaito-rag-engine",
+			imageTagOverride:     "0.4.6",
+			callMocks: func(c *testutil.MockClient) {
+				c.On("Create", mock.IsType(context.TODO()), mock.IsType(&appsv1.Deployment{}), mock.Anything).Return(nil)
+			},
+			expectedCmd:   "/bin/sh -c python3 main.py",
+			expectedImage: "mcr.microsoft.com/aks/kaito/kaito-rag-engine:0.4.6",
+		},
+	}
+
+	for k, tc := range testcases {
+		t.Run(k, func(t *testing.T) {
+			t.Setenv("CLOUD_PROVIDER", consts.AzureCloudName)
+			if tc.registryNameOverride != "" {
+				t.Setenv("PRESET_RAG_REGISTRY_NAME", tc.registryNameOverride)
+			}
+			if tc.imageNameOverride != "" {
+				t.Setenv("PRESET_RAG_IMAGE_NAME", tc.imageNameOverride)
+			}
+			if tc.imageTagOverride != "" {
+				t.Setenv("PRESET_RAG_IMAGE_TAG", tc.imageTagOverride)
+			}
+
+			mockClient := testutil.NewClient()
+			tc.callMocks(mockClient)
+
+			ragEngineObj := testutil.MockRAGEngineWithPreset
+			createdObject, _ := CreatePresetRAG(context.TODO(), ragEngineObj, "1", mockClient)
+
+			workloadCmd := strings.Join((createdObject.(*appsv1.Deployment)).Spec.Template.Spec.Containers[0].Command, " ")
+
+			if workloadCmd != tc.expectedCmd {
+				t.Errorf("%s: main cmdline is not expected, got %s, expected %s", k, workloadCmd, tc.expectedCmd)
+			}
+
+			image := (createdObject.(*appsv1.Deployment)).Spec.Template.Spec.Containers[0].Image
+
+			if image != tc.expectedImage {
+				t.Errorf("%s: image is not expected, got %s, expected %s", k, image, tc.expectedImage)
+			}
+		})
+	}
+}
+
+func TestCreatePresetRAGWithDifferentConfigurations(t *testing.T) {
+	testutil.RegisterTestModel()
+
+	testcases := map[string]struct {
+		ragEngine     *v1beta1.RAGEngine
+		callMocks     func(c *testutil.MockClient)
+		expectedLabel string
+		testCase      string
+	}{
+		"test-rag-with-preferred-cpu-nodes": {
+			ragEngine: testutil.MockRAGEngineWithPresetPreferredCPUNodes,
+			callMocks: func(c *testutil.MockClient) {
+				c.On("Create", mock.IsType(context.TODO()), mock.IsType(&appsv1.Deployment{}), mock.Anything).Return(nil)
+			},
+			expectedLabel: "testRAGEngine",
+			testCase:      "RAGEngine with preferred CPU nodes should create deployment",
+		},
+		"test-rag-with-revision-1": {
+			ragEngine: testutil.MockRAGEngineWithRevision1,
+			callMocks: func(c *testutil.MockClient) {
+				c.On("Create", mock.IsType(context.TODO()), mock.IsType(&appsv1.Deployment{}), mock.Anything).Return(nil)
+			},
+			expectedLabel: "testRAGEngine",
+			testCase:      "RAGEngine with revision 1 should create deployment with proper labels",
+		},
+		"test-rag-with-revision-2": {
+			ragEngine: testutil.MockRAGEngineWithRevision2,
+			callMocks: func(c *testutil.MockClient) {
+				c.On("Create", mock.IsType(context.TODO()), mock.IsType(&appsv1.Deployment{}), mock.Anything).Return(nil)
+			},
+			expectedLabel: "testRAGEngine",
+			testCase:      "RAGEngine with revision 2 should create deployment with proper labels",
+		},
+	}
+
+	for k, tc := range testcases {
+		t.Run(k, func(t *testing.T) {
+			t.Setenv("CLOUD_PROVIDER", consts.AzureCloudName)
+
+			mockClient := testutil.NewClient()
+			tc.callMocks(mockClient)
+
+			createdObject, err := CreatePresetRAG(context.TODO(), tc.ragEngine, "1", mockClient)
+			if err != nil {
+				t.Errorf("%s failed: %v", tc.testCase, err)
+				return
+			}
+
+			deployment := createdObject.(*appsv1.Deployment)
+
+			// Check that the deployment has the correct labels
+			if deployment.Spec.Selector.MatchLabels[v1beta1.LabelRAGEngineName] != tc.expectedLabel {
+				t.Errorf("%s: expected label %s, got %s", tc.testCase, tc.expectedLabel, deployment.Spec.Selector.MatchLabels[v1beta1.LabelRAGEngineName])
+			}
+
+			// Verify template labels match selector labels
+			if deployment.Spec.Template.ObjectMeta.Labels[v1beta1.LabelRAGEngineName] != tc.expectedLabel {
+				t.Errorf("%s: template label mismatch, expected %s, got %s", tc.testCase, tc.expectedLabel, deployment.Spec.Template.ObjectMeta.Labels[v1beta1.LabelRAGEngineName])
+			}
+		})
+	}
+}
+
+func TestGPUConfigLogic(t *testing.T) {
+	testutil.RegisterTestModel()
+
+	testcases := map[string]struct {
+		nodeCount        int
+		callMocks        func(c *testutil.MockClient)
+		ragEngine        *v1beta1.RAGEngine
+		expectedGPUReq   int64
+		expectedLimitReq int64
+	}{
+		"test-rag-model": {
+			callMocks: func(c *testutil.MockClient) {
+				c.On("Create", mock.IsType(context.TODO()), mock.IsType(&appsv1.Deployment{}), mock.Anything).Return(nil)
+			},
+			ragEngine:        testutil.MockRAGEngineWithPreset,
+			expectedGPUReq:   int64(1), // Standard_NV36ads_A10_v5 has 1 GPU
+			expectedLimitReq: int64(1), // Standard_NV36ads_A10_v5 has 1 GPU
+		},
+		"test-rag-preferred-nodes": {
+			callMocks: func(c *testutil.MockClient) {
+				c.On("Create", mock.IsType(context.TODO()), mock.IsType(&appsv1.Deployment{}), mock.Anything).Return(nil)
+			},
+			ragEngine:        testutil.MockRAGEngineWithPresetPreferredCPUNodes,
+			expectedGPUReq:   int64(1), // Standard_NC24ads_A100_v4 has 1 GPU
+			expectedLimitReq: int64(1), // Standard_NC24ads_A100_v4 has 1 GPU
+		},
+	}
+
+	for k, tc := range testcases {
+		t.Run(k, func(t *testing.T) {
+			t.Setenv("CLOUD_PROVIDER", consts.AzureCloudName)
+
+			mockClient := testutil.NewClient()
+			tc.callMocks(mockClient)
+
+			ragEngineObj := tc.ragEngine
+			createdObject, _ := CreatePresetRAG(context.TODO(), ragEngineObj, "1", mockClient)
+
+			resourceReq := createdObject.(*appsv1.Deployment).Spec.Template.Spec.Containers[0].Resources
+
+			gpuRequests, exists := resourceReq.Requests[corev1.ResourceName(nodes.CapacityNvidiaGPU)]
+			if !exists {
+				t.Errorf("GPU requests not found in resource requirements")
+				return
+			}
+
+			gpuLimits, exists := resourceReq.Limits[corev1.ResourceName(nodes.CapacityNvidiaGPU)]
+			if !exists {
+				t.Errorf("GPU limits not found in resource requirements")
+				return
+			}
+
+			gpuRequestCount := gpuRequests.Value()
+			gpuLimitCount := gpuLimits.Value()
+			if gpuRequestCount != tc.expectedGPUReq {
+				t.Errorf("%s: GPU request count is not expected, got %d, expected %d", k, gpuRequestCount, tc.expectedGPUReq)
+			}
+			if gpuLimitCount != tc.expectedLimitReq {
+				t.Errorf("%s: GPU limit count is not expected, got %d, expected %d", k, gpuLimitCount, tc.expectedLimitReq)
+			}
+		})
+	}
+}
+
+func TestCreatePresetRAGGuardrailsUsesDefaultTemplate(t *testing.T) {
+	t.Setenv(consts.DefaultReleaseNamespaceEnvVar, "kaito-system")
+	t.Setenv("CLOUD_PROVIDER", consts.AzureCloudName)
+	testutil.RegisterTestModel()
+
+	scheme := runtime.NewScheme()
+	_ = appsv1.AddToScheme(scheme)
+	_ = corev1.AddToScheme(scheme)
+	_ = v1beta1.AddToScheme(scheme)
+
+	ragEngine := testutil.MockRAGEngineWithPreset.DeepCopy()
+	ragEngine.Spec.Guardrails = &v1beta1.GuardrailsSpec{Enabled: true}
+
+	kubeClient := ctrlclientfake.NewClientBuilder().WithScheme(scheme).WithObjects(
+		&corev1.ConfigMap{
+			ObjectMeta: metav1.ObjectMeta{
+				Name:      v1beta1.DefaultGuardrailsPolicyConfigMapName,
+				Namespace: "kaito-system",
+			},
+			Data: map[string]string{v1beta1.GuardrailsPolicyFileName: "action: block\nscanners: []\n"},
+		},
+	).Build()
+
+	createdObject, err := CreatePresetRAG(context.TODO(), ragEngine, "1", kubeClient)
+	if err != nil {
+		t.Fatalf("CreatePresetRAG() unexpected error = %v", err)
+	}
+
+	deployment := createdObject.(*appsv1.Deployment)
+	container := deployment.Spec.Template.Spec.Containers[0]
+	if !hasVolumeMount(container.VolumeMounts, rag.GuardrailsPolicyVolumeName, rag.GuardrailsPolicyMountPath) {
+		t.Fatalf("expected guardrails volume mount at %s", rag.GuardrailsPolicyMountPath)
+	}
+	if !hasConfigMapVolume(deployment.Spec.Template.Spec.Volumes, rag.GuardrailsPolicyVolumeName, v1beta1.DefaultGuardrailsPolicyConfigMapName) {
+		t.Fatalf("expected deployment to use copied default guardrails ConfigMap")
+	}
+
+	var copiedCM corev1.ConfigMap
+	if err := kubeClient.Get(context.TODO(), ctrlclient.ObjectKey{Name: v1beta1.DefaultGuardrailsPolicyConfigMapName, Namespace: ragEngine.Namespace}, &copiedCM); err != nil {
+		t.Fatalf("expected copied guardrails ConfigMap in target namespace: %v", err)
+	}
+	if _, ok := copiedCM.Data[v1beta1.GuardrailsPolicyFileName]; !ok {
+		t.Fatalf("expected copied guardrails ConfigMap to contain %s", v1beta1.GuardrailsPolicyFileName)
+	}
+	if len(copiedCM.GetOwnerReferences()) != 0 {
+		t.Fatalf("expected copied guardrails ConfigMap to remain unowned, got %+v", copiedCM.GetOwnerReferences())
+	}
+}
+
+func TestCreatePresetRAGGuardrailsUsesCustomConfigMap(t *testing.T) {
+	t.Setenv("CLOUD_PROVIDER", consts.AzureCloudName)
+	testutil.RegisterTestModel()
+
+	scheme := runtime.NewScheme()
+	_ = appsv1.AddToScheme(scheme)
+	_ = corev1.AddToScheme(scheme)
+	_ = v1beta1.AddToScheme(scheme)
+
+	ragEngine := testutil.MockRAGEngineWithPreset.DeepCopy()
+	ragEngine.Spec.Guardrails = &v1beta1.GuardrailsSpec{
+		Enabled:      true,
+		ConfigMapRef: &v1beta1.ConfigMapReference{Name: "custom-guardrails"},
+	}
+
+	kubeClient := ctrlclientfake.NewClientBuilder().WithScheme(scheme).WithObjects(
+		&corev1.ConfigMap{
+			ObjectMeta: metav1.ObjectMeta{
+				Name:      "custom-guardrails",
+				Namespace: ragEngine.Namespace,
+			},
+			Data: map[string]string{v1beta1.GuardrailsPolicyFileName: "action: block\nscanners: []\n"},
+		},
+	).Build()
+
+	createdObject, err := CreatePresetRAG(context.TODO(), ragEngine, "1", kubeClient)
+	if err != nil {
+		t.Fatalf("CreatePresetRAG() unexpected error = %v", err)
+	}
+
+	deployment := createdObject.(*appsv1.Deployment)
+	if !hasConfigMapVolume(deployment.Spec.Template.Spec.Volumes, rag.GuardrailsPolicyVolumeName, "custom-guardrails") {
+		t.Fatalf("expected deployment to use custom guardrails ConfigMap")
+	}
+}
+
+func hasConfigMapVolume(volumes []corev1.Volume, volumeName, configMapName string) bool {
+	for _, volume := range volumes {
+		if volume.Name == volumeName && volume.ConfigMap != nil && volume.ConfigMap.Name == configMapName {
+			return true
+		}
+	}
+	return false
+}
+
+func hasVolumeMount(volumeMounts []corev1.VolumeMount, volumeName, mountPath string) bool {
+	for _, volumeMount := range volumeMounts {
+		if volumeMount.Name == volumeName && volumeMount.MountPath == mountPath {
+			return true
+		}
+	}
+	return false
+}

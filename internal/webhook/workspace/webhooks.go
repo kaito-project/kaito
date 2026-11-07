@@ -1,0 +1,116 @@
+// Copyright (c) KAITO authors.
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+package workspace
+
+import (
+	"context"
+
+	"k8s.io/apimachinery/pkg/runtime/schema"
+	"knative.dev/pkg/configmap"
+	"knative.dev/pkg/controller"
+	knativeinjection "knative.dev/pkg/injection"
+	"knative.dev/pkg/webhook/certificates"
+	"knative.dev/pkg/webhook/resourcesemantics"
+	"knative.dev/pkg/webhook/resourcesemantics/validation"
+
+	kaitov1alpha1 "github.com/kaito-project/kaito/api/v1alpha1"
+	kaitov1beta1 "github.com/kaito-project/kaito/api/v1beta1"
+	"github.com/kaito-project/kaito/pkg/featuregates"
+	"github.com/kaito-project/kaito/pkg/utils/consts"
+	inferencesetutil "github.com/kaito-project/kaito/pkg/utils/inferenceset"
+)
+
+// Wire the InferenceSet admission webhook to validate the child Workspace it
+// would create. Done here (not in api/v1beta1) to avoid an import cycle with the
+// util package that builds the Workspace.
+func init() {
+	kaitov1beta1.ValidateInferenceSetWorkspace = inferencesetutil.ValidateWorkspaceForInferenceSet
+}
+
+func NewControllerWebhooks() []knativeinjection.ControllerConstructor {
+	constructor := []knativeinjection.ControllerConstructor{
+		certificates.NewController,
+		NewWorkspaceCRDValidationWebhook,
+	}
+
+	if featuregates.FeatureGates[consts.FeatureFlagEnableInferenceSetController] {
+		constructor = append(constructor, NewInferenceSetCRDValidationWebhook)
+	}
+	if featuregates.FeatureGates[consts.FeatureFlagEnableMultiRoleInferenceController] {
+		constructor = append(constructor, NewMultiRoleInferenceCRDValidationWebhook)
+	}
+	if featuregates.FeatureGates[consts.FeatureFlagModelMirror] {
+		constructor = append(constructor, NewModelMirrorCRDValidationWebhook)
+	}
+
+	return constructor
+}
+
+func NewWorkspaceCRDValidationWebhook(ctx context.Context, _ configmap.Watcher) *controller.Impl {
+	return validation.NewAdmissionController(ctx,
+		"validation.workspace.kaito.sh",
+		"/validate/workspace.kaito.sh",
+		WorkspaceResources,
+		func(ctx context.Context) context.Context { return ctx },
+		true,
+	)
+}
+
+func NewInferenceSetCRDValidationWebhook(ctx context.Context, _ configmap.Watcher) *controller.Impl {
+	return validation.NewAdmissionController(ctx,
+		"validation.inferenceset.kaito.sh",
+		"/validate/inferenceset.kaito.sh",
+		InferenceSetResources,
+		func(ctx context.Context) context.Context { return ctx },
+		true,
+	)
+}
+
+func NewMultiRoleInferenceCRDValidationWebhook(ctx context.Context, _ configmap.Watcher) *controller.Impl {
+	return validation.NewAdmissionController(ctx,
+		"validation.multiroleinference.kaito.sh",
+		"/validate/multiroleinference.kaito.sh",
+		MultiRoleInferenceResources,
+		func(ctx context.Context) context.Context { return ctx },
+		true,
+	)
+}
+
+var WorkspaceResources = map[schema.GroupVersionKind]resourcesemantics.GenericCRD{
+	kaitov1alpha1.GroupVersion.WithKind("Workspace"): &kaitov1alpha1.Workspace{},
+	kaitov1beta1.GroupVersion.WithKind("Workspace"):  &kaitov1beta1.Workspace{},
+}
+
+var InferenceSetResources = map[schema.GroupVersionKind]resourcesemantics.GenericCRD{
+	kaitov1alpha1.GroupVersion.WithKind("InferenceSet"): &kaitov1alpha1.InferenceSet{},
+	kaitov1beta1.GroupVersion.WithKind("InferenceSet"):  &kaitov1beta1.InferenceSet{},
+}
+
+var MultiRoleInferenceResources = map[schema.GroupVersionKind]resourcesemantics.GenericCRD{
+	kaitov1alpha1.GroupVersion.WithKind("MultiRoleInference"): &kaitov1alpha1.MultiRoleInference{},
+}
+
+func NewModelMirrorCRDValidationWebhook(ctx context.Context, _ configmap.Watcher) *controller.Impl {
+	return validation.NewAdmissionController(ctx,
+		"validation.modelmirror.kaito.sh",
+		"/validate/modelmirror.kaito.sh",
+		ModelMirrorResources,
+		func(ctx context.Context) context.Context { return ctx },
+		true,
+	)
+}
+
+var ModelMirrorResources = map[schema.GroupVersionKind]resourcesemantics.GenericCRD{
+	kaitov1alpha1.GroupVersion.WithKind("ModelMirror"): &kaitov1alpha1.ModelMirror{},
+}

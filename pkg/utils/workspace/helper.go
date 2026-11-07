@@ -21,22 +21,22 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
 	kaitov1beta1 "github.com/kaito-project/kaito/api/v1beta1"
+	"github.com/kaito-project/kaito/pkg/catalog"
+	"github.com/kaito-project/kaito/pkg/estimator"
 	"github.com/kaito-project/kaito/pkg/featuregates"
 	pkgmodel "github.com/kaito-project/kaito/pkg/model"
 	"github.com/kaito-project/kaito/pkg/utils/consts"
 	"github.com/kaito-project/kaito/pkg/utils/plugin"
-	estimatorpkg "github.com/kaito-project/kaito/pkg/workspace/estimator"
-	"github.com/kaito-project/kaito/presets/workspace/models"
 )
 
 // NodeEstimateRequestFromWorkspace builds a NodeEstimateRequest from a Workspace object.
 // It fetches the HuggingFace access token from Kubernetes when ModelAccessSecret is set,
 // so the returned request carries the resolved token value rather than a secret reference.
 // This is a convenience helper for callers that already have a Workspace and a kube client.
-func NodeEstimateRequestFromWorkspace(ctx context.Context, w *kaitov1beta1.Workspace, kubeClient client.Client) (estimatorpkg.NodeEstimateRequest, error) {
-	req := estimatorpkg.NodeEstimateRequest{
+func NodeEstimateRequestFromWorkspace(ctx context.Context, w *kaitov1beta1.Workspace, kubeClient client.Client) (estimator.NodeEstimateRequest, error) {
+	req := estimator.NodeEstimateRequest{
 		WorkspaceName: w.Name,
-		ResourceProfile: estimatorpkg.ResourceProfile{
+		ResourceProfile: estimator.ResourceProfile{
 			InstanceType:                w.Resource.InstanceType,
 			LabelSelector:               w.Resource.LabelSelector,
 			DisableNodeAutoProvisioning: featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning],
@@ -58,9 +58,9 @@ func NodeEstimateRequestFromWorkspace(ctx context.Context, w *kaitov1beta1.Works
 	if w.Inference != nil && w.Inference.Preset != nil && w.Inference.Preset.Name != "" {
 		m, err := resolveModelForEstimation(ctx, w, kubeClient)
 		if err != nil {
-			return estimatorpkg.NodeEstimateRequest{}, err
+			return estimator.NodeEstimateRequest{}, err
 		}
-		req.ModelProfile = estimatorpkg.ModelProfile{Model: m}
+		req.ModelProfile = estimator.ModelProfile{Model: m}
 	}
 	return req, nil
 }
@@ -74,7 +74,7 @@ func NodeEstimateRequestFromWorkspace(ctx context.Context, w *kaitov1beta1.Works
 func resolveModelForEstimation(ctx context.Context, w *kaitov1beta1.Workspace, kubeClient client.Client) (pkgmodel.Model, error) {
 	name := string(w.Inference.Preset.Name)
 	if plugin.IsCustomPreset(name) {
-		resolved, err := models.ResolveCustomModel(ctx, kubeClient, w.Inference.Config, w.Namespace)
+		resolved, err := catalog.ResolveCustomModel(ctx, kubeClient, w.Inference.Config, w.Namespace)
 		if err != nil {
 			return nil, err
 		}
@@ -87,10 +87,10 @@ func resolveModelForEstimation(ctx context.Context, w *kaitov1beta1.Workspace, k
 	// which is outside the estimator's concern.
 	if strings.Contains(name, "/") {
 		var err error
-		token, err = models.GetHFTokenFromSecret(ctx, kubeClient, w.Inference.Preset.PresetOptions.ModelAccessSecret, w.Namespace)
+		token, err = catalog.GetHFTokenFromSecret(ctx, kubeClient, w.Inference.Preset.PresetOptions.ModelAccessSecret, w.Namespace)
 		if err != nil {
 			return nil, fmt.Errorf("failed to resolve access token for model %q: %w", name, err)
 		}
 	}
-	return models.GetModelByNameWithToken(ctx, name, token)
+	return catalog.GetModelByNameWithToken(ctx, name, token)
 }

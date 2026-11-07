@@ -24,9 +24,8 @@ builds:
     ldflags:
       - -s
       - -w
-      - -X {{.ModulePath}}/pkg/version.BuildTime={{.Date}}
-      - -X {{.ModulePath}}/pkg/version.BuildVersion={{.Tag}}
-      - -X {{.ModulePath}}/pkg/version.Vcs={{.ShortCommit}}
+      - -X {{.ModulePath}}/internal/version.BuildDate={{.Date}}
+      - -X {{.ModulePath}}/internal/version.Version={{.Tag}}
     env:
       - CGO_ENABLED=0
       - GO111MODULE=on

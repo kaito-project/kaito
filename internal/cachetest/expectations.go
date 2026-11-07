@@ -17,7 +17,7 @@ import (
 	"sort"
 	"sync"
 
-	"github.com/kaito-project/kaito/pkg/cache"
+	"github.com/kaito-project/kaito/internal/cache"
 )
 
 // MutationExpectation declares the provider-specific pod mutations expected for

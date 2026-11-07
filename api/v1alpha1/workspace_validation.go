@@ -144,7 +144,7 @@ func (w *Workspace) validateSpeculativeDecoding() (errs *apis.FieldError) {
 	// Any preset is accepted: presets registered in generator.speculativeDecodingByPreset
 	// get their preset-tuned config (e.g. mtp for DeepSeek R1/V3/V3.2); everything else
 	// falls back to the universal ngram default at pod-spec generation time
-	// (pkg/workspace/inference/preset_inferences.go applySpeculativeDecoding).
+	// (internal/inference/preset_inferences.go applySpeculativeDecoding).
 	// So there is no admission-time "preset must be in the supported list" gate.
 	//
 	// Current reachable methods in this PR are only preset-tuned mtp and the

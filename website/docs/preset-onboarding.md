@@ -11,4 +11,4 @@ This step is done by the requester. The requester should make a PR to describe t
 
 ## Step 2: Onboard model to KAITO's model catalog
 
-This step is done by KAITO maintainers. KAITO maintainers will onboard the targeted model following `presets/workspace/models/model_catalog.md`.
+This step is done by KAITO maintainers. KAITO maintainers will onboard the targeted model following `pkg/catalog/model_catalog.md`.

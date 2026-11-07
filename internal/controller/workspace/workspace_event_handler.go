@@ -1,0 +1,134 @@
+// Copyright (c) KAITO authors.
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+package workspace
+
+import (
+	"context"
+
+	"k8s.io/client-go/util/workqueue"
+	"k8s.io/klog/v2"
+	"sigs.k8s.io/controller-runtime/pkg/client"
+	"sigs.k8s.io/controller-runtime/pkg/event"
+	"sigs.k8s.io/controller-runtime/pkg/handler"
+	"sigs.k8s.io/controller-runtime/pkg/reconcile"
+	karpenterv1 "sigs.k8s.io/karpenter/pkg/apis/v1"
+
+	kaitov1beta1 "github.com/kaito-project/kaito/api/v1beta1"
+	"github.com/kaito-project/kaito/internal/inference/modelstreaming"
+	"github.com/kaito-project/kaito/pkg/utils"
+	"github.com/kaito-project/kaito/pkg/utils/consts"
+)
+
+type nodeClaimEventHandler struct {
+	enqueueHandler handler.TypedEventHandler[client.Object, reconcile.Request]
+	expectations   *utils.ControllerExpectations
+	logger         klog.Logger
+}
+
+var _ handler.TypedEventHandler[client.Object, reconcile.Request] = (*nodeClaimEventHandler)(nil)
+
+func getControllerKeyForNodeClaim(nc *karpenterv1.NodeClaim) *client.ObjectKey {
+	// Legacy gpu-provisioner path.
+	if name, ok := nc.Labels[kaitov1beta1.LabelWorkspaceName]; ok {
+		if namespace, ok := nc.Labels[kaitov1beta1.LabelWorkspaceNamespace]; ok {
+			return &client.ObjectKey{Namespace: namespace, Name: name}
+		}
+	}
+	// Karpenter path.
+	if name, ok := nc.Labels[consts.KarpenterWorkspaceNameKey]; ok {
+		if namespace, ok := nc.Labels[consts.KarpenterWorkspaceNamespaceKey]; ok {
+			return &client.ObjectKey{Namespace: namespace, Name: name}
+		}
+	}
+	return nil
+}
+
+func (n *nodeClaimEventHandler) Create(ctx context.Context, evt event.TypedCreateEvent[client.Object], q workqueue.TypedRateLimitingInterface[reconcile.Request]) {
+	nc := evt.Object.(*karpenterv1.NodeClaim)
+	if nc.DeletionTimestamp != nil {
+		n.Delete(ctx, event.TypedDeleteEvent[client.Object]{Object: nc}, q)
+		return
+	}
+	if key := getControllerKeyForNodeClaim(nc); key != nil {
+		n.expectations.CreationObserved(n.logger, key.String())
+		n.enqueueHandler.Create(ctx, evt, q)
+	}
+}
+
+func (n *nodeClaimEventHandler) Delete(ctx context.Context, evt event.TypedDeleteEvent[client.Object], q workqueue.TypedRateLimitingInterface[reconcile.Request]) {
+	nc := evt.Object.(*karpenterv1.NodeClaim)
+	if key := getControllerKeyForNodeClaim(nc); key != nil {
+		n.expectations.DeletionObserved(n.logger, key.String())
+	}
+
+	n.enqueueHandler.Delete(ctx, evt, q)
+}
+
+func (n *nodeClaimEventHandler) Generic(ctx context.Context, evt event.TypedGenericEvent[client.Object], q workqueue.TypedRateLimitingInterface[reconcile.Request]) {
+}
+
+func (n *nodeClaimEventHandler) Update(ctx context.Context, evt event.TypedUpdateEvent[client.Object], q workqueue.TypedRateLimitingInterface[reconcile.Request]) {
+	n.enqueueHandler.Update(ctx, evt, q)
+}
+
+var enqueueWorkspaceForNodeClaim = handler.EnqueueRequestsFromMapFunc(
+	func(ctx context.Context, o client.Object) []reconcile.Request {
+		nodeClaimObj := o.(*karpenterv1.NodeClaim)
+		key := getControllerKeyForNodeClaim(nodeClaimObj)
+		if key == nil {
+			return nil
+		}
+		return []reconcile.Request{
+			{
+				NamespacedName: *key,
+			},
+		}
+	})
+
+// enqueueWorkspacesForModelMirror returns a handler that enqueues the workspaces in the
+// changed CR's namespace whose expected ModelMirror CR name matches it.
+func enqueueWorkspacesForModelMirror(kubeClient client.Client) handler.EventHandler {
+	return handler.EnqueueRequestsFromMapFunc(
+		func(ctx context.Context, o client.Object) []reconcile.Request {
+			crName := o.GetName()
+
+			// A workspace only uses a mirror in its own namespace.
+			wsList := &kaitov1beta1.WorkspaceList{}
+			if err := kubeClient.List(ctx, wsList, client.InNamespace(o.GetNamespace())); err != nil {
+				klog.ErrorS(err, "failed to list workspaces for ModelMirror watch", "modelmirror", crName)
+				return nil
+			}
+
+			var requests []reconcile.Request
+			for i := range wsList.Items {
+				ws := &wsList.Items[i]
+				if ws.Inference == nil || ws.Inference.Preset == nil {
+					continue
+				}
+				// Skip workspaces that opt out of streaming (or when the gate is off):
+				// they never consume a ModelMirror CR, so a CR change is irrelevant to them.
+				if !modelstreaming.ModelStreamingEnabled(ws) {
+					continue
+				}
+				// Derive the expected CR name from the workspace's preset
+				expectedCR := modelstreaming.ModelMirrorCRName(modelstreaming.ResolveHFModelID(ws))
+				if expectedCR == crName {
+					requests = append(requests, reconcile.Request{
+						NamespacedName: client.ObjectKeyFromObject(ws),
+					})
+				}
+			}
+			return requests
+		})
+}

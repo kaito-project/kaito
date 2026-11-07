@@ -29,12 +29,12 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
 	kaitov1beta1 "github.com/kaito-project/kaito/api/v1beta1"
-	"github.com/kaito-project/kaito/pkg/utils/test"
+	"github.com/kaito-project/kaito/internal/testutil"
 )
 
 func TestUpdateWorkspaceStatus(t *testing.T) {
 	t.Run("Should successfully update workspace status", func(t *testing.T) {
-		mockClient := test.NewClient()
+		mockClient := testutil.NewClient()
 
 		workspace := &kaitov1beta1.Workspace{
 			ObjectMeta: metav1.ObjectMeta{
@@ -89,7 +89,7 @@ func TestUpdateWorkspaceStatus(t *testing.T) {
 	})
 
 	t.Run("Should handle workspace not found gracefully", func(t *testing.T) {
-		mockClient := test.NewClient()
+		mockClient := testutil.NewClient()
 
 		condition := &metav1.Condition{
 			Type:    string(kaitov1beta1.ConditionTypeResourceStatus),
@@ -116,7 +116,7 @@ func TestUpdateWorkspaceStatus(t *testing.T) {
 	})
 
 	t.Run("Should return error for other Get failures", func(t *testing.T) {
-		mockClient := test.NewClient()
+		mockClient := testutil.NewClient()
 
 		condition := &metav1.Condition{
 			Type:    string(kaitov1beta1.ConditionTypeResourceStatus),
@@ -143,7 +143,7 @@ func TestUpdateWorkspaceStatus(t *testing.T) {
 	})
 
 	t.Run("Should handle nil condition", func(t *testing.T) {
-		mockClient := test.NewClient()
+		mockClient := testutil.NewClient()
 
 		workspace := &kaitov1beta1.Workspace{
 			ObjectMeta: metav1.ObjectMeta{
@@ -177,7 +177,7 @@ func TestUpdateWorkspaceStatus(t *testing.T) {
 	})
 
 	t.Run("Should retry on retryable errors", func(t *testing.T) {
-		mockClient := test.NewClient()
+		mockClient := testutil.NewClient()
 
 		workspace := &kaitov1beta1.Workspace{
 			ObjectMeta: metav1.ObjectMeta{
@@ -225,7 +225,7 @@ func TestUpdateWorkspaceStatus(t *testing.T) {
 	})
 
 	t.Run("Should return error for non-retryable status update failures", func(t *testing.T) {
-		mockClient := test.NewClient()
+		mockClient := testutil.NewClient()
 
 		workspace := &kaitov1beta1.Workspace{
 			ObjectMeta: metav1.ObjectMeta{

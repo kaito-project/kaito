@@ -35,17 +35,17 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client/interceptor"
 
 	kaitov1beta1 "github.com/kaito-project/kaito/api/v1beta1"
+	"github.com/kaito-project/kaito/internal/testutil"
 	"github.com/kaito-project/kaito/pkg/featuregates"
 	"github.com/kaito-project/kaito/pkg/k8sclient"
 	mmconsts "github.com/kaito-project/kaito/pkg/modelmirror/consts"
 	"github.com/kaito-project/kaito/pkg/utils/consts"
 	"github.com/kaito-project/kaito/pkg/utils/plugin"
-	"github.com/kaito-project/kaito/pkg/utils/test"
 )
 
 func TestUpdateStatusConditionIfNotMatch(t *testing.T) {
 	t.Run("Should skip update when condition matches current values", func(t *testing.T) {
-		mockClient := test.NewClient()
+		mockClient := testutil.NewClient()
 
 		inferenceset := &kaitov1beta1.InferenceSet{
 			ObjectMeta: metav1.ObjectMeta{
@@ -76,7 +76,7 @@ func TestUpdateStatusConditionIfNotMatch(t *testing.T) {
 	})
 
 	t.Run("Should update when observedGeneration differs", func(t *testing.T) {
-		mockClient := test.NewClient()
+		mockClient := testutil.NewClient()
 
 		inferenceset := &kaitov1beta1.InferenceSet{
 			ObjectMeta: metav1.ObjectMeta{
@@ -125,7 +125,7 @@ func TestUpdateStatusConditionIfNotMatch(t *testing.T) {
 	})
 
 	t.Run("Should update when condition status differs", func(t *testing.T) {
-		mockClient := test.NewClient()
+		mockClient := testutil.NewClient()
 
 		inferenceset := &kaitov1beta1.InferenceSet{
 			ObjectMeta: metav1.ObjectMeta{
@@ -175,7 +175,7 @@ func TestUpdateStatusConditionIfNotMatch(t *testing.T) {
 	})
 
 	t.Run("Should update when condition reason differs", func(t *testing.T) {
-		mockClient := test.NewClient()
+		mockClient := testutil.NewClient()
 
 		inferenceset := &kaitov1beta1.InferenceSet{
 			ObjectMeta: metav1.ObjectMeta{
@@ -217,7 +217,7 @@ func TestUpdateStatusConditionIfNotMatch(t *testing.T) {
 	})
 
 	t.Run("Should update when condition message differs", func(t *testing.T) {
-		mockClient := test.NewClient()
+		mockClient := testutil.NewClient()
 
 		inferenceset := &kaitov1beta1.InferenceSet{
 			ObjectMeta: metav1.ObjectMeta{
@@ -259,7 +259,7 @@ func TestUpdateStatusConditionIfNotMatch(t *testing.T) {
 	})
 
 	t.Run("Should add new condition when condition type doesn't exist", func(t *testing.T) {
-		mockClient := test.NewClient()
+		mockClient := testutil.NewClient()
 
 		inferenceset := &kaitov1beta1.InferenceSet{
 			ObjectMeta: metav1.ObjectMeta{
@@ -302,7 +302,7 @@ func TestUpdateStatusConditionIfNotMatch(t *testing.T) {
 	})
 
 	t.Run("Should propagate error from UpdateInferenceSetStatus", func(t *testing.T) {
-		mockClient := test.NewClient()
+		mockClient := testutil.NewClient()
 
 		inferenceset := &kaitov1beta1.InferenceSet{
 			ObjectMeta: metav1.ObjectMeta{
@@ -339,7 +339,7 @@ func TestUpdateStatusConditionIfNotMatch(t *testing.T) {
 
 func TestUpdateInferenceSetStatus(t *testing.T) {
 	t.Run("Should successfully update inferenceset status", func(t *testing.T) {
-		mockClient := test.NewClient()
+		mockClient := testutil.NewClient()
 
 		inferenceset := &kaitov1beta1.InferenceSet{
 			ObjectMeta: metav1.ObjectMeta{
@@ -394,7 +394,7 @@ func TestUpdateInferenceSetStatus(t *testing.T) {
 	})
 
 	t.Run("Should handle inferenceset not found gracefully", func(t *testing.T) {
-		mockClient := test.NewClient()
+		mockClient := testutil.NewClient()
 
 		condition := &metav1.Condition{
 			Type:    string(kaitov1beta1.ConditionTypeResourceStatus),
@@ -421,7 +421,7 @@ func TestUpdateInferenceSetStatus(t *testing.T) {
 	})
 
 	t.Run("Should return error for other Get failures", func(t *testing.T) {
-		mockClient := test.NewClient()
+		mockClient := testutil.NewClient()
 
 		condition := &metav1.Condition{
 			Type:    string(kaitov1beta1.ConditionTypeResourceStatus),
@@ -448,7 +448,7 @@ func TestUpdateInferenceSetStatus(t *testing.T) {
 	})
 
 	t.Run("Should handle nil condition", func(t *testing.T) {
-		mockClient := test.NewClient()
+		mockClient := testutil.NewClient()
 
 		inferenceset := &kaitov1beta1.InferenceSet{
 			ObjectMeta: metav1.ObjectMeta{
@@ -482,7 +482,7 @@ func TestUpdateInferenceSetStatus(t *testing.T) {
 	})
 
 	t.Run("Should retry on retryable errors", func(t *testing.T) {
-		mockClient := test.NewClient()
+		mockClient := testutil.NewClient()
 
 		inferenceset := &kaitov1beta1.InferenceSet{
 			ObjectMeta: metav1.ObjectMeta{
@@ -530,7 +530,7 @@ func TestUpdateInferenceSetStatus(t *testing.T) {
 	})
 
 	t.Run("Should return error for non-retryable status update failures", func(t *testing.T) {
-		mockClient := test.NewClient()
+		mockClient := testutil.NewClient()
 
 		inferenceset := &kaitov1beta1.InferenceSet{
 			ObjectMeta: metav1.ObjectMeta{
@@ -1547,7 +1547,7 @@ func TestValidateWorkspaceForInferenceSet_NAPDoesNotPanicOnNilCount(t *testing.T
 // CPU detection must inspect the same nodes as the generated Workspace, not
 // similarly labeled nodes selected by the InferenceSet's Workspace selector.
 func TestNewWorkspaceForInferenceSetCPUSelectorConsistency(t *testing.T) {
-	test.RegisterTestModel()
+	testutil.RegisterTestModel()
 	oldBYO := featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning]
 	t.Cleanup(func() {
 		featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning] = oldBYO
@@ -1565,7 +1565,7 @@ func TestNewWorkspaceForInferenceSetCPUSelectorConsistency(t *testing.T) {
 		{name: "BYO empty selector does not inherit Workspace labels", nodeSelector: &metav1.LabelSelector{}},
 	} {
 		t.Run(tt.name, func(t *testing.T) {
-			iObj := test.MockInferenceSetWithPresetVLLM.DeepCopy()
+			iObj := testutil.MockInferenceSetWithPresetVLLM.DeepCopy()
 			iObj.Spec.Template.Resource.InstanceType = ""
 			iObj.Spec.Selector = &metav1.LabelSelector{MatchLabels: map[string]string{"app": "workspaces"}}
 			iObj.Spec.Template.Resource.LabelSelector = tt.nodeSelector

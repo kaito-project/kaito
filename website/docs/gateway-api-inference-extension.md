@@ -69,11 +69,35 @@ When you create an InferenceSet, the KAITO InferenceSet controller will:
 1) Create or update two Flux resources in the InferenceSet namespace:
    - [OCIRepository](https://fluxcd.io/flux/components/source/ocirepositories/): points to the llm-d-router-gateway Helm chart
      - URL: `oci://ghcr.io/llm-d/charts/llm-d-router-gateway`
-     - Version: `v0.9.0` (pinned by KAITO; may be updated or made configurable in future releases)
+     - Version: `v0.9.0` (pinned by KAITO; see [Using a private mirror](#using-a-private-mirror) to override)
    - [HelmRelease](https://fluxcd.io/flux/components/helm/helmreleases/): references the OCIRepository and applies values to deploy the InferencePool and EPP. The EPP image is pinned to [`mcr.microsoft.com/oss/v2/llm-d/llm-d-router-endpoint-picker:v0.9.0`](https://github.com/llm-d/llm-d-router) to match the chart version.
 2) Wait for Flux resources to become Ready
 
 You can inspect these resources with kubectl in the InferenceSet namespace. Updates to the InferenceSet will reconcile these resources.
+
+### Using a private mirror
+
+In clusters without access to `ghcr.io` or `mcr.microsoft.com`, mirror the chart and EPP image into your own registry (for example Artifactory, ACR, ECR, or Harbor) and point KAITO at the mirror. Each value is optional; an unset value keeps the default shown above. The values only take effect when `featureGates.gatewayAPIInferenceExtension=true`, and they also apply to the InferencePool that the MultiRoleInference controller creates.
+
+```bash
+helm upgrade --install kaito-workspace kaito/workspace \
+  --namespace kaito-workspace \
+  --set featureGates.gatewayAPIInferenceExtension=true \
+  --set gatewayAPIInferenceExtension.inferencePool.chart.url=oci://myregistry.example.com/llm-d/charts/llm-d-router-gateway \
+  --set gatewayAPIInferenceExtension.inferencePool.chart.version=v0.9.0 \
+  --set gatewayAPIInferenceExtension.epp.image.registry=myregistry.example.com/llm-d \
+  --set gatewayAPIInferenceExtension.epp.image.repository=llm-d-router-endpoint-picker \
+  --set gatewayAPIInferenceExtension.epp.image.tag=v0.9.0
+```
+
+Before changing these values, mirror both artifacts and confirm they resolve, for example with `crane manifest myregistry.example.com/llm-d/charts/llm-d-router-gateway:v0.9.0` and `crane manifest myregistry.example.com/llm-d/llm-d-router-endpoint-picker:v0.9.0`. A change rewrites every InferencePool HelmRelease at once, and the EPP Deployment uses the `Recreate` strategy, so a missing chart or image takes routing down until it is fixed.
+
+Authentication works differently for the two artifacts:
+
+- **Chart:** Flux source-controller pulls the chart, not the kubelet, so node credentials (such as an ACR attached to AKS) do not apply. The chart registry must allow anonymous pulls, or you can set `gatewayAPIInferenceExtension.inferencePool.chart.provider` to `aws`, `azure`, or `gcp` and give source-controller workload identity access to the registry. `generic` (the default) pulls anonymously. Static credentials (`secretRef`), custom CAs (`certSecretRef`), and plain-HTTP registries are not supported yet.
+- **EPP image:** the kubelet pulls it, so node-level registry credentials apply. The chart has no `imagePullSecrets` value, so pull secrets cannot be set on the EPP pod.
+
+The chart URL must start with `oci://` and must not include a tag. The chart version and EPP tag must be plain tags: digests are not supported because the chart composes the image as `{registry}/{repository}:{tag}`. Helm stores a `+` in chart versions as `_` in OCI tags, so use `_` here. The controller fails at startup if a value is invalid. Keep the EPP image version matched to the chart version. The Flux controller images are set with the `flux2.*` chart values. The `llm-d-routing-sidecar` image used by decode pods in [prefill/decode disaggregation](prefill-decode-disaggregation.md) is not covered by these values.
 
 ## Quickstart
 

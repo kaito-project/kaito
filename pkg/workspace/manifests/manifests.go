@@ -33,6 +33,7 @@ import (
 
 	kaitov1alpha1 "github.com/kaito-project/kaito/api/v1alpha1"
 	kaitov1beta1 "github.com/kaito-project/kaito/api/v1beta1"
+	"github.com/kaito-project/kaito/internal/inferencepool"
 	"github.com/kaito-project/kaito/pkg/featuregates"
 	pkgmodel "github.com/kaito-project/kaito/pkg/model"
 	"github.com/kaito-project/kaito/pkg/utils"
@@ -359,7 +360,7 @@ func GenerateManifestWithPodTemplate(workspaceObj *kaitov1beta1.Workspace, toler
 }
 
 // GenerateInferencePoolOCIRepository generates a Flux OCIRepository for the inference pool.
-func GenerateInferencePoolOCIRepository(inferenceSetObj *kaitov1beta1.InferenceSet) *sourcev1.OCIRepository {
+func GenerateInferencePoolOCIRepository(inferenceSetObj *kaitov1beta1.InferenceSet, sources inferencepool.Sources) *sourcev1.OCIRepository {
 	return &sourcev1.OCIRepository{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      utils.InferencePoolName(inferenceSetObj.Name),
@@ -369,11 +370,12 @@ func GenerateInferencePoolOCIRepository(inferenceSetObj *kaitov1beta1.InferenceS
 			},
 		},
 		Spec: sourcev1.OCIRepositorySpec{
-			// Chart source for llm-d router gateway;
-			// keep in sync with consts.InferencePoolChartVersion when upgrading.
-			URL: consts.InferencePoolChartURL,
+			// Chart source for llm-d router gateway; defaults to
+			// consts.InferencePoolChartURL and consts.InferencePoolChartVersion.
+			URL:      sources.ChartURL,
+			Provider: sources.OCIRepositoryProvider(),
 			Reference: &sourcev1.OCIRepositoryRef{
-				Tag: consts.InferencePoolChartVersion,
+				Tag: sources.ChartVersion,
 			},
 		},
 	}
@@ -387,7 +389,7 @@ func inferencePoolTargetPort() int32 {
 }
 
 // GenerateInferencePoolHelmRelease generates a Flux HelmRelease for the inference pool.
-func GenerateInferencePoolHelmRelease(inferenceSetObj *kaitov1beta1.InferenceSet) (*helmv2.HelmRelease, error) {
+func GenerateInferencePoolHelmRelease(inferenceSetObj *kaitov1beta1.InferenceSet, sources inferencepool.Sources) (*helmv2.HelmRelease, error) {
 	inferencePoolName := utils.InferencePoolName(inferenceSetObj.Name)
 	// llm-d-router-gateway v0.9.0 has no value for extending EPP pod labels.
 	eppPodLabelPatch, err := json.Marshal([]map[string]string{{
@@ -414,9 +416,9 @@ func GenerateInferencePoolHelmRelease(inferenceSetObj *kaitov1beta1.InferenceSet
 		"router": map[string]any{
 			"epp": map[string]any{
 				"image": map[string]string{
-					"registry":   consts.EPPImageRegistry,
-					"repository": consts.EPPImageRepository,
-					"tag":        consts.EPPImageTag,
+					"registry":   sources.EPPImageRegistry,
+					"repository": sources.EPPImageRepository,
+					"tag":        sources.EPPImageTag,
 					"pullPolicy": string(corev1.PullIfNotPresent),
 				},
 				"resources": map[string]any{

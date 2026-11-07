@@ -57,6 +57,24 @@ modelMirrorDownloadCPU: ""
 modelMirrorDownloadMemory: ""
 modelMirrorDownloadCPULimit: ""
 modelMirrorDownloadMemoryLimit: ""
+# Sources for the InferencePool chart and EPP image that KAITO deploys through Flux
+# when featureGates.gatewayAPIInferenceExtension is true. Empty uses the controller
+# defaults (oci://ghcr.io/llm-d/charts/llm-d-router-gateway:v0.9.0 and
+# mcr.microsoft.com/oss/v2/llm-d/llm-d-router-endpoint-picker:v0.9.0). Set these to
+# use a private mirror.
+gatewayAPIInferenceExtension:
+  inferencePool:
+    chart:
+      url: ""
+      version: ""
+      # Flux OCIRepository provider for registry authentication through workload
+      # identity: generic (anonymous), aws, azure or gcp. Empty uses generic.
+      provider: ""
+  epp:
+    image:
+      registry: ""
+      repository: ""
+      tag: ""
 defaultNodeImageFamily: ""
 nodeProvisioner: "azure-gpu-provisioner"
 karpenterProvider: "azure"

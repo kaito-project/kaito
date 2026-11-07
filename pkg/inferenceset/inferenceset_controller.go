@@ -44,6 +44,7 @@ import (
 
 	kaitov1alpha1 "github.com/kaito-project/kaito/api/v1alpha1"
 	kaitov1beta1 "github.com/kaito-project/kaito/api/v1beta1"
+	"github.com/kaito-project/kaito/internal/inferencepool"
 	"github.com/kaito-project/kaito/pkg/featuregates"
 	pkgmodel "github.com/kaito-project/kaito/pkg/model"
 	"github.com/kaito-project/kaito/pkg/utils"
@@ -69,11 +70,14 @@ type InferenceSetReconciler struct {
 	Scheme   *runtime.Scheme
 	Recorder record.EventRecorder
 
+	// InferencePoolSources is the chart source and EPP image for generated InferencePool resources.
+	InferencePoolSources inferencepool.Sources
+
 	klogger      klog.Logger
 	expectations *utils.ControllerExpectations
 }
 
-func NewInferenceSetReconciler(client client.Client, scheme *runtime.Scheme, log logr.Logger, Recorder record.EventRecorder) *InferenceSetReconciler {
+func NewInferenceSetReconciler(client client.Client, scheme *runtime.Scheme, log logr.Logger, Recorder record.EventRecorder, inferencePoolSources inferencepool.Sources) *InferenceSetReconciler {
 	expectations := utils.NewControllerExpectations()
 	return &InferenceSetReconciler{
 		Client:       client,
@@ -82,6 +86,8 @@ func NewInferenceSetReconciler(client client.Client, scheme *runtime.Scheme, log
 		klogger:      klog.NewKlogr().WithName("InferenceSetController"),
 		Recorder:     Recorder,
 		expectations: expectations,
+
+		InferencePoolSources: inferencePoolSources,
 	}
 }
 
@@ -692,8 +698,8 @@ func (c *InferenceSetReconciler) ensureGatewayAPIInferenceExtension(ctx context.
 		}
 	}
 
-	ociRepository := manifests.GenerateInferencePoolOCIRepository(iObj)
-	helmRelease, err := manifests.GenerateInferencePoolHelmRelease(iObj)
+	ociRepository := manifests.GenerateInferencePoolOCIRepository(iObj, c.InferencePoolSources)
+	helmRelease, err := manifests.GenerateInferencePoolHelmRelease(iObj, c.InferencePoolSources)
 	if err != nil {
 		return err
 	}

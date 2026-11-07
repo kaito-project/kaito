@@ -41,6 +41,7 @@ import (
 
 	kaitov1alpha1 "github.com/kaito-project/kaito/api/v1alpha1"
 	kaitov1beta1 "github.com/kaito-project/kaito/api/v1beta1"
+	"github.com/kaito-project/kaito/internal/inferencepool"
 	"github.com/kaito-project/kaito/pkg/utils"
 	"github.com/kaito-project/kaito/pkg/utils/consts"
 )
@@ -60,16 +61,19 @@ type MultiRoleInferenceReconciler struct {
 	Scheme                       *runtime.Scheme
 	Recorder                     record.EventRecorder
 	EnableGatewayAPIInferenceExt bool
+	// InferencePoolSources is the chart source and EPP image for generated InferencePool resources.
+	InferencePoolSources inferencepool.Sources
 }
 
 // NewMultiRoleInferenceReconciler creates a new reconciler.
-func NewMultiRoleInferenceReconciler(client client.Client, scheme *runtime.Scheme, log logr.Logger, recorder record.EventRecorder, enableGWIE bool) *MultiRoleInferenceReconciler {
+func NewMultiRoleInferenceReconciler(client client.Client, scheme *runtime.Scheme, log logr.Logger, recorder record.EventRecorder, enableGWIE bool, inferencePoolSources inferencepool.Sources) *MultiRoleInferenceReconciler {
 	return &MultiRoleInferenceReconciler{
 		Client:                       client,
 		Scheme:                       scheme,
 		Log:                          log,
 		Recorder:                     recorder,
 		EnableGatewayAPIInferenceExt: enableGWIE,
+		InferencePoolSources:         inferencePoolSources,
 	}
 }
 
@@ -606,10 +610,11 @@ func (r *MultiRoleInferenceReconciler) reconcileInferencePool(
 			return err
 		}
 		ociRepo.Spec = sourcev1.OCIRepositorySpec{
-			URL:      consts.InferencePoolChartURL,
+			URL:      r.InferencePoolSources.ChartURL,
+			Provider: r.InferencePoolSources.OCIRepositoryProvider(),
 			Interval: metav1.Duration{Duration: 10 * time.Minute},
 			Reference: &sourcev1.OCIRepositoryRef{
-				Tag: consts.InferencePoolChartVersion,
+				Tag: r.InferencePoolSources.ChartVersion,
 			},
 		}
 		return nil
@@ -636,9 +641,9 @@ func (r *MultiRoleInferenceReconciler) reconcileInferencePool(
 	// Build EPP extension values with llm-d image and P/D plugins config.
 	eppValues := map[string]any{
 		"image": map[string]string{
-			"registry":   consts.EPPImageRegistry,
-			"repository": consts.EPPImageRepository,
-			"tag":        consts.EPPImageTag,
+			"registry":   r.InferencePoolSources.EPPImageRegistry,
+			"repository": r.InferencePoolSources.EPPImageRepository,
+			"tag":        r.InferencePoolSources.EPPImageTag,
 			"pullPolicy": string(corev1.PullIfNotPresent),
 		},
 	}

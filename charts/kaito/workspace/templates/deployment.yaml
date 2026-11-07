@@ -57,6 +57,25 @@ spec:
             {{- if .Values.modelMirrorDownloadMemoryLimit }}
             - --model-mirror-download-memory-limit={{ .Values.modelMirrorDownloadMemoryLimit }}
             {{- end }}
+            {{- $gwie := .Values.gatewayAPIInferenceExtension | default dict }}
+            {{- with dig "inferencePool" "chart" "url" "" $gwie }}
+            - --inference-pool-chart-url={{ . }}
+            {{- end }}
+            {{- with dig "inferencePool" "chart" "version" "" $gwie }}
+            - --inference-pool-chart-version={{ . }}
+            {{- end }}
+            {{- with dig "inferencePool" "chart" "provider" "" $gwie }}
+            - --inference-pool-chart-provider={{ . }}
+            {{- end }}
+            {{- with dig "epp" "image" "registry" "" $gwie }}
+            - --epp-image-registry={{ . }}
+            {{- end }}
+            {{- with dig "epp" "image" "repository" "" $gwie }}
+            - --epp-image-repository={{ . }}
+            {{- end }}
+            {{- with dig "epp" "image" "tag" "" $gwie }}
+            - --epp-image-tag={{ . }}
+            {{- end }}
             {{- if .Values.defaultNodeImageFamily }}
             - --default-node-image-family={{ .Values.defaultNodeImageFamily }}
             {{- end }}

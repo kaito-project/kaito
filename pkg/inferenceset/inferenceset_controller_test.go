@@ -42,6 +42,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client/fake"
 
 	"github.com/kaito-project/kaito/api/v1beta1"
+	"github.com/kaito-project/kaito/internal/inferencepool"
 	"github.com/kaito-project/kaito/pkg/cache"
 	"github.com/kaito-project/kaito/pkg/featuregates"
 	"github.com/kaito-project/kaito/pkg/model"
@@ -354,11 +355,11 @@ func TestEnsureGatewayAPIInferenceExtension(t *testing.T) {
 				c.On("Get", mock.Anything, mock.Anything, mock.IsType(&sourcev1.OCIRepository{}), mock.Anything).Return(nil)
 				c.On("Get", mock.Anything, mock.Anything, mock.IsType(&helmv2.HelmRelease{}), mock.Anything).Return(nil)
 
-				ociRepository := manifests.GenerateInferencePoolOCIRepository(test.MockInferenceSetWithPresetVLLM)
+				ociRepository := manifests.GenerateInferencePoolOCIRepository(test.MockInferenceSetWithPresetVLLM, inferencepool.DefaultSources())
 				ociRepository.Status.Conditions = []v1.Condition{{Type: consts.ConditionReady, Status: v1.ConditionTrue}}
 				c.CreateOrUpdateObjectInMap(ociRepository)
 
-				helmRelease, _ := manifests.GenerateInferencePoolHelmRelease(test.MockInferenceSetWithPresetVLLM)
+				helmRelease, _ := manifests.GenerateInferencePoolHelmRelease(test.MockInferenceSetWithPresetVLLM, inferencepool.DefaultSources())
 				helmRelease.Status.Conditions = []v1.Condition{{Type: consts.ConditionReady, Status: v1.ConditionTrue}}
 				c.CreateOrUpdateObjectInMap(helmRelease)
 
@@ -405,7 +406,7 @@ func TestEnsureGatewayAPIInferenceExtension(t *testing.T) {
 				tc.callMocks(mockClient)
 			}
 
-			reconciler := &InferenceSetReconciler{Client: mockClient}
+			reconciler := &InferenceSetReconciler{Client: mockClient, InferencePoolSources: inferencepool.DefaultSources()}
 			err := reconciler.ensureGatewayAPIInferenceExtension(context.Background(), iObj)
 			if tc.expectedError != nil {
 				assert.ErrorContains(t, err, tc.expectedError.Error())
@@ -698,7 +699,7 @@ func TestInferenceSetScaleFromZeroRetriesPendingExpectations(t *testing.T) {
 		WithStatusSubresource(inferenceSet).
 		WithObjects(inferenceSet, workspace).
 		Build()
-	reconciler := NewInferenceSetReconciler(cl, scheme, logr.Discard(), nil)
+	reconciler := NewInferenceSetReconciler(cl, scheme, logr.Discard(), nil, inferencepool.DefaultSources())
 	isKey := client.ObjectKeyFromObject(inferenceSet).String()
 
 	// Scale down and intentionally do not report the Workspace deletion event.
@@ -754,7 +755,7 @@ func TestInferenceSetReadyIgnoresDeletingWorkspaces(t *testing.T) {
 	assert.NoError(t, v1beta1.AddToScheme(scheme))
 	assert.NoError(t, appsv1.AddToScheme(scheme))
 	cl := fake.NewClientBuilder().WithScheme(scheme).WithStatusSubresource(inferenceSet).WithObjects(objs...).Build()
-	reconciler := NewInferenceSetReconciler(cl, scheme, logr.Discard(), nil)
+	reconciler := NewInferenceSetReconciler(cl, scheme, logr.Discard(), nil, inferencepool.DefaultSources())
 
 	_, err := reconciler.addOrUpdateInferenceSet(ctx, inferenceSet)
 	assert.NoError(t, err)
@@ -1164,7 +1165,7 @@ func TestAddOrUpdateInferenceSet_PropagatesCacheAnnotationToWorkspace(t *testing
 	mockClient.On("Get", mock.Anything, mock.Anything, mock.IsType(&v1beta1.InferenceSet{}), mock.Anything).Return(nil)
 	mockClient.StatusMock.On("Update", mock.Anything, mock.IsType(&v1beta1.InferenceSet{}), mock.Anything).Return(nil)
 
-	reconciler := NewInferenceSetReconciler(mockClient, test.NewTestScheme(), logr.Discard(), record.NewFakeRecorder(4))
+	reconciler := NewInferenceSetReconciler(mockClient, test.NewTestScheme(), logr.Discard(), record.NewFakeRecorder(4), inferencepool.DefaultSources())
 	_, err := reconciler.addOrUpdateInferenceSet(context.Background(), iObj)
 	assert.NoError(t, err)
 
@@ -1225,4 +1226,57 @@ func TestEnsureGatewayAPIInferenceExtensionDeclaredCPU(t *testing.T) {
 	c.AssertExpectations(t)
 	c.AssertNotCalled(t, "List", mock.Anything, mock.IsType(&corev1.NodeList{}), mock.Anything)
 	c.AssertNotCalled(t, "Create", mock.Anything, mock.Anything, mock.Anything)
+}
+
+func TestEnsureGatewayAPIInferenceExtensionUsesInferencePoolSources(t *testing.T) {
+	original := featuregates.FeatureGates[consts.FeatureFlagGatewayAPIInferenceExtension]
+	featuregates.FeatureGates[consts.FeatureFlagGatewayAPIInferenceExtension] = true
+	defer func() { featuregates.FeatureGates[consts.FeatureFlagGatewayAPIInferenceExtension] = original }()
+
+	ctx := context.Background()
+	iObj := test.MockInferenceSetWithPresetVLLM.DeepCopy()
+	ws := test.MockWorkspaceWithPresetVLLM.DeepCopy()
+	ws.Labels = map[string]string{consts.WorkspaceCreatedByInferenceSetLabel: iObj.Name}
+
+	// Seed ready resources rendered from the defaults; the reconciler must
+	// rewrite their specs to the configured sources.
+	ready := []v1.Condition{{Type: consts.ConditionReady, Status: v1.ConditionTrue}}
+	ociRepo := manifests.GenerateInferencePoolOCIRepository(iObj, inferencepool.DefaultSources())
+	ociRepo.Status.Conditions = ready
+	helmRelease, err := manifests.GenerateInferencePoolHelmRelease(iObj, inferencepool.DefaultSources())
+	require.NoError(t, err)
+	helmRelease.Status.Conditions = ready
+
+	scheme := runtime.NewScheme()
+	require.NoError(t, v1beta1.AddToScheme(scheme))
+	require.NoError(t, sourcev1.AddToScheme(scheme))
+	require.NoError(t, helmv2.AddToScheme(scheme))
+	cl := fake.NewClientBuilder().WithScheme(scheme).WithObjects(iObj, ws, ociRepo, helmRelease).Build()
+
+	sources := inferencepool.Sources{
+		ChartURL:           "oci://mirror.example.com/charts/llm-d-router-gateway",
+		ChartVersion:       "v0.9.1",
+		ChartProvider:      "azure",
+		EPPImageRegistry:   "mirror.example.com/llm-d",
+		EPPImageRepository: "mirrored-epp",
+		EPPImageTag:        "v0.9.1-mirror",
+	}
+	reconciler := NewInferenceSetReconciler(cl, scheme, logr.Discard(), nil, sources)
+	require.NoError(t, reconciler.ensureGatewayAPIInferenceExtension(ctx, iObj))
+
+	gotRepo := &sourcev1.OCIRepository{}
+	require.NoError(t, cl.Get(ctx, client.ObjectKeyFromObject(ociRepo), gotRepo))
+	assert.Equal(t, sources.ChartURL, gotRepo.Spec.URL)
+	assert.Equal(t, "azure", gotRepo.Spec.Provider)
+	require.NotNil(t, gotRepo.Spec.Reference)
+	assert.Equal(t, sources.ChartVersion, gotRepo.Spec.Reference.Tag)
+
+	gotRelease := &helmv2.HelmRelease{}
+	require.NoError(t, cl.Get(ctx, client.ObjectKeyFromObject(helmRelease), gotRelease))
+	values := map[string]any{}
+	require.NoError(t, json.Unmarshal(gotRelease.Spec.Values.Raw, &values))
+	image := values["router"].(map[string]any)["epp"].(map[string]any)["image"].(map[string]any)
+	assert.Equal(t, sources.EPPImageRegistry, image["registry"])
+	assert.Equal(t, sources.EPPImageRepository, image["repository"])
+	assert.Equal(t, sources.EPPImageTag, image["tag"])
 }

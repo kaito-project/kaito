@@ -51,7 +51,7 @@ When you create a MultiRoleInference resource, KAITO will:
 1. Provision separate pod groups for each role (prefill and decode) via child InferenceSets
 2. **Inject a routing sidecar** into decode pods — the [`llm-d-routing-sidecar`](https://github.com/llm-d/llm-d-routing-sidecar) container is automatically injected, listening on port 5000 and proxying to vLLM on port 5001
 3. **Set `VLLM_NIXL_SIDE_CHANNEL_HOST`** to the Pod IP on both prefill and decode pods, enabling cross-pod KV cache transfer via vLLM's NIXL connector
-4. Create a single InferencePool with an EPP (Endpoint Picker) deployment that uses llm-d scheduling plugins for P/D-aware routing
+4. Create a single InferencePool with an EPP (Endpoint Picker) deployment that uses llm-d scheduling plugins for P/D-aware routing. The chart and EPP image can be pulled from a private mirror; see [Using a private mirror](gateway-api-inference-extension.md#using-a-private-mirror)
 5. The EPP uses scheduling profiles (`prefill` and `decode`) with a `prefix-based-pd-decider` plugin to decide which role handles each request
 
 ### Port Architecture

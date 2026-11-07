@@ -47,6 +47,7 @@ import (
 
 	kaitov1alpha1 "github.com/kaito-project/kaito/api/v1alpha1"
 	kaitov1beta1 "github.com/kaito-project/kaito/api/v1beta1"
+	"github.com/kaito-project/kaito/internal/inferencepool"
 	"github.com/kaito-project/kaito/pkg/cache"
 	autoupgrade "github.com/kaito-project/kaito/pkg/controllers/autoupgrade"
 	drift "github.com/kaito-project/kaito/pkg/controllers/drift"
@@ -120,6 +121,12 @@ func main() {
 	var modelMirrorDownloadMemory string
 	var modelMirrorDownloadCPULimit string
 	var modelMirrorDownloadMemoryLimit string
+	var inferencePoolChartURL string
+	var inferencePoolChartVersion string
+	var inferencePoolChartProvider string
+	var eppImageRegistry string
+	var eppImageRepository string
+	var eppImageTag string
 	flag.StringVar(&metricsAddr, "metrics-bind-address", ":8080", "The address the metric endpoint binds to.")
 	flag.StringVar(&probeAddr, "health-probe-bind-address", ":8081", "The address the probe endpoint binds to.")
 	flag.IntVar(&kubeClientQPS, "kube-client-qps", kubeClientQPS, "the rate of qps to kube-apiserver.")
@@ -144,6 +151,12 @@ func main() {
 	flag.StringVar(&modelMirrorDownloadMemory, "model-mirror-download-memory", "", "Memory request for the ModelMirror download Job container. Empty uses the built-in default (6Gi). Also sets the memory limit unless --model-mirror-download-memory-limit is provided.")
 	flag.StringVar(&modelMirrorDownloadCPULimit, "model-mirror-download-cpu-limit", "", "CPU limit for the ModelMirror download Job container. Empty uses the built-in default (4), or the configured CPU request when provided.")
 	flag.StringVar(&modelMirrorDownloadMemoryLimit, "model-mirror-download-memory-limit", "", "Memory limit for the ModelMirror download Job container. Empty uses the built-in default (10Gi), or the configured memory request when provided.")
+	flag.StringVar(&inferencePoolChartURL, "inference-pool-chart-url", "", fmt.Sprintf("oci:// URL of the InferencePool chart used when gatewayAPIInferenceExtension is enabled. Empty uses %s.", consts.InferencePoolChartURL))
+	flag.StringVar(&inferencePoolChartVersion, "inference-pool-chart-version", "", fmt.Sprintf("Tag of the InferencePool chart. Empty uses %s.", consts.InferencePoolChartVersion))
+	flag.StringVar(&inferencePoolChartProvider, "inference-pool-chart-provider", "", "Flux OCIRepository provider used to authenticate to the InferencePool chart registry. Supported values: generic, aws, azure, gcp. Empty uses generic.")
+	flag.StringVar(&eppImageRegistry, "epp-image-registry", "", fmt.Sprintf("Registry of the endpoint picker (EPP) image deployed by the InferencePool chart. Empty uses %s.", consts.EPPImageRegistry))
+	flag.StringVar(&eppImageRepository, "epp-image-repository", "", fmt.Sprintf("Repository of the EPP image. Empty uses %s.", consts.EPPImageRepository))
+	flag.StringVar(&eppImageTag, "epp-image-tag", "", fmt.Sprintf("Tag of the EPP image. Empty uses %s.", consts.EPPImageTag))
 	opts := zap.Options{
 		Development: true,
 	}
@@ -164,6 +177,19 @@ func main() {
 	)
 	if err != nil {
 		klog.ErrorS(err, "invalid ModelMirror download resources")
+		exitWithErrorFunc()
+	}
+
+	inferencePoolSources, err := inferencepool.ResolveSources(inferencepool.Sources{
+		ChartURL:           inferencePoolChartURL,
+		ChartVersion:       inferencePoolChartVersion,
+		ChartProvider:      inferencePoolChartProvider,
+		EPPImageRegistry:   eppImageRegistry,
+		EPPImageRepository: eppImageRepository,
+		EPPImageTag:        eppImageTag,
+	})
+	if err != nil {
+		klog.ErrorS(err, "invalid InferencePool sources")
 		exitWithErrorFunc()
 	}
 
@@ -341,6 +367,7 @@ func main() {
 			mgr.GetScheme(),
 			log.Log.WithName("controllers").WithName("InferenceSet"),
 			mgr.GetEventRecorderFor("KAITO-InferenceSet-controller"),
+			inferencePoolSources,
 		)
 
 		if err = inferenceSetReconciler.SetupWithManager(mgr); err != nil {
@@ -381,6 +408,7 @@ func main() {
 			log.Log.WithName("controllers").WithName("MultiRoleInference"),
 			mgr.GetEventRecorderFor("KAITO-MultiRoleInference-controller"),
 			featuregates.FeatureGates[consts.FeatureFlagGatewayAPIInferenceExtension],
+			inferencePoolSources,
 		)
 		if err = mriReconciler.SetupWithManager(mgr); err != nil {
 			klog.ErrorS(err, "unable to create controller", "controller", "MultiRoleInference")

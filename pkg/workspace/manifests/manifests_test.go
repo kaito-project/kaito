@@ -27,6 +27,7 @@ import (
 
 	kaitov1alpha1 "github.com/kaito-project/kaito/api/v1alpha1"
 	kaitov1beta1 "github.com/kaito-project/kaito/api/v1beta1"
+	"github.com/kaito-project/kaito/internal/inferencepool"
 	"github.com/kaito-project/kaito/pkg/featuregates"
 	pkgmodel "github.com/kaito-project/kaito/pkg/model"
 	"github.com/kaito-project/kaito/pkg/utils"
@@ -36,7 +37,7 @@ import (
 
 func TestGenerateInferencePoolOCIRepository(t *testing.T) {
 	workspace := test.MockInferenceSetWithPreset
-	repo := GenerateInferencePoolOCIRepository(workspace)
+	repo := GenerateInferencePoolOCIRepository(workspace, inferencepool.DefaultSources())
 
 	assert.Equal(t, utils.InferencePoolName(workspace.Name), repo.Name)
 	assert.Equal(t, workspace.Namespace, repo.Namespace)
@@ -48,6 +49,8 @@ func TestGenerateInferencePoolOCIRepository(t *testing.T) {
 	assert.True(t, *owner.Controller)
 
 	assert.Equal(t, consts.InferencePoolChartURL, repo.Spec.URL)
+	// generic stays unset so the generated spec matches earlier releases.
+	assert.Empty(t, repo.Spec.Provider)
 	if assert.NotNil(t, repo.Spec.Reference) {
 		assert.Equal(t, consts.InferencePoolChartVersion, repo.Spec.Reference.Tag)
 	}
@@ -216,7 +219,7 @@ func TestGenerateInferencePoolHelmRelease(t *testing.T) {
 				featuregates.FeatureGates[consts.FeatureFlagEnableEPPFlowControl] = origFlowControl
 			}()
 
-			helmRelease, err := GenerateInferencePoolHelmRelease(tc.workspace)
+			helmRelease, err := GenerateInferencePoolHelmRelease(tc.workspace, inferencepool.DefaultSources())
 			assert.NoError(t, err)
 			assert.NotNil(t, helmRelease)
 
@@ -256,7 +259,7 @@ func TestGenerateInferencePoolHelmReleaseFlowControl(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			featuregates.FeatureGates[consts.FeatureFlagEnableEPPFlowControl] = tc.enabled
 
-			helmRelease, err := GenerateInferencePoolHelmRelease(inferenceSet)
+			helmRelease, err := GenerateInferencePoolHelmRelease(inferenceSet, inferencepool.DefaultSources())
 			assert.NoError(t, err)
 
 			values := map[string]any{}
@@ -275,7 +278,7 @@ func TestGenerateInferencePoolHelmReleaseEPPPodLabel(t *testing.T) {
 	inferenceSet := test.MockInferenceSetWithPreset.DeepCopy()
 	inferenceSet.Name = "model-deployment"
 
-	helmRelease, err := GenerateInferencePoolHelmRelease(inferenceSet)
+	helmRelease, err := GenerateInferencePoolHelmRelease(inferenceSet, inferencepool.DefaultSources())
 	assert.NoError(t, err)
 
 	if assert.Len(t, helmRelease.Spec.PostRenderers, 1) &&
@@ -478,4 +481,44 @@ func TestGenerateServiceManifest_KVEventsPort(t *testing.T) {
 	hf := newWS(string(pkgmodel.RuntimeNameHuggingfaceTransformers))
 	hfCIP := GenerateServiceManifest(hf, corev1.ServiceTypeClusterIP)
 	assert.False(t, hasKVEvents(hfCIP), "non-vLLM ClusterIP Service must not expose kv-events port")
+}
+
+func mirrorInferencePoolSources() inferencepool.Sources {
+	return inferencepool.Sources{
+		ChartURL:           "oci://mirror.example.com/charts/llm-d-router-gateway",
+		ChartVersion:       "v0.9.1",
+		ChartProvider:      "azure",
+		EPPImageRegistry:   "mirror.example.com/llm-d",
+		EPPImageRepository: "mirrored-epp",
+		EPPImageTag:        "v0.9.1-mirror",
+	}
+}
+
+func TestGenerateInferencePoolOCIRepositoryUsesSources(t *testing.T) {
+	sources := mirrorInferencePoolSources()
+
+	repo := GenerateInferencePoolOCIRepository(test.MockInferenceSetWithPreset, sources)
+
+	assert.Equal(t, sources.ChartURL, repo.Spec.URL)
+	assert.Equal(t, "azure", repo.Spec.Provider)
+	if assert.NotNil(t, repo.Spec.Reference) {
+		assert.Equal(t, sources.ChartVersion, repo.Spec.Reference.Tag)
+	}
+}
+
+func TestGenerateInferencePoolHelmReleaseUsesSources(t *testing.T) {
+	sources := mirrorInferencePoolSources()
+
+	helmRelease, err := GenerateInferencePoolHelmRelease(test.MockInferenceSetWithPreset, sources)
+	assert.NoError(t, err)
+
+	values := map[string]any{}
+	assert.NoError(t, json.Unmarshal(helmRelease.Spec.Values.Raw, &values))
+	image := values["router"].(map[string]any)["epp"].(map[string]any)["image"]
+	assert.Equal(t, map[string]any{
+		"registry":   sources.EPPImageRegistry,
+		"repository": sources.EPPImageRepository,
+		"tag":        sources.EPPImageTag,
+		"pullPolicy": string(corev1.PullIfNotPresent),
+	}, image)
 }

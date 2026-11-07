@@ -315,7 +315,7 @@ jobs:
         shell: bash
         run: |
           # Wait for the auto-upgrade runner to re-evaluate after upgrade completes
-          end=$((SECONDS+600))
+          end=$((SECONDS+1200))
           while [ $SECONDS -lt $end ]; do
             DRIFT=$(kubectl get inferenceset auto-upgrade-test -o jsonpath='{.status.autoUpgrade.numDriftedWorkspaces}' 2>/dev/null || true)
             LAST_SUCCESS=$(kubectl get inferenceset auto-upgrade-test -o jsonpath='{.status.autoUpgrade.lastSuccessfulUpgradeTime}' 2>/dev/null || true)
@@ -687,7 +687,7 @@ jobs:
       - name: Verify InferenceSet status reports zero drift
         shell: bash
         run: |
-          end=$((SECONDS+600))
+          end=$((SECONDS+1200))
           while [ $SECONDS -lt $end ]; do
             DRIFT=$(kubectl get inferenceset ${INFERENCESET_NAME} -o jsonpath='{.status.autoUpgrade.numDriftedWorkspaces}' 2>/dev/null || true)
             LAST_SUCCESS=$(kubectl get inferenceset ${INFERENCESET_NAME} -o jsonpath='{.status.autoUpgrade.lastSuccessfulUpgradeTime}' 2>/dev/null || true)

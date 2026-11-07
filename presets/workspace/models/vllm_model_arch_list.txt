@@ -24,6 +24,7 @@ BloomForCausalLM
 CLIPModel
 ChatGLMForConditionalGeneration
 ChatGLMModel
+ClefOmniForJointSchema
 Cohere2ForCausalLM
 Cohere2MoeForCausalLM
 Cohere2VisionForConditionalGeneration
@@ -81,6 +82,7 @@ EagleLlamaForCausalLM
 EagleMiniCPMForCausalLM
 EagleMistralForCausalLM
 EagleMistralLarge3ForCausalLM
+EmbeddingGemma2Model
 Emu3ForConditionalGeneration
 Ernie4_5ForCausalLM
 Ernie4_5_MoeForCausalLM
@@ -90,6 +92,7 @@ Exaone4ForCausalLM
 Exaone4_5_ForConditionalGeneration
 Exaone4_5_MTP
 ExaoneForCausalLM
+ExaoneMoEForCausalLM
 ExaoneMoeForCausalLM
 ExaoneMoeMTP
 ExtractHiddenStatesModel
@@ -198,6 +201,7 @@ LagunaForCausalLM
 Lfm2ForCausalLM
 Lfm2MoeForCausalLM
 Lfm2VlForConditionalGeneration
+LiLiCorrDraftModel
 LightOnOCRForConditionalGeneration
 Llama4ForCausalLM
 Llama4ForConditionalGeneration
@@ -234,6 +238,7 @@ MiniCPMForCausalLM
 MiniCPMO
 MiniCPMV
 MiniCPMV4_6ForConditionalGeneration
+MiniCPMV4_7ForConditionalGeneration
 MiniMaxM2ForCausalLM
 MiniMaxM3MTP
 MiniMaxM3SparseForCausalLM

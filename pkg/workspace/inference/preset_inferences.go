@@ -950,19 +950,6 @@ func buildMainContainerEnv(runtimeName pkgmodel.RuntimeName, inferenceParam *pkg
 				break
 			}
 		}
-		if gpuConfig != nil && strings.Contains(strings.ToLower(gpuConfig.GPUModel), "a100") {
-			for _, arch := range inferenceParam.Architectures {
-				if arch == "Qwen4ExpForCausalLM" || arch == "Qwen4ExpForConditionalGeneration" {
-					// Ampere cannot run Qwen4Exp's pinned-host FP8 PLE lookup
-					// kernel. Keep the FP8 table resident on-device instead.
-					env = append(env, corev1.EnvVar{
-						Name:  "VLLM_PLE_CPU_OFFLOAD",
-						Value: "0",
-					})
-					break
-				}
-			}
-		}
 	}
 
 	// A bring-your-own model is sized and configured from an operator-supplied
@@ -1443,6 +1430,9 @@ func applyGeneratorRuntimeOverrides(params *pkgmodel.PresetParam, gpuConfig *sku
 	}
 	if dtype, ok := presetgenerator.ResolveIndexerKVDtype(params.Architectures, gpuConfig.GPUModel); ok {
 		params.VLLM.ModelRunParams["attention-config.indexer_kv_dtype"] = dtype
+	}
+	if config, ok := presetgenerator.ResolveEngramConfig(params.Architectures, gpuConfig.GPUModel); ok {
+		params.VLLM.ModelRunParams["engram-config"] = config
 	}
 }
 

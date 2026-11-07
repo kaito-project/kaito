@@ -1640,35 +1640,38 @@ func TestV41ExtendsVLLMEngineReadyTimeout(t *testing.T) {
 	}
 }
 
-func TestQwen4ExpDisablesPLECPUOffloadOnA100(t *testing.T) {
-	params := &pkgmodel.PresetParam{
-		Metadata: pkgmodel.Metadata{
-			Architectures: []string{"Qwen4ExpForConditionalGeneration"},
-		},
-	}
+func TestQwen4ExpKeepsPLEOnDeviceOnA100(t *testing.T) {
 	for _, tc := range []struct {
-		gpuModel string
-		want     bool
+		gpuModel     string
+		wantFlag     bool
+		architecture string
 	}{
-		{gpuModel: "NVIDIA A100", want: true},
-		{gpuModel: "NVIDIA H100", want: false},
+		{gpuModel: "NVIDIA A100", wantFlag: true, architecture: "Qwen4ExpForConditionalGeneration"},
+		{gpuModel: "A100-SXM4-80GB", wantFlag: true, architecture: "Qwen4ExpForCausalLM"},
+		{gpuModel: "NVIDIA H100", wantFlag: false, architecture: "Qwen4ExpForConditionalGeneration"},
 	} {
 		t.Run(tc.gpuModel, func(t *testing.T) {
-			env := buildMainContainerEnv(
-				pkgmodel.RuntimeNameVLLM,
-				params,
-				&sku.GPUConfig{GPUModel: tc.gpuModel},
-				"",
-				"",
-			)
-			hasOverride := false
-			for _, variable := range env {
-				if variable.Name == "VLLM_PLE_CPU_OFFLOAD" {
-					hasOverride = variable.Value == "0"
-				}
+			params := &pkgmodel.PresetParam{
+				Metadata: pkgmodel.Metadata{Architectures: []string{tc.architecture}},
 			}
-			if hasOverride != tc.want {
-				t.Fatalf("VLLM_PLE_CPU_OFFLOAD=0 present = %v, want %v", hasOverride, tc.want)
+			gpuConfig := &sku.GPUConfig{GPUModel: tc.gpuModel}
+			applyGeneratorRuntimeOverrides(params, gpuConfig)
+			cmd := utils.BuildCmdStr("python3 /workspace/vllm/inference_api.py", params.VLLM.ModelRunParams)
+
+			count := strings.Count(cmd, "--engram-config")
+			if tc.wantFlag {
+				if count != 1 || !strings.Contains(cmd, `--engram-config='{"cpu_offload":false}'`) {
+					t.Fatalf("command %q: want exactly one --engram-config='{\"cpu_offload\":false}'", cmd)
+				}
+			} else if count != 0 {
+				t.Fatalf("command %q: want no --engram-config", cmd)
+			}
+
+			// The env var was removed from vLLM; the run param above replaces it.
+			for _, variable := range buildMainContainerEnv(pkgmodel.RuntimeNameVLLM, params, gpuConfig, "", "") {
+				if variable.Name == "VLLM_PLE_CPU_OFFLOAD" {
+					t.Fatalf("unexpected VLLM_PLE_CPU_OFFLOAD env var")
+				}
 			}
 		})
 	}
@@ -1693,12 +1696,23 @@ func TestApplyGeneratorRuntimeOverrides(t *testing.T) {
 			},
 		},
 		{
-			name:          "BYO A100 uses BF16",
+			name:          "BYO A100 uses BF16 and keeps Engram on-device",
 			architectures: []string{"Qwen4ExpForConditionalGeneration"},
 			gpuModel:      "A100-SXM4-80GB",
 			want: map[string]string{
 				"gpu-memory-utilization":            "0.92",
 				"attention-config.indexer_kv_dtype": "bf16",
+				"engram-config":                     `'{"cpu_offload":false}'`,
+			},
+		},
+		{
+			name:          "Engram arch default preserved off A100",
+			architectures: []string{"DeepseekV41ForCausalLM"},
+			gpuModel:      "NVIDIA H100",
+			runParams:     map[string]string{"engram-config": `'{"cpu_offload":true}'`},
+			want: map[string]string{
+				"gpu-memory-utilization": "0.92",
+				"engram-config":          `'{"cpu_offload":true}'`,
 			},
 		},
 		{

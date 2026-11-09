@@ -33,7 +33,6 @@ import (
 	"github.com/kaito-project/kaito/pkg/model"
 	mmconsts "github.com/kaito-project/kaito/pkg/modelmirror/consts"
 	"github.com/kaito-project/kaito/pkg/utils/consts"
-	"github.com/kaito-project/kaito/pkg/utils/plugin"
 )
 
 const DefaultReleaseNamespace = "kaito-workspace"
@@ -184,27 +183,27 @@ func RegisterValidationTestModels() {
 	var testLarge testModelLarge
 	var testSmallA10 testModelSmallA10
 	var testVLLMOnly testModelVLLMOnly
-	plugin.KaitoModelRegister.Register(&plugin.Registration{
+	model.KaitoModelRegister.Register(&model.Registration{
 		Name:     "test-validation",
 		Instance: &test,
 	})
-	plugin.KaitoModelRegister.Register(&plugin.Registration{
+	model.KaitoModelRegister.Register(&model.Registration{
 		Name:     "test-validation-static",
 		Instance: &testStatic,
 	})
-	plugin.KaitoModelRegister.Register(&plugin.Registration{
+	model.KaitoModelRegister.Register(&model.Registration{
 		Name:     "test-validation-download",
 		Instance: &testDownload,
 	})
-	plugin.KaitoModelRegister.Register(&plugin.Registration{
+	model.KaitoModelRegister.Register(&model.Registration{
 		Name:     "test-large-model",
 		Instance: &testLarge,
 	})
-	plugin.KaitoModelRegister.Register(&plugin.Registration{
+	model.KaitoModelRegister.Register(&model.Registration{
 		Name:     "test-small-a10",
 		Instance: &testSmallA10,
 	})
-	plugin.KaitoModelRegister.Register(&plugin.Registration{
+	model.KaitoModelRegister.Register(&model.Registration{
 		Name:     "test-vllm-only",
 		Instance: &testVLLMOnly,
 	})

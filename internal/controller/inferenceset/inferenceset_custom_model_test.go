@@ -31,7 +31,7 @@ import (
 	kaitov1beta1 "github.com/kaito-project/kaito/api/v1beta1"
 	"github.com/kaito-project/kaito/internal/custommodel"
 	"github.com/kaito-project/kaito/pkg/catalog"
-	"github.com/kaito-project/kaito/pkg/utils/plugin"
+	pkgmodel "github.com/kaito-project/kaito/pkg/model"
 )
 
 const (
@@ -67,7 +67,7 @@ func customInferenceSet() *kaitov1beta1.InferenceSet {
 				Inference: kaitov1beta1.InferenceSpec{
 					Preset: &kaitov1beta1.PresetSpec{
 						PresetMeta: kaitov1beta1.PresetMeta{
-							Name: kaitov1beta1.ModelName(plugin.PresetNameCustom),
+							Name: kaitov1beta1.ModelName(pkgmodel.PresetNameCustom),
 						},
 					},
 					Config: "byo-config",

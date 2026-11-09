@@ -36,9 +36,9 @@ import (
 	"github.com/kaito-project/kaito/internal/testutil"
 	"github.com/kaito-project/kaito/pkg/featuregates"
 	"github.com/kaito-project/kaito/pkg/k8sclient"
+	pkgmodel "github.com/kaito-project/kaito/pkg/model"
 	mmconsts "github.com/kaito-project/kaito/pkg/modelmirror/consts"
 	"github.com/kaito-project/kaito/pkg/utils/consts"
-	"github.com/kaito-project/kaito/pkg/utils/plugin"
 )
 
 func TestUpdateStatusConditionIfNotMatch(t *testing.T) {
@@ -1044,7 +1044,7 @@ func TestValidateWorkspaceForInferenceSet_Update(t *testing.T) {
 	}
 	withCustomConfig := func(config string) func(*kaitov1beta1.InferenceSet) {
 		return func(is *kaitov1beta1.InferenceSet) {
-			withPreset(plugin.PresetNameCustom)(is)
+			withPreset(pkgmodel.PresetNameCustom)(is)
 			is.Spec.Template.Inference.Config = config
 		}
 	}

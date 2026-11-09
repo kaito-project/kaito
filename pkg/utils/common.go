@@ -19,58 +19,14 @@ import (
 	"os"
 	"strings"
 
-	"gopkg.in/yaml.v2"
-	"k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/apimachinery/pkg/runtime"
 
-	"github.com/kaito-project/kaito/pkg/sku"
 	"github.com/kaito-project/kaito/pkg/utils/consts"
-	"github.com/kaito-project/kaito/pkg/utils/mig"
 )
 
 const (
 	errInvalidModelVersionURL = "invalid model version URL: %s. Expected format: https://huggingface.co/<org>/<model>/commit/<revision>"
 )
-
-func Contains(s []string, e string) bool {
-	for _, a := range s {
-		if a == e {
-			return true
-		}
-	}
-	return false
-}
-
-// GetMIGGPUConfig builds a GPUConfig from a MIG profile string. Each MIG workload
-// is scheduled on exactly one hardware-isolated slice.
-func GetMIGGPUConfig(migProfile string) (*sku.GPUConfig, error) {
-	_, memGB, err := mig.ParseMIGProfile(migProfile)
-	if err != nil {
-		return nil, fmt.Errorf("invalid MIG profile: %w", err)
-	}
-	return &sku.GPUConfig{
-		SKU:      "unknown",
-		GPUCount: 1,
-		GPUMem:   resource.MustParse(fmt.Sprintf("%dGi", memGB)),
-		IsMIG:    true,
-	}, nil
-}
-
-// SearchRawExtension performs a search for a key within a runtime.RawExtension.
-func SearchRawExtension(raw runtime.RawExtension, key string) (interface{}, bool, error) {
-	var data map[string]interface{}
-	if err := yaml.Unmarshal(raw.Raw, &data); err != nil {
-		return nil, false, fmt.Errorf("failed to unmarshal runtime.RawExtension: %w", err)
-	}
-
-	result, found := data[key]
-	if !found {
-		return nil, false, nil
-	}
-
-	return result, true, nil
-}
 
 func BuildCmdStr(baseCommand string, runParams ...map[string]string) string {
 	updatedBaseCommand := baseCommand
@@ -115,21 +71,6 @@ func GetReleaseNamespace() (string, error) {
 		return namespace, nil
 	}
 	return "", fmt.Errorf("failed to determine release namespace from file %s and env var %s", namespaceFilePath, consts.DefaultReleaseNamespaceEnvVar)
-}
-
-func ExtractAndValidateRepoName(image string) error {
-	// Extract repository name (part after the last / and before the colon :)
-	// For example given image: modelsregistry.azurecr.io/ADAPTER_HERE:0.0.1
-	parts := strings.Split(image, "/")
-	lastPart := parts[len(parts)-1]             // Extracts "ADAPTER_HERE:0.0.1"
-	repoName := strings.Split(lastPart, ":")[0] // Extracts "ADAPTER_HERE"
-
-	// Check if repository name is lowercase
-	if repoName != strings.ToLower(repoName) {
-		return fmt.Errorf("repository name must be lowercase")
-	}
-
-	return nil
 }
 
 // ParseHuggingFaceModelVersion parses the model version in the format of https://huggingface.co/<org>/<model>/commit/<revision>

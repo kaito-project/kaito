@@ -11,7 +11,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package mig
+package nvidia
 
 import (
 	"fmt"
@@ -22,8 +22,8 @@ import (
 )
 
 const (
-	// MIGResourcePrefix is the Kubernetes extended resource prefix for MIG devices.
-	MIGResourcePrefix = "nvidia.com/mig-"
+	// migResourcePrefix is the Kubernetes extended resource prefix for MIG devices.
+	migResourcePrefix = "nvidia.com/mig-"
 )
 
 // migProfileRegex matches valid MIG profile strings like "1g.5gb", "3g.40gb", "7g.80gb".
@@ -101,7 +101,7 @@ func ParseMIGProfile(profile string) (computeSlices int, memoryGB int, err error
 // MIGResourceName returns the Kubernetes extended resource name for a MIG profile.
 // For example, "1g.10gb" returns "nvidia.com/mig-1g.10gb".
 func MIGResourceName(profile string) string {
-	return MIGResourcePrefix + profile
+	return migResourcePrefix + profile
 }
 
 // ValidateMIGProfile checks if a MIG profile string is syntactically valid
@@ -112,13 +112,13 @@ func ValidateMIGProfile(profile string) error {
 		return err
 	}
 	if !knownProfiles[profile] {
-		return fmt.Errorf("unknown MIG profile %q: must be one of %v", profile, KnownMIGProfiles())
+		return fmt.Errorf("unknown MIG profile %q: must be one of %v", profile, knownMIGProfiles())
 	}
 	return nil
 }
 
-// KnownMIGProfiles returns a sorted list of all known valid MIG profile strings.
-func KnownMIGProfiles() []string {
+// knownMIGProfiles returns a sorted list of all known valid MIG profile strings.
+func knownMIGProfiles() []string {
 	profiles := make([]string, 0, len(knownProfiles))
 	for p := range knownProfiles {
 		profiles = append(profiles, p)

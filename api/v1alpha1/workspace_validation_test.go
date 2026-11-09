@@ -28,7 +28,6 @@ import (
 	"github.com/kaito-project/kaito/pkg/k8sclient"
 	"github.com/kaito-project/kaito/pkg/model"
 	"github.com/kaito-project/kaito/pkg/utils/consts"
-	"github.com/kaito-project/kaito/pkg/utils/plugin"
 )
 
 const DefaultReleaseNamespace = "kaito-workspace"
@@ -117,15 +116,15 @@ func RegisterValidationTestModels() {
 	var test testModel
 	var testPrivate testModelPrivate
 	var testStatic testModelStatic
-	plugin.KaitoModelRegister.Register(&plugin.Registration{
+	model.KaitoModelRegister.Register(&model.Registration{
 		Name:     "test-validation",
 		Instance: &test,
 	})
-	plugin.KaitoModelRegister.Register(&plugin.Registration{
+	model.KaitoModelRegister.Register(&model.Registration{
 		Name:     "private-test-validation",
 		Instance: &testPrivate,
 	})
-	plugin.KaitoModelRegister.Register(&plugin.Registration{
+	model.KaitoModelRegister.Register(&model.Registration{
 		Name:     "test-validation-static",
 		Instance: &testStatic,
 	})

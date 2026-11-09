@@ -1,4 +1,7 @@
 {{- if and .Values.nvidiaDevicePlugin .Values.nvidiaDevicePlugin.enabled }}
+{{- if not (has .Values.nvidiaDevicePlugin.migStrategy (list "none" "single" "mixed")) }}
+{{- fail "nvidiaDevicePlugin.migStrategy must be one of: none, single, mixed" }}
+{{- end }}
 apiVersion: apps/v1
 kind: DaemonSet
 metadata:
@@ -64,6 +67,8 @@ spec:
           imagePullPolicy: {{ .Values.nvidiaDevicePlugin.imagePullPolicy | quote }}
           name: nvidia-device-plugin-ctr
           env:
+            - name: MIG_STRATEGY
+              value: {{ .Values.nvidiaDevicePlugin.migStrategy | quote }}
             - name: FAIL_ON_INIT_ERROR
               value: "false"
             - name: PASS_DEVICE_SPECS

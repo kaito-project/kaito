@@ -52,6 +52,7 @@ helm install workspace ./charts/kaito/workspace  \
 | spotInstance.enabled                           | bool   | `false`                                                  | Allowed values: `true`, `false`. When `true`, adds the Azure Spot toleration so workloads can be scheduled on Spot GPU node pools. |
 | localCSIDriver.useLocalCSIDriver               | bool   | `true`                                                   | Allowed values: `true`, `false`. Enables use of the bundled local CSI driver. |
 | nvidiaDevicePlugin.enabled                     | bool   | `true`                                                   | Allowed values: `true`, `false`. Set to `false` if the cluster already has an NVIDIA device plugin (e.g., via GPU Operator). |
+| nvidiaDevicePlugin.migStrategy                 | string | `"mixed"`                                                | Allowed values: `none`, `single`, `mixed`. Controls GPU resource discovery, not hardware MIG mode. |
 | nvidiaDevicePlugin.daemonsetName               | string | `"nvidia-device-plugin-daemonset"`                       | DNS-1123 name of the generated DaemonSet.                     |
 | nvidiaDevicePlugin.image                       | string | `"mcr.microsoft.com/oss/v2/nvidia/k8s-device-plugin:v0.20.1-5"` | Full image reference for the device plugin container. |
 | nvidiaDevicePlugin.imagePullPolicy             | string | `"IfNotPresent"`                                         | Allowed values: `Always`, `IfNotPresent`, `Never`.            |
@@ -61,6 +62,43 @@ helm install workspace ./charts/kaito/workspace  \
 | featureGates.enableInferenceSetController      | bool   | `true`                                                  | Allowed values: `true`, `false`. Enables the InferenceSet controller and its RBAC. |
 | gpu-feature-discovery.nfd.enabled              | bool   | `true`                                                   | Allowed values: `true`, `false`. Set to `false` if NFD is already installed (e.g., via the NVIDIA GPU Operator) to avoid CRD conflicts. Only applies when the GFD subchart is active (`featureGates.disableNodeAutoProvisioning=true`). |
 | gpu-feature-discovery.gfd.enabled              | bool   | `true`                                                   | Allowed values: `true`, `false`. Set to `false` if GFD is already installed (e.g., via the NVIDIA GPU Operator). Only applies when the GFD subchart is active (`featureGates.disableNodeAutoProvisioning=true`). |
+| gpu-feature-discovery.migStrategy               | string | `"mixed"`                                                | Match the NVIDIA device plugin's strategy when using bundled GFD. Set to `null` to obtain the strategy from a GFD ConfigMap instead. |
+
+## NVIDIA MIG resource discovery
+
+The bundled NVIDIA device plugin explicitly defaults to `mixed`, rather than
+the plugin's implicit `none` strategy. GPUs with MIG disabled still expose
+`nvidia.com/gpu`. GPUs with MIG enabled expose resources for their configured
+MIG instances instead; a MIG-enabled GPU with no instances does not expose a
+whole-GPU resource. This prevents whole-GPU workloads from being scheduled onto
+an unpartitioned MIG-enabled GPU that cannot initialize CUDA.
+
+This does not enable or disable hardware MIG mode, create partitions, or repair
+an already-running workload. Hardware recovery remains the node administrator's
+responsibility. The controller's `featureGates.enableMIG` setting is separate
+from the device plugin's resource-discovery strategy.
+
+For intentionally uniform MIG partitions, select `single`. If bundled GFD is
+installed, configure it with the same strategy so labels agree with advertised
+resources:
+
+```bash
+helm upgrade workspace ./charts/kaito/workspace \
+  --namespace kaito-workspace \
+  --reuse-values \
+  --set nvidiaDevicePlugin.migStrategy=single \
+  --set gpu-feature-discovery.migStrategy=single
+```
+
+`none` is available as an explicit legacy override, but it ignores MIG state and
+can advertise an unusable physical GPU as `nvidia.com/gpu`. For GFD configurations
+that select strategies through per-node ConfigMaps, set
+`gpu-feature-discovery.migStrategy=null` to avoid overriding those configurations.
+When another component owns the device plugin, set
+`nvidiaDevicePlugin.enabled=false`; KAITO does not configure that external plugin.
+
+Chart rendering regression tests require Helm and run with
+`go test ./internal/helm/...`; they are also included in `make unit-test`.
 
 ## Karpenter NodeClass Updates
 

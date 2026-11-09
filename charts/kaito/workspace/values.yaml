@@ -89,6 +89,7 @@ karpenterProviders:
               managementMode: "Managed"
 nvidiaDevicePlugin:
   enabled: true
+  migStrategy: "mixed"
   daemonsetName: "nvidia-device-plugin-daemonset"
   image: "mcr.microsoft.com/oss/v2/nvidia/k8s-device-plugin:v0.20.1-5"
   imagePullPolicy: "IfNotPresent"
@@ -148,6 +149,7 @@ flux2:
   policies:
     create: false
 gpu-feature-discovery:
+  migStrategy: "mixed"
   image:
     repository: mcr.microsoft.com/oss/v2/nvidia/k8s-device-plugin
     tag: v0.20.1-5

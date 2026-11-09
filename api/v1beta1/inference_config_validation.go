@@ -25,10 +25,10 @@ import (
 	"knative.dev/pkg/apis"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
+	"github.com/kaito-project/kaito/pkg/catalog"
 	"github.com/kaito-project/kaito/pkg/k8sclient"
 	"github.com/kaito-project/kaito/pkg/model"
 	"github.com/kaito-project/kaito/pkg/utils/plugin"
-	"github.com/kaito-project/kaito/presets/workspace/models"
 )
 
 // InferenceConfig represents the structure of the inference configuration
@@ -74,7 +74,7 @@ func (w *Workspace) validateInferenceConfig(ctx context.Context) (errs *apis.Fie
 	// optional and its absence simply means "use the defaults".
 	inferenceConfigYAML, ok := cm.Data["inference_config.yaml"]
 	if !ok {
-		if _, isCustomModel := cm.Data[models.CustomModelConfigKey]; isCustomModel {
+		if _, isCustomModel := cm.Data[catalog.CustomModelConfigKey]; isCustomModel {
 			return errs
 		}
 		return apis.ErrMissingField("inference_config.yaml in ConfigMap")
@@ -95,7 +95,7 @@ func (w *Workspace) validateInferenceConfig(ctx context.Context) (errs *apis.Fie
 			if w.Inference != nil && w.Inference.Preset != nil {
 				presetName := strings.ToLower(string(w.Inference.Preset.Name))
 				if plugin.IsValidPreset(presetName) {
-					modelPreset, err := models.GetModelByName(ctx, presetName, w.Inference.Config, w.Inference.Preset.PresetOptions.ModelAccessSecret, w.Namespace, k8sclient.Client)
+					modelPreset, err := catalog.GetModelByName(ctx, presetName, w.Inference.Config, w.Inference.Preset.PresetOptions.ModelAccessSecret, w.Namespace, k8sclient.Client)
 					if err != nil {
 						return apis.ErrInvalidValue(fmt.Sprintf("failed to get model preset: %v", err), "preset")
 					}

@@ -19,8 +19,8 @@ import (
 	"k8s.io/apimachinery/pkg/runtime"
 
 	kaitov1beta1 "github.com/kaito-project/kaito/api/v1beta1"
+	"github.com/kaito-project/kaito/internal/cache"
 	"github.com/kaito-project/kaito/internal/cachetest"
-	"github.com/kaito-project/kaito/pkg/cache"
 )
 
 const ProviderName = "noop"

@@ -28,7 +28,7 @@
 # Required environment:
 #   GPU            gpu pool key from the config (a10 | a100 | h100)
 # Optional environment:
-#   MODEL_CATALOG_FILE  model catalog YAML (default presets/workspace/models/model_catalog.yaml)
+#   MODEL_CATALOG_FILE  model catalog YAML (default pkg/catalog/model_catalog.yaml)
 #   REGRESSION_CONFIG_FILE  shared regression JSON (default .github/preset-regression-config.json)
 #   REGRESSION_PROFILE  target profile to run (default standard)
 #   RESULTS_FILE   where the json result array is written
@@ -53,7 +53,7 @@
 set -euo pipefail
 
 GPU="${GPU:?GPU must be set (a10 | a100 | h100)}"
-MODEL_CATALOG_FILE="${MODEL_CATALOG_FILE:-presets/workspace/models/model_catalog.yaml}"
+MODEL_CATALOG_FILE="${MODEL_CATALOG_FILE:-pkg/catalog/model_catalog.yaml}"
 REGRESSION_CONFIG_FILE="${REGRESSION_CONFIG_FILE:-.github/preset-regression-config.json}"
 GSM8K_CONFIG_FILE="${GSM8K_CONFIG_FILE:-benchmarks/gsm8k/config.yaml}"
 GSM8K_BASELINES_FILE="${GSM8K_BASELINES_FILE:-benchmarks/gsm8k/baselines.yaml}"

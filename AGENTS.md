@@ -13,12 +13,12 @@ Read the references relevant to the change, not the entire table. Human developm
 | Task | Code and references |
 | --- | --- |
 | CRD types, defaults, validation, conversion | `api/v1alpha1/`, `api/v1beta1/`; see API rules below |
-| Workspace inference and presets | `pkg/workspace/`, `presets/workspace/`; [workspaces](website/docs/workspace.md), [presets](website/docs/presets.md), [preset onboarding](website/docs/preset-onboarding.md) |
-| Inference replicas and serving | `pkg/inferenceset/`; [inference](website/docs/inference.md) |
-| RAG | `pkg/ragengine/`, `presets/ragengine/`; [RAG](website/docs/rag.md), [API](website/docs/rag-api.md) |
+| Workspace inference and presets | `internal/controller/workspace/`, `internal/inference/`, `pkg/catalog/`, `presets/workspace/`; [workspaces](website/docs/workspace.md), [presets](website/docs/presets.md), [preset onboarding](website/docs/preset-onboarding.md) |
+| Inference replicas and serving | `internal/controller/inferenceset/`; [inference](website/docs/inference.md) |
+| RAG | `internal/controller/ragengine/`, `internal/rag/`, `presets/ragengine/`; [RAG](website/docs/rag.md), [API](website/docs/rag-api.md) |
 | Fine-tuning and adapters | `presets/workspace/tuning/`; [tuning](website/docs/tuning.md), [LoRA](website/docs/lora-adapters.md) |
-| Multi-node and disaggregated inference | `pkg/controllers/multiroleinference/`; [multi-node](website/docs/multi-node-inference.md), [prefill/decode](website/docs/prefill-decode-disaggregation.md) |
-| Model caching and GPU sizing | `pkg/modelmirror/`, `pkg/sku/`; [model streaming](website/docs/model-mirror-streaming.md), [memory estimator](website/docs/memory-estimator.md) |
+| Multi-node and disaggregated inference | `internal/controller/multiroleinference/`; [multi-node](website/docs/multi-node-inference.md), [prefill/decode](website/docs/prefill-decode-disaggregation.md) |
+| Model caching and GPU sizing | `internal/controller/modelmirror/`, `internal/modelmirror/`, `pkg/sku/`, `pkg/estimator/`; [model streaming](website/docs/model-mirror-streaming.md), [memory estimator](website/docs/memory-estimator.md) |
 | Agent plugin and inference skill | [plugins/kaito-workspace/](plugins/kaito-workspace/README.md) |
 | Documentation and proposals | `website/docs/`, `docs/proposals/`; [doc versioning](docs/documentation-versioning.md) when changing site versions |
 

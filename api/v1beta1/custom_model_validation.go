@@ -18,11 +18,11 @@ import (
 
 	"knative.dev/pkg/apis"
 
+	"github.com/kaito-project/kaito/pkg/catalog"
 	"github.com/kaito-project/kaito/pkg/featuregates"
 	mmconsts "github.com/kaito-project/kaito/pkg/modelmirror/consts"
 	"github.com/kaito-project/kaito/pkg/utils/consts"
 	"github.com/kaito-project/kaito/pkg/utils/plugin"
-	"github.com/kaito-project/kaito/presets/workspace/models"
 )
 
 // validateCustomPreset checks the inputs that only apply to a bring-your-own
@@ -36,7 +36,7 @@ func (i *InferenceSpec) validateCustomPreset() *apis.FieldError {
 	if i.Config == "" {
 		return apis.ErrMissingField(fmt.Sprintf(
 			"'config' is required by preset %q and must reference an immutable ConfigMap containing %q and %q",
-			plugin.PresetNameCustom, models.CustomModelConfigKey, models.CustomModelSizeKey))
+			plugin.PresetNameCustom, catalog.CustomModelConfigKey, catalog.CustomModelSizeKey))
 	}
 
 	// Weights come from an operator-supplied bundle, never from HuggingFace, so

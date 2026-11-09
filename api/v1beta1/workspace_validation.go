@@ -36,6 +36,7 @@ import (
 	"knative.dev/pkg/apis"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
+	"github.com/kaito-project/kaito/pkg/catalog"
 	"github.com/kaito-project/kaito/pkg/featuregates"
 	"github.com/kaito-project/kaito/pkg/k8sclient"
 	"github.com/kaito-project/kaito/pkg/model"
@@ -46,7 +47,6 @@ import (
 	"github.com/kaito-project/kaito/pkg/utils/mig"
 	"github.com/kaito-project/kaito/pkg/utils/plugin"
 	"github.com/kaito-project/kaito/pkg/utils/speculativedecoding"
-	"github.com/kaito-project/kaito/presets/workspace/models"
 )
 
 const (
@@ -808,7 +808,7 @@ func (r *ResourceSpec) validateCreateWithInference(ctx context.Context, inferenc
 
 	if presetName != "" && skuConfig != nil {
 		if napDisabled || (runtime != model.RuntimeNameVLLM && !napDisabled) {
-			modelPreset, err := models.GetModelByName(context.TODO(), presetName, configMapName, secretName, wsNamespace, k8sclient.Client) // InferenceSpec has been validated so the name is valid.
+			modelPreset, err := catalog.GetModelByName(context.TODO(), presetName, configMapName, secretName, wsNamespace, k8sclient.Client) // InferenceSpec has been validated so the name is valid.
 			if err != nil {
 				errs = errs.Also(apis.ErrInvalidValue(fmt.Sprintf("failed to get model preset: %v", err), "preset"))
 				return errs
@@ -930,7 +930,7 @@ func (r *ResourceSpec) validateMIGModelFit(ctx context.Context, presetName, conf
 	if err != nil {
 		return apis.ErrInvalidValue(err.Error(), "partition.profile")
 	}
-	modelPreset, err := models.GetModelByName(ctx, presetName, configMapName, secretName, wsNamespace, k8sclient.Client)
+	modelPreset, err := catalog.GetModelByName(ctx, presetName, configMapName, secretName, wsNamespace, k8sclient.Client)
 	if err != nil {
 		return apis.ErrInvalidValue(fmt.Sprintf("failed to get model preset: %v", err), "preset")
 	}
@@ -1059,7 +1059,7 @@ func (i *InferenceSpec) validateCreate(ctx context.Context, runtime model.Runtim
 		if err := i.validateCustomPreset(); err != nil {
 			return errs.Also(err)
 		}
-		modelPreset, err := models.GetModelByName(ctx, string(i.Preset.Name), i.Config, i.Preset.PresetOptions.ModelAccessSecret, wsNamespace, k8sclient.Client)
+		modelPreset, err := catalog.GetModelByName(ctx, string(i.Preset.Name), i.Config, i.Preset.PresetOptions.ModelAccessSecret, wsNamespace, k8sclient.Client)
 		if err != nil {
 			errs = errs.Also(apis.ErrInvalidValue(fmt.Sprintf("failed to get model preset: %v", err), "preset"))
 			return errs

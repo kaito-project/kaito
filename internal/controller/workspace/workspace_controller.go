@@ -1,0 +1,1885 @@
+// Copyright (c) KAITO authors.
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+package workspace
+
+import (
+	"context"
+	"crypto/sha256"
+	"encoding/hex"
+	"encoding/json"
+	"errors"
+	"fmt"
+	"net/http"
+	"os"
+	"sort"
+	"strconv"
+	"strings"
+	"time"
+
+	"github.com/go-logr/logr"
+	appsv1 "k8s.io/api/apps/v1"
+	batchv1 "k8s.io/api/batch/v1"
+	corev1 "k8s.io/api/core/v1"
+	storagev1 "k8s.io/api/storage/v1"
+	apiequality "k8s.io/apimachinery/pkg/api/equality"
+	apierrors "k8s.io/apimachinery/pkg/api/errors"
+	"k8s.io/apimachinery/pkg/api/meta"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/apimachinery/pkg/types"
+	"k8s.io/client-go/tools/record"
+	"k8s.io/client-go/util/retry"
+	"k8s.io/klog/v2"
+	"k8s.io/utils/ptr"
+	ctrl "sigs.k8s.io/controller-runtime"
+	"sigs.k8s.io/controller-runtime/pkg/builder"
+	"sigs.k8s.io/controller-runtime/pkg/client"
+	"sigs.k8s.io/controller-runtime/pkg/controller"
+	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
+	"sigs.k8s.io/controller-runtime/pkg/handler"
+	"sigs.k8s.io/controller-runtime/pkg/reconcile"
+	karpenterv1 "sigs.k8s.io/karpenter/pkg/apis/v1"
+
+	kaitov1alpha1 "github.com/kaito-project/kaito/api/v1alpha1"
+	"github.com/kaito-project/kaito/api/v1beta1"
+	kaitov1beta1 "github.com/kaito-project/kaito/api/v1beta1"
+	"github.com/kaito-project/kaito/internal/cache"
+	"github.com/kaito-project/kaito/internal/estimator/nodesestimator"
+	"github.com/kaito-project/kaito/internal/inference"
+	"github.com/kaito-project/kaito/internal/inference/modelstreaming"
+	"github.com/kaito-project/kaito/internal/inference/modelstreaming/registry"
+	"github.com/kaito-project/kaito/internal/k8s/nodeclaim"
+	"github.com/kaito-project/kaito/internal/k8s/resources"
+	"github.com/kaito-project/kaito/internal/manifests"
+	"github.com/kaito-project/kaito/internal/nodeprovision"
+	byoprovisioner "github.com/kaito-project/kaito/internal/nodeprovision/byo-provisioner"
+	"github.com/kaito-project/kaito/internal/tuning"
+	"github.com/kaito-project/kaito/pkg/catalog"
+	"github.com/kaito-project/kaito/pkg/estimator"
+	"github.com/kaito-project/kaito/pkg/featuregates"
+	pkgmodel "github.com/kaito-project/kaito/pkg/model"
+	mmconsts "github.com/kaito-project/kaito/pkg/modelmirror/consts"
+	"github.com/kaito-project/kaito/pkg/utils"
+	"github.com/kaito-project/kaito/pkg/utils/consts"
+	"github.com/kaito-project/kaito/pkg/utils/workspace"
+)
+
+const (
+	WorkspaceHashAnnotation = "workspace.kaito.io/hash"
+	WorkspaceNameLabel      = "workspace.kaito.io/name"
+	revisionHashSuffix      = 5
+)
+
+type WorkspaceReconciler struct {
+	client.Client
+	Log      logr.Logger
+	Scheme   *runtime.Scheme
+	Recorder record.EventRecorder
+
+	klogger             klog.Logger
+	expectations        *utils.ControllerExpectations
+	Estimator           estimator.NodesEstimator
+	nodeProvisioner     nodeprovision.NodeProvisioner
+	modelMetadataClient modelMetadataHTTPClient
+}
+
+func NewWorkspaceReconciler(client client.Client, scheme *runtime.Scheme, log logr.Logger, Recorder record.EventRecorder,
+	provisioner nodeprovision.NodeProvisioner) *WorkspaceReconciler {
+	expectations := utils.NewControllerExpectations()
+
+	return &WorkspaceReconciler{
+		Client:              client,
+		Scheme:              scheme,
+		Log:                 log,
+		klogger:             klog.NewKlogr().WithName("WorkspaceController"),
+		Recorder:            Recorder,
+		expectations:        expectations,
+		Estimator:           &nodesestimator.NodeEstimator{},
+		nodeProvisioner:     provisioner,
+		modelMetadataClient: &http.Client{Timeout: 2 * time.Second},
+	}
+}
+
+func (c *WorkspaceReconciler) Reconcile(ctx context.Context, req reconcile.Request) (result reconcile.Result, err error) {
+	workspaceObj := &kaitov1beta1.Workspace{}
+	if err = c.Client.Get(ctx, req.NamespacedName, workspaceObj); err != nil {
+		if apierrors.IsNotFound(err) {
+			c.expectations.DeleteExpectations(c.klogger, req.String())
+			return reconcile.Result{}, nil
+		}
+		klog.ErrorS(err, "failed to get workspace", "workspace", req.Name)
+		return reconcile.Result{}, err
+	}
+
+	defer func() {
+		if syncErr := c.syncWorkspaceStatus(ctx, req.NamespacedName, err); syncErr != nil {
+			klog.ErrorS(syncErr, "failed to sync workspace status", "workspace", req.NamespacedName)
+			if err == nil {
+				err = syncErr
+			}
+		}
+	}()
+
+	klog.InfoS("Reconciling", "workspace", req.NamespacedName)
+
+	if workspaceObj.DeletionTimestamp.IsZero() {
+		if err = c.ensureFinalizer(ctx, workspaceObj); err != nil {
+			return reconcile.Result{}, err
+		}
+	} else {
+		// Handle deleting workspace, garbage collect all the resources.
+		return c.deleteWorkspace(ctx, workspaceObj)
+	}
+
+	if err = c.syncControllerRevision(ctx, workspaceObj); err != nil {
+		return reconcile.Result{}, err
+	}
+
+	// Resolve and pin the bring-your-own model before anything is sized or
+	// provisioned, so that sizing and the workload are built from a model
+	// identity that has already been recorded.
+	if err = c.reconcileResolvedModel(ctx, workspaceObj); err != nil {
+		return reconcile.Result{}, err
+	}
+
+	// BYO auto-selection requires a healthy GPU node to identify the effective SKU.
+	// Return an error before workload creation so reconciliation retries with backoff.
+	if featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning] && workspaceObj.Resource.AutoSelectsSKU() {
+		it, selErr := byoprovisioner.SelectInstanceType(ctx, c.Client, workspaceObj)
+		if selErr != nil {
+			return reconcile.Result{}, selErr
+		}
+		if it == "" {
+			return reconcile.Result{}, fmt.Errorf("no ready GPU nodes present for BYO node selection; scale the cluster to add a GPU node")
+		}
+	}
+
+	// update targetNodeCount for the workspace
+	if err = c.UpdateWorkspaceTargetNodeCount(ctx, workspaceObj); err != nil {
+		return reconcile.Result{}, err
+	}
+
+	return c.addOrUpdateWorkspace(ctx, workspaceObj)
+}
+
+func (c *WorkspaceReconciler) ensureFinalizer(ctx context.Context, workspaceObj *kaitov1beta1.Workspace) error {
+	if !controllerutil.ContainsFinalizer(workspaceObj, consts.WorkspaceFinalizer) {
+		patch := client.MergeFrom(workspaceObj.DeepCopy())
+		controllerutil.AddFinalizer(workspaceObj, consts.WorkspaceFinalizer)
+		if err := c.Client.Patch(ctx, workspaceObj, patch); err != nil {
+			klog.ErrorS(err, "failed to ensure the finalizer to the workspace", "workspace", klog.KObj(workspaceObj))
+			return err
+		}
+	}
+	return nil
+}
+
+// ensureModelMirror creates the ModelMirror CR for the workspace's model if it doesn't exist.
+// Returns nil if the CR exists (any phase) or was created successfully.
+func (c *WorkspaceReconciler) ensureModelMirror(ctx context.Context, wObj *kaitov1beta1.Workspace) error {
+	if err := modelstreaming.ValidateStaticModelMirrorAnnotations(wObj.Annotations); err != nil {
+		return &streamingValidationError{reason: reasonModelStreamingInvalidAnnotations, err: err}
+	}
+
+	modelID := modelstreaming.ResolveHFModelID(wObj)
+	mirrorKey := modelstreaming.ModelMirrorKey(wObj)
+	crName := mirrorKey.Name
+	staticRequested := modelstreaming.StaticModelMirrorEnabled(wObj.Annotations)
+
+	// Check if CR already exists
+	existing := &kaitov1alpha1.ModelMirror{}
+	err := c.Client.Get(ctx, mirrorKey, existing)
+	if err == nil {
+		return c.validateExistingModelMirror(wObj, existing, modelID, staticRequested)
+	}
+	if !apierrors.IsNotFound(err) {
+		return &streamingValidationError{
+			reason: reasonModelMirrorCreateFailed,
+			err:    fmt.Errorf("failed to get ModelMirror CR %s: %w", crName, err),
+		}
+	}
+
+	if staticRequested {
+		if err := registry.SelectModelStreamer(wObj).ValidateAuth(ctx, wObj, c.Client, modelstreaming.StreamingDefaults.ServiceAccount); err != nil {
+			return &streamingValidationError{reason: reasonModelStreamingServiceAccountInvalid, err: err}
+		}
+		staticCR := &kaitov1alpha1.ModelMirror{
+			ObjectMeta: modelstreaming.ModelMirrorObjectMeta(wObj),
+			Spec:       kaitov1alpha1.ModelMirrorSpec{Mode: kaitov1alpha1.ModelMirrorModeStatic},
+		}
+		if err := c.Client.Create(ctx, staticCR); err != nil {
+			if apierrors.IsAlreadyExists(err) {
+				return errModelMirrorRaced
+			}
+			return &streamingValidationError{
+				reason: reasonModelMirrorCreateFailed,
+				err:    fmt.Errorf("failed to create static ModelMirror CR %s: %w", crName, err),
+			}
+		}
+		klog.InfoS("Created static ModelMirror CR", "name", crName, "workspace", klog.KObj(wObj))
+		return nil
+	}
+
+	// Managed mirror: validate the StorageClass exists and uses the correct CSI provisioner.
+	storageClass, err := modelstreaming.ResolveStorageClass(wObj, modelstreaming.StreamingDefaults.StorageClass)
+	if err != nil {
+		return &streamingValidationError{reason: reasonModelStreamingStorageClassNotFound, err: err}
+	}
+	sc := &storagev1.StorageClass{}
+	if err := c.Client.Get(ctx, client.ObjectKey{Name: storageClass}, sc); err != nil {
+		return &streamingValidationError{
+			reason: reasonModelStreamingStorageClassNotFound,
+			err:    fmt.Errorf("StorageClass %q not found: %w", storageClass, err),
+		}
+	}
+	expectedCSIDriver := consts.CSIDriverNameForCloud(os.Getenv("CLOUD_PROVIDER"))
+	if sc.Provisioner != expectedCSIDriver {
+		return &streamingValidationError{
+			reason: reasonModelStreamingInvalidStorageClass,
+			err: fmt.Errorf("StorageClass %q uses provisioner %q, but model streaming requires %q; "+
+				"create a StorageClass with the correct provisioner",
+				storageClass, sc.Provisioner, expectedCSIDriver),
+		}
+	}
+
+	// Validate ServiceAccount exists and has provider-specific identity configured.
+	if err := registry.SelectModelStreamer(wObj).ValidateAuth(ctx, wObj, c.Client, modelstreaming.StreamingDefaults.ServiceAccount); err != nil {
+		return &streamingValidationError{reason: reasonModelStreamingServiceAccountInvalid, err: err}
+	}
+
+	serviceAccount, err := modelstreaming.ResolveStreamingServiceAccount(wObj, modelstreaming.StreamingDefaults.ServiceAccount)
+	if err != nil {
+		return &streamingValidationError{reason: reasonModelStreamingServiceAccountInvalid, err: err}
+	}
+
+	// Resolve model metadata for DiskStorageRequirement
+	presetName := string(wObj.Inference.Preset.Name)
+	model, err := catalog.GetModelByName(ctx, presetName, wObj.Inference.Config, wObj.Inference.Preset.PresetOptions.ModelAccessSecret, wObj.Namespace, c.Client)
+	if err != nil {
+		return &streamingValidationError{
+			reason: reasonModelMirrorCreateFailed,
+			err:    fmt.Errorf("failed to resolve model for streaming: %w", err),
+		}
+	}
+
+	modelSize := model.GetInferenceParameters().DiskStorageRequirement
+	if modelSize == "" {
+		return &streamingValidationError{
+			reason: reasonModelMirrorCreateFailed,
+			err:    fmt.Errorf("model %q has no DiskStorageRequirement; cannot create ModelMirror CR", modelID),
+		}
+	}
+
+	cr := &kaitov1alpha1.ModelMirror{
+		ObjectMeta: modelstreaming.ModelMirrorObjectMeta(wObj),
+		Spec: kaitov1alpha1.ModelMirrorSpec{
+			Mode: kaitov1alpha1.ModelMirrorModeManaged,
+			Source: &kaitov1alpha1.ModelMirrorSource{
+				Registry:         kaitov1alpha1.RegistryHuggingFace,
+				ModelID:          modelID,
+				AccessSecretName: wObj.Inference.Preset.PresetOptions.ModelAccessSecret,
+			},
+			Storage: &kaitov1alpha1.ModelMirrorStorage{
+				Size:             modelSize,
+				StorageClassName: ptr.To(storageClass),
+			},
+			ServiceAccountName: serviceAccount,
+		},
+	}
+
+	if err := c.Client.Create(ctx, cr); err != nil {
+		if apierrors.IsAlreadyExists(err) {
+			return errModelMirrorRaced
+		}
+		return &streamingValidationError{
+			reason: reasonModelMirrorCreateFailed,
+			err:    fmt.Errorf("failed to create ModelMirror CR %s: %w", crName, err),
+		}
+	}
+
+	klog.InfoS("Created ModelMirror CR", "name", crName, "modelID", modelID, "workspace", klog.KObj(wObj))
+	return nil
+}
+
+// validateExistingModelMirror checks that a mirror already present in the workspace's
+// namespace describes the same model, mode and storage this workspace asks for. A mirror is
+// shared by every workspace in the namespace that uses the same model, so a disagreement
+// means one of them would silently stream from the wrong place.
+func (c *WorkspaceReconciler) validateExistingModelMirror(wObj *kaitov1beta1.Workspace,
+	existing *kaitov1alpha1.ModelMirror, modelID string, staticRequested bool) error {
+	crName := existing.Name
+
+	// A mirror on its way out still holds the name, so a replacement cannot be created yet.
+	// Deleting one while workspaces still use it is not a supported operation; this only
+	// keeps the workspace from binding to storage that is about to disappear.
+	if !existing.DeletionTimestamp.IsZero() {
+		return &streamingValidationError{
+			reason: reasonModelMirrorDeleting,
+			err: fmt.Errorf("ModelMirror %s in namespace %s is being deleted; waiting for it to be removed before recreating it",
+				crName, existing.Namespace),
+		}
+	}
+
+	if existing.Spec.Source != nil && existing.Spec.Source.ModelID != modelID {
+		return &streamingValidationError{
+			reason: reasonModelMirrorCreateFailed,
+			err: fmt.Errorf("ModelMirror CR name collision: %s maps to both %q and %q",
+				crName, existing.Spec.Source.ModelID, modelID),
+		}
+	}
+
+	// A static mirror has no Source, so the model check above cannot catch a mode mismatch.
+	// Left unchecked, a managed workspace adopts a static mirror, sees it Ready, and then
+	// fails looking for a PVC that a static mirror never creates.
+	existingStatic := existing.Spec.Mode == kaitov1alpha1.ModelMirrorModeStatic
+	if existingStatic != staticRequested {
+		return &streamingValidationError{
+			reason: reasonModelMirrorCreateFailed,
+			err: fmt.Errorf("ModelMirror %s in namespace %s has mode %q but this workspace requires mode %q; "+
+				"delete the existing ModelMirror or move this workspace to another namespace",
+				crName, existing.Namespace, mirrorMode(existingStatic), mirrorMode(staticRequested)),
+		}
+	}
+
+	if staticRequested {
+		return nil
+	}
+
+	want, err := modelstreaming.ResolveStorageClass(wObj, modelstreaming.StreamingDefaults.StorageClass)
+	if err != nil {
+		return &streamingValidationError{reason: reasonModelStreamingStorageClassNotFound, err: err}
+	}
+	if got := existingStorageClass(existing); got != want {
+		return &streamingValidationError{
+			reason: reasonModelMirrorCreateFailed,
+			err: fmt.Errorf("ModelMirror %s in namespace %s uses StorageClass %q but this workspace requires %q; "+
+				"delete the existing ModelMirror or align the %s annotation",
+				crName, existing.Namespace, got, want, mmconsts.AnnotationModelMirrorStorageClass),
+		}
+	}
+	return nil
+}
+
+func mirrorMode(static bool) kaitov1alpha1.ModelMirrorMode {
+	if static {
+		return kaitov1alpha1.ModelMirrorModeStatic
+	}
+	return kaitov1alpha1.ModelMirrorModeManaged
+}
+
+func existingStorageClass(cr *kaitov1alpha1.ModelMirror) string {
+	if cr.Spec.Storage == nil || cr.Spec.Storage.StorageClassName == nil {
+		return ""
+	}
+	return *cr.Spec.Storage.StorageClassName
+}
+
+// waitForModelMirror checks if the ModelMirror CR is Ready.
+// Returns (nil, nil) to proceed, or (*Result, err) to stop — same pattern as reconcileNodes.
+func (c *WorkspaceReconciler) waitForModelMirror(ctx context.Context, wObj *kaitov1beta1.Workspace) (result *reconcile.Result, err error) {
+	mirrorKey := modelstreaming.ModelMirrorKey(wObj)
+	crName := mirrorKey.Name
+
+	cr := &kaitov1alpha1.ModelMirror{}
+	if err := c.Client.Get(ctx, mirrorKey, cr); err != nil {
+		if apierrors.IsNotFound(err) {
+			// CR was deleted externally; ensureModelMirror will recreate on next reconcile
+			return &reconcile.Result{}, nil
+		}
+		return &reconcile.Result{}, fmt.Errorf("failed to get ModelMirror CR %s: %w", crName, err)
+	}
+
+	if !cr.DeletionTimestamp.IsZero() {
+		klog.InfoS("ModelMirror CR is being deleted, gating inference", "name", crName)
+		return &reconcile.Result{RequeueAfter: modelMirrorDrainRetryInterval}, nil
+	}
+
+	if cr.Status.Phase != kaitov1alpha1.ModelMirrorPhaseReady {
+		klog.InfoS("ModelMirror CR not ready, gating inference", "name", crName, "phase", cr.Status.Phase)
+		return &reconcile.Result{}, nil
+	}
+	return nil, nil
+}
+
+func (c *WorkspaceReconciler) reconcileNodes(ctx context.Context, wObj *kaitov1beta1.Workspace) (result *reconcile.Result, err error) {
+	// Provision nodes via the NodeProvisioner interface.
+	// GpuProvisioner creates NodeClaims; BYOProvisioner (BYO mode) is a no-op.
+	if err := c.nodeProvisioner.ProvisionNodes(ctx, wObj); err != nil {
+		return &reconcile.Result{}, err
+	}
+
+	// Check if nodes are ready.
+	ready, needRequeue, err := c.nodeProvisioner.EnsureNodesReady(ctx, wObj)
+	if err != nil {
+		return &reconcile.Result{}, err
+	}
+	if !ready {
+		if needRequeue {
+			return &reconcile.Result{RequeueAfter: 2 * time.Second}, nil
+		}
+		return &reconcile.Result{RequeueAfter: nodeClaimStatusResyncInterval}, nil
+	}
+
+	return nil, nil
+}
+
+func (c *WorkspaceReconciler) addOrUpdateWorkspace(ctx context.Context, wObj *kaitov1beta1.Workspace) (reconcile.Result, error) {
+	workspaceKey := client.ObjectKeyFromObject(wObj).String()
+	if !c.expectations.SatisfiedExpectations(c.Log, workspaceKey) {
+		klog.V(4).InfoS("Waiting for NodeClaim expectations to be satisfied",
+			"workspace", workspaceKey)
+		return reconcile.Result{}, nil
+	}
+
+	// Ensure ModelMirror CR exists (starts download in parallel with node provisioning).
+	if modelstreaming.ModelStreamingEnabled(wObj) && wObj.Inference != nil && wObj.Inference.Preset != nil {
+		if err := c.ensureModelMirror(ctx, wObj); err != nil {
+			var sve *streamingValidationError
+			if errors.Is(err, errModelMirrorRaced) ||
+				(errors.As(err, &sve) && sve.reason == reasonModelMirrorDeleting) {
+				return reconcile.Result{RequeueAfter: modelMirrorDrainRetryInterval}, nil
+			}
+			return reconcile.Result{}, err
+		}
+	}
+
+	if result, err := c.reconcileNodes(ctx, wObj); err != nil || result != nil {
+		return *result, err
+	}
+
+	// Wait for ModelMirror CR to be Ready (gate inference pod creation).
+	if modelstreaming.ModelStreamingEnabled(wObj) && wObj.Inference != nil && wObj.Inference.Preset != nil {
+		if result, err := c.waitForModelMirror(ctx, wObj); err != nil || result != nil {
+			return *result, err
+		}
+	}
+
+	// TODO(distributed-cache): Phase 4 — ModelMirror Integration (Cache Warming).
+	// Cache warming occurs as a side-effect of ModelMirror's download. Two paths:
+	//   CSI: Set provider StorageClass on ModelMirror PVC (writes flow through CSI to cache).
+	//   Webhook: Provider webhook injects cache interception into download pods.
+	// In Required mode, gate on both ModelMirror Ready AND provider.IsReady().
+	// In Opportunistic mode, gate only on ModelMirror Ready; cache warms lazily on first read.
+
+	// Check cache readiness when configured. In Required mode, block deployment
+	// until the cache is ready. Gated on the distributed-cache feature flag so
+	// the cache library itself stays feature-gate agnostic.
+	cacheRequeueNeeded := false
+	if featuregates.FeatureGates[consts.FeatureFlagDistributedCache] {
+		cacheResult := cache.ReconcileCache(ctx, c.Client, wObj, &wObj.Status)
+		if cacheResult.BlockDeployment {
+			klog.V(2).InfoS("Cache not ready, blocking deployment", "workspace", klog.KObj(wObj))
+			if cacheResult.RequeueNeeded {
+				return reconcile.Result{RequeueAfter: 10 * time.Second}, nil
+			}
+			return reconcile.Result{}, nil
+		}
+		cacheRequeueNeeded = cacheResult.RequeueNeeded
+	}
+
+	if wObj.Tuning != nil {
+		if err := c.applyTuning(ctx, wObj); err != nil {
+			return reconcile.Result{}, err
+		}
+	} else if wObj.Inference != nil {
+		if err := c.ensureService(ctx, wObj); err != nil {
+			return reconcile.Result{}, err
+		}
+		if err := c.applyInference(ctx, wObj); err != nil {
+			return reconcile.Result{}, err
+		}
+	}
+
+	if cacheRequeueNeeded {
+		return reconcile.Result{RequeueAfter: 10 * time.Second}, nil
+	}
+
+	return reconcile.Result{}, nil
+}
+
+func (c *WorkspaceReconciler) deleteWorkspace(ctx context.Context, wObj *kaitov1beta1.Workspace) (reconcile.Result, error) {
+	klog.InfoS("deleteWorkspace", "workspace", klog.KObj(wObj))
+	return c.garbageCollectWorkspace(ctx, wObj)
+}
+func (c *WorkspaceReconciler) syncControllerRevision(ctx context.Context, wObj *kaitov1beta1.Workspace) error {
+	currentHash := ComputeHash(wObj)
+	annotations := wObj.GetAnnotations()
+	if annotations == nil {
+		annotations = make(map[string]string)
+	} // nil checking.
+
+	revisionNum := int64(1)
+
+	revisions := &appsv1.ControllerRevisionList{}
+	if err := c.List(ctx, revisions, client.InNamespace(wObj.Namespace), client.MatchingLabels{WorkspaceNameLabel: wObj.Name}); err != nil {
+		return fmt.Errorf("failed to list revisions: %w", err)
+	}
+	sort.Slice(revisions.Items, func(i, j int) bool {
+		return revisions.Items[i].Revision < revisions.Items[j].Revision
+	})
+
+	var latestRevision *appsv1.ControllerRevision
+
+	jsonData, err := marshalSelectedFields(wObj)
+	if err != nil {
+		return fmt.Errorf("failed to marshal revision data: %w", err)
+	}
+
+	if len(revisions.Items) > 0 {
+		latestRevision = &revisions.Items[len(revisions.Items)-1]
+
+		revisionNum = latestRevision.Revision + 1
+	}
+	newRevision := &appsv1.ControllerRevision{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      fmt.Sprintf("%s-%s", wObj.Name, currentHash[:revisionHashSuffix]),
+			Namespace: wObj.Namespace,
+			Annotations: map[string]string{
+				WorkspaceHashAnnotation: currentHash,
+			},
+			Labels: map[string]string{
+				WorkspaceNameLabel: wObj.Name,
+			},
+			OwnerReferences: []metav1.OwnerReference{
+				*metav1.NewControllerRef(wObj, kaitov1beta1.GroupVersion.WithKind("Workspace")),
+			},
+		},
+		Revision: revisionNum,
+		Data:     runtime.RawExtension{Raw: jsonData},
+	}
+
+	annotations[WorkspaceHashAnnotation] = currentHash
+	wObj.SetAnnotations(annotations)
+	controllerRevision := &appsv1.ControllerRevision{}
+	if err := c.Get(ctx, types.NamespacedName{
+		Name:      newRevision.Name,
+		Namespace: newRevision.Namespace,
+	}, controllerRevision); err != nil {
+		if apierrors.IsNotFound(err) {
+
+			if err := c.Create(ctx, newRevision); err != nil {
+				return fmt.Errorf("failed to create new ControllerRevision: %w", err)
+			} else {
+				annotations[kaitov1beta1.WorkspaceRevisionAnnotation] = strconv.FormatInt(revisionNum, 10)
+			}
+
+			if len(revisions.Items) > consts.MaxRevisionHistoryLimit {
+				if err := c.Delete(ctx, &revisions.Items[0]); err != nil {
+					return fmt.Errorf("failed to delete old revision: %w", err)
+				}
+			}
+		} else {
+			return fmt.Errorf("failed to get controller revision: %w", err)
+		}
+	} else {
+		if controllerRevision.Annotations[WorkspaceHashAnnotation] != newRevision.Annotations[WorkspaceHashAnnotation] {
+			return fmt.Errorf("revision name conflicts, the hash values are different")
+		}
+		annotations[kaitov1beta1.WorkspaceRevisionAnnotation] = strconv.FormatInt(controllerRevision.Revision, 10)
+	}
+	annotations[WorkspaceHashAnnotation] = currentHash
+
+	err = workspace.UpdateWorkspaceWithRetry(ctx, c.Client, wObj, func(ws *kaitov1beta1.Workspace) error {
+		ws.SetAnnotations(annotations)
+		return nil
+	})
+	if err != nil {
+		return fmt.Errorf("failed to update Workspace annotations: %w", err)
+	}
+	return nil
+}
+
+func marshalSelectedFields(wObj *kaitov1beta1.Workspace) ([]byte, error) {
+	partialMap := map[string]interface{}{
+		"resource":  wObj.Resource,
+		"inference": wObj.Inference,
+		"tuning":    wObj.Tuning,
+	}
+
+	jsonData, err := json.Marshal(partialMap)
+	if err != nil {
+		return nil, fmt.Errorf("failed to marshal selected fields: %w", err)
+	}
+
+	return jsonData, nil
+}
+
+func ComputeHash(w *kaitov1beta1.Workspace) string {
+	hasher := sha256.New()
+	encoder := json.NewEncoder(hasher)
+	encoder.Encode(w.Resource)
+	encoder.Encode(w.Inference)
+	encoder.Encode(w.Tuning)
+	if w.GetAnnotations()[kaitov1beta1.AnnotationEnableSpeculativeDecoding] == "true" {
+		encoder.Encode(true)
+	}
+	return hex.EncodeToString(hasher.Sum(nil))
+}
+
+func (c *WorkspaceReconciler) ensureService(ctx context.Context, wObj *kaitov1beta1.Workspace) error {
+	serviceType := corev1.ServiceTypeClusterIP
+	wAnnotation := wObj.GetAnnotations()
+
+	if len(wAnnotation) != 0 {
+		val, found := wAnnotation[kaitov1beta1.AnnotationEnableLB]
+		if found && val == "True" {
+			serviceType = corev1.ServiceTypeLoadBalancer
+		}
+	}
+
+	serviceObj := manifests.GenerateServiceManifest(wObj, serviceType)
+	if err := resources.GetResource(ctx, serviceObj.Name, serviceObj.Namespace, c.Client, &corev1.Service{}); err != nil {
+		if !apierrors.IsNotFound(err) {
+			return err
+		}
+		if err := resources.CreateResource(ctx, serviceObj, c.Client); err != nil {
+			return err
+		}
+	}
+
+	// headless service for worker pod to discover the leader pod
+	headlessService := manifests.GenerateHeadlessServiceManifest(wObj)
+	if err := resources.GetResource(ctx, headlessService.Name, headlessService.Namespace, c.Client, &corev1.Service{}); err != nil {
+		if !apierrors.IsNotFound(err) {
+			return err
+		}
+		if err := resources.CreateResource(ctx, headlessService, c.Client); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func (c *WorkspaceReconciler) applyTuning(ctx context.Context, wObj *kaitov1beta1.Workspace) error {
+	if wObj.Tuning == nil || wObj.Tuning.Preset == nil {
+		return nil
+	}
+
+	presetName := string(wObj.Tuning.Preset.Name)
+	model, err := catalog.GetModelByName(ctx, presetName, "", "", wObj.Namespace, c.Client)
+	if err != nil {
+		klog.ErrorS(err, "failed to get model by name", "model", presetName, "workspace", klog.KObj(wObj))
+		return err
+	}
+	revisionNum := wObj.Annotations[kaitov1beta1.WorkspaceRevisionAnnotation]
+
+	existingObj := &batchv1.Job{}
+	if err := resources.GetResource(ctx, wObj.Name, wObj.Namespace, c.Client, existingObj); err != nil {
+		if apierrors.IsNotFound(err) {
+			_, err = tuning.CreatePresetTuning(ctx, wObj, revisionNum, model, c.Client)
+			return err
+		}
+		return err
+	}
+
+	klog.InfoS("A tuning workload already exists for workspace", "workspace", klog.KObj(wObj))
+	if existingObj.Annotations[kaitov1beta1.WorkspaceRevisionAnnotation] == revisionNum {
+		return nil
+	}
+
+	deletePolicy := metav1.DeletePropagationForeground
+	if err := c.Delete(ctx, existingObj, &client.DeleteOptions{PropagationPolicy: &deletePolicy}); err != nil {
+		return err
+	}
+
+	_, err = tuning.CreatePresetTuning(ctx, wObj, revisionNum, model, c.Client)
+	return err
+}
+
+// applyInference applies inference spec.
+func (c *WorkspaceReconciler) applyInference(ctx context.Context, wObj *kaitov1beta1.Workspace) error {
+	// From v0.8.0 onwards, StatefulSet is the default workload for all workspaces.
+	// This block purges existing Deployments and migrates them to StatefulSets later.
+	// WARNING: This migration will cause a few minutes of service downtime.
+	existingDeploy := appsv1.Deployment{}
+	if err := resources.GetResource(ctx, wObj.Name, wObj.Namespace, c.Client, &existingDeploy); err == nil {
+		c.Recorder.Eventf(wObj, "Warning", "WorkloadMigration",
+			"Migrating inference workload from Deployment to StatefulSet, this will cause a few minutes of downtime.")
+		klog.InfoS("Delete existing deployment workload for workspace", "workspace", klog.KObj(wObj))
+		err = c.Delete(ctx, &existingDeploy, &client.DeleteOptions{
+			Preconditions: &metav1.Preconditions{
+				UID: &existingDeploy.UID,
+			},
+		})
+		if err != nil && !apierrors.IsNotFound(err) {
+			return fmt.Errorf("failed to delete old inference deployment: %w", err)
+		}
+	} else if !apierrors.IsNotFound(err) {
+		return fmt.Errorf("failed to get existing inference deployment: %w", err)
+	}
+
+	if wObj.Inference == nil {
+		return nil
+	}
+
+	if wObj.Inference.Template != nil {
+		// TODO: handle update
+		_, err := inference.CreateTemplateInference(ctx, wObj, c.Client, c.nodeProvisioner)
+		return err
+	}
+
+	if wObj.Inference.Preset == nil {
+		return nil
+	}
+
+	presetName := string(wObj.Inference.Preset.Name)
+	model, err := catalog.GetModelByName(ctx, presetName, wObj.Inference.Config, wObj.Inference.Preset.PresetOptions.ModelAccessSecret, wObj.Namespace, c.Client)
+	if err != nil {
+		klog.ErrorS(err, "failed to get model by name", "model", presetName, "workspace", klog.KObj(wObj))
+		return err
+	}
+
+	revisionStr := wObj.Annotations[kaitov1beta1.WorkspaceRevisionAnnotation]
+	result, err := inference.GeneratePresetInference(ctx, wObj, revisionStr, model, c.Client, c.nodeProvisioner)
+	if err != nil {
+		return err
+	}
+
+	desiredStatefulSet, ok := result.Workload.(*appsv1.StatefulSet)
+	if !ok {
+		return fmt.Errorf("failed to generate statefulset workload for inference")
+	}
+
+	existingObj := &appsv1.StatefulSet{}
+	existingErr := resources.GetResource(ctx, wObj.Name, wObj.Namespace, c.Client, existingObj)
+	if existingErr != nil && !apierrors.IsNotFound(existingErr) {
+		return existingErr
+	}
+
+	baseImageUpgrade := false
+	if existingErr == nil {
+		baseImageUpgrade = shouldUpgradeBaseImage(wObj, existingObj, desiredStatefulSet, result.BaseImage)
+		if !baseImageUpgrade {
+			// Without auto-upgrade, keep the LMCache setup supported by the deployed
+			// KAITO base image. Adding the sidecar to an older image would reference a
+			// missing health script and run both the old in-process cache and sidecar.
+			if preserveLMCacheTopologyForDeployedImage(existingObj, desiredStatefulSet) {
+				klog.InfoS("Deferring LMCache topology update until the base image is upgraded", "workspace", klog.KObj(wObj),
+					"deployedImage", workspace.GetInferenceContainerImage(existingObj),
+					"desiredImage", workspace.GetInferenceContainerImage(desiredStatefulSet))
+			}
+			preserveDeployedImages(existingObj, desiredStatefulSet)
+		}
+	}
+
+	if featuregates.FeatureGates[consts.FeatureFlagDistributedCache] && cache.HasAttachment(wObj) {
+		if err := cache.ApplyPresetCacheMutations(ctx, wObj, c.Client, model, desiredStatefulSet); err != nil {
+			return err
+		}
+	}
+
+	if apierrors.IsNotFound(existingErr) {
+		return resources.CreateResource(ctx, desiredStatefulSet, c.Client)
+	}
+
+	klog.InfoS("An inference workload already exists for workspace", "workspace", klog.KObj(wObj))
+	annotations := existingObj.GetAnnotations()
+	if annotations == nil {
+		annotations = make(map[string]string)
+	}
+
+	currentRevisionStr, ok := annotations[kaitov1beta1.WorkspaceRevisionAnnotation]
+	replacePodTemplate := baseImageUpgrade || cache.MutationHashChanged(existingObj, desiredStatefulSet)
+
+	// If the current workload revision matches the one in Workspace and no upgrade is pending,
+	// we do not need to update it.
+	if ok && currentRevisionStr == revisionStr && !replacePodTemplate {
+		return nil
+	}
+
+	if replacePodTemplate {
+		// Replace the pod template for changes that require a workload rollout.
+		// https://github.com/kubernetes/kubernetes/blob/master/pkg/apis/apps/validation/validation.go#L268C1-L269C1
+		existingObj.Spec.Template = desiredStatefulSet.Spec.Template
+		existingObj.Spec.Replicas = desiredStatefulSet.Spec.Replicas
+		existingObj.Spec.Ordinals = desiredStatefulSet.Spec.Ordinals
+		existingObj.Spec.UpdateStrategy = desiredStatefulSet.Spec.UpdateStrategy
+		existingObj.Spec.MinReadySeconds = desiredStatefulSet.Spec.MinReadySeconds
+		existingObj.Spec.PersistentVolumeClaimRetentionPolicy = desiredStatefulSet.Spec.PersistentVolumeClaimRetentionPolicy
+	} else {
+		// Selectively update the pod spec fields that are relevant to inference,
+		// and leave the rest unchanged in case user has customized them.
+		syncInferenceMutablePodSpec(&existingObj.Spec.Template.Spec, &desiredStatefulSet.Spec.Template.Spec)
+	}
+
+	annotations[kaitov1beta1.WorkspaceRevisionAnnotation] = revisionStr
+	existingObj.SetAnnotations(annotations)
+
+	// Update it with the latest one generated above.
+	if err := c.Update(ctx, existingObj); err != nil {
+		return err
+	}
+
+	// After a successful workload API update for a base image upgrade, clear the
+	// recorded benchmark so it can be collected for the new image. Rollout
+	// completion is checked separately before collecting benchmark results.
+	if baseImageUpgrade {
+		if err := c.resetBenchmarkOnUpgrade(ctx, wObj); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func preserveDeployedImages(existing, desired *appsv1.StatefulSet) {
+	preserveContainerImages(existing.Spec.Template.Spec.Containers, desired.Spec.Template.Spec.Containers)
+	preserveContainerImages(existing.Spec.Template.Spec.InitContainers, desired.Spec.Template.Spec.InitContainers)
+}
+
+func preserveContainerImages(existing, desired []corev1.Container) {
+	imagesByName := make(map[string]string, len(existing))
+	for _, container := range existing {
+		imagesByName[container.Name] = container.Image
+	}
+	for i := range desired {
+		if image, found := imagesByName[desired[i].Name]; found {
+			desired[i].Image = image
+		}
+	}
+}
+
+func syncInferenceMutablePodSpec(existingSpec, desiredSpec *corev1.PodSpec) {
+	existingSpec.Containers[0].Command = desiredSpec.Containers[0].Command
+	existingSpec.Containers[0].Args = desiredSpec.Containers[0].Args
+	existingSpec.Containers[0].Env = desiredSpec.Containers[0].Env
+	existingSpec.Containers[0].VolumeMounts = desiredSpec.Containers[0].VolumeMounts
+	// The LMCache sidecar swaps in an exec liveness probe that depends on the
+	// sidecar's runtime volume, so it must follow InitContainers and Volumes.
+	existingSpec.Containers[0].LivenessProbe = desiredSpec.Containers[0].LivenessProbe
+	existingSpec.InitContainers = desiredSpec.InitContainers
+	existingSpec.Volumes = desiredSpec.Volumes
+}
+
+func shouldUpgradeBaseImage(wObj *kaitov1beta1.Workspace, existingObj, desiredStatefulSet *appsv1.StatefulSet, baseImage pkgmodel.Metadata) bool {
+	upgradeVersion := wObj.Labels[kaitov1alpha1.LabelUpgradeToVersion]
+	desiredTag, err := inference.GetBaseImageTag(baseImage)
+	return err == nil && upgradeVersion != "" && upgradeVersion == desiredTag &&
+		workspace.GetInferenceContainerImage(desiredStatefulSet) == utils.GetPresetImageName(baseImage.Registry, baseImage.Name, baseImage.Tag) &&
+		workspace.GetInferenceContainerImage(existingObj) != workspace.GetInferenceContainerImage(desiredStatefulSet)
+}
+
+func (c *WorkspaceReconciler) syncWorkspaceStatus(ctx context.Context, key types.NamespacedName, reconcileErr error) error {
+	wObj := &kaitov1beta1.Workspace{}
+	if err := c.Get(ctx, key, wObj); err != nil {
+		if apierrors.IsNotFound(err) {
+			return nil
+		}
+		return err
+	}
+
+	nodeSnapshot, err := c.collectNodeStatusSnapshot(ctx, wObj)
+	if err != nil {
+		return err
+	}
+
+	inferenceReady, hasBenchmarkProbe, infFailReason, infFailMsg, err := c.collectInferenceReadyStatus(ctx, wObj)
+	if err != nil {
+		return err
+	}
+	infFailReason, infFailMsg = streamingValidationReason(reconcileErr, infFailReason, infFailMsg)
+
+	tuningSnapshot, err := c.collectTuningStatusSnapshot(ctx, wObj)
+	if err != nil {
+		return err
+	}
+
+	// benchmarkApplicable gates the benchmark on the *running* pod: it requires both
+	// that the workspace should benchmark and that the StatefulSet actually
+	// carries the benchmark startup probe. Legacy workspaces created before the
+	// benchmark feature have no probe (backward compatibility).
+	benchmarkApplicable := kaitov1beta1.ShouldRunBenchmark(wObj) && hasBenchmarkProbe
+
+	appendReconcileErrMessage := buildReconcileErrMessageAppender(reconcileErr)
+	maxModelLen := c.collectActualMaxModelLen(ctx, wObj, inferenceReady)
+
+	return c.updateWorkspaceStatusIfChanged(ctx, key, func(status *kaitov1beta1.WorkspaceStatus) error {
+		if !wObj.DeletionTimestamp.IsZero() {
+			setWorkspaceCondition(status, wObj.GetGeneration(), appendReconcileErrMessage,
+				kaitov1beta1.WorkspaceConditionTypeDeleting, metav1.ConditionTrue, "workspaceDeleted", "workspace is being deleted")
+			return nil
+		}
+
+		status.WorkerNodes = nodeSnapshot.workerNodeNames
+
+		// Merge node conditions from provisioner: set returned conditions,
+		// remove any known node condition type that was not returned.
+		returnedTypes := make(map[string]struct{}, len(nodeSnapshot.conditions))
+		for i := range nodeSnapshot.conditions {
+			cond := nodeSnapshot.conditions[i]
+			returnedTypes[cond.Type] = struct{}{}
+			cond.Message = appendReconcileErrMessage(cond.Message)
+			cond.ObservedGeneration = wObj.GetGeneration()
+			meta.SetStatusCondition(&status.Conditions, cond)
+		}
+		for _, t := range nodeConditionTypes {
+			if _, ok := returnedTypes[t]; !ok {
+				meta.RemoveStatusCondition(&status.Conditions, t)
+			}
+		}
+
+		// Reconcile cache conditions against the freshly-fetched status so they
+		// are persisted alongside node/inference/tuning conditions. This also
+		// downgrades *CacheReady when the cache was not injected into the pod.
+		// Gated on the distributed-cache feature flag so the cache library stays
+		// feature-gate agnostic.
+		if featuregates.FeatureGates[consts.FeatureFlagDistributedCache] {
+			cache.ReconcileCache(ctx, c.Client, wObj, status)
+		}
+
+		// Extract ResourceStatus condition status for downstream use.
+		resourceConditionStatus := metav1.ConditionFalse
+		if rc := meta.FindStatusCondition(status.Conditions, string(kaitov1beta1.ConditionTypeResourceStatus)); rc != nil {
+			resourceConditionStatus = rc.Status
+		}
+
+		if wObj.Tuning != nil {
+			applyTuningWorkspaceStatus(status, wObj.GetGeneration(), appendReconcileErrMessage, tuningSnapshot)
+			return nil
+		}
+
+		if wObj.Inference != nil {
+			status.MaxModelLen = maxModelLen
+			if modelstreaming.ModelStreamingEnabled(wObj) && wObj.Inference.Preset != nil {
+
+				mirrorKey := modelstreaming.ModelMirrorKey(wObj)
+				crName := mirrorKey.Name
+
+				cr := &kaitov1alpha1.ModelMirror{}
+				if err := c.Get(ctx, mirrorKey, cr); err != nil {
+					if !apierrors.IsNotFound(err) {
+						klog.ErrorS(err, "failed to get ModelMirror CR for status sync", "cr", crName)
+					}
+					// CR not found or error — model weights not ready, override ResourceReady
+					resourceConditionStatus = metav1.ConditionFalse
+					setWorkspaceCondition(status, wObj.GetGeneration(), appendReconcileErrMessage,
+						kaitov1beta1.ConditionTypeResourceStatus,
+						metav1.ConditionFalse, consts.ReasonModelMirrorNotReady, "Model download has not started")
+				} else {
+					mirrorStatus, mirrorReason, mirrorMsg := modelMirrorCondition(cr, infFailReason, infFailMsg)
+					setWorkspaceCondition(status, wObj.GetGeneration(), appendReconcileErrMessage,
+						kaitov1beta1.WorkspaceConditionTypeModelMirrorReady,
+						mirrorStatus, mirrorReason, mirrorMsg)
+					if mirrorStatus != metav1.ConditionTrue {
+						// Model weights not ready — override ResourceReady
+						resourceConditionStatus = metav1.ConditionFalse
+						setWorkspaceCondition(status, wObj.GetGeneration(), appendReconcileErrMessage,
+							kaitov1beta1.ConditionTypeResourceStatus,
+							metav1.ConditionFalse, consts.ReasonModelMirrorNotReady, mirrorMsg)
+					}
+				}
+			}
+
+			applyInferenceWorkspaceStatus(ctx, status, wObj, appendReconcileErrMessage, inferenceReady, resourceConditionStatus, benchmarkApplicable, infFailReason, infFailMsg)
+			return nil
+		}
+
+		return nil
+	})
+}
+
+type nodeStatusSnapshot struct {
+	workerNodeNames []string
+	conditions      []metav1.Condition
+}
+
+// nodeConditionTypes is the complete set of node-related condition types
+// managed by NodeProvisioner. Conditions returned by CollectNodeStatusInfo
+// are set; any type in this set not returned is removed from status.
+var nodeConditionTypes = []string{
+	string(kaitov1beta1.ConditionTypeNodeStatus),
+	string(kaitov1beta1.ConditionTypeNodeClaimStatus),
+	string(kaitov1beta1.ConditionTypeResourceStatus),
+}
+
+func (c *WorkspaceReconciler) collectNodeStatusSnapshot(ctx context.Context, wObj *kaitov1beta1.Workspace) (*nodeStatusSnapshot, error) {
+	snapshot := &nodeStatusSnapshot{
+		workerNodeNames: []string{},
+	}
+
+	// Collect worker node names for status. Scope to nodes owned by this
+	// workspace so sibling workspaces sharing the same label selector
+	// (e.g. InferenceSet replicas) are not reported as this workspace's nodes.
+	nodeList, err := nodeprovision.ListWorkspaceNodes(ctx, c.Client, c.nodeProvisioner, wObj)
+	if err != nil {
+		return nil, err
+	}
+	for i := range nodeList.Items {
+		snapshot.workerNodeNames = append(snapshot.workerNodeNames, nodeList.Items[i].Name)
+	}
+	sort.Strings(snapshot.workerNodeNames)
+
+	// Delegate status condition collection to the NodeProvisioner.
+	snapshot.conditions, err = c.nodeProvisioner.CollectNodeStatusInfo(ctx, wObj)
+	if err != nil {
+		return nil, err
+	}
+
+	return snapshot, nil
+}
+
+// collectInferenceReadyStatus reports whether the inference workload is ready and
+// whether its StatefulSet carries the benchmark startup probe (false for legacy,
+// pre-benchmark-feature workspaces).
+func (c *WorkspaceReconciler) collectInferenceReadyStatus(ctx context.Context, wObj *kaitov1beta1.Workspace) (inferenceReady bool, hasBenchmarkProbe bool, failReason, failMsg string, err error) {
+	if wObj.Inference == nil {
+		return false, false, "", "", nil
+	}
+
+	ss := &appsv1.StatefulSet{}
+	if err := c.Get(ctx, types.NamespacedName{Name: wObj.Name, Namespace: wObj.Namespace}, ss); err != nil {
+		if apierrors.IsNotFound(err) {
+			return false, false, "", "", nil
+		}
+		return false, false, "", "", err
+	}
+
+	replicas := int32(1)
+	if ss.Spec.Replicas != nil {
+		replicas = *ss.Spec.Replicas
+	}
+
+	ready := ss.Status.ReadyReplicas == replicas
+	hasBenchmarkProbe = hasBenchmarkStartupProbe(ss)
+	if hasBenchmarkProbe && kaitov1beta1.ShouldRunBenchmark(wObj) {
+		// ReadyReplicas can still describe the old pods immediately after a
+		// same-size template update. Do not record their write-once benchmark:
+		// wait until the controller observes this generation and every serving
+		// pod is ready at the desired revision.
+		ready = ready && replicas > 0 && ss.Status.ObservedGeneration >= ss.Generation &&
+			ss.Status.UpdatedReplicas == replicas && ss.Status.UpdateRevision != "" &&
+			ss.Status.CurrentRevision == ss.Status.UpdateRevision
+	}
+	// When not ready, classify the underlying pod/container failure (image pull,
+	// crash loop, OOM, eviction, unschedulable, SAS token fetch) so a specific,
+	// actionable reason is surfaced on the InferenceReady condition instead of a
+	// generic message.
+	if !ready {
+		failReason, failMsg = c.classifyInferencePodFailure(ctx, wObj)
+	}
+
+	return ready, hasBenchmarkProbe, failReason, failMsg, nil
+}
+
+// Inference not-ready reason constants. These are stable enum values surfaced on
+// the InferenceReady condition so users and automation can identify the root
+// cause of an inference workload that is not ready.
+const (
+	inferenceReasonSASTokenFetchFailed = consts.ReasonSASTokenFetchFailed
+	inferenceReasonModelBundleMismatch = consts.ReasonModelBundleMismatch
+	inferenceReasonImagePullError      = consts.ReasonImagePullError
+	inferenceReasonCrashLoopBackOff    = consts.ReasonContainerCrashLoopBackOff
+	inferenceReasonOOMKilled           = consts.ReasonContainerOOMKilled
+	inferenceReasonContainerStartError = consts.ReasonContainerStartError
+	inferenceReasonEvicted             = "PodEvicted"
+	inferenceReasonNodeDiskPressure    = "NodeDiskPressure"
+	inferenceReasonNodeMemoryPressure  = "NodeMemoryPressure"
+	inferenceReasonUnschedulable       = "Unschedulable"
+)
+
+// Model streaming validation failure reasons.
+const (
+	reasonModelStreamingStorageClassNotFound  = consts.ReasonModelStreamingStorageClassNotFound
+	reasonModelStreamingInvalidStorageClass   = consts.ReasonModelStreamingInvalidStorageClass
+	reasonModelStreamingServiceAccountInvalid = consts.ReasonModelStreamingServiceAccountInvalid
+	reasonModelStreamingInvalidAnnotations    = consts.ReasonModelStreamingInvalidAnnotations
+	reasonModelMirrorCreateFailed             = "ModelMirrorCreateFailed"
+	reasonModelMirrorDeleting                 = consts.ReasonModelMirrorDeleting
+)
+
+// modelMirrorDrainRetryInterval paces retries while a mirror finishes tearing down.
+const modelMirrorDrainRetryInterval = 5 * time.Second
+
+// nodeClaimStatusResyncInterval resyncs the status of a Workspace waiting for NodeClaims, as the provisioning
+// failures it reports also come from Events and time windows that do not trigger a reconcile.
+const nodeClaimStatusResyncInterval = 2 * time.Minute
+
+// errModelMirrorRaced reports a mirror that appeared between this workspace's cached read
+// and its create. It was built from another workspace's spec, so this one must still run
+// validateExistingModelMirror against it; that happens on the next pass, once the cache
+// catches up and the Get path is taken.
+var errModelMirrorRaced = errors.New("ModelMirror was created concurrently")
+
+type streamingValidationError struct {
+	reason string
+	err    error
+}
+
+func (e *streamingValidationError) Error() string { return e.err.Error() }
+func (e *streamingValidationError) Unwrap() error { return e.err }
+
+// maxInferenceMessageLen caps the length of the failure message surfaced on the
+// InferenceReady condition so it stays readable in the workspace status.
+const maxInferenceMessageLen = 256
+
+// classifyInferencePodFailure lists the workspace's inference pods and returns a
+// specific not-ready reason/message derived from live pod/container state. It
+// returns empty strings when no actionable failure is observed (the caller then
+// falls back to the generic pending reason). Checks are ordered from most
+// specific / most actionable to least.
+func (c *WorkspaceReconciler) classifyInferencePodFailure(ctx context.Context, wObj *kaitov1beta1.Workspace) (reason, message string) {
+	pods := &corev1.PodList{}
+	if err := c.List(ctx, pods, client.InNamespace(wObj.Namespace),
+		client.MatchingLabels{kaitov1beta1.LabelWorkspaceName: wObj.Name}); err != nil {
+		return "", ""
+	}
+
+	// 1. SAS-fetch init container failure (most specific; keeps existing behavior).
+	if r, m := detectSASInitFailure(pods); r != "" {
+		return r, m
+	}
+
+	// 2. Report LMCache sidecar failures explicitly so InferenceReady identifies
+	// the optional cache layer as the blocker rather than a generic pod failure.
+	if r, m := detectLMCacheFailure(pods); r != "" {
+		return r, utils.TruncateMessage(m, maxInferenceMessageLen)
+	}
+
+	// 3. Container-level failures (init + main containers).
+	if r, m := detectContainerFailure(pods); r != "" {
+		return r, utils.TruncateMessage(m, maxInferenceMessageLen)
+	}
+
+	// 4. Pod evicted due to node resource pressure.
+	if r, m := detectEvictedPod(pods); r != "" {
+		return r, utils.TruncateMessage(m, maxInferenceMessageLen)
+	}
+
+	// 5. Pod cannot be scheduled onto any node.
+	if r, m := detectUnschedulablePod(pods); r != "" {
+		return r, utils.TruncateMessage(m, maxInferenceMessageLen)
+	}
+
+	return "", ""
+}
+
+// detectSASInitFailure returns a reason/message when a workspace pod's SAS-fetch
+// init container has failed or is crash-looping. Returns empty strings when no
+// such failure is observed.
+//
+// The init container exits non-zero for two very different reasons: a genuine
+// SAS token/mint failure, or a bring-your-own bundle whose config.json is
+// missing or does not match what the deployment was sized for. The latter exits
+// with a distinct code (modelstreaming.SASFetchExitConfigMismatch) so it is
+// reported as an artifact mismatch rather than misattributed to a token failure.
+func detectSASInitFailure(pods *corev1.PodList) (reason, message string) {
+	for i := range pods.Items {
+		for _, ics := range pods.Items[i].Status.InitContainerStatuses {
+			if ics.Name != modelstreaming.SASFetchInitContainerName {
+				continue
+			}
+			exitCode, failed := sasInitFailureExitCode(ics)
+			if !failed {
+				continue
+			}
+			if int(exitCode) == modelstreaming.SASFetchExitConfigMismatch {
+				return inferenceReasonModelBundleMismatch, "model bundle verification failed: the streamed config.json is missing or does not match the configuration this deployment was sized for; check the fetch-sas init container logs"
+			}
+			return inferenceReasonSASTokenFetchFailed, "SAS token fetch failed: the streaming init container could not obtain a SAS token; check the fetch-sas init container logs"
+		}
+	}
+	return "", ""
+}
+
+// sasInitFailureExitCode reports the exit code of the SAS-fetch init container's
+// most recent termination and whether that termination represents a failure
+// (non-zero exit, including one now hidden behind a CrashLoopBackOff wait). The
+// exit code is 0 with failed=true only when a crash loop is observed without a
+// recorded termination to read the code from.
+func sasInitFailureExitCode(ics corev1.ContainerStatus) (code int32, failed bool) {
+	if t := ics.State.Terminated; t != nil && t.ExitCode != 0 {
+		return t.ExitCode, true
+	}
+	if t := ics.LastTerminationState.Terminated; t != nil && t.ExitCode != 0 {
+		return t.ExitCode, true
+	}
+	if w := ics.State.Waiting; w != nil && w.Reason == "CrashLoopBackOff" {
+		if t := ics.LastTerminationState.Terminated; t != nil {
+			return t.ExitCode, true
+		}
+		return 0, true
+	}
+	return 0, false
+}
+
+// detectContainerFailure inspects init and main container statuses across all
+// pods and returns the most actionable failure reason/message, or empty strings.
+func detectContainerFailure(pods *corev1.PodList) (reason, message string) {
+	type check struct {
+		reason string
+		match  func(cs corev1.ContainerStatus) (bool, string)
+	}
+	// Ordered from most actionable / root-cause to least.
+	checks := []check{
+		{
+			reason: inferenceReasonOOMKilled,
+			match: func(cs corev1.ContainerStatus) (bool, string) {
+				for _, t := range []*corev1.ContainerStateTerminated{cs.State.Terminated, cs.LastTerminationState.Terminated} {
+					if t != nil && t.Reason == "OOMKilled" {
+						return true, fmt.Sprintf("container %q was OOMKilled (exit code %d); reduce memory usage or use a larger instance type", cs.Name, t.ExitCode)
+					}
+				}
+				return false, ""
+			},
+		},
+		{
+			reason: inferenceReasonImagePullError,
+			match: func(cs corev1.ContainerStatus) (bool, string) {
+				if w := cs.State.Waiting; w != nil && isImagePullErrorReason(w.Reason) {
+					return true, fmt.Sprintf("container %q image pull failed (%s): %s", cs.Name, w.Reason, w.Message)
+				}
+				return false, ""
+			},
+		},
+		{
+			reason: inferenceReasonContainerStartError,
+			match: func(cs corev1.ContainerStatus) (bool, string) {
+				if w := cs.State.Waiting; w != nil && isContainerStartErrorReason(w.Reason) {
+					return true, fmt.Sprintf("container %q failed to start (%s): %s", cs.Name, w.Reason, w.Message)
+				}
+				return false, ""
+			},
+		},
+		{
+			reason: inferenceReasonCrashLoopBackOff,
+			match: func(cs corev1.ContainerStatus) (bool, string) {
+				if w := cs.State.Waiting; w != nil && w.Reason == "CrashLoopBackOff" {
+					msg := fmt.Sprintf("container %q is in CrashLoopBackOff", cs.Name)
+					if t := cs.LastTerminationState.Terminated; t != nil {
+						detail := t.Message
+						if detail == "" {
+							detail = fmt.Sprintf("exit code %d", t.ExitCode)
+						}
+						msg = fmt.Sprintf("%s; last termination: %s", msg, detail)
+					}
+					return true, msg
+				}
+				return false, ""
+			},
+		},
+	}
+
+	for _, chk := range checks {
+		for i := range pods.Items {
+			statuses := append(append([]corev1.ContainerStatus{}, pods.Items[i].Status.InitContainerStatuses...), pods.Items[i].Status.ContainerStatuses...)
+			for _, cs := range statuses {
+				if ok, msg := chk.match(cs); ok {
+					return chk.reason, msg
+				}
+			}
+		}
+	}
+	return "", ""
+}
+
+// detectEvictedPod returns a reason/message when a workspace pod has been evicted
+// (typically due to node disk or memory pressure).
+func detectEvictedPod(pods *corev1.PodList) (reason, message string) {
+	for i := range pods.Items {
+		p := &pods.Items[i]
+		if p.Status.Phase != corev1.PodFailed || p.Status.Reason != "Evicted" {
+			continue
+		}
+		msg := p.Status.Message
+		lower := strings.ToLower(msg)
+		switch {
+		case strings.Contains(lower, "ephemeral-storage") || strings.Contains(lower, "disk"):
+			return inferenceReasonNodeDiskPressure, fmt.Sprintf("pod %q evicted due to node disk pressure: %s", p.Name, msg)
+		case strings.Contains(lower, "memory"):
+			return inferenceReasonNodeMemoryPressure, fmt.Sprintf("pod %q evicted due to node memory pressure: %s", p.Name, msg)
+		default:
+			return inferenceReasonEvicted, fmt.Sprintf("pod %q was evicted: %s", p.Name, msg)
+		}
+	}
+	return "", ""
+}
+
+// detectUnschedulablePod returns a reason/message when a pending workspace pod
+// cannot be scheduled onto any node.
+func detectUnschedulablePod(pods *corev1.PodList) (reason, message string) {
+	for i := range pods.Items {
+		p := &pods.Items[i]
+		if p.Status.Phase != corev1.PodPending {
+			continue
+		}
+		for _, cond := range p.Status.Conditions {
+			if cond.Type == corev1.PodScheduled &&
+				cond.Status == corev1.ConditionFalse &&
+				cond.Reason == corev1.PodReasonUnschedulable {
+				return inferenceReasonUnschedulable, fmt.Sprintf("pod %q is unschedulable: %s", p.Name, cond.Message)
+			}
+		}
+	}
+	return "", ""
+}
+
+// isImagePullErrorReason reports whether reason is a kubelet image-pull error.
+// Values come from k8s.io/kubernetes/pkg/kubelet/images/types.go.
+func isImagePullErrorReason(reason string) bool {
+	switch reason {
+	case "ImagePullBackOff", "ErrImagePull", "InvalidImageName", "ErrImageNeverPull", "ImageInspectError", "RegistryUnavailable":
+		return true
+	}
+	return false
+}
+
+// isContainerStartErrorReason reports whether reason is a kubelet container
+// create/start error. Values come from startContainer in
+// k8s.io/kubernetes/pkg/kubelet/kuberuntime/kuberuntime_container.go.
+func isContainerStartErrorReason(reason string) bool {
+	switch reason {
+	case "CreateContainerConfigError", "PreCreateHookError", "CreateContainerError", "PreStartHookError", "RunContainerError", "PostStartHookError":
+		return true
+	}
+	return false
+}
+
+// benchmarkEntrypointMarker is the script basename that uniquely identifies the
+// benchmark startup probe. Kept in sync with buildBenchmarkStartupProbe in
+// internal/inference/preset_inferences.go.
+const benchmarkEntrypointMarker = "benchmark_entrypoint.py"
+
+// hasBenchmarkStartupProbe reports whether the StatefulSet's pod template has the
+// benchmark startup probe on any container. This is used to determine if it is
+// a legacy workspace without the probe (backward compatibility)
+func hasBenchmarkStartupProbe(ss *appsv1.StatefulSet) bool {
+	if ss == nil {
+		return false
+	}
+	for i := range ss.Spec.Template.Spec.Containers {
+		p := ss.Spec.Template.Spec.Containers[i].StartupProbe
+		if p == nil || p.Exec == nil || len(p.Exec.Command) == 0 {
+			continue
+		}
+		if strings.Contains(strings.Join(p.Exec.Command, " "), benchmarkEntrypointMarker) {
+			return true
+		}
+	}
+	return false
+}
+
+type tuningStatusSnapshot struct {
+	started   bool
+	succeeded bool
+	failed    bool
+	active    int32
+	ready     int32
+}
+
+func (c *WorkspaceReconciler) collectTuningStatusSnapshot(ctx context.Context, wObj *kaitov1beta1.Workspace) (*tuningStatusSnapshot, error) {
+	snapshot := &tuningStatusSnapshot{}
+	if wObj.Tuning == nil {
+		return snapshot, nil
+	}
+
+	job := &batchv1.Job{}
+	if err := c.Get(ctx, types.NamespacedName{Name: wObj.Name, Namespace: wObj.Namespace}, job); err != nil {
+		if apierrors.IsNotFound(err) {
+			return snapshot, nil
+		}
+		return nil, err
+	}
+
+	snapshot.active = job.Status.Active
+	if job.Status.Ready != nil {
+		snapshot.ready = *job.Status.Ready
+	}
+	snapshot.failed = job.Status.Failed > 0
+	snapshot.succeeded = job.Status.Succeeded > 0
+	snapshot.started = snapshot.succeeded || snapshot.ready > 0 || snapshot.active > 0
+
+	return snapshot, nil
+}
+
+const reasonModelMirrorPending = consts.ReasonModelMirrorPending
+
+func modelMirrorPendingReason(cr *kaitov1alpha1.ModelMirror) string {
+	cond := meta.FindStatusCondition(cr.Status.Conditions, mmconsts.ConditionTypeReady)
+	if cond == nil || cond.Status == metav1.ConditionTrue || cond.Reason == "" {
+		return reasonModelMirrorPending
+	}
+	return cond.Reason
+}
+
+// modelMirrorCondition reports the ModelMirrorReady condition for cr. A mirror this
+// workspace was refused the use of is not ready for it regardless of its own phase.
+func modelMirrorCondition(cr *kaitov1alpha1.ModelMirror, infFailReason, infFailMsg string) (metav1.ConditionStatus, string, string) {
+	if infFailReason == reasonModelMirrorCreateFailed {
+		return metav1.ConditionFalse, infFailReason, infFailMsg
+	}
+	// Reported here rather than off the reconcile error, which is a requeue and so never
+	// reaches the status sync.
+	if !cr.DeletionTimestamp.IsZero() {
+		return metav1.ConditionFalse, reasonModelMirrorDeleting,
+			fmt.Sprintf("ModelMirror %s in namespace %s is being deleted", cr.Name, cr.Namespace)
+	}
+	if cr.Status.Phase == kaitov1alpha1.ModelMirrorPhaseReady {
+		return metav1.ConditionTrue, "ModelMirrorReady", "Model download complete"
+	}
+	msg := "Model download in progress"
+	if cr.Status.FailureMessage != "" {
+		msg = cr.Status.FailureMessage
+	}
+	return metav1.ConditionFalse, modelMirrorPendingReason(cr), msg
+}
+
+// streamingValidationReason promotes a model-streaming validation failure carried on
+// the reconcile error to a condition reason. Pod-level classification is more
+// specific, so it takes precedence; this only fills the gap when no pod failure was
+// identified (typically because validation failed before any pod was created).
+func streamingValidationReason(reconcileErr error, podReason, podMessage string) (reason, message string) {
+	if podReason != "" {
+		return podReason, podMessage
+	}
+	var sve *streamingValidationError
+	if !errors.As(reconcileErr, &sve) {
+		return "", ""
+	}
+	return sve.reason, utils.TruncateMessage(sve.Error(), maxInferenceMessageLen)
+}
+
+func buildReconcileErrMessageAppender(reconcileErr error) func(message string) string {
+	return func(message string) string {
+		if reconcileErr == nil {
+			return message
+		}
+		if messageCarriesErr(message, reconcileErr.Error()) {
+			return message
+		}
+		return message + nodeprovision.ReconcileErrorMessagePrefix + reconcileErr.Error() + ")"
+	}
+}
+
+func messageCarriesErr(message, errText string) bool {
+	if strings.Contains(message, errText) {
+		return true
+	}
+	trimmed, ok := strings.CutSuffix(message, "...")
+	return ok && len(trimmed) > 0 && strings.HasPrefix(errText, trimmed)
+}
+
+func setWorkspaceCondition(status *kaitov1beta1.WorkspaceStatus, generation int64, appendMessage func(string) string,
+	conditionType kaitov1beta1.ConditionType, conditionStatus metav1.ConditionStatus, reason, message string) {
+	meta.SetStatusCondition(&status.Conditions, metav1.Condition{
+		Type:               string(conditionType),
+		Status:             conditionStatus,
+		Reason:             reason,
+		Message:            appendMessage(message),
+		ObservedGeneration: generation,
+	})
+}
+
+func applyTuningWorkspaceStatus(status *kaitov1beta1.WorkspaceStatus, generation int64, appendMessage func(string) string, snapshot *tuningStatusSnapshot) {
+	if snapshot.failed {
+		setWorkspaceCondition(status, generation, appendMessage,
+			kaitov1beta1.WorkspaceConditionTypeTuningJobStatus, metav1.ConditionFalse, "WorkspaceTuningJobStatusFailed", "tuning job failed")
+		setWorkspaceCondition(status, generation, appendMessage,
+			kaitov1beta1.WorkspaceConditionTypeSucceeded, metav1.ConditionFalse, "workspaceFailed", "tuning job failed")
+		status.State = kaitov1beta1.WorkspaceStateFailed
+		return
+	}
+
+	if snapshot.started {
+		setWorkspaceCondition(status, generation, appendMessage,
+			kaitov1beta1.WorkspaceConditionTypeTuningJobStatus, metav1.ConditionTrue, "WorkspaceTuningJobStatusStarted", "Tuning job has started")
+	} else {
+		setWorkspaceCondition(status, generation, appendMessage,
+			kaitov1beta1.WorkspaceConditionTypeTuningJobStatus, metav1.ConditionFalse, "WorkspaceTuningJobStatusPending", "Tuning job has not started")
+	}
+
+	if snapshot.succeeded {
+		setWorkspaceCondition(status, generation, appendMessage,
+			kaitov1beta1.WorkspaceConditionTypeSucceeded, metav1.ConditionTrue, "workspaceSucceeded", "workspace succeeds")
+		status.State = kaitov1beta1.WorkspaceStateSucceeded
+	} else if snapshot.started {
+		setWorkspaceCondition(status, generation, appendMessage,
+			kaitov1beta1.WorkspaceConditionTypeSucceeded, metav1.ConditionFalse, "workspacePending", "workspace has not completed yet, tuning job is running")
+		status.State = kaitov1beta1.WorkspaceStateRunning
+	} else {
+		setWorkspaceCondition(status, generation, appendMessage,
+			kaitov1beta1.WorkspaceConditionTypeSucceeded, metav1.ConditionFalse, "workspacePending", "workspace is initializing, tuning job has not started")
+		status.State = kaitov1beta1.WorkspaceStatePending
+	}
+}
+
+func applyInferenceWorkspaceStatus(ctx context.Context, status *kaitov1beta1.WorkspaceStatus, wObj *kaitov1beta1.Workspace, appendMessage func(string) string,
+	inferenceReady bool, resourceConditionStatus metav1.ConditionStatus, benchmarkApplicable bool, notReadyReason, notReadyMessage string) {
+	generation := wObj.GetGeneration()
+	resourceReady := resourceConditionStatus == metav1.ConditionTrue
+	isInferenceEstablished := status.State == kaitov1beta1.WorkspaceStateReady || status.State == kaitov1beta1.WorkspaceStateNotReady
+
+	refreshBenchmarkObservedGenerationIfCompleted(status, generation)
+
+	if inferenceReady && resourceReady {
+		setWorkspaceCondition(status, generation, appendMessage,
+			kaitov1beta1.WorkspaceConditionTypeInferenceStatus, metav1.ConditionTrue, "WorkspaceInferenceStatusSuccess", "Inference has been deployed successfully")
+
+		if benchmarkApplicable {
+			if err := applyBenchmarkStatus(ctx, status, wObj, generation, appendMessage); err != nil {
+				setWorkspaceCondition(status, generation, appendMessage,
+					kaitov1beta1.WorkspaceConditionTypeSucceeded, metav1.ConditionFalse, "BenchmarkFailed", err.Error())
+				status.State = kaitov1beta1.WorkspaceStateNotReady
+				return
+			}
+		}
+
+		setWorkspaceCondition(status, generation, appendMessage,
+			kaitov1beta1.WorkspaceConditionTypeSucceeded, metav1.ConditionTrue, "workspaceSucceeded", "workspace succeeds")
+		status.State = kaitov1beta1.WorkspaceStateReady
+		return
+	}
+
+	// Default to a generic pending reason; override with a specific one (e.g. a failed
+	// SAS token fetch) when the caller detected the cause.
+	inferenceReason, inferenceMessage := consts.ReasonInferencePending, "Inference workload is not ready"
+	if notReadyReason != "" {
+		inferenceReason, inferenceMessage = notReadyReason, notReadyMessage
+	}
+	setWorkspaceCondition(status, generation, appendMessage,
+		kaitov1beta1.WorkspaceConditionTypeInferenceStatus, metav1.ConditionFalse, inferenceReason, inferenceMessage)
+	setWorkspaceCondition(status, generation, appendMessage,
+		kaitov1beta1.WorkspaceConditionTypeSucceeded, metav1.ConditionFalse, "workspacePending", "workspace is waiting for inference workload readiness")
+
+	if isInferenceEstablished {
+		status.State = kaitov1beta1.WorkspaceStateNotReady
+	} else {
+		status.State = kaitov1beta1.WorkspaceStatePending
+	}
+}
+
+// applyBenchmarkStatus reads and parses the benchmark result from pod logs,
+// then sets the BenchmarkCompleted condition on the workspace status.
+// Returns nil on success (or when already recorded), non-nil on terminal failure.
+// The result is write-once: the skip guard below returns early once
+// BenchmarkCompleted is True, so a recorded result is never re-read or overwritten.
+func applyBenchmarkStatus(ctx context.Context, status *kaitov1beta1.WorkspaceStatus, wObj *kaitov1beta1.Workspace, generation int64, appendMessage func(string) string) error {
+	// Skip once the benchmark is done (write-once). Nothing clears BenchmarkCompleted on a
+	// readiness transition, so a recorded result survives transient flaps and pod restarts.
+	// ObservedGeneration is kept current by refreshBenchmarkObservedGenerationIfCompleted,
+	// which the caller (applyInferenceWorkspaceStatus) invokes unconditionally on every reconcile.
+	if c := meta.FindStatusCondition(status.Conditions, string(kaitov1beta1.WorkspaceConditionTypeBenchmarkCompleted)); c != nil && c.Status == metav1.ConditionTrue {
+		return nil
+	}
+
+	result, err := reconcileBenchmarkResult(ctx, wObj)
+	// These errors are terminal
+	if err != nil {
+		klog.ErrorS(err, "benchmark failed", "workspace", klog.KObj(wObj))
+		setWorkspaceCondition(status, generation, appendMessage,
+			kaitov1beta1.WorkspaceConditionTypeBenchmarkCompleted, metav1.ConditionFalse,
+			"BenchmarkFailed", err.Error())
+		return err
+	}
+
+	status.Performance = result
+	setWorkspaceCondition(status, generation, appendMessage,
+		kaitov1beta1.WorkspaceConditionTypeBenchmarkCompleted, metav1.ConditionTrue,
+		"BenchmarkCompleted", "benchmark result has been recorded")
+	return nil
+}
+
+// refreshBenchmarkObservedGenerationIfCompleted preserves the write-once
+// BenchmarkCompleted=True state and recorded benchmark result, while advancing
+// the condition's ObservedGeneration to the current Workspace generation.
+//
+// This keeps the condition from looking stale after later reconciles or spec
+// updates that do not require re-running benchmark. It is called once per
+// reconcile at the top of applyInferenceWorkspaceStatus so every code path
+// (ready, not-ready, benchmark-not-applicable) refreshes the condition
+// uniformly, and applyBenchmarkStatus does not need to duplicate the refresh.
+func refreshBenchmarkObservedGenerationIfCompleted(status *kaitov1beta1.WorkspaceStatus, generation int64) {
+	c := meta.FindStatusCondition(status.Conditions, string(kaitov1beta1.WorkspaceConditionTypeBenchmarkCompleted))
+	if c == nil || c.Status != metav1.ConditionTrue || c.ObservedGeneration == generation {
+		return
+	}
+
+	updated := *c
+	updated.ObservedGeneration = generation
+	meta.SetStatusCondition(&status.Conditions, updated)
+}
+
+// resetBenchmarkOnUpgrade clears the recorded benchmark result and removes the
+// BenchmarkCompleted condition, so the post-load benchmark re-runs against the new
+// image on the next reconcile.
+func (c *WorkspaceReconciler) resetBenchmarkOnUpgrade(ctx context.Context, wObj *kaitov1beta1.Workspace) error {
+	return workspace.UpdateWorkspaceStatus(ctx, c.Client, &client.ObjectKey{Name: wObj.Name, Namespace: wObj.Namespace},
+		func(status *kaitov1beta1.WorkspaceStatus) error {
+			status.Performance = nil
+			meta.RemoveStatusCondition(&status.Conditions, string(kaitov1beta1.WorkspaceConditionTypeBenchmarkCompleted))
+			return nil
+		})
+}
+
+// RuntimeMetadataConfig returns the serving runtime metadata (engine, engine
+// version, quantization) as a Metric.Config map, so external systems (e.g. a
+// portal) can read it. Shared by the Workspace and InferenceSet controllers.
+func RuntimeMetadataConfig(runtimeName pkgmodel.RuntimeName, presetName string) map[string]string {
+	return map[string]string{
+		ConfigKeyEngine:        string(runtimeName),
+		ConfigKeyEngineVersion: inference.GetBaseRuntimeVersion(runtimeName),
+		ConfigKeyQuantization:  inference.GetPresetQuantization(presetName),
+	}
+}
+
+func (c *WorkspaceReconciler) updateWorkspaceStatusIfChanged(ctx context.Context, key types.NamespacedName, modifyFn func(*kaitov1beta1.WorkspaceStatus) error) error {
+	return retry.OnError(retry.DefaultRetry,
+		func(err error) bool {
+			return apierrors.IsServiceUnavailable(err) || apierrors.IsServerTimeout(err) || apierrors.IsTooManyRequests(err) || apierrors.IsConflict(err)
+		},
+		func() error {
+			wObj := &kaitov1beta1.Workspace{}
+			if err := c.Get(ctx, key, wObj); err != nil {
+				if apierrors.IsNotFound(err) {
+					return nil
+				}
+				return err
+			}
+
+			originalStatus := *wObj.Status.DeepCopy()
+			if modifyFn != nil {
+				if err := modifyFn(&wObj.Status); err != nil {
+					return err
+				}
+			}
+
+			if apiequality.Semantic.DeepEqual(originalStatus, wObj.Status) {
+				return nil
+			}
+
+			if klog.V(4).Enabled() {
+				klog.InfoS("Workspace status changed",
+					"workspace", key.String(),
+					"changes", formatWorkspaceStatusChanges(originalStatus, wObj.Status))
+			}
+
+			return c.Status().Update(ctx, wObj)
+		})
+}
+
+func formatWorkspaceStatusChanges(oldStatus, newStatus kaitov1beta1.WorkspaceStatus) string {
+	changes := make([]string, 0)
+
+	if !apiequality.Semantic.DeepEqual(oldStatus.WorkerNodes, newStatus.WorkerNodes) {
+		changes = append(changes, fmt.Sprintf("workerNodes: %v -> %v", oldStatus.WorkerNodes, newStatus.WorkerNodes))
+	}
+
+	if oldStatus.State != newStatus.State {
+		changes = append(changes, fmt.Sprintf("state: %q -> %q", oldStatus.State, newStatus.State))
+	}
+
+	oldConditionByType := make(map[string]metav1.Condition, len(oldStatus.Conditions))
+	newConditionByType := make(map[string]metav1.Condition, len(newStatus.Conditions))
+	conditionTypes := make([]string, 0, len(oldStatus.Conditions)+len(newStatus.Conditions))
+
+	for i := range oldStatus.Conditions {
+		condition := oldStatus.Conditions[i]
+		oldConditionByType[condition.Type] = condition
+		conditionTypes = append(conditionTypes, condition.Type)
+	}
+
+	for i := range newStatus.Conditions {
+		condition := newStatus.Conditions[i]
+		newConditionByType[condition.Type] = condition
+		if _, exists := oldConditionByType[condition.Type]; !exists {
+			conditionTypes = append(conditionTypes, condition.Type)
+		}
+	}
+
+	sort.Strings(conditionTypes)
+	seenType := make(map[string]struct{}, len(conditionTypes))
+	for _, conditionType := range conditionTypes {
+		if _, seen := seenType[conditionType]; seen {
+			continue
+		}
+		seenType[conditionType] = struct{}{}
+
+		oldCondition, oldExists := oldConditionByType[conditionType]
+		newCondition, newExists := newConditionByType[conditionType]
+
+		switch {
+		case !oldExists && newExists:
+			changes = append(changes, fmt.Sprintf("condition[%s]: added(status=%s, reason=%s, message=%q)",
+				conditionType, newCondition.Status, newCondition.Reason, newCondition.Message))
+		case oldExists && !newExists:
+			changes = append(changes, fmt.Sprintf("condition[%s]: removed(status=%s, reason=%s, message=%q)",
+				conditionType, oldCondition.Status, oldCondition.Reason, oldCondition.Message))
+		case oldExists && newExists && !apiequality.Semantic.DeepEqual(oldCondition, newCondition):
+			changes = append(changes, fmt.Sprintf("condition[%s]: status=%s->%s, reason=%s->%s, message=%q->%q, observedGeneration=%d->%d",
+				conditionType,
+				oldCondition.Status, newCondition.Status,
+				oldCondition.Reason, newCondition.Reason,
+				oldCondition.Message, newCondition.Message,
+				oldCondition.ObservedGeneration, newCondition.ObservedGeneration))
+		}
+	}
+
+	if len(changes) == 0 {
+		return "status changed"
+	}
+
+	return strings.Join(changes, "; ")
+}
+
+// UpdateWorkspaceTargetNodeCount initializes the node estimate, using one node for basic CPU presets.
+func (c *WorkspaceReconciler) UpdateWorkspaceTargetNodeCount(ctx context.Context, wObj *kaitov1beta1.Workspace) error {
+	var err error
+	targetNodeCount := int32(1)
+	if wObj.Status.TargetNodeCount == 0 {
+		isCPU := kaitov1beta1.IsCPUInferenceWorkspace(wObj)
+		if isCPU && wObj.Inference.Preset != nil {
+			if err := workspace.UpdateWorkspaceStatus(ctx, c.Client, &client.ObjectKey{Namespace: wObj.Namespace, Name: wObj.Name}, func(status *kaitov1beta1.WorkspaceStatus) error {
+				status.TargetNodeCount = 1
+				return nil
+			}); err != nil {
+				return fmt.Errorf("failed to update Workspace status targetNodeCount: %w", err)
+			}
+			wObj.Status.TargetNodeCount = 1
+			return nil
+		}
+		// Build the estimate request once, outside the status-update closure.
+		req, reqErr := workspace.NodeEstimateRequestFromWorkspace(ctx, wObj, c.Client)
+		if reqErr != nil {
+			return fmt.Errorf("failed to build node estimate request: %w", reqErr)
+		}
+
+		// Resolve the context window size from the workspace's inference ConfigMap (if any)
+		// and pass it through RuntimeProfile so the estimator does not need to do I/O.
+		if contextSize := c.resolveInferenceContextSize(ctx, wObj); contextSize > 0 {
+			req.RuntimeProfile = estimator.RuntimeProfile{ContextSize: contextSize}
+		}
+
+		// Size BYO workloads against their live effective SKU so the estimate matches
+		// the nodes selected for placement.
+		if req.ResourceProfile.DisableNodeAutoProvisioning {
+			if effIT, selErr := byoprovisioner.EffectiveInstanceType(ctx, c.Client, wObj); selErr == nil && effIT != "" {
+				req.ResourceProfile.InstanceType = effIT
+			}
+		}
+
+		if err := workspace.UpdateWorkspaceStatus(ctx, c.Client, &client.ObjectKey{Name: wObj.Name, Namespace: wObj.Namespace}, func(status *kaitov1beta1.WorkspaceStatus) error {
+			if wObj.Inference != nil {
+				if v1beta1.GetWorkspaceRuntimeName(wObj) == pkgmodel.RuntimeNameVLLM {
+					targetNodeCount, err = c.Estimator.EstimateNodeCount(ctx, req, c.Client)
+					if err != nil {
+						return fmt.Errorf("failed to calculate target node count: %w", err)
+					}
+					if targetNodeCount < 1 {
+						targetNodeCount = 1
+					}
+				} else {
+					// For non-vLLM runtime, use the Resource.Count directly
+					//nolint:staticcheck //SA1019: deprecate Resource.Count field
+					targetNodeCount = int32(*wObj.Resource.Count)
+					klog.Infof("[EstimateNodeCount] workspace=%s using Resource.Count=%d for non-vLLM runtime", wObj.Name, targetNodeCount)
+				}
+			}
+			status.TargetNodeCount = int32(targetNodeCount)
+			return nil
+		}); err != nil {
+			return fmt.Errorf("failed to update Workspace status targetNodeCount: %w", err)
+		}
+		// Update the wObj to reflect the latest status change.
+		wObj.Status.TargetNodeCount = targetNodeCount
+	}
+
+	return nil
+}
+
+// resolveInferenceContextSize returns the explicit max-model-len configured in the
+// workspace's inference ConfigMap, or 0 when there is no ConfigMap, it cannot be
+// read, or it does not pin a context size (the estimator then applies its default).
+func (c *WorkspaceReconciler) resolveInferenceContextSize(ctx context.Context, wObj *kaitov1beta1.Workspace) int {
+	if wObj.Inference == nil || wObj.Inference.Config == "" {
+		return 0
+	}
+	configMap := &corev1.ConfigMap{}
+	if err := resources.GetResource(ctx, wObj.Inference.Config, wObj.Namespace, c.Client, configMap); err != nil {
+		klog.Warningf("[resolveInferenceContextSize] workspace=%s: failed to get ConfigMap %s: %v, using estimator default context size",
+			wObj.Name, wObj.Inference.Config, err)
+		return 0
+	}
+	if configData, exists := configMap.Data["inference_config.yaml"]; exists {
+		if contextSize, found := utils.ParseExplicitMaxModelLen(configData); found {
+			return contextSize
+		}
+	}
+	return 0
+}
+
+// SetupWithManager sets up the controller with the Manager.
+func (c *WorkspaceReconciler) SetupWithManager(mgr ctrl.Manager) error {
+	c.Recorder = mgr.GetEventRecorderFor("Workspace")
+
+	bldr := ctrl.NewControllerManagedBy(mgr).
+		For(&kaitov1beta1.Workspace{}).
+		Owns(&corev1.Service{}).
+		Owns(&appsv1.ControllerRevision{}).
+		Owns(&appsv1.Deployment{}).
+		Owns(&appsv1.StatefulSet{}).
+		Owns(&batchv1.Job{})
+
+	// Only watch NodeClaim resources if node auto-provisioning is enabled
+	if !featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning] {
+		bldr = bldr.Watches(&karpenterv1.NodeClaim{},
+			&nodeClaimEventHandler{
+				logger:         c.klogger,
+				expectations:   c.expectations,
+				enqueueHandler: enqueueWorkspaceForNodeClaim,
+			},
+			builder.WithPredicates(nodeclaim.NodeClaimPredicate),
+		)
+	}
+
+	// Watch ModelMirror CRs to immediately reconcile workspaces when downloads complete.
+	if featuregates.FeatureGates[consts.FeatureFlagModelStreaming] {
+		bldr = bldr.Watches(&kaitov1alpha1.ModelMirror{},
+			enqueueWorkspacesForModelMirror(c.Client),
+		)
+	}
+
+	if featuregates.FeatureGates[consts.FeatureFlagDistributedCache] {
+		bldr = bldr.Watches(&corev1.ConfigMap{},
+			handler.EnqueueRequestsFromMapFunc(func(ctx context.Context, obj client.Object) []reconcile.Request {
+				return cacheConfigMapRequests(ctx, c.Client, obj)
+			}),
+		)
+	}
+	bldr = bldr.WithOptions(controller.Options{MaxConcurrentReconciles: 5})
+
+	go monitorWorkspaces(context.Background(), c.Client)
+
+	return bldr.Complete(c)
+}
+
+func cacheConfigMapRequests(ctx context.Context, kubeClient client.Client, obj client.Object) []reconcile.Request {
+	workspaces := &kaitov1beta1.WorkspaceList{}
+	if err := kubeClient.List(ctx, workspaces, client.InNamespace(obj.GetNamespace())); err != nil {
+		klog.ErrorS(err, "Failed to list Workspaces for cache ConfigMap", "configMap", klog.KObj(obj))
+		return nil
+	}
+
+	requests := make([]reconcile.Request, 0)
+	for i := range workspaces.Items {
+		workspace := &workspaces.Items[i]
+		if strings.TrimSpace(workspace.Annotations[cache.ConfigAnnotation]) == obj.GetName() {
+			requests = append(requests, reconcile.Request{
+				NamespacedName: types.NamespacedName{
+					Namespace: workspace.Namespace,
+					Name:      workspace.Name,
+				},
+			})
+		}
+	}
+	return requests
+}

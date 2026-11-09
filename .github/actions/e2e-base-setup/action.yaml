@@ -226,10 +226,10 @@ runs:
           exit 1
         fi
 
-        ACTUAL=$(cat presets/workspace/models/vllm_model_arch_list.txt)
+        ACTUAL=$(cat pkg/catalog/vllm_model_arch_list.txt)
 
         if [ "$ACTUAL" != "$EXPECTED" ]; then
-          echo "ERROR: presets/workspace/models/vllm_model_arch_list.txt is out of date." >&2
+          echo "ERROR: pkg/catalog/vllm_model_arch_list.txt is out of date." >&2
           echo "Please regenerate it by running: make generate-vllm-arch-list" >&2
           echo "" >&2
           echo "--- actual (committed file) ---" >&2
@@ -249,12 +249,12 @@ runs:
 
           # Override base image properties for testing purposes.
           # The updated base_images.yaml will be read by the Workspace controller via
-          # go:embed in presets/workspace/models/metadata.go.
-          yq '(.images[] | select(.name == strenv(IMAGE_NAME)) | .registry) = "${{ env.REGISTRY }}"' -i presets/workspace/models/base_images.yaml
-          yq '(.images[] | select(.name == strenv(IMAGE_NAME)) | .tag) = "${{ env.VERSION }}"' -i presets/workspace/models/base_images.yaml
+          # go:embed in pkg/catalog/metadata.go.
+          yq '(.images[] | select(.name == strenv(IMAGE_NAME)) | .registry) = "${{ env.REGISTRY }}"' -i pkg/catalog/base_images.yaml
+          yq '(.images[] | select(.name == strenv(IMAGE_NAME)) | .tag) = "${{ env.VERSION }}"' -i pkg/catalog/base_images.yaml
         done
 
-        cat presets/workspace/models/base_images.yaml
+        cat pkg/catalog/base_images.yaml
 
     - name: build KAITO image
       if: ${{ inputs.isRelease == 'false' }}

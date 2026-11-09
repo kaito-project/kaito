@@ -1,5 +1,5 @@
 {
-  "_comment": "Shared infrastructure and size-based target policies for preset regression workflows. Model names and sizes come from presets/workspace/models/model_catalog.yaml.",
+  "_comment": "Shared infrastructure and size-based target policies for preset regression workflows. Model names and sizes come from pkg/catalog/model_catalog.yaml.",
   "modelSizeSafetyFactor": 1.2,
   "minimumGPUsOverrides": {
     "nvidia/NVIDIA-Nemotron-Nano-9B-v2": {

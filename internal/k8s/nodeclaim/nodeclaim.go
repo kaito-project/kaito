@@ -44,8 +44,8 @@ import (
 
 	kaitov1beta1 "github.com/kaito-project/kaito/api/v1beta1"
 	"github.com/kaito-project/kaito/internal/k8s/nodes"
+	"github.com/kaito-project/kaito/internal/k8s/resources"
 	"github.com/kaito-project/kaito/pkg/apis"
-	"github.com/kaito-project/kaito/pkg/utils"
 	"github.com/kaito-project/kaito/pkg/utils/consts"
 )
 
@@ -455,13 +455,13 @@ func FirstNodeClaimProvisioningState(nodeClaims []*karpenterv1.NodeClaim) (reaso
 					}
 					continue
 				}
-				return c.Reason, utils.TruncateMessage(c.Message, maxProvisioningErrorMessageLen), true
+				return c.Reason, resources.TruncateMessage(c.Message, maxProvisioningErrorMessageLen), true
 			}
 		}
 	}
 
 	if pending != nil {
-		return pending.Reason, utils.TruncateMessage(pending.Message, maxProvisioningErrorMessageLen), true
+		return pending.Reason, resources.TruncateMessage(pending.Message, maxProvisioningErrorMessageLen), true
 	}
 	return "", "", false
 }
@@ -512,13 +512,13 @@ func compactProvisioningMessage(msg string) string {
 
 // FormatProvisioningMessage compacts and truncates a provisioning error message for a condition.
 func FormatProvisioningMessage(msg string) string {
-	return utils.TruncateMessage(compactProvisioningMessage(msg), maxProvisioningErrorMessageLen)
+	return resources.TruncateMessage(compactProvisioningMessage(msg), maxProvisioningErrorMessageLen)
 }
 
 // FormatClassifiedProvisioningMessage formats the message of a failure reported under another reason, keeping the
 // original reason in front.
 func FormatClassifiedProvisioningMessage(originalReason, msg string) string {
-	return utils.TruncateMessage(originalReason+": "+compactProvisioningMessage(msg), maxProvisioningErrorMessageLen)
+	return resources.TruncateMessage(originalReason+": "+compactProvisioningMessage(msg), maxProvisioningErrorMessageLen)
 }
 
 // ParseClassifiedProvisioningMessage splits a message formatted by FormatClassifiedProvisioningMessage into the

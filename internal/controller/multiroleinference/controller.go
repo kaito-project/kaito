@@ -41,6 +41,7 @@ import (
 
 	kaitov1alpha1 "github.com/kaito-project/kaito/api/v1alpha1"
 	kaitov1beta1 "github.com/kaito-project/kaito/api/v1beta1"
+	"github.com/kaito-project/kaito/internal/k8s/resources"
 	"github.com/kaito-project/kaito/pkg/utils"
 	"github.com/kaito-project/kaito/pkg/utils/consts"
 )
@@ -770,7 +771,7 @@ func (r *MultiRoleInferenceReconciler) SetupWithManager(mgr ctrl.Manager) error 
 			gaiev1.SchemeGroupVersion.WithKind("InferencePool"),
 			gaiev1alpha2.SchemeGroupVersion.WithKind("InferenceObjective"),
 		} {
-			found, err := utils.EnsureKindExists(mgr.GetConfig(), gvk)
+			found, err := resources.EnsureKindExists(mgr.GetConfig(), gvk)
 			if err != nil {
 				return fmt.Errorf("failed to ensure kind %s exists: %w", gvk.Kind, err)
 			}

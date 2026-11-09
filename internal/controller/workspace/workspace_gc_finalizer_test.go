@@ -24,12 +24,12 @@ import (
 	karpenterv1 "sigs.k8s.io/karpenter/pkg/apis/v1"
 
 	"github.com/kaito-project/kaito/api/v1beta1"
+	"github.com/kaito-project/kaito/internal/k8s/expectations"
 	byoprovisioner "github.com/kaito-project/kaito/internal/nodeprovision/byo-provisioner"
 	gpuprovisioner "github.com/kaito-project/kaito/internal/nodeprovision/gpu-provisioner"
 	"github.com/kaito-project/kaito/internal/nodeprovision/resource"
 	"github.com/kaito-project/kaito/internal/testutil"
 	"github.com/kaito-project/kaito/pkg/featuregates"
-	"github.com/kaito-project/kaito/pkg/utils"
 	"github.com/kaito-project/kaito/pkg/utils/consts"
 )
 
@@ -182,8 +182,8 @@ func TestGarbageCollectWorkspace(t *testing.T) {
 			if tc.disableNodeAutoProvisioning {
 				reconciler.nodeProvisioner = byoprovisioner.NewBYOProvisioner(mockClient)
 			} else {
-				expectations := utils.NewControllerExpectations()
-				ncm := resource.NewNodeClaimManager(mockClient, nil, expectations)
+				exp := expectations.NewControllerExpectations()
+				ncm := resource.NewNodeClaimManager(mockClient, nil, exp)
 				nm := resource.NewNodeManager(mockClient)
 				reconciler.nodeProvisioner = gpuprovisioner.NewAzureGPUProvisioner(ncm, nm)
 			}

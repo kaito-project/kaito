@@ -30,10 +30,9 @@ import (
 	kaitov1alpha1 "github.com/kaito-project/kaito/api/v1alpha1"
 	kaitov1beta1 "github.com/kaito-project/kaito/api/v1beta1"
 	"github.com/kaito-project/kaito/internal/inference"
+	"github.com/kaito-project/kaito/internal/inferenceset"
 	"github.com/kaito-project/kaito/internal/k8s/resources"
 	pkgmodel "github.com/kaito-project/kaito/pkg/model"
-	inferencesetutil "github.com/kaito-project/kaito/pkg/utils/inferenceset"
-	"github.com/kaito-project/kaito/pkg/utils/workspace"
 )
 
 const (
@@ -63,7 +62,7 @@ func (r *AutoUpgradeRunner) desiredBaseImage(is *kaitov1beta1.InferenceSet) (pkg
 	if resolve == nil {
 		resolve = inference.GetDesiredInferenceBaseImage
 	}
-	return resolve(inferencesetutil.NewWorkspaceForInferenceSet(is))
+	return resolve(inferenceset.NewWorkspaceForInferenceSet(is))
 }
 
 // Start implements manager.Runnable. It polls every Interval and reconciles all
@@ -141,7 +140,7 @@ func (r *AutoUpgradeRunner) reconcileInPlace(ctx context.Context, inferenceSetOb
 	}
 
 	// List Workspaces belonging to this InferenceSet.
-	wsList, err := inferencesetutil.ListWorkspaces(ctx, inferenceSetObj, r.Client)
+	wsList, err := inferenceset.ListWorkspaces(ctx, inferenceSetObj, r.Client)
 	if err != nil {
 		klog.ErrorS(err, "AutoUpgradeRunner: failed to list workspaces", "inferenceset", klog.KObj(inferenceSetObj))
 		return
@@ -242,9 +241,10 @@ func (r *AutoUpgradeRunner) statusNeedsUpdate(isObj *kaitov1beta1.InferenceSet, 
 
 // updateStatus updates the InferenceSet status with drift count and optionally records upgrade success.
 func (r *AutoUpgradeRunner) updateStatus(ctx context.Context, isObj *kaitov1beta1.InferenceSet, driftCount int, markSuccess bool) error {
-	key := &client.ObjectKey{Name: isObj.Name, Namespace: isObj.Namespace}
+	key := client.ObjectKey{Name: isObj.Name, Namespace: isObj.Namespace}
 	now := metav1.Now()
-	err := inferencesetutil.UpdateInferenceSetStatus(ctx, r.Client, key, func(status *kaitov1beta1.InferenceSetStatus) error {
+	err := resources.UpdateStatusWithRetry(ctx, r.Client, key, func(obj *kaitov1beta1.InferenceSet) error {
+		status := &obj.Status
 		if status.AutoUpgrade == nil {
 			status.AutoUpgrade = &kaitov1beta1.AutoUpgradeStatus{}
 		}
@@ -357,7 +357,7 @@ func (r *AutoUpgradeRunner) reconcileSurge(ctx context.Context, inferenceSetObj 
 		return
 	}
 
-	wsList, err := inferencesetutil.ListWorkspaces(ctx, inferenceSetObj, r.Client)
+	wsList, err := inferenceset.ListWorkspaces(ctx, inferenceSetObj, r.Client)
 	if err != nil {
 		klog.ErrorS(err, "AutoUpgradeRunner: failed to list workspaces", "inferenceset", klog.KObj(inferenceSetObj))
 		return
@@ -383,7 +383,7 @@ func (r *AutoUpgradeRunner) reconcileSurge(ctx context.Context, inferenceSetObj 
 			klog.ErrorS(err, "AutoUpgradeRunner: failed to get StatefulSet", "workspace", klog.KObj(ws))
 			return
 		}
-		if workspace.GetInferenceContainerImage(ss) != desiredImage {
+		if inference.ContainerImage(ss) != desiredImage {
 			driftCount++
 		}
 	}
@@ -429,7 +429,7 @@ func (r *AutoUpgradeRunner) reconcileSurge(ctx context.Context, inferenceSetObj 
 // image. It is generated fresh from the InferenceSet template, so it picks up the
 // controller's current base image.
 func (r *AutoUpgradeRunner) createUpgradeWorkspace(ctx context.Context, inferenceSetObj *kaitov1beta1.InferenceSet, desiredTag string) {
-	ws := inferencesetutil.NewWorkspaceForInferenceSet(inferenceSetObj)
+	ws := inferenceset.NewWorkspaceForInferenceSet(inferenceSetObj)
 
 	if err := r.Client.Create(ctx, ws); err != nil {
 		klog.ErrorS(err, "AutoUpgradeRunner: failed to create upgrade workspace", "inferenceset", klog.KObj(inferenceSetObj))
@@ -442,7 +442,7 @@ func (r *AutoUpgradeRunner) createUpgradeWorkspace(ctx context.Context, inferenc
 // isWorkspaceInDesiredState returns true if the workspace's StatefulSet is running
 // the desired image and all replicas are ready with no pending rollout.
 func isWorkspaceInDesiredState(ss *appsv1.StatefulSet, desiredImage string) bool {
-	if workspace.GetInferenceContainerImage(ss) != desiredImage {
+	if inference.ContainerImage(ss) != desiredImage {
 		return false
 	}
 	replicas := int32(1)

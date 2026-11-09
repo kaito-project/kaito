@@ -26,16 +26,16 @@ import (
 
 	kaitov1alpha1 "github.com/kaito-project/kaito/api/v1alpha1"
 	kaitov1beta1 "github.com/kaito-project/kaito/api/v1beta1"
+	"github.com/kaito-project/kaito/internal/inferenceset"
 	"github.com/kaito-project/kaito/pkg/featuregates"
 	"github.com/kaito-project/kaito/pkg/utils/consts"
-	inferencesetutil "github.com/kaito-project/kaito/pkg/utils/inferenceset"
 )
 
 // Wire the InferenceSet admission webhook to validate the child Workspace it
 // would create. Done here (not in api/v1beta1) to avoid an import cycle with the
 // util package that builds the Workspace.
 func init() {
-	kaitov1beta1.ValidateInferenceSetWorkspace = inferencesetutil.ValidateWorkspaceForInferenceSet
+	kaitov1beta1.ValidateInferenceSetWorkspace = inferenceset.ValidateWorkspaceForInferenceSet
 }
 
 func NewControllerWebhooks() []knativeinjection.ControllerConstructor {

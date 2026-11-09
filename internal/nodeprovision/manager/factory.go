@@ -23,12 +23,12 @@ import (
 	"k8s.io/client-go/tools/record"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
+	"github.com/kaito-project/kaito/internal/k8s/expectations"
 	"github.com/kaito-project/kaito/internal/nodeprovision"
 	byoprovisioner "github.com/kaito-project/kaito/internal/nodeprovision/byo-provisioner"
 	gpuprovisioner "github.com/kaito-project/kaito/internal/nodeprovision/gpu-provisioner"
 	karpenterprov "github.com/kaito-project/kaito/internal/nodeprovision/karpenter"
 	"github.com/kaito-project/kaito/internal/nodeprovision/resource"
-	"github.com/kaito-project/kaito/pkg/utils"
 	"github.com/kaito-project/kaito/pkg/utils/consts"
 )
 
@@ -112,8 +112,8 @@ func NewNodeProvisioner(cfg ProvisionerConfig) nodeprovision.NodeProvisioner {
 	case consts.NodeProvisionerBYO:
 		return byoprovisioner.NewBYOProvisioner(cfg.KClient)
 	default: // consts.NodeProvisionerAzureGPU
-		expectations := utils.NewControllerExpectations()
-		ncm := resource.NewNodeClaimManager(cfg.KClient, cfg.Recorder, expectations)
+		exp := expectations.NewControllerExpectations()
+		ncm := resource.NewNodeClaimManager(cfg.KClient, cfg.Recorder, exp)
 		ncm.SetDefaultNodeImageFamily(cfg.DefaultNodeImageFamily)
 		nm := resource.NewNodeManager(cfg.KClient)
 		return gpuprovisioner.NewAzureGPUProvisioner(ncm, nm)

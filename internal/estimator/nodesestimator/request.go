@@ -11,7 +11,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package workspace
+package nodesestimator
 
 import (
 	"context"
@@ -29,11 +29,11 @@ import (
 	"github.com/kaito-project/kaito/pkg/utils/plugin"
 )
 
-// NodeEstimateRequestFromWorkspace builds a NodeEstimateRequest from a Workspace object.
+// RequestFromWorkspace builds a NodeEstimateRequest from a Workspace object.
 // It fetches the HuggingFace access token from Kubernetes when ModelAccessSecret is set,
 // so the returned request carries the resolved token value rather than a secret reference.
 // This is a convenience helper for callers that already have a Workspace and a kube client.
-func NodeEstimateRequestFromWorkspace(ctx context.Context, w *kaitov1beta1.Workspace, kubeClient client.Client) (estimator.NodeEstimateRequest, error) {
+func RequestFromWorkspace(ctx context.Context, w *kaitov1beta1.Workspace, kubeClient client.Client) (estimator.NodeEstimateRequest, error) {
 	req := estimator.NodeEstimateRequest{
 		WorkspaceName: w.Name,
 		ResourceProfile: estimator.ResourceProfile{

@@ -22,7 +22,7 @@ import (
 
 	kaitov1beta1 "github.com/kaito-project/kaito/api/v1beta1"
 	"github.com/kaito-project/kaito/internal/custommodel"
-	"github.com/kaito-project/kaito/pkg/utils/workspace"
+	"github.com/kaito-project/kaito/internal/k8s/resources"
 )
 
 // reconcileResolvedModel resolves a bring-your-own model and records what it
@@ -51,8 +51,9 @@ type workspaceModelStatusWriter struct {
 func (w workspaceModelStatusWriter) SetModelConfigCondition(ctx context.Context,
 	status metav1.ConditionStatus, reason, message string,
 ) error {
-	return workspace.UpdateWorkspaceStatus(ctx, w.client, &w.key,
-		func(s *kaitov1beta1.WorkspaceStatus) error {
+	return resources.UpdateStatusWithRetry(ctx, w.client, w.key,
+		func(obj *kaitov1beta1.Workspace) error {
+			s := &obj.Status
 			meta.SetStatusCondition(&s.Conditions, metav1.Condition{
 				Type:    string(kaitov1beta1.WorkspaceConditionTypeModelConfigReady),
 				Status:  status,
@@ -66,8 +67,9 @@ func (w workspaceModelStatusWriter) SetModelConfigCondition(ctx context.Context,
 func (w workspaceModelStatusWriter) SaveResolved(ctx context.Context,
 	record *kaitov1beta1.ResolvedModel, reason, message string,
 ) error {
-	return workspace.UpdateWorkspaceStatus(ctx, w.client, &w.key,
-		func(s *kaitov1beta1.WorkspaceStatus) error {
+	return resources.UpdateStatusWithRetry(ctx, w.client, w.key,
+		func(obj *kaitov1beta1.Workspace) error {
+			s := &obj.Status
 			s.ResolvedModel = record
 			meta.SetStatusCondition(&s.Conditions, metav1.Condition{
 				Type:    string(kaitov1beta1.WorkspaceConditionTypeModelConfigReady),

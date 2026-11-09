@@ -30,9 +30,9 @@ import (
 	karpenterv1 "sigs.k8s.io/karpenter/pkg/apis/v1"
 
 	kaitov1beta1 "github.com/kaito-project/kaito/api/v1beta1"
+	"github.com/kaito-project/kaito/internal/k8s/resources"
 	"github.com/kaito-project/kaito/internal/testutil"
 	"github.com/kaito-project/kaito/pkg/apis"
-	"github.com/kaito-project/kaito/pkg/utils"
 	"github.com/kaito-project/kaito/pkg/utils/consts"
 )
 
@@ -686,7 +686,7 @@ func TestCompactProvisioningMessage(t *testing.T) {
 
 func TestFormatProvisioningMessageKeepsErrorCode(t *testing.T) {
 	// Plain truncation of the raw dump would keep only the request URL.
-	assert.Check(t, !strings.Contains(utils.TruncateMessage(azureSubnetFullError, maxProvisioningErrorMessageLen), "SubnetIsFull"))
+	assert.Check(t, !strings.Contains(resources.TruncateMessage(azureSubnetFullError, maxProvisioningErrorMessageLen), "SubnetIsFull"))
 
 	got := FormatProvisioningMessage(azureSubnetFullError)
 	assert.Check(t, strings.HasPrefix(got, "SubnetIsFull: Subnet aks-subnet"))

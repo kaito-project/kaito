@@ -29,9 +29,9 @@ import (
 	karpenterv1 "sigs.k8s.io/karpenter/pkg/apis/v1"
 
 	kaitov1beta1 "github.com/kaito-project/kaito/api/v1beta1"
+	"github.com/kaito-project/kaito/internal/k8s/expectations"
 	"github.com/kaito-project/kaito/internal/testutil"
 	"github.com/kaito-project/kaito/pkg/featuregates"
-	"github.com/kaito-project/kaito/pkg/utils"
 	"github.com/kaito-project/kaito/pkg/utils/consts"
 )
 
@@ -254,8 +254,8 @@ func TestCheckNodeClaims(t *testing.T) {
 			// Set up mocks
 			mockClient := testutil.NewClient()
 			mockRecorder := record.NewFakeRecorder(100)
-			expectations := utils.NewControllerExpectations()
-			manager := NewNodeClaimManager(mockClient, mockRecorder, expectations)
+			exp := expectations.NewControllerExpectations()
+			manager := NewNodeClaimManager(mockClient, mockRecorder, exp)
 
 			// Set up test-specific mocks
 			if tc.setupMocks != nil {
@@ -439,8 +439,8 @@ func TestCreateNodeClaims(t *testing.T) {
 			// Set up mocks
 			mockClient := testutil.NewClient()
 			mockRecorder := record.NewFakeRecorder(100)
-			expectations := utils.NewControllerExpectations()
-			manager := NewNodeClaimManager(mockClient, mockRecorder, expectations)
+			exp := expectations.NewControllerExpectations()
+			manager := NewNodeClaimManager(mockClient, mockRecorder, exp)
 
 			// Set up test-specific mocks
 			if tc.setupMocks != nil {
@@ -563,8 +563,8 @@ func TestSetNodeClaimsReadyCondition_SetsToTrue(t *testing.T) {
 			// Set up mocks
 			mockClient := testutil.NewClient()
 			mockRecorder := record.NewFakeRecorder(100)
-			expectations := utils.NewControllerExpectations()
-			manager := NewNodeClaimManager(mockClient, mockRecorder, expectations)
+			exp := expectations.NewControllerExpectations()
+			manager := NewNodeClaimManager(mockClient, mockRecorder, exp)
 
 			// Set up test-specific mocks
 			if tc.setupMocks != nil {
@@ -773,8 +773,8 @@ func TestAreNodeClaimsReady(t *testing.T) {
 			// Set up mocks
 			mockClient := testutil.NewClient()
 			mockRecorder := record.NewFakeRecorder(100)
-			expectations := utils.NewControllerExpectations()
-			manager := NewNodeClaimManager(mockClient, mockRecorder, expectations)
+			exp := expectations.NewControllerExpectations()
+			manager := NewNodeClaimManager(mockClient, mockRecorder, exp)
 
 			// Set up test-specific mocks
 			if tc.setupMocks != nil {
@@ -852,8 +852,8 @@ func TestDetermineNodeOSDiskSize(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			mockClient := testutil.NewClient()
 			mockRecorder := record.NewFakeRecorder(100)
-			expectations := utils.NewControllerExpectations()
-			manager := NewNodeClaimManager(mockClient, mockRecorder, expectations)
+			exp := expectations.NewControllerExpectations()
+			manager := NewNodeClaimManager(mockClient, mockRecorder, exp)
 
 			diskSize := manager.determineNodeOSDiskSize(context.Background(), tt.workspace)
 

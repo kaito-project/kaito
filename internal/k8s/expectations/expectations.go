@@ -30,7 +30,7 @@ limitations under the License.
 // notes: This file contains code copied from https://github.com/kubernetes/kubernetes/blob/01c55353873dcb80b1280c0d470ca29f07b48466/pkg/controller/controller_utils.go#L61-L319
 // import it from k8s once it is available in the go module.
 
-package utils
+package expectations
 
 import (
 	"fmt"

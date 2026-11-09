@@ -23,7 +23,6 @@ import (
 	"strings"
 
 	apiequality "k8s.io/apimachinery/pkg/api/equality"
-	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/api/meta"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/labels"
@@ -34,6 +33,7 @@ import (
 
 	kaitov1alpha1 "github.com/kaito-project/kaito/api/v1alpha1"
 	kaitov1beta1 "github.com/kaito-project/kaito/api/v1beta1"
+	"github.com/kaito-project/kaito/internal/k8s/resources"
 	"github.com/kaito-project/kaito/pkg/utils/consts"
 )
 
@@ -55,47 +55,9 @@ func UpdateStatusConditionIfNotMatch(ctx context.Context, c client.Client, iObj 
 		Message:            cMessage,
 		LastTransitionTime: metav1.Now(),
 	}
-	return UpdateInferenceSetStatus(ctx, c, &client.ObjectKey{Name: iObj.Name, Namespace: iObj.Namespace}, func(status *kaitov1beta1.InferenceSetStatus) error {
-		meta.SetStatusCondition(&status.Conditions, condition)
+	return resources.UpdateStatusWithRetry(ctx, c, client.ObjectKeyFromObject(iObj), func(obj *kaitov1beta1.InferenceSet) error {
+		meta.SetStatusCondition(&obj.Status.Conditions, condition)
 		return nil
-	})
-}
-
-// UpdateInferenceSetStatus updates the inferenceset status with the provided condition
-func UpdateInferenceSetStatus(ctx context.Context, c client.Client, name *client.ObjectKey, modifyFn func(*kaitov1beta1.InferenceSetStatus) error) error {
-	return retry.OnError(retry.DefaultRetry,
-		func(err error) bool {
-			return apierrors.IsServiceUnavailable(err) || apierrors.IsServerTimeout(err) || apierrors.IsTooManyRequests(err) || apierrors.IsConflict(err)
-		},
-		func() error {
-			// Read the latest version to avoid update conflict.
-			iObj := &kaitov1beta1.InferenceSet{}
-			if err := c.Get(ctx, *name, iObj); err != nil {
-				if !apierrors.IsNotFound(err) {
-					return err
-				}
-				return nil
-			}
-			if modifyFn != nil {
-				if err := modifyFn(&iObj.Status); err != nil {
-					return err
-				}
-			}
-			return c.Status().Update(ctx, iObj)
-		})
-}
-
-// UpdateInferenceSetWithRetry gets the latest inferenceset object, applies the modify function, and retries on conflict
-func UpdateInferenceSetWithRetry(ctx context.Context, c client.Client, iObj *kaitov1beta1.InferenceSet, modifyFn func(*kaitov1beta1.InferenceSet) error) error {
-	return retry.RetryOnConflict(retry.DefaultRetry, func() error {
-		latestInferenceSet := &kaitov1beta1.InferenceSet{}
-		if err := c.Get(ctx, client.ObjectKeyFromObject(iObj), latestInferenceSet); err != nil {
-			return err
-		}
-		if err := modifyFn(latestInferenceSet); err != nil {
-			return err
-		}
-		return c.Update(ctx, latestInferenceSet)
 	})
 }
 

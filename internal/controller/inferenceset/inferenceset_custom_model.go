@@ -22,7 +22,8 @@ import (
 
 	kaitov1beta1 "github.com/kaito-project/kaito/api/v1beta1"
 	"github.com/kaito-project/kaito/internal/custommodel"
-	"github.com/kaito-project/kaito/pkg/utils/inferenceset"
+	"github.com/kaito-project/kaito/internal/inferenceset"
+	"github.com/kaito-project/kaito/internal/k8s/resources"
 )
 
 // reconcileResolvedModel resolves a bring-your-own model and records what it
@@ -61,9 +62,10 @@ func (w inferenceSetModelStatusWriter) SetModelConfigCondition(ctx context.Conte
 func (w inferenceSetModelStatusWriter) SaveResolved(ctx context.Context,
 	record *kaitov1beta1.ResolvedModel, reason, message string,
 ) error {
-	return inferenceset.UpdateInferenceSetStatus(ctx, w.client,
-		&client.ObjectKey{Name: w.obj.Name, Namespace: w.obj.Namespace},
-		func(status *kaitov1beta1.InferenceSetStatus) error {
+	return resources.UpdateStatusWithRetry(ctx, w.client,
+		client.ObjectKey{Name: w.obj.Name, Namespace: w.obj.Namespace},
+		func(obj *kaitov1beta1.InferenceSet) error {
+			status := &obj.Status
 			status.ResolvedModel = record
 			meta.SetStatusCondition(&status.Conditions, metav1.Condition{
 				Type:    string(kaitov1beta1.WorkspaceConditionTypeModelConfigReady),

@@ -52,7 +52,6 @@ import (
 	"github.com/kaito-project/kaito/pkg/utils"
 	"github.com/kaito-project/kaito/pkg/utils/consts"
 	"github.com/kaito-project/kaito/pkg/utils/plugin"
-	workspaceutil "github.com/kaito-project/kaito/pkg/utils/workspace"
 )
 
 func getCPUVLLMImageName() string {
@@ -341,7 +340,7 @@ func TestGeneratePresetInference(t *testing.T) {
 
 			// Set the Status.Inference.TargetNodeCount for proper node count calculation
 			if workspace.Inference != nil {
-				req, reqErr := workspaceutil.NodeEstimateRequestFromWorkspace(t.Context(), workspace, mockClient)
+				req, reqErr := nodesestimator.RequestFromWorkspace(t.Context(), workspace, mockClient)
 				if reqErr != nil {
 					t.Errorf("%s: failed to build estimate request: %v", k, reqErr)
 					return
@@ -585,7 +584,7 @@ func TestApplyPresetCacheMutations_CacheGatedOnStreaming(t *testing.T) {
 	})
 
 	estimator := &nodesestimator.NodeEstimator{}
-	req, reqErr := workspaceutil.NodeEstimateRequestFromWorkspace(t.Context(), workspace, mockClient)
+	req, reqErr := nodesestimator.RequestFromWorkspace(t.Context(), workspace, mockClient)
 	if reqErr != nil {
 		t.Fatalf("failed to build estimate request: %v", reqErr)
 	}
@@ -700,7 +699,7 @@ func TestApplyPresetCacheMutations_CacheFeatureGate(t *testing.T) {
 			})
 
 			estimator := &nodesestimator.NodeEstimator{}
-			req, reqErr := workspaceutil.NodeEstimateRequestFromWorkspace(t.Context(), workspace, mockClient)
+			req, reqErr := nodesestimator.RequestFromWorkspace(t.Context(), workspace, mockClient)
 			if reqErr != nil {
 				t.Fatalf("failed to build estimate request: %v", reqErr)
 			}

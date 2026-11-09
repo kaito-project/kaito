@@ -25,21 +25,21 @@ import (
 	karpenterv1 "sigs.k8s.io/karpenter/pkg/apis/v1"
 
 	kaitov1beta1 "github.com/kaito-project/kaito/api/v1beta1"
+	"github.com/kaito-project/kaito/internal/k8s/expectations"
 	"github.com/kaito-project/kaito/internal/k8s/nodeclaim"
 	"github.com/kaito-project/kaito/pkg/catalog"
-	"github.com/kaito-project/kaito/pkg/utils"
 	"github.com/kaito-project/kaito/pkg/utils/consts"
 )
 
 type NodeClaimManager struct {
 	client.Client
 	recorder               record.EventRecorder
-	expectations           *utils.ControllerExpectations
+	expectations           *expectations.ControllerExpectations
 	logger                 klog.Logger
 	defaultNodeImageFamily string
 }
 
-func NewNodeClaimManager(c client.Client, recorder record.EventRecorder, expectations *utils.ControllerExpectations) *NodeClaimManager {
+func NewNodeClaimManager(c client.Client, recorder record.EventRecorder, expectations *expectations.ControllerExpectations) *NodeClaimManager {
 	return &NodeClaimManager{
 		Client:       c,
 		recorder:     recorder,

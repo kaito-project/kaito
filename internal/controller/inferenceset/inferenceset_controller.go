@@ -46,15 +46,14 @@ import (
 	kaitov1beta1 "github.com/kaito-project/kaito/api/v1beta1"
 	workspacecontroller "github.com/kaito-project/kaito/internal/controller/workspace"
 	"github.com/kaito-project/kaito/internal/inference"
+	"github.com/kaito-project/kaito/internal/inferenceset"
+	"github.com/kaito-project/kaito/internal/k8s/expectations"
 	"github.com/kaito-project/kaito/internal/k8s/nodeclaim"
 	"github.com/kaito-project/kaito/internal/k8s/resources"
 	"github.com/kaito-project/kaito/internal/manifests"
 	"github.com/kaito-project/kaito/pkg/featuregates"
 	pkgmodel "github.com/kaito-project/kaito/pkg/model"
-	"github.com/kaito-project/kaito/pkg/utils"
 	"github.com/kaito-project/kaito/pkg/utils/consts"
-	"github.com/kaito-project/kaito/pkg/utils/inferenceset"
-	"github.com/kaito-project/kaito/pkg/utils/workspace"
 )
 
 const (
@@ -70,18 +69,18 @@ type InferenceSetReconciler struct {
 	Recorder record.EventRecorder
 
 	klogger      klog.Logger
-	expectations *utils.ControllerExpectations
+	expectations *expectations.ControllerExpectations
 }
 
 func NewInferenceSetReconciler(client client.Client, scheme *runtime.Scheme, log logr.Logger, Recorder record.EventRecorder) *InferenceSetReconciler {
-	expectations := utils.NewControllerExpectations()
+	exp := expectations.NewControllerExpectations()
 	return &InferenceSetReconciler{
 		Client:       client,
 		Scheme:       scheme,
 		Log:          log,
 		klogger:      klog.NewKlogr().WithName("InferenceSetController"),
 		Recorder:     Recorder,
-		expectations: expectations,
+		expectations: exp,
 	}
 }
 
@@ -162,7 +161,7 @@ func (c *InferenceSetReconciler) garbageCollectInferenceSet(ctx context.Context,
 		}
 	}
 
-	updateErr := inferenceset.UpdateInferenceSetWithRetry(ctx, c.Client, iObj, func(ws *kaitov1beta1.InferenceSet) error {
+	updateErr := resources.UpdateWithRetry(ctx, c.Client, client.ObjectKeyFromObject(iObj), func(ws *kaitov1beta1.InferenceSet) error {
 		controllerutil.RemoveFinalizer(ws, consts.InferenceSetFinalizer)
 		return nil
 	})
@@ -275,7 +274,7 @@ func (c *InferenceSetReconciler) isWorkspaceOnOldImage(ctx context.Context, ws *
 		}
 		return false, err
 	}
-	return workspace.GetInferenceContainerImage(ss) != desiredImage, nil
+	return inference.ContainerImage(ss) != desiredImage, nil
 }
 
 // selectWorkspacesToDelete chooses which Workspaces to remove when the InferenceSet is over
@@ -541,7 +540,8 @@ func (c *InferenceSetReconciler) addOrUpdateInferenceSet(ctx context.Context, iO
 	benchmarkApplicable := kaitov1beta1.ShouldRunInferenceSetBenchmark(iObj)
 
 	// update the replicas in the status
-	if err = inferenceset.UpdateInferenceSetStatus(ctx, c.Client, &client.ObjectKey{Name: iObj.Name, Namespace: iObj.Namespace}, func(status *kaitov1beta1.InferenceSetStatus) error {
+	if err = resources.UpdateStatusWithRetry(ctx, c.Client, client.ObjectKey{Name: iObj.Name, Namespace: iObj.Namespace}, func(obj *kaitov1beta1.InferenceSet) error {
+		status := &obj.Status
 		status.Replicas = int(desiredReplicas)
 		status.ReadyReplicas = readyReplicas
 		status.MaxModelLen = workspacecontroller.AggregateMaxModelLen(wsList.Items)
@@ -709,7 +709,7 @@ func (c *InferenceSetReconciler) ensureGatewayAPIInferenceExtension(ctx context.
 			return err
 		}
 	} else {
-		equal, err := utils.ClientObjectSpecEqual(ociRepository, existingOCIRepo)
+		equal, err := clientObjectSpecEqual(ociRepository, existingOCIRepo)
 		if err != nil {
 			return err
 		}
@@ -732,7 +732,7 @@ func (c *InferenceSetReconciler) ensureGatewayAPIInferenceExtension(ctx context.
 			return err
 		}
 	} else {
-		equal, err := utils.ClientObjectSpecEqual(helmRelease, existingHelmRelease)
+		equal, err := clientObjectSpecEqual(helmRelease, existingHelmRelease)
 		if err != nil {
 			return err
 		}
@@ -829,7 +829,7 @@ func (c *InferenceSetReconciler) syncControllerRevision(ctx context.Context, iOb
 	}
 	annotations[InferenceSetHashAnnotation] = currentHash
 
-	err = inferenceset.UpdateInferenceSetWithRetry(ctx, c.Client, iObj, func(ws *kaitov1beta1.InferenceSet) error {
+	err = resources.UpdateWithRetry(ctx, c.Client, client.ObjectKeyFromObject(iObj), func(ws *kaitov1beta1.InferenceSet) error {
 		ws.SetAnnotations(annotations)
 		return nil
 	})
@@ -852,7 +852,7 @@ func (c *InferenceSetReconciler) SetupWithManager(mgr ctrl.Manager) error {
 				expectations:   c.expectations,
 				enqueueHandler: enqueueInferenceSetForWorkspace,
 			},
-			builder.WithPredicates(workspace.WorkspacePredicate),
+			builder.WithPredicates(workspacePredicate),
 		).
 		WithOptions(controller.Options{MaxConcurrentReconciles: 5})
 
@@ -868,7 +868,7 @@ func (c *InferenceSetReconciler) SetupWithManager(mgr ctrl.Manager) error {
 			gaiev1.SchemeGroupVersion.WithKind("InferencePool"),
 			gaiev1alpha2.SchemeGroupVersion.WithKind("InferenceObjective"),
 		} {
-			found, err := utils.EnsureKindExists(mgr.GetConfig(), gvk)
+			found, err := resources.EnsureKindExists(mgr.GetConfig(), gvk)
 			if err != nil {
 				return fmt.Errorf("failed to ensure kind %s exists: %w", gvk.Kind, err)
 			}

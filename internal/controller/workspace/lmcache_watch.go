@@ -20,7 +20,7 @@ import (
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 
-	"github.com/kaito-project/kaito/pkg/utils/workspace"
+	"github.com/kaito-project/kaito/internal/inference"
 )
 
 const (
@@ -39,7 +39,7 @@ const (
 func preserveLMCacheTopologyForDeployedImage(existing, desired *appsv1.StatefulSet) bool {
 	existingSpec := &existing.Spec.Template.Spec
 	desiredSpec := &desired.Spec.Template.Spec
-	if workspace.GetInferenceContainerImage(existing) == workspace.GetInferenceContainerImage(desired) ||
+	if inference.ContainerImage(existing) == inference.ContainerImage(desired) ||
 		hasContainer(existingSpec.InitContainers, lmCacheSidecarName) ||
 		!hasContainer(desiredSpec.InitContainers, lmCacheSidecarName) {
 		return false

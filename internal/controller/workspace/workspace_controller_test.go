@@ -50,6 +50,8 @@ import (
 	"github.com/kaito-project/kaito/internal/inference"
 	"github.com/kaito-project/kaito/internal/inference/modelstreaming"
 	"github.com/kaito-project/kaito/internal/inference/modelstreaming/registry"
+	"github.com/kaito-project/kaito/internal/k8s/nodes"
+	"github.com/kaito-project/kaito/internal/k8s/resources"
 	byoprovisioner "github.com/kaito-project/kaito/internal/nodeprovision/byo-provisioner"
 	"github.com/kaito-project/kaito/internal/testutil"
 	"github.com/kaito-project/kaito/pkg/catalog"
@@ -57,9 +59,7 @@ import (
 	"github.com/kaito-project/kaito/pkg/featuregates"
 	"github.com/kaito-project/kaito/pkg/k8sclient"
 	mmconsts "github.com/kaito-project/kaito/pkg/modelmirror/consts"
-	"github.com/kaito-project/kaito/pkg/utils"
 	"github.com/kaito-project/kaito/pkg/utils/consts"
-	workspaceutil "github.com/kaito-project/kaito/pkg/utils/workspace"
 )
 
 func TestSelectWorkspaceNodes(t *testing.T) {
@@ -323,7 +323,7 @@ func TestSelectWorkspaceNodes(t *testing.T) {
 
 	for k, tc := range testcases {
 		t.Run(k, func(t *testing.T) {
-			selectedNodes := utils.SelectNodes(tc.qualified, tc.preferred, tc.previous, tc.count)
+			selectedNodes := nodes.SelectNodes(tc.qualified, tc.preferred, tc.previous, tc.count)
 
 			selectedNodesArray := []string{}
 
@@ -542,7 +542,7 @@ func TestApplyInferenceWithPreset(t *testing.T) {
 			t.Setenv("CLOUD_PROVIDER", consts.AzureCloudName)
 			t.Setenv("RELEASE_NAMESPACE", "kaito")
 			if tc.workspace.Status.TargetNodeCount == 0 {
-				req, reqErr := workspaceutil.NodeEstimateRequestFromWorkspace(t.Context(), &tc.workspace, mockClient)
+				req, reqErr := nodesestimator.RequestFromWorkspace(t.Context(), &tc.workspace, mockClient)
 				if reqErr != nil {
 					t.Errorf("Failed to build estimate request: %v", reqErr)
 					return
@@ -999,7 +999,7 @@ func TestUpdateWorkspaceTargetNodeCount(t *testing.T) {
 				Status:     v1beta1.WorkspaceStatus{TargetNodeCount: 0},
 			},
 			setupMocks: func(c *testutil.MockClient, e *mockEstimator, updatedTarget *int32) {
-				// Mock Get used by UpdateWorkspaceStatus to populate the workspace object
+				// Mock Get used by resources.UpdateStatusWithRetry to populate the workspace object
 				c.On("Get", mock.Anything, mock.Anything, mock.IsType(&v1beta1.Workspace{}), mock.Anything).
 					Run(func(args mock.Arguments) {
 						ws := args.Get(2).(*v1beta1.Workspace)
@@ -1529,7 +1529,7 @@ func TestBuildReconcileErrMessageAppender(t *testing.T) {
 
 	// A NodeClassInvalid message is the ProvisionNodes error itself, truncated when long, so it is not appended twice.
 	nodeClassErr := errors.New(`NodeClass "nc" is not ready (UnhealthyDependents): SubnetsReady=False (SubnetIDInvalid): ` + strings.Repeat("x", 300))
-	truncated := utils.TruncateMessage(nodeClassErr.Error(), 256)
+	truncated := resources.TruncateMessage(nodeClassErr.Error(), 256)
 	assert.Equal(t, truncated, buildReconcileErrMessageAppender(nodeClassErr)(truncated))
 }
 
@@ -2457,7 +2457,7 @@ func TestDetectInferencePodFailure(t *testing.T) {
 		for range make([]struct{}, maxInferenceMessageLen+50) {
 			long += "a"
 		}
-		out := utils.TruncateMessage(long, maxInferenceMessageLen)
+		out := resources.TruncateMessage(long, maxInferenceMessageLen)
 		assert.Equal(t, maxInferenceMessageLen+len("..."), len(out))
 	})
 }

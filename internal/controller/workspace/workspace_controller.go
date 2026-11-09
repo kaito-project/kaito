@@ -59,6 +59,7 @@ import (
 	"github.com/kaito-project/kaito/internal/inference"
 	"github.com/kaito-project/kaito/internal/inference/modelstreaming"
 	"github.com/kaito-project/kaito/internal/inference/modelstreaming/registry"
+	"github.com/kaito-project/kaito/internal/k8s/expectations"
 	"github.com/kaito-project/kaito/internal/k8s/nodeclaim"
 	"github.com/kaito-project/kaito/internal/k8s/resources"
 	"github.com/kaito-project/kaito/internal/manifests"
@@ -72,7 +73,6 @@ import (
 	mmconsts "github.com/kaito-project/kaito/pkg/modelmirror/consts"
 	"github.com/kaito-project/kaito/pkg/utils"
 	"github.com/kaito-project/kaito/pkg/utils/consts"
-	"github.com/kaito-project/kaito/pkg/utils/workspace"
 )
 
 const (
@@ -88,7 +88,7 @@ type WorkspaceReconciler struct {
 	Recorder record.EventRecorder
 
 	klogger             klog.Logger
-	expectations        *utils.ControllerExpectations
+	expectations        *expectations.ControllerExpectations
 	Estimator           estimator.NodesEstimator
 	nodeProvisioner     nodeprovision.NodeProvisioner
 	modelMetadataClient modelMetadataHTTPClient
@@ -96,7 +96,7 @@ type WorkspaceReconciler struct {
 
 func NewWorkspaceReconciler(client client.Client, scheme *runtime.Scheme, log logr.Logger, Recorder record.EventRecorder,
 	provisioner nodeprovision.NodeProvisioner) *WorkspaceReconciler {
-	expectations := utils.NewControllerExpectations()
+	exp := expectations.NewControllerExpectations()
 
 	return &WorkspaceReconciler{
 		Client:              client,
@@ -104,7 +104,7 @@ func NewWorkspaceReconciler(client client.Client, scheme *runtime.Scheme, log lo
 		Log:                 log,
 		klogger:             klog.NewKlogr().WithName("WorkspaceController"),
 		Recorder:            Recorder,
-		expectations:        expectations,
+		expectations:        exp,
 		Estimator:           &nodesestimator.NodeEstimator{},
 		nodeProvisioner:     provisioner,
 		modelMetadataClient: &http.Client{Timeout: 2 * time.Second},
@@ -590,7 +590,7 @@ func (c *WorkspaceReconciler) syncControllerRevision(ctx context.Context, wObj *
 	}
 	annotations[WorkspaceHashAnnotation] = currentHash
 
-	err = workspace.UpdateWorkspaceWithRetry(ctx, c.Client, wObj, func(ws *kaitov1beta1.Workspace) error {
+	err = resources.UpdateWithRetry(ctx, c.Client, client.ObjectKeyFromObject(wObj), func(ws *kaitov1beta1.Workspace) error {
 		ws.SetAnnotations(annotations)
 		return nil
 	})
@@ -767,8 +767,8 @@ func (c *WorkspaceReconciler) applyInference(ctx context.Context, wObj *kaitov1b
 			// missing health script and run both the old in-process cache and sidecar.
 			if preserveLMCacheTopologyForDeployedImage(existingObj, desiredStatefulSet) {
 				klog.InfoS("Deferring LMCache topology update until the base image is upgraded", "workspace", klog.KObj(wObj),
-					"deployedImage", workspace.GetInferenceContainerImage(existingObj),
-					"desiredImage", workspace.GetInferenceContainerImage(desiredStatefulSet))
+					"deployedImage", inference.ContainerImage(existingObj),
+					"desiredImage", inference.ContainerImage(desiredStatefulSet))
 			}
 			preserveDeployedImages(existingObj, desiredStatefulSet)
 		}
@@ -866,8 +866,8 @@ func shouldUpgradeBaseImage(wObj *kaitov1beta1.Workspace, existingObj, desiredSt
 	upgradeVersion := wObj.Labels[kaitov1alpha1.LabelUpgradeToVersion]
 	desiredTag, err := inference.GetBaseImageTag(baseImage)
 	return err == nil && upgradeVersion != "" && upgradeVersion == desiredTag &&
-		workspace.GetInferenceContainerImage(desiredStatefulSet) == utils.GetPresetImageName(baseImage.Registry, baseImage.Name, baseImage.Tag) &&
-		workspace.GetInferenceContainerImage(existingObj) != workspace.GetInferenceContainerImage(desiredStatefulSet)
+		inference.ContainerImage(desiredStatefulSet) == utils.GetPresetImageName(baseImage.Registry, baseImage.Name, baseImage.Tag) &&
+		inference.ContainerImage(existingObj) != inference.ContainerImage(desiredStatefulSet)
 }
 
 func (c *WorkspaceReconciler) syncWorkspaceStatus(ctx context.Context, key types.NamespacedName, reconcileErr error) error {
@@ -1143,22 +1143,22 @@ func (c *WorkspaceReconciler) classifyInferencePodFailure(ctx context.Context, w
 	// 2. Report LMCache sidecar failures explicitly so InferenceReady identifies
 	// the optional cache layer as the blocker rather than a generic pod failure.
 	if r, m := detectLMCacheFailure(pods); r != "" {
-		return r, utils.TruncateMessage(m, maxInferenceMessageLen)
+		return r, resources.TruncateMessage(m, maxInferenceMessageLen)
 	}
 
 	// 3. Container-level failures (init + main containers).
 	if r, m := detectContainerFailure(pods); r != "" {
-		return r, utils.TruncateMessage(m, maxInferenceMessageLen)
+		return r, resources.TruncateMessage(m, maxInferenceMessageLen)
 	}
 
 	// 4. Pod evicted due to node resource pressure.
 	if r, m := detectEvictedPod(pods); r != "" {
-		return r, utils.TruncateMessage(m, maxInferenceMessageLen)
+		return r, resources.TruncateMessage(m, maxInferenceMessageLen)
 	}
 
 	// 5. Pod cannot be scheduled onto any node.
 	if r, m := detectUnschedulablePod(pods); r != "" {
-		return r, utils.TruncateMessage(m, maxInferenceMessageLen)
+		return r, resources.TruncateMessage(m, maxInferenceMessageLen)
 	}
 
 	return "", ""
@@ -1446,7 +1446,7 @@ func streamingValidationReason(reconcileErr error, podReason, podMessage string)
 	if !errors.As(reconcileErr, &sve) {
 		return "", ""
 	}
-	return sve.reason, utils.TruncateMessage(sve.Error(), maxInferenceMessageLen)
+	return sve.reason, resources.TruncateMessage(sve.Error(), maxInferenceMessageLen)
 }
 
 func buildReconcileErrMessageAppender(reconcileErr error) func(message string) string {
@@ -1613,8 +1613,9 @@ func refreshBenchmarkObservedGenerationIfCompleted(status *kaitov1beta1.Workspac
 // BenchmarkCompleted condition, so the post-load benchmark re-runs against the new
 // image on the next reconcile.
 func (c *WorkspaceReconciler) resetBenchmarkOnUpgrade(ctx context.Context, wObj *kaitov1beta1.Workspace) error {
-	return workspace.UpdateWorkspaceStatus(ctx, c.Client, &client.ObjectKey{Name: wObj.Name, Namespace: wObj.Namespace},
-		func(status *kaitov1beta1.WorkspaceStatus) error {
+	return resources.UpdateStatusWithRetry(ctx, c.Client, client.ObjectKey{Name: wObj.Name, Namespace: wObj.Namespace},
+		func(obj *kaitov1beta1.Workspace) error {
+			status := &obj.Status
 			status.Performance = nil
 			meta.RemoveStatusCondition(&status.Conditions, string(kaitov1beta1.WorkspaceConditionTypeBenchmarkCompleted))
 			return nil
@@ -1738,7 +1739,8 @@ func (c *WorkspaceReconciler) UpdateWorkspaceTargetNodeCount(ctx context.Context
 	if wObj.Status.TargetNodeCount == 0 {
 		isCPU := kaitov1beta1.IsCPUInferenceWorkspace(wObj)
 		if isCPU && wObj.Inference.Preset != nil {
-			if err := workspace.UpdateWorkspaceStatus(ctx, c.Client, &client.ObjectKey{Namespace: wObj.Namespace, Name: wObj.Name}, func(status *kaitov1beta1.WorkspaceStatus) error {
+			if err := resources.UpdateStatusWithRetry(ctx, c.Client, client.ObjectKey{Namespace: wObj.Namespace, Name: wObj.Name}, func(obj *kaitov1beta1.Workspace) error {
+				status := &obj.Status
 				status.TargetNodeCount = 1
 				return nil
 			}); err != nil {
@@ -1748,7 +1750,7 @@ func (c *WorkspaceReconciler) UpdateWorkspaceTargetNodeCount(ctx context.Context
 			return nil
 		}
 		// Build the estimate request once, outside the status-update closure.
-		req, reqErr := workspace.NodeEstimateRequestFromWorkspace(ctx, wObj, c.Client)
+		req, reqErr := nodesestimator.RequestFromWorkspace(ctx, wObj, c.Client)
 		if reqErr != nil {
 			return fmt.Errorf("failed to build node estimate request: %w", reqErr)
 		}
@@ -1767,7 +1769,8 @@ func (c *WorkspaceReconciler) UpdateWorkspaceTargetNodeCount(ctx context.Context
 			}
 		}
 
-		if err := workspace.UpdateWorkspaceStatus(ctx, c.Client, &client.ObjectKey{Name: wObj.Name, Namespace: wObj.Namespace}, func(status *kaitov1beta1.WorkspaceStatus) error {
+		if err := resources.UpdateStatusWithRetry(ctx, c.Client, client.ObjectKey{Name: wObj.Name, Namespace: wObj.Namespace}, func(obj *kaitov1beta1.Workspace) error {
+			status := &obj.Status
 			if wObj.Inference != nil {
 				if v1beta1.GetWorkspaceRuntimeName(wObj) == pkgmodel.RuntimeNameVLLM {
 					targetNodeCount, err = c.Estimator.EstimateNodeCount(ctx, req, c.Client)

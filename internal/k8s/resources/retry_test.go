@@ -11,7 +11,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package workspace
+package resources
 
 import (
 	"context"
@@ -20,8 +20,6 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
-	appsv1 "k8s.io/api/apps/v1"
-	corev1 "k8s.io/api/core/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/api/meta"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -32,7 +30,7 @@ import (
 	"github.com/kaito-project/kaito/internal/testutil"
 )
 
-func TestUpdateWorkspaceStatus(t *testing.T) {
+func TestUpdateStatusWithRetry(t *testing.T) {
 	t.Run("Should successfully update workspace status", func(t *testing.T) {
 		mockClient := testutil.NewClient()
 
@@ -77,11 +75,28 @@ func TestUpdateWorkspaceStatus(t *testing.T) {
 		}).Return(nil)
 
 		ctx := context.Background()
-		key := &client.ObjectKey{Name: "test-workspace", Namespace: "default"}
-		err := UpdateWorkspaceStatus(ctx, mockClient, key, func(status *kaitov1beta1.WorkspaceStatus) error {
-			meta.SetStatusCondition(&status.Conditions, *condition)
+		key := client.ObjectKey{Name: "test-workspace", Namespace: "default"}
+		err := UpdateStatusWithRetry(ctx, mockClient, key, func(ws *kaitov1beta1.Workspace) error {
+			meta.SetStatusCondition(&ws.Status.Conditions, *condition)
 			return nil
 		})
+
+		assert.NoError(t, err)
+		mockClient.AssertExpectations(t)
+		mockClient.StatusMock.AssertExpectations(t)
+	})
+
+	t.Run("Should handle nil modify", func(t *testing.T) {
+		mockClient := testutil.NewClient()
+
+		mockClient.On("Get", mock.IsType(context.Background()),
+			client.ObjectKey{Name: "test-workspace", Namespace: "default"},
+			mock.IsType(&kaitov1beta1.Workspace{}), mock.Anything).Return(nil)
+		mockClient.StatusMock.On("Update", mock.IsType(context.Background()),
+			mock.IsType(&kaitov1beta1.Workspace{}), mock.Anything).Return(nil)
+
+		key := client.ObjectKey{Name: "test-workspace", Namespace: "default"}
+		err := UpdateStatusWithRetry[kaitov1beta1.Workspace](context.Background(), mockClient, key, nil)
 
 		assert.NoError(t, err)
 		mockClient.AssertExpectations(t)
@@ -105,9 +120,9 @@ func TestUpdateWorkspaceStatus(t *testing.T) {
 			apierrors.NewNotFound(schema.GroupResource{Group: "kaito.sh", Resource: "workspaces"}, "test-workspace"))
 
 		ctx := context.Background()
-		key := &client.ObjectKey{Name: "test-workspace", Namespace: "default"}
-		err := UpdateWorkspaceStatus(ctx, mockClient, key, func(status *kaitov1beta1.WorkspaceStatus) error {
-			meta.SetStatusCondition(&status.Conditions, *condition)
+		key := client.ObjectKey{Name: "test-workspace", Namespace: "default"}
+		err := UpdateStatusWithRetry(ctx, mockClient, key, func(ws *kaitov1beta1.Workspace) error {
+			meta.SetStatusCondition(&ws.Status.Conditions, *condition)
 			return nil
 		})
 
@@ -131,49 +146,15 @@ func TestUpdateWorkspaceStatus(t *testing.T) {
 			mock.IsType(&kaitov1beta1.Workspace{}), mock.Anything).Return(fmt.Errorf("network error"))
 
 		ctx := context.Background()
-		key := &client.ObjectKey{Name: "test-workspace", Namespace: "default"}
-		err := UpdateWorkspaceStatus(ctx, mockClient, key, func(status *kaitov1beta1.WorkspaceStatus) error {
-			meta.SetStatusCondition(&status.Conditions, *condition)
+		key := client.ObjectKey{Name: "test-workspace", Namespace: "default"}
+		err := UpdateStatusWithRetry(ctx, mockClient, key, func(ws *kaitov1beta1.Workspace) error {
+			meta.SetStatusCondition(&ws.Status.Conditions, *condition)
 			return nil
 		})
 
 		assert.Error(t, err)
 		assert.Contains(t, err.Error(), "network error")
 		mockClient.AssertExpectations(t)
-	})
-
-	t.Run("Should handle nil condition", func(t *testing.T) {
-		mockClient := testutil.NewClient()
-
-		workspace := &kaitov1beta1.Workspace{
-			ObjectMeta: metav1.ObjectMeta{
-				Name:      "test-workspace",
-				Namespace: "default",
-			},
-			Status: kaitov1beta1.WorkspaceStatus{
-				Conditions: []metav1.Condition{},
-			},
-		}
-
-		// Mock the Get call
-		mockClient.On("Get", mock.IsType(context.Background()),
-			client.ObjectKey{Name: "test-workspace", Namespace: "default"},
-			mock.IsType(&kaitov1beta1.Workspace{}), mock.Anything).Run(func(args mock.Arguments) {
-			ws := args.Get(2).(*kaitov1beta1.Workspace)
-			*ws = *workspace
-		}).Return(nil)
-
-		// Mock the Status().Update call
-		mockClient.StatusMock.On("Update", mock.IsType(context.Background()),
-			mock.IsType(&kaitov1beta1.Workspace{}), mock.Anything).Return(nil)
-
-		ctx := context.Background()
-		key := &client.ObjectKey{Name: "test-workspace", Namespace: "default"}
-		err := UpdateWorkspaceStatus(ctx, mockClient, key, nil)
-
-		assert.NoError(t, err)
-		mockClient.AssertExpectations(t)
-		mockClient.StatusMock.AssertExpectations(t)
 	})
 
 	t.Run("Should retry on retryable errors", func(t *testing.T) {
@@ -213,9 +194,9 @@ func TestUpdateWorkspaceStatus(t *testing.T) {
 			mock.IsType(&kaitov1beta1.Workspace{}), mock.Anything).Return(nil).Once()
 
 		ctx := context.Background()
-		key := &client.ObjectKey{Name: "test-workspace", Namespace: "default"}
-		err := UpdateWorkspaceStatus(ctx, mockClient, key, func(status *kaitov1beta1.WorkspaceStatus) error {
-			meta.SetStatusCondition(&status.Conditions, *condition)
+		key := client.ObjectKey{Name: "test-workspace", Namespace: "default"}
+		err := UpdateStatusWithRetry(ctx, mockClient, key, func(ws *kaitov1beta1.Workspace) error {
+			meta.SetStatusCondition(&ws.Status.Conditions, *condition)
 			return nil
 		})
 
@@ -257,9 +238,9 @@ func TestUpdateWorkspaceStatus(t *testing.T) {
 			mock.IsType(&kaitov1beta1.Workspace{}), mock.Anything).Return(fmt.Errorf("permanent error"))
 
 		ctx := context.Background()
-		key := &client.ObjectKey{Name: "test-workspace", Namespace: "default"}
-		err := UpdateWorkspaceStatus(ctx, mockClient, key, func(status *kaitov1beta1.WorkspaceStatus) error {
-			meta.SetStatusCondition(&status.Conditions, *condition)
+		key := client.ObjectKey{Name: "test-workspace", Namespace: "default"}
+		err := UpdateStatusWithRetry(ctx, mockClient, key, func(ws *kaitov1beta1.Workspace) error {
+			meta.SetStatusCondition(&ws.Status.Conditions, *condition)
 			return nil
 		})
 
@@ -270,84 +251,26 @@ func TestUpdateWorkspaceStatus(t *testing.T) {
 	})
 }
 
-func TestGetInferenceContainerImage(t *testing.T) {
-	tests := []struct {
-		name   string
-		ss     *appsv1.StatefulSet
-		expect string
-	}{
-		{
-			name: "returns named container image matching statefulset name",
-			ss: &appsv1.StatefulSet{
-				ObjectMeta: metav1.ObjectMeta{Name: "my-workspace"},
-				Spec: appsv1.StatefulSetSpec{
-					Template: corev1.PodTemplateSpec{
-						Spec: corev1.PodSpec{
-							Containers: []corev1.Container{
-								{Name: "sidecar", Image: "sidecar:v1"},
-								{Name: "my-workspace", Image: "inference:v2"},
-							},
-						},
-					},
-				},
-			},
-			expect: "inference:v2",
-		},
-		{
-			name: "falls back to first container when no name matches",
-			ss: &appsv1.StatefulSet{
-				ObjectMeta: metav1.ObjectMeta{Name: "my-workspace"},
-				Spec: appsv1.StatefulSetSpec{
-					Template: corev1.PodTemplateSpec{
-						Spec: corev1.PodSpec{
-							Containers: []corev1.Container{
-								{Name: "other", Image: "image-a:v1"},
-								{Name: "another", Image: "image-b:v2"},
-							},
-						},
-					},
-				},
-			},
-			expect: "image-a:v1",
-		},
-		{
-			name: "empty containers returns empty string",
-			ss: &appsv1.StatefulSet{
-				ObjectMeta: metav1.ObjectMeta{Name: "my-workspace"},
-				Spec: appsv1.StatefulSetSpec{
-					Template: corev1.PodTemplateSpec{
-						Spec: corev1.PodSpec{
-							Containers: []corev1.Container{},
-						},
-					},
-				},
-			},
-			expect: "",
-		},
-		{
-			name: "named container is not first in list",
-			ss: &appsv1.StatefulSet{
-				ObjectMeta: metav1.ObjectMeta{Name: "ws-abc"},
-				Spec: appsv1.StatefulSetSpec{
-					Template: corev1.PodTemplateSpec{
-						Spec: corev1.PodSpec{
-							Containers: []corev1.Container{
-								{Name: "http-proxy", Image: "proxy:latest"},
-								{Name: "metrics", Image: "metrics:v1"},
-								{Name: "ws-abc", Image: "base:0.3.2"},
-							},
-						},
-					},
-				},
-			},
-			expect: "base:0.3.2",
-		},
-	}
+func TestUpdateWithRetry(t *testing.T) {
+	ctx := context.Background()
+	key := client.ObjectKey{Name: "test-workspace", Namespace: "default"}
+	conflict := apierrors.NewConflict(schema.GroupResource{Group: "kaito.sh", Resource: "workspaces"}, key.Name, nil)
 
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			got := GetInferenceContainerImage(tt.ss)
-			assert.Equal(t, tt.expect, got)
-		})
-	}
+	mockClient := testutil.NewClient()
+	mockClient.On("Get", mock.IsType(ctx), key, mock.IsType(&kaitov1beta1.Workspace{}), mock.Anything).Return(nil).Twice()
+	mockClient.On("Update", mock.IsType(ctx), mock.IsType(&kaitov1beta1.Workspace{}), mock.Anything).Return(conflict).Once()
+	mockClient.On("Update", mock.IsType(ctx), mock.MatchedBy(func(ws *kaitov1beta1.Workspace) bool {
+		return ws.Labels["updated"] == "true"
+	}), mock.Anything).Return(nil).Once()
+
+	calls := 0
+	err := UpdateWithRetry(ctx, mockClient, key, func(ws *kaitov1beta1.Workspace) error {
+		calls++
+		ws.Labels = map[string]string{"updated": "true"}
+		return nil
+	})
+
+	assert.NoError(t, err)
+	assert.Equal(t, 2, calls)
+	mockClient.AssertExpectations(t)
 }

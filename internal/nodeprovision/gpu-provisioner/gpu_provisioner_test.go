@@ -27,10 +27,10 @@ import (
 	karpenterv1 "sigs.k8s.io/karpenter/pkg/apis/v1"
 
 	kaitov1beta1 "github.com/kaito-project/kaito/api/v1beta1"
+	"github.com/kaito-project/kaito/internal/k8s/expectations"
 	"github.com/kaito-project/kaito/internal/nodeprovision"
 	"github.com/kaito-project/kaito/internal/nodeprovision/resource"
 	"github.com/kaito-project/kaito/internal/testutil"
-	"github.com/kaito-project/kaito/pkg/utils"
 	"github.com/kaito-project/kaito/pkg/utils/consts"
 )
 
@@ -58,8 +58,8 @@ func newTestWorkspace() *kaitov1beta1.Workspace {
 
 func TestAzureGPUProvisionerImplementsInterface(t *testing.T) {
 	mockClient := testutil.NewClient()
-	expectations := utils.NewControllerExpectations()
-	ncm := resource.NewNodeClaimManager(mockClient, nil, expectations)
+	exp := expectations.NewControllerExpectations()
+	ncm := resource.NewNodeClaimManager(mockClient, nil, exp)
 	nm := resource.NewNodeManager(mockClient)
 
 	var _ nodeprovision.NodeProvisioner = NewAzureGPUProvisioner(ncm, nm)
@@ -67,8 +67,8 @@ func TestAzureGPUProvisionerImplementsInterface(t *testing.T) {
 
 func TestAzureGPUProvisionerEnableDriftRemediationIsNoop(t *testing.T) {
 	mockClient := testutil.NewClient()
-	expectations := utils.NewControllerExpectations()
-	ncm := resource.NewNodeClaimManager(mockClient, nil, expectations)
+	exp := expectations.NewControllerExpectations()
+	ncm := resource.NewNodeClaimManager(mockClient, nil, exp)
 	nm := resource.NewNodeManager(mockClient)
 
 	p := NewAzureGPUProvisioner(ncm, nm)
@@ -78,8 +78,8 @@ func TestAzureGPUProvisionerEnableDriftRemediationIsNoop(t *testing.T) {
 
 func TestAzureGPUProvisionerDisableDriftRemediationIsNoop(t *testing.T) {
 	mockClient := testutil.NewClient()
-	expectations := utils.NewControllerExpectations()
-	ncm := resource.NewNodeClaimManager(mockClient, nil, expectations)
+	exp := expectations.NewControllerExpectations()
+	ncm := resource.NewNodeClaimManager(mockClient, nil, exp)
 	nm := resource.NewNodeManager(mockClient)
 
 	p := NewAzureGPUProvisioner(ncm, nm)
@@ -139,8 +139,8 @@ func TestAzureGPUProvisionerDeleteNodes(t *testing.T) {
 			mockClient := testutil.NewClient()
 			tc.callMocks(mockClient)
 
-			expectations := utils.NewControllerExpectations()
-			ncm := resource.NewNodeClaimManager(mockClient, nil, expectations)
+			exp := expectations.NewControllerExpectations()
+			ncm := resource.NewNodeClaimManager(mockClient, nil, exp)
 			nm := resource.NewNodeManager(mockClient)
 			p := NewAzureGPUProvisioner(ncm, nm)
 
@@ -201,8 +201,8 @@ func TestAzureGPUProvisionerEnsureNodesReady(t *testing.T) {
 			mockClient := testutil.NewClient()
 			tc.callMocks(mockClient)
 
-			expectations := utils.NewControllerExpectations()
-			ncm := resource.NewNodeClaimManager(mockClient, nil, expectations)
+			exp := expectations.NewControllerExpectations()
+			ncm := resource.NewNodeClaimManager(mockClient, nil, exp)
 			nm := resource.NewNodeManager(mockClient)
 			p := NewAzureGPUProvisioner(ncm, nm)
 

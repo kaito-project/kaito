@@ -20,7 +20,6 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	appsv1 "k8s.io/api/apps/v1"
-	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	k8sruntime "k8s.io/apimachinery/pkg/runtime"
@@ -327,98 +326,6 @@ func TestInferencePoolName(t *testing.T) {
 	}
 }
 
-func TestClientObjectSpecEqual(t *testing.T) {
-	i32 := func(n int32) *int32 { return &n }
-
-	tests := []struct {
-		name string
-		a, b client.Object
-		want bool
-	}{
-		{
-			name: "equal deployment specs despite different metadata",
-			a: &appsv1.Deployment{
-				ObjectMeta: metav1.ObjectMeta{Name: "a", Namespace: "ns1"},
-				Spec: appsv1.DeploymentSpec{
-					Replicas: i32(2),
-					Selector: &metav1.LabelSelector{MatchLabels: map[string]string{"app": "demo"}},
-					Template: corev1.PodTemplateSpec{
-						ObjectMeta: metav1.ObjectMeta{Labels: map[string]string{"app": "demo"}},
-						Spec:       corev1.PodSpec{Containers: []corev1.Container{{Name: "c1", Image: "busybox:latest"}}},
-					},
-				},
-			},
-			b: &appsv1.Deployment{
-				ObjectMeta: metav1.ObjectMeta{Name: "b", Namespace: "ns2", Labels: map[string]string{"x": "y"}},
-				Spec: appsv1.DeploymentSpec{
-					Replicas: i32(2),
-					Selector: &metav1.LabelSelector{MatchLabels: map[string]string{"app": "demo"}},
-					Template: corev1.PodTemplateSpec{
-						ObjectMeta: metav1.ObjectMeta{Labels: map[string]string{"app": "demo"}},
-						Spec:       corev1.PodSpec{Containers: []corev1.Container{{Name: "c1", Image: "busybox:latest"}}},
-					},
-				},
-			},
-			want: true,
-		},
-		{
-			name: "different deployment specs (replicas)",
-			a: &appsv1.Deployment{
-				ObjectMeta: metav1.ObjectMeta{Name: "a", Namespace: "ns"},
-				Spec:       appsv1.DeploymentSpec{Replicas: i32(2)},
-			},
-			b: &appsv1.Deployment{
-				ObjectMeta: metav1.ObjectMeta{Name: "b", Namespace: "ns"},
-				Spec:       appsv1.DeploymentSpec{Replicas: i32(3)},
-			},
-			want: false,
-		},
-		{
-			name: "equal service specs with different names",
-			a: &corev1.Service{
-				ObjectMeta: metav1.ObjectMeta{Name: "svc-a", Namespace: "ns"},
-				Spec: corev1.ServiceSpec{
-					Type:     corev1.ServiceTypeClusterIP,
-					Ports:    []corev1.ServicePort{{Name: "http", Port: 80}},
-					Selector: map[string]string{"app": "demo"},
-				},
-			},
-			b: &corev1.Service{
-				ObjectMeta: metav1.ObjectMeta{Name: "svc-b", Namespace: "ns"},
-				Spec: corev1.ServiceSpec{
-					Type:     corev1.ServiceTypeClusterIP,
-					Ports:    []corev1.ServicePort{{Name: "http", Port: 80}},
-					Selector: map[string]string{"app": "demo"},
-				},
-			},
-			want: true,
-		},
-		{
-			name: "one object without spec (ConfigMap) vs Service",
-			a:    &corev1.ConfigMap{ObjectMeta: metav1.ObjectMeta{Name: "cm", Namespace: "ns"}},
-			b: &corev1.Service{
-				ObjectMeta: metav1.ObjectMeta{Name: "svc", Namespace: "ns"},
-				Spec:       corev1.ServiceSpec{Type: corev1.ServiceTypeClusterIP},
-			},
-			want: false,
-		},
-		{
-			name: "both objects without spec (ConfigMap vs ConfigMap)",
-			a:    &corev1.ConfigMap{ObjectMeta: metav1.ObjectMeta{Name: "cm-a", Namespace: "ns"}},
-			b:    &corev1.ConfigMap{ObjectMeta: metav1.ObjectMeta{Name: "cm-b", Namespace: "ns"}},
-			want: false,
-		},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			got, err := ClientObjectSpecEqual(tt.a, tt.b)
-			require.NoError(t, err)
-			assert.Equal(t, tt.want, got)
-		})
-	}
-}
-
 func TestContains(t *testing.T) {
 	tests := []struct {
 		name     string
@@ -509,69 +416,6 @@ func TestExtractAndValidateRepoName(t *testing.T) {
 			}
 		})
 	}
-}
-
-func TestSelectNodes(t *testing.T) {
-	makeNode := func(name string, labels map[string]string) *corev1.Node {
-		return &corev1.Node{ObjectMeta: metav1.ObjectMeta{Name: name, Labels: labels}}
-	}
-
-	t.Run("preferred node ranked first", func(t *testing.T) {
-		nodes := []*corev1.Node{
-			makeNode("node-c", nil),
-			makeNode("node-b", nil),
-			makeNode("node-a", nil),
-		}
-		result := SelectNodes(nodes, []string{"node-b"}, nil, 3)
-		assert.Len(t, result, 3)
-		assert.Equal(t, "node-b", result[0].Name)
-	})
-
-	t.Run("count limits results", func(t *testing.T) {
-		nodes := []*corev1.Node{
-			makeNode("node-1", nil),
-			makeNode("node-2", nil),
-			makeNode("node-3", nil),
-		}
-		result := SelectNodes(nodes, nil, nil, 2)
-		assert.Len(t, result, 2)
-	})
-
-	t.Run("returns all when count exceeds available", func(t *testing.T) {
-		nodes := []*corev1.Node{makeNode("node-1", nil)}
-		result := SelectNodes(nodes, nil, nil, 5)
-		assert.Len(t, result, 1)
-	})
-
-	t.Run("previous node ranked above provisioner node", func(t *testing.T) {
-		nodes := []*corev1.Node{
-			makeNode("node-prov", map[string]string{consts.LabelGPUProvisionerCustom: "gpu"}),
-			makeNode("node-prev", nil),
-		}
-		result := SelectNodes(nodes, nil, []string{"node-prev"}, 2)
-		assert.Len(t, result, 2)
-		assert.Equal(t, "node-prev", result[0].Name)
-	})
-
-	t.Run("karpenter node ranked above plain node", func(t *testing.T) {
-		nodes := []*corev1.Node{
-			makeNode("plain", nil),
-			makeNode("karpenter", map[string]string{consts.LabelNodePool: "default"}),
-		}
-		result := SelectNodes(nodes, nil, nil, 2)
-		assert.Len(t, result, 2)
-		assert.Equal(t, "karpenter", result[0].Name)
-	})
-
-	t.Run("alphabetical fallback for equal priority", func(t *testing.T) {
-		nodes := []*corev1.Node{
-			makeNode("node-z", nil),
-			makeNode("node-a", nil),
-		}
-		result := SelectNodes(nodes, nil, nil, 2)
-		assert.Len(t, result, 2)
-		assert.Equal(t, "node-a", result[0].Name)
-	})
 }
 
 func TestGetReleaseNamespace(t *testing.T) {

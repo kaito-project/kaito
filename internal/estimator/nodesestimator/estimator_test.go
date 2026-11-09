@@ -30,7 +30,6 @@ import (
 	"github.com/kaito-project/kaito/internal/testutil"
 	"github.com/kaito-project/kaito/pkg/featuregates"
 	"github.com/kaito-project/kaito/pkg/utils/consts"
-	workspaceutil "github.com/kaito-project/kaito/pkg/utils/workspace"
 )
 
 func init() {
@@ -229,7 +228,7 @@ func TestNodeEstimator_EstimateNodeCount(t *testing.T) {
 				featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning] = originalValue
 			}()
 
-			req, reqErr := workspaceutil.NodeEstimateRequestFromWorkspace(ctx, tt.workspace, nil)
+			req, reqErr := RequestFromWorkspace(ctx, tt.workspace, nil)
 			require.NoError(t, reqErr)
 			count, err := calculator.EstimateNodeCount(ctx, req, nil)
 
@@ -428,7 +427,7 @@ func TestNodeEstimator_EstimateNodeCount_BYO(t *testing.T) {
 				tt.setupMocks(mockClient)
 			}
 
-			req, reqErr := workspaceutil.NodeEstimateRequestFromWorkspace(ctx, tt.workspace, mockClient)
+			req, reqErr := RequestFromWorkspace(ctx, tt.workspace, mockClient)
 			require.NoError(t, reqErr)
 			count, err := calculator.EstimateNodeCount(ctx, req, mockClient)
 
@@ -525,7 +524,7 @@ func TestNodeEstimator_EstimateNodeCount_MIG(t *testing.T) {
 				},
 			}
 
-			req, reqErr := workspaceutil.NodeEstimateRequestFromWorkspace(ctx, workspace, nil)
+			req, reqErr := RequestFromWorkspace(ctx, workspace, nil)
 			require.NoError(t, reqErr)
 			count, err := calculator.EstimateNodeCount(ctx, req, nil)
 
@@ -577,7 +576,7 @@ func TestNodeEstimator_EstimateNodeCount_MIG_ContextSize(t *testing.T) {
 		},
 	}
 
-	req, reqErr := workspaceutil.NodeEstimateRequestFromWorkspace(ctx, workspace, nil)
+	req, reqErr := RequestFromWorkspace(ctx, workspace, nil)
 	require.NoError(t, reqErr)
 
 	// test-model has BytesPerToken=0, so a large context length does not change
@@ -636,7 +635,7 @@ func runRealCatalogModelCases(t *testing.T, cases []realCatalogModelCase) {
 				},
 			}
 
-			req, reqErr := workspaceutil.NodeEstimateRequestFromWorkspace(ctx, workspace, nil)
+			req, reqErr := RequestFromWorkspace(ctx, workspace, nil)
 			require.NoError(t, reqErr)
 
 			count, err := calculator.EstimateNodeCount(ctx, req, nil)

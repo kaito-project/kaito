@@ -32,10 +32,10 @@ import (
 	kaitov1alpha1 "github.com/kaito-project/kaito/api/v1alpha1"
 	kaitov1beta1 "github.com/kaito-project/kaito/api/v1beta1"
 	"github.com/kaito-project/kaito/internal/inference"
+	"github.com/kaito-project/kaito/internal/inferenceset"
 	"github.com/kaito-project/kaito/pkg/catalog"
 	pkgmodel "github.com/kaito-project/kaito/pkg/model"
 	"github.com/kaito-project/kaito/pkg/utils/consts"
-	inferencesetutil "github.com/kaito-project/kaito/pkg/utils/inferenceset"
 )
 
 // testScheme returns a scheme with all types needed for fake client tests.
@@ -676,7 +676,7 @@ func TestReconcileInferenceSet_AllUpToDate_CPUPresetUsesRuntimeAwareDesiredImage
 	is.Spec.Template.Resource.InstanceType = "Standard_D8s_v5"
 	is.Spec.Template.Inference.Preset = &kaitov1beta1.PresetSpec{PresetMeta: kaitov1beta1.PresetMeta{Name: "test-model"}}
 	ws := makeWorkspace("ws-1", ns, isName, kaitov1beta1.WorkspaceStateReady, nil)
-	desiredImage, err := inference.GetDesiredInferenceImageName(inferencesetutil.NewWorkspaceForInferenceSet(is))
+	desiredImage, err := inference.GetDesiredInferenceImageName(inferenceset.NewWorkspaceForInferenceSet(is))
 	require.NoError(t, err)
 	ss := makeStatefulSet("ws-1", ns, desiredImage)
 	cl := newFakeClient(is, ws, ss)
@@ -961,10 +961,10 @@ func TestReconcileInferenceSet_CPURuntimeUpgradeVersion(t *testing.T) {
 	// Check real runtime selection without imposing any relation between release tags.
 	cpu := makeSurgeInferenceSet("cpu-upgrade", "default")
 	cpu.Spec.Template.Resource.InstanceType = "Standard_D8s_v5"
-	catalogImage, err := inference.GetDesiredInferenceImageName(inferencesetutil.NewWorkspaceForInferenceSet(cpu))
+	catalogImage, err := inference.GetDesiredInferenceImageName(inferenceset.NewWorkspaceForInferenceSet(cpu))
 	require.NoError(t, err)
 	require.Contains(t, catalogImage, "kaito-base-cpu:")
-	catalogBaseImage, err := inference.GetDesiredInferenceBaseImage(inferencesetutil.NewWorkspaceForInferenceSet(cpu))
+	catalogBaseImage, err := inference.GetDesiredInferenceBaseImage(inferenceset.NewWorkspaceForInferenceSet(cpu))
 	require.NoError(t, err)
 	catalogTag, err := inference.GetBaseImageTag(catalogBaseImage)
 	require.NoError(t, err)

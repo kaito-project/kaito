@@ -24,11 +24,9 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	corev1 "k8s.io/api/core/v1"
-	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/api/meta"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
-	"k8s.io/apimachinery/pkg/runtime/schema"
 	"knative.dev/pkg/apis"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/client/fake"
@@ -145,7 +143,7 @@ func TestUpdateStatusConditionIfNotMatch(t *testing.T) {
 			},
 		}
 
-		// Mock the Get call for UpdateInferenceSetStatus
+		// Mock the Get call for resources.UpdateStatusWithRetry
 		mockClient.On("Get", mock.IsType(context.Background()),
 			client.ObjectKey{Name: "test-inferenceset", Namespace: "default"},
 			mock.IsType(&kaitov1beta1.InferenceSet{}), mock.Anything).Run(func(args mock.Arguments) {
@@ -195,7 +193,7 @@ func TestUpdateStatusConditionIfNotMatch(t *testing.T) {
 			},
 		}
 
-		// Mock the Get call for UpdateInferenceSetStatus
+		// Mock the Get call for resources.UpdateStatusWithRetry
 		mockClient.On("Get", mock.IsType(context.Background()),
 			client.ObjectKey{Name: "test-inferenceset", Namespace: "default"},
 			mock.IsType(&kaitov1beta1.InferenceSet{}), mock.Anything).Run(func(args mock.Arguments) {
@@ -237,7 +235,7 @@ func TestUpdateStatusConditionIfNotMatch(t *testing.T) {
 			},
 		}
 
-		// Mock the Get call for UpdateInferenceSetStatus
+		// Mock the Get call for resources.UpdateStatusWithRetry
 		mockClient.On("Get", mock.IsType(context.Background()),
 			client.ObjectKey{Name: "test-inferenceset", Namespace: "default"},
 			mock.IsType(&kaitov1beta1.InferenceSet{}), mock.Anything).Run(func(args mock.Arguments) {
@@ -272,7 +270,7 @@ func TestUpdateStatusConditionIfNotMatch(t *testing.T) {
 			},
 		}
 
-		// Mock the Get call for UpdateInferenceSetStatus
+		// Mock the Get call for resources.UpdateStatusWithRetry
 		mockClient.On("Get", mock.IsType(context.Background()),
 			client.ObjectKey{Name: "test-inferenceset", Namespace: "default"},
 			mock.IsType(&kaitov1beta1.InferenceSet{}), mock.Anything).Run(func(args mock.Arguments) {
@@ -301,7 +299,7 @@ func TestUpdateStatusConditionIfNotMatch(t *testing.T) {
 		mockClient.StatusMock.AssertExpectations(t)
 	})
 
-	t.Run("Should propagate error from UpdateInferenceSetStatus", func(t *testing.T) {
+	t.Run("Should propagate error from UpdateStatusWithRetry", func(t *testing.T) {
 		mockClient := testutil.NewClient()
 
 		inferenceset := &kaitov1beta1.InferenceSet{
@@ -334,244 +332,6 @@ func TestUpdateStatusConditionIfNotMatch(t *testing.T) {
 		assert.Error(t, err)
 		assert.Contains(t, err.Error(), "get error")
 		mockClient.AssertExpectations(t)
-	})
-}
-
-func TestUpdateInferenceSetStatus(t *testing.T) {
-	t.Run("Should successfully update inferenceset status", func(t *testing.T) {
-		mockClient := testutil.NewClient()
-
-		inferenceset := &kaitov1beta1.InferenceSet{
-			ObjectMeta: metav1.ObjectMeta{
-				Name:       "test-inferenceset",
-				Namespace:  "default",
-				Generation: 1,
-			},
-			Status: kaitov1beta1.InferenceSetStatus{
-				Conditions: []metav1.Condition{},
-			},
-		}
-
-		condition := &metav1.Condition{
-			Type:               string(kaitov1beta1.ConditionTypeResourceStatus),
-			Status:             metav1.ConditionTrue,
-			Reason:             "ResourcesReady",
-			Message:            "All resources are ready",
-			LastTransitionTime: metav1.Now(),
-		}
-
-		// Mock the Get call
-		mockClient.On("Get", mock.IsType(context.Background()),
-			client.ObjectKey{Name: "test-inferenceset", Namespace: "default"},
-			mock.IsType(&kaitov1beta1.InferenceSet{}), mock.Anything).Run(func(args mock.Arguments) {
-			ws := args.Get(2).(*kaitov1beta1.InferenceSet)
-			*ws = *inferenceset
-		}).Return(nil)
-
-		// Mock the Status().Update call
-		mockClient.StatusMock.On("Update", mock.IsType(context.Background()),
-			mock.IsType(&kaitov1beta1.InferenceSet{}), mock.Anything).Run(func(args mock.Arguments) {
-			ws := args.Get(1).(*kaitov1beta1.InferenceSet)
-			// Verify the condition was set
-			foundCondition := meta.FindStatusCondition(ws.Status.Conditions, string(kaitov1beta1.ConditionTypeResourceStatus))
-			assert.NotNil(t, foundCondition)
-			assert.Equal(t, condition.Type, foundCondition.Type)
-			assert.Equal(t, condition.Status, foundCondition.Status)
-			assert.Equal(t, condition.Reason, foundCondition.Reason)
-			assert.Equal(t, condition.Message, foundCondition.Message)
-		}).Return(nil)
-
-		ctx := context.Background()
-		key := &client.ObjectKey{Name: "test-inferenceset", Namespace: "default"}
-		err := UpdateInferenceSetStatus(ctx, mockClient, key, func(status *kaitov1beta1.InferenceSetStatus) error {
-			meta.SetStatusCondition(&status.Conditions, *condition)
-			return nil
-		})
-
-		assert.NoError(t, err)
-		mockClient.AssertExpectations(t)
-		mockClient.StatusMock.AssertExpectations(t)
-	})
-
-	t.Run("Should handle inferenceset not found gracefully", func(t *testing.T) {
-		mockClient := testutil.NewClient()
-
-		condition := &metav1.Condition{
-			Type:    string(kaitov1beta1.ConditionTypeResourceStatus),
-			Status:  metav1.ConditionTrue,
-			Reason:  "ResourcesReady",
-			Message: "All resources are ready",
-		}
-
-		// Mock the Get call to return NotFound error
-		mockClient.On("Get", mock.IsType(context.Background()),
-			client.ObjectKey{Name: "test-inferenceset", Namespace: "default"},
-			mock.IsType(&kaitov1beta1.InferenceSet{}), mock.Anything).Return(
-			apierrors.NewNotFound(schema.GroupResource{Group: "kaito.sh", Resource: "inferencesets"}, "test-inferenceset"))
-
-		ctx := context.Background()
-		key := &client.ObjectKey{Name: "test-inferenceset", Namespace: "default"}
-		err := UpdateInferenceSetStatus(ctx, mockClient, key, func(status *kaitov1beta1.InferenceSetStatus) error {
-			meta.SetStatusCondition(&status.Conditions, *condition)
-			return nil
-		})
-
-		assert.NoError(t, err) // Should not return error for NotFound
-		mockClient.AssertExpectations(t)
-	})
-
-	t.Run("Should return error for other Get failures", func(t *testing.T) {
-		mockClient := testutil.NewClient()
-
-		condition := &metav1.Condition{
-			Type:    string(kaitov1beta1.ConditionTypeResourceStatus),
-			Status:  metav1.ConditionTrue,
-			Reason:  "ResourcesReady",
-			Message: "All resources are ready",
-		}
-
-		// Mock the Get call to return a generic error
-		mockClient.On("Get", mock.IsType(context.Background()),
-			client.ObjectKey{Name: "test-inferenceset", Namespace: "default"},
-			mock.IsType(&kaitov1beta1.InferenceSet{}), mock.Anything).Return(fmt.Errorf("network error"))
-
-		ctx := context.Background()
-		key := &client.ObjectKey{Name: "test-inferenceset", Namespace: "default"}
-		err := UpdateInferenceSetStatus(ctx, mockClient, key, func(status *kaitov1beta1.InferenceSetStatus) error {
-			meta.SetStatusCondition(&status.Conditions, *condition)
-			return nil
-		})
-
-		assert.Error(t, err)
-		assert.Contains(t, err.Error(), "network error")
-		mockClient.AssertExpectations(t)
-	})
-
-	t.Run("Should handle nil condition", func(t *testing.T) {
-		mockClient := testutil.NewClient()
-
-		inferenceset := &kaitov1beta1.InferenceSet{
-			ObjectMeta: metav1.ObjectMeta{
-				Name:      "test-inferenceset",
-				Namespace: "default",
-			},
-			Status: kaitov1beta1.InferenceSetStatus{
-				Conditions: []metav1.Condition{},
-			},
-		}
-
-		// Mock the Get call
-		mockClient.On("Get", mock.IsType(context.Background()),
-			client.ObjectKey{Name: "test-inferenceset", Namespace: "default"},
-			mock.IsType(&kaitov1beta1.InferenceSet{}), mock.Anything).Run(func(args mock.Arguments) {
-			ws := args.Get(2).(*kaitov1beta1.InferenceSet)
-			*ws = *inferenceset
-		}).Return(nil)
-
-		// Mock the Status().Update call
-		mockClient.StatusMock.On("Update", mock.IsType(context.Background()),
-			mock.IsType(&kaitov1beta1.InferenceSet{}), mock.Anything).Return(nil)
-
-		ctx := context.Background()
-		key := &client.ObjectKey{Name: "test-inferenceset", Namespace: "default"}
-		err := UpdateInferenceSetStatus(ctx, mockClient, key, nil)
-
-		assert.NoError(t, err)
-		mockClient.AssertExpectations(t)
-		mockClient.StatusMock.AssertExpectations(t)
-	})
-
-	t.Run("Should retry on retryable errors", func(t *testing.T) {
-		mockClient := testutil.NewClient()
-
-		inferenceset := &kaitov1beta1.InferenceSet{
-			ObjectMeta: metav1.ObjectMeta{
-				Name:      "test-inferenceset",
-				Namespace: "default",
-			},
-			Status: kaitov1beta1.InferenceSetStatus{
-				Conditions: []metav1.Condition{},
-			},
-		}
-
-		condition := &metav1.Condition{
-			Type:    string(kaitov1beta1.ConditionTypeResourceStatus),
-			Status:  metav1.ConditionTrue,
-			Reason:  "ResourcesReady",
-			Message: "All resources are ready",
-		}
-
-		// Mock the Get call (multiple times due to retry)
-		mockClient.On("Get", mock.IsType(context.Background()),
-			client.ObjectKey{Name: "test-inferenceset", Namespace: "default"},
-			mock.IsType(&kaitov1beta1.InferenceSet{}), mock.Anything).Run(func(args mock.Arguments) {
-			ws := args.Get(2).(*kaitov1beta1.InferenceSet)
-			*ws = *inferenceset
-		}).Return(nil)
-
-		// Mock the Status().Update call to fail first with a retryable error, then succeed
-		mockClient.StatusMock.On("Update", mock.IsType(context.Background()),
-			mock.IsType(&kaitov1beta1.InferenceSet{}), mock.Anything).Return(
-			apierrors.NewConflict(schema.GroupResource{Group: "kaito.sh", Resource: "inferencesets"}, "test-inferenceset", fmt.Errorf("conflict"))).Once()
-
-		mockClient.StatusMock.On("Update", mock.IsType(context.Background()),
-			mock.IsType(&kaitov1beta1.InferenceSet{}), mock.Anything).Return(nil).Once()
-
-		ctx := context.Background()
-		key := &client.ObjectKey{Name: "test-inferenceset", Namespace: "default"}
-		err := UpdateInferenceSetStatus(ctx, mockClient, key, func(status *kaitov1beta1.InferenceSetStatus) error {
-			meta.SetStatusCondition(&status.Conditions, *condition)
-			return nil
-		})
-
-		assert.NoError(t, err)
-		mockClient.AssertExpectations(t)
-		mockClient.StatusMock.AssertExpectations(t)
-	})
-
-	t.Run("Should return error for non-retryable status update failures", func(t *testing.T) {
-		mockClient := testutil.NewClient()
-
-		inferenceset := &kaitov1beta1.InferenceSet{
-			ObjectMeta: metav1.ObjectMeta{
-				Name:      "test-inferenceset",
-				Namespace: "default",
-			},
-			Status: kaitov1beta1.InferenceSetStatus{
-				Conditions: []metav1.Condition{},
-			},
-		}
-
-		condition := &metav1.Condition{
-			Type:    string(kaitov1beta1.ConditionTypeResourceStatus),
-			Status:  metav1.ConditionTrue,
-			Reason:  "ResourcesReady",
-			Message: "All resources are ready",
-		}
-
-		// Mock the Get call
-		mockClient.On("Get", mock.IsType(context.Background()),
-			client.ObjectKey{Name: "test-inferenceset", Namespace: "default"},
-			mock.IsType(&kaitov1beta1.InferenceSet{}), mock.Anything).Run(func(args mock.Arguments) {
-			ws := args.Get(2).(*kaitov1beta1.InferenceSet)
-			*ws = *inferenceset
-		}).Return(nil)
-
-		// Mock the Status().Update call to fail with a non-retryable error
-		mockClient.StatusMock.On("Update", mock.IsType(context.Background()),
-			mock.IsType(&kaitov1beta1.InferenceSet{}), mock.Anything).Return(fmt.Errorf("permanent error"))
-
-		ctx := context.Background()
-		key := &client.ObjectKey{Name: "test-inferenceset", Namespace: "default"}
-		err := UpdateInferenceSetStatus(ctx, mockClient, key, func(status *kaitov1beta1.InferenceSetStatus) error {
-			meta.SetStatusCondition(&status.Conditions, *condition)
-			return nil
-		})
-
-		assert.Error(t, err)
-		assert.Contains(t, err.Error(), "permanent error")
-		mockClient.AssertExpectations(t)
-		mockClient.StatusMock.AssertExpectations(t)
 	})
 }
 

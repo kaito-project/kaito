@@ -26,13 +26,13 @@ import (
 
 	kaitov1beta1 "github.com/kaito-project/kaito/api/v1beta1"
 	"github.com/kaito-project/kaito/internal/inference/modelstreaming"
-	"github.com/kaito-project/kaito/pkg/utils"
+	"github.com/kaito-project/kaito/internal/k8s/expectations"
 	"github.com/kaito-project/kaito/pkg/utils/consts"
 )
 
 type nodeClaimEventHandler struct {
 	enqueueHandler handler.TypedEventHandler[client.Object, reconcile.Request]
-	expectations   *utils.ControllerExpectations
+	expectations   *expectations.ControllerExpectations
 	logger         klog.Logger
 }
 

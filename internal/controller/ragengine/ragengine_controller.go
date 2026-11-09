@@ -53,7 +53,6 @@ import (
 	"github.com/kaito-project/kaito/internal/k8s/resources"
 	"github.com/kaito-project/kaito/internal/rag"
 	"github.com/kaito-project/kaito/pkg/sku"
-	"github.com/kaito-project/kaito/pkg/utils"
 	"github.com/kaito-project/kaito/pkg/utils/consts"
 )
 
@@ -401,7 +400,7 @@ func (c *RAGEngineReconciler) applyRAGEngineResource(ctx context.Context, ragEng
 		selectedNodes = []*corev1.Node{newNode}
 	} else {
 		// Select the best qualified node from existing nodes
-		selectedNodes = utils.SelectNodes(validNodes, nil, ragEngineObj.Status.WorkerNodes, 1)
+		selectedNodes = nodes.SelectNodes(validNodes, nil, ragEngineObj.Status.WorkerNodes, 1)
 	}
 
 	// Ensure all gpu plugins are running successfully.

@@ -19,11 +19,12 @@ import (
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/klog/v2"
 	ctrl "sigs.k8s.io/controller-runtime"
+	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 
 	kaitov1beta1 "github.com/kaito-project/kaito/api/v1beta1"
+	"github.com/kaito-project/kaito/internal/k8s/resources"
 	"github.com/kaito-project/kaito/pkg/utils/consts"
-	"github.com/kaito-project/kaito/pkg/utils/workspace"
 )
 
 // garbageCollectWorkspace remove finalizer associated with workspace object.
@@ -37,7 +38,7 @@ func (c *WorkspaceReconciler) garbageCollectWorkspace(ctx context.Context, wObj 
 		return ctrl.Result{}, err
 	}
 
-	updateErr := workspace.UpdateWorkspaceWithRetry(ctx, c.Client, wObj, func(ws *kaitov1beta1.Workspace) error {
+	updateErr := resources.UpdateWithRetry(ctx, c.Client, client.ObjectKeyFromObject(wObj), func(ws *kaitov1beta1.Workspace) error {
 		controllerutil.RemoveFinalizer(ws, consts.WorkspaceFinalizer)
 		return nil
 	})

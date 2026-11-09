@@ -811,6 +811,7 @@ func TestClassifyProvisioningFailure(t *testing.T) {
 		"asynchronous allocation failure":        {reason: asyncProvisioningEventReason, message: azureAllocationFailedError, expected: consts.ReasonCapacityUnavailable},
 		"AKS machine overconstrained allocation": {reason: asyncProvisioningEventReason, message: "Failed to register: failed to create AKS machine \"m\" during LRO, unhandled provisioning error: code=OverconstrainedAllocationRequest, message=no capacity", expected: consts.ReasonCapacityUnavailable},
 		"VM size not supported":                  {reason: "CreateInstanceFailed", message: "ERROR CODE: VMSizeNotSupported", expected: consts.ReasonCapacityUnavailable},
+		"vm size not available in region":        {reason: asyncProvisioningEventReason, message: "ERROR CODE: InvalidParameter\nThe requested VM size (x) is not available in the current region.", expected: consts.ReasonCapacityUnavailable},
 		"image not found":                        {reason: "CreateInstanceFailed", message: "ERROR CODE: ImageNotFound\nThe platform image 'x' is not available", expected: consts.ReasonNodeImageInvalid},
 		"gallery image not found":                {reason: "CreateInstanceFailed", message: `{"code": "GalleryImageNotFound", "message": "not found"}`, expected: consts.ReasonNodeImageInvalid},
 		"invalid image reference":                {reason: "CreateInstanceFailed", message: "ERROR CODE: InvalidParameter\nThe value of parameter imageReference is invalid.", expected: consts.ReasonNodeImageInvalid},

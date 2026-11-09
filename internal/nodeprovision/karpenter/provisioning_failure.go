@@ -90,6 +90,9 @@ var provisioningFailurePatterns = []struct {
 		reasons: sets.New("AllocationFailure", "OverconstrainedAllocationFailure", "SKUNotAvailable"),
 		codes: sets.New("AllocationFailed", "ZonalAllocationFailed", "OverconstrainedAllocationRequest",
 			"OverconstrainedZonalAllocationRequest", "SkuNotAvailable", "VMSizeNotSupported"),
+		qualifiedCodes: map[string]*regexp.Regexp{
+			"InvalidParameter": regexp.MustCompile(`(?i)requested\s+VM\s+size\s+\S+\s+is\s+not\s+available\s+in\s+the\s+current\s+region`),
+		},
 		// Written by the Azure provider's allocation and SKU error handlers.
 		messages: []string{"unable to allocate resources", "the requested sku is unavailable",
 			"is not supported for this subscription"},

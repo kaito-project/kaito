@@ -37,7 +37,6 @@ import (
 	"github.com/kaito-project/kaito/internal/manifests/builder"
 	"github.com/kaito-project/kaito/pkg/featuregates"
 	pkgmodel "github.com/kaito-project/kaito/pkg/model"
-	"github.com/kaito-project/kaito/pkg/utils"
 	"github.com/kaito-project/kaito/pkg/utils/consts"
 )
 
@@ -256,7 +255,7 @@ func GeneratePullerContainers(wObj *kaitov1beta1.Workspace, adapters []kaitov1be
 		pullerContainer.VolumeMounts = volumeMounts
 
 		if len(source.ImagePullSecrets) > 0 {
-			volume, volumeMount := utils.ConfigImagePullSecretVolume(sourceName+"-inference-adapter", source.ImagePullSecrets)
+			volume, volumeMount := ConfigImagePullSecretVolume(sourceName+"-inference-adapter", source.ImagePullSecrets)
 			volumes = append(volumes, volume)
 			pullerContainer.VolumeMounts = append(pullerContainer.VolumeMounts, volumeMount)
 		}
@@ -362,7 +361,7 @@ func GenerateManifestWithPodTemplate(workspaceObj *kaitov1beta1.Workspace, toler
 func GenerateInferencePoolOCIRepository(inferenceSetObj *kaitov1beta1.InferenceSet) *sourcev1.OCIRepository {
 	return &sourcev1.OCIRepository{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      utils.InferencePoolName(inferenceSetObj.Name),
+			Name:      InferencePoolName(inferenceSetObj.Name),
 			Namespace: inferenceSetObj.Namespace,
 			OwnerReferences: []metav1.OwnerReference{
 				*metav1.NewControllerRef(inferenceSetObj, kaitov1beta1.GroupVersion.WithKind("InferenceSet")),
@@ -388,7 +387,7 @@ func inferencePoolTargetPort() int32 {
 
 // GenerateInferencePoolHelmRelease generates a Flux HelmRelease for the inference pool.
 func GenerateInferencePoolHelmRelease(inferenceSetObj *kaitov1beta1.InferenceSet) (*helmv2.HelmRelease, error) {
-	inferencePoolName := utils.InferencePoolName(inferenceSetObj.Name)
+	inferencePoolName := InferencePoolName(inferenceSetObj.Name)
 	// llm-d-router-gateway v0.9.0 has no value for extending EPP pod labels.
 	eppPodLabelPatch, err := json.Marshal([]map[string]string{{
 		"op":   "copy",

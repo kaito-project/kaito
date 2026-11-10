@@ -31,9 +31,9 @@ import (
 
 	"github.com/kaito-project/kaito/api/internal/speculativedecoding"
 	kaitov1beta1 "github.com/kaito-project/kaito/api/v1beta1"
+	"github.com/kaito-project/kaito/pkg/k8sclient"
 	"github.com/kaito-project/kaito/pkg/model"
 	"github.com/kaito-project/kaito/pkg/sku"
-	"github.com/kaito-project/kaito/pkg/utils"
 	"github.com/kaito-project/kaito/pkg/utils/consts"
 )
 
@@ -242,7 +242,7 @@ func (r *TuningSpec) validateCreate(ctx context.Context, workspaceNamespace stri
 	}
 	if r.Config == "" {
 		klog.InfoS("Tuning config not specified. Using default based on method.")
-		releaseNamespace, err := utils.GetReleaseNamespace()
+		releaseNamespace, err := k8sclient.GetReleaseNamespace()
 		if err != nil {
 			errs = errs.Also(apis.ErrGeneric(fmt.Sprintf("Failed to determine release namespace: %v", err), "namespace"))
 		}

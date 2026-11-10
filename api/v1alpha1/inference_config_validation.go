@@ -27,7 +27,6 @@ import (
 	"github.com/kaito-project/kaito/pkg/k8sclient"
 	"github.com/kaito-project/kaito/pkg/model"
 	"github.com/kaito-project/kaito/pkg/sku"
-	"github.com/kaito-project/kaito/pkg/utils"
 	"github.com/kaito-project/kaito/pkg/utils/consts"
 )
 
@@ -52,7 +51,7 @@ func (w *Workspace) validateInferenceConfig(ctx context.Context) (errs *apis.Fie
 	if cmName == "" {
 		klog.Infof("Inference config not specified. Using default: %q", DefaultInferenceConfigTemplate)
 		cmName = DefaultInferenceConfigTemplate
-		cmNS, err = utils.GetReleaseNamespace()
+		cmNS, err = k8sclient.GetReleaseNamespace()
 		if err != nil {
 			errs = errs.Also(apis.ErrGeneric(fmt.Sprintf("Failed to determine release namespace: %v", err), "namespace"))
 			return errs

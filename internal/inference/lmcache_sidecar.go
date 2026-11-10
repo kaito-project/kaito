@@ -23,10 +23,10 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
 	"github.com/kaito-project/kaito/api/v1beta1"
+	"github.com/kaito-project/kaito/internal/manifests"
 	"github.com/kaito-project/kaito/internal/manifests/builder"
 	"github.com/kaito-project/kaito/pkg/catalog"
 	pkgmodel "github.com/kaito-project/kaito/pkg/model"
-	"github.com/kaito-project/kaito/pkg/utils"
 )
 
 const (
@@ -89,11 +89,11 @@ func isLMCacheUserConfigEligible(ctx context.Context, kubeClient client.Client, 
 	if err := kubeClient.Get(ctx, client.ObjectKey{Namespace: workspace.Namespace, Name: workspace.Inference.Config}, configMap); err != nil {
 		return false, "", fmt.Errorf("get inference config ConfigMap %s/%s: %w", workspace.Namespace, workspace.Inference.Config, err)
 	}
-	configData, found := configMap.Data[utils.InferenceConfigKey]
+	configData, found := configMap.Data[inferenceConfigKey]
 	if !found {
 		return true, "", nil
 	}
-	runtimeConfig, err := utils.ParseInferenceRuntimeConfig(configData)
+	runtimeConfig, err := parseInferenceRuntimeConfig(configData)
 	if err != nil {
 		return false, "", fmt.Errorf("parse inference config ConfigMap %s/%s: %w", workspace.Namespace, workspace.Inference.Config, err)
 	}
@@ -173,9 +173,9 @@ func injectLMCacheSidecar(spec *corev1.PodSpec, mainContainerName, tensorParalle
 	args := []string{"--isolated-ipc", "--tensor-parallel-size=" + tensorParallelSize}
 	sidecarMounts := []corev1.VolumeMount{runtimeMount}
 	for _, mount := range mainContainer.VolumeMounts {
-		if mount.MountPath == utils.DefaultConfigMapMountPath {
+		if mount.MountPath == manifests.DefaultConfigMapMountPath {
 			sidecarMounts = append(sidecarMounts, mount)
-			args = append(args, "--config-file="+utils.DefaultConfigMapMountPath+"/"+utils.InferenceConfigKey)
+			args = append(args, "--config-file="+manifests.DefaultConfigMapMountPath+"/"+inferenceConfigKey)
 			break
 		}
 	}

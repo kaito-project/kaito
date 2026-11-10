@@ -30,7 +30,6 @@ import (
 	"github.com/kaito-project/kaito/internal/testutil"
 	"github.com/kaito-project/kaito/pkg/featuregates"
 	pkgmodel "github.com/kaito-project/kaito/pkg/model"
-	"github.com/kaito-project/kaito/pkg/utils"
 	"github.com/kaito-project/kaito/pkg/utils/consts"
 )
 
@@ -38,7 +37,7 @@ func TestGenerateInferencePoolOCIRepository(t *testing.T) {
 	workspace := testutil.MockInferenceSetWithPreset
 	repo := GenerateInferencePoolOCIRepository(workspace)
 
-	assert.Equal(t, utils.InferencePoolName(workspace.Name), repo.Name)
+	assert.Equal(t, InferencePoolName(workspace.Name), repo.Name)
 	assert.Equal(t, workspace.Namespace, repo.Namespace)
 	assert.Len(t, repo.OwnerReferences, 1)
 	owner := repo.OwnerReferences[0]
@@ -220,13 +219,13 @@ func TestGenerateInferencePoolHelmRelease(t *testing.T) {
 			assert.NoError(t, err)
 			assert.NotNil(t, helmRelease)
 
-			assert.Equal(t, utils.InferencePoolName(base.Name), helmRelease.Name)
+			assert.Equal(t, InferencePoolName(base.Name), helmRelease.Name)
 			assert.Equal(t, base.Namespace, helmRelease.Namespace)
 			if assert.NotNil(t, helmRelease.Spec.ChartRef) {
 				assert.Equal(t, helmv2.CrossNamespaceSourceReference{
 					Kind:      sourcev1.OCIRepositoryKind,
 					Namespace: base.Namespace,
-					Name:      utils.InferencePoolName(base.Name),
+					Name:      InferencePoolName(base.Name),
 				}, *helmRelease.Spec.ChartRef)
 			}
 

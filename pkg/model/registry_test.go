@@ -11,22 +11,20 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package plugin
+package model
 
 import (
 	"testing"
-
-	"github.com/kaito-project/kaito/pkg/model"
 )
 
-// MockModel implements model.Model interface for testing
+// MockModel implements Model interface for testing
 type MockModel struct{}
 
-func (m *MockModel) GetInferenceParameters() *model.PresetParam {
+func (m *MockModel) GetInferenceParameters() *PresetParam {
 	return nil
 }
 
-func (m *MockModel) GetTuningParameters() *model.PresetParam {
+func (m *MockModel) GetTuningParameters() *PresetParam {
 	return nil
 }
 

@@ -29,7 +29,6 @@ import (
 
 	"github.com/kaito-project/kaito/pkg/catalog/hfgen"
 	"github.com/kaito-project/kaito/pkg/model"
-	"github.com/kaito-project/kaito/pkg/utils/plugin"
 )
 
 const (
@@ -53,7 +52,7 @@ const (
 
 // CustomModelName returns the registry key for a configuration digest.
 func CustomModelName(digest string) string {
-	return plugin.CustomModelNamePrefix + digest
+	return model.CustomModelNamePrefix + digest
 }
 
 // ConfigDigest returns the lowercase hexadecimal SHA-256 of the configuration's
@@ -146,7 +145,7 @@ const maxCustomModelSizeBytes = 1 << 50 // 1 PiB
 // controller needs no additional durable state.
 func ResolveCustomModel(ctx context.Context, kubeClient client.Client, configMapName, namespace string) (*ResolvedCustomModel, error) {
 	if configMapName == "" {
-		return nil, fmt.Errorf("preset %q requires 'inference.config' to reference a ConfigMap containing %s", plugin.PresetNameCustom, CustomModelConfigKey)
+		return nil, fmt.Errorf("preset %q requires 'inference.config' to reference a ConfigMap containing %s", model.PresetNameCustom, CustomModelConfigKey)
 	}
 	if kubeClient == nil {
 		return nil, fmt.Errorf("no Kubernetes client available to read ConfigMap %q", configMapName)
@@ -170,7 +169,7 @@ func ResolveCustomModelFromConfigMap(cm *corev1.ConfigMap) (*ResolvedCustomModel
 
 	raw, ok := cm.Data[CustomModelConfigKey]
 	if !ok {
-		return nil, fmt.Errorf("ConfigMap %q does not contain %q, which is required by preset %q", cm.Name, CustomModelConfigKey, plugin.PresetNameCustom)
+		return nil, fmt.Errorf("ConfigMap %q does not contain %q, which is required by preset %q", cm.Name, CustomModelConfigKey, model.PresetNameCustom)
 	}
 	if strings.TrimSpace(raw) == "" {
 		return nil, fmt.Errorf("ConfigMap %q contains an empty %q", cm.Name, CustomModelConfigKey)
@@ -234,7 +233,7 @@ func ResolveCustomModelFromConfig(configJSON []byte, sizeBytes int64, opts ...hf
 	// concurrent resolutions never thrash.
 	// The reference model ID is keyed the same way, for the same reason.
 	cacheKey := customModelCacheKey(name, sizeBytes, options.ReferenceModelID)
-	if m := plugin.KaitoModelRegister.MustGet(cacheKey); m != nil {
+	if m := model.KaitoModelRegister.MustGet(cacheKey); m != nil {
 		return &ResolvedCustomModel{Model: m, Digest: digest, Name: name, SizeBytes: sizeBytes}, nil
 	}
 

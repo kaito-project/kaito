@@ -23,7 +23,7 @@ import (
 
 	"github.com/kaito-project/kaito/api/v1beta1"
 	"github.com/kaito-project/kaito/internal/manifests/builder"
-	"github.com/kaito-project/kaito/pkg/utils/plugin"
+	pkgmodel "github.com/kaito-project/kaito/pkg/model"
 )
 
 // sasCfg returns a StreamingConfig shaped like SASBlobProvider.GetStreamingConfig returns:
@@ -219,7 +219,7 @@ func TestSetStreamingConfig_KaitoProcessor(t *testing.T) {
 	}{
 		{"huggingface preset", "microsoft/phi-4", "microsoft/phi-4", "microsoft/phi-4"},
 		{"huggingface org with custom- prefix", "custom-ai/model", "custom-ai/model", "custom-ai/model"},
-		{"custom model", plugin.PresetNameCustom, plugin.CustomModelNamePrefix + "model-config", ""},
+		{"custom model", pkgmodel.PresetNameCustom, pkgmodel.CustomModelNamePrefix + "model-config", ""},
 	}
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {

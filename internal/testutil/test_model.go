@@ -17,7 +17,6 @@ import (
 	"time"
 
 	"github.com/kaito-project/kaito/pkg/model"
-	"github.com/kaito-project/kaito/pkg/utils/plugin"
 )
 
 type baseTestModel struct{}
@@ -302,47 +301,47 @@ func (*testQwen25Coder32BModel) SupportTuning() bool {
 }
 
 func RegisterTestModel() {
-	plugin.KaitoModelRegister.Register(&plugin.Registration{
+	model.KaitoModelRegister.Register(&model.Registration{
 		Name:     "test-model",
 		Instance: &testModel{},
 	})
 
-	plugin.KaitoModelRegister.Register(&plugin.Registration{
+	model.KaitoModelRegister.Register(&model.Registration{
 		Name:     "test-deepgemm-model",
 		Instance: &testDeepGEMMModel{},
 	})
 
-	plugin.KaitoModelRegister.Register(&plugin.Registration{
+	model.KaitoModelRegister.Register(&model.Registration{
 		Name:     "test-distributed-model",
 		Instance: &testDistributedModel{},
 	})
 
-	plugin.KaitoModelRegister.Register(&plugin.Registration{
+	model.KaitoModelRegister.Register(&model.Registration{
 		Name:     "test-no-tensor-parallel-model",
 		Instance: &testNoTensorParallelModel{},
 	})
 
-	plugin.KaitoModelRegister.Register(&plugin.Registration{
+	model.KaitoModelRegister.Register(&model.Registration{
 		Name:     "test-no-lora-support-model",
 		Instance: &testNoLoraSupportModel{},
 	})
 
-	plugin.KaitoModelRegister.Register(&plugin.Registration{
+	model.KaitoModelRegister.Register(&model.Registration{
 		Name:     "test-model-download",
 		Instance: &testModelDownload{},
 	})
 
-	plugin.KaitoModelRegister.Register(&plugin.Registration{
+	model.KaitoModelRegister.Register(&model.Registration{
 		Name:     "test-model-download-a100",
 		Instance: &testModelDownloadA100{},
 	})
 
-	plugin.KaitoModelRegister.Register(&plugin.Registration{
+	model.KaitoModelRegister.Register(&model.Registration{
 		Name:     "test-falcon-7b",
 		Instance: &testFalcon7BModel{},
 	})
 
-	plugin.KaitoModelRegister.Register(&plugin.Registration{
+	model.KaitoModelRegister.Register(&model.Registration{
 		Name:     "test-qwen2.5-coder-32b-instruct",
 		Instance: &testQwen25Coder32BModel{},
 	})

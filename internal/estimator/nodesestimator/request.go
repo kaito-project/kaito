@@ -26,7 +26,6 @@ import (
 	"github.com/kaito-project/kaito/pkg/featuregates"
 	pkgmodel "github.com/kaito-project/kaito/pkg/model"
 	"github.com/kaito-project/kaito/pkg/utils/consts"
-	"github.com/kaito-project/kaito/pkg/utils/plugin"
 )
 
 // RequestFromWorkspace builds a NodeEstimateRequest from a Workspace object.
@@ -73,7 +72,7 @@ func RequestFromWorkspace(ctx context.Context, w *kaitov1beta1.Workspace, kubeCl
 // from.
 func resolveModelForEstimation(ctx context.Context, w *kaitov1beta1.Workspace, kubeClient client.Client) (pkgmodel.Model, error) {
 	name := string(w.Inference.Preset.Name)
-	if plugin.IsCustomPreset(name) {
+	if pkgmodel.IsCustomPreset(name) {
 		resolved, err := catalog.ResolveCustomModel(ctx, kubeClient, w.Inference.Config, w.Namespace)
 		if err != nil {
 			return nil, err

@@ -27,7 +27,6 @@ import (
 	"github.com/kaito-project/kaito/pkg/estimator"
 	pkgmodel "github.com/kaito-project/kaito/pkg/model"
 	"github.com/kaito-project/kaito/pkg/sku"
-	"github.com/kaito-project/kaito/pkg/utils"
 	"github.com/kaito-project/kaito/pkg/utils/consts"
 )
 
@@ -67,7 +66,7 @@ func (c *NodeEstimator) EstimateNodeCount(ctx context.Context, req estimator.Nod
 			// MIG partition: a single, non-shardable slice (GPUCount == 1). The
 			// model must fit one slice, which is enforced by the IsMIG check after
 			// the fit calculation below. MIG is only supported when NAP is disabled.
-			gpuConfig, err = utils.GetMIGGPUConfig(req.ResourceProfile.MIGProfile)
+			gpuConfig, err = sku.MIGGPUConfig(req.ResourceProfile.MIGProfile)
 			if err != nil {
 				return 0, fmt.Errorf("failed to get MIG GPU config: %w", err)
 			}

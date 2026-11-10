@@ -31,7 +31,7 @@ import (
 
 	kaitov1beta1 "github.com/kaito-project/kaito/api/v1beta1"
 	"github.com/kaito-project/kaito/pkg/catalog"
-	"github.com/kaito-project/kaito/pkg/utils/plugin"
+	pkgmodel "github.com/kaito-project/kaito/pkg/model"
 )
 
 // Condition reasons reported on ModelConfigReady.
@@ -44,7 +44,7 @@ const (
 // IsCustom reports whether an inference spec selects a bring-your-own model.
 func IsCustom(inferenceSpec *kaitov1beta1.InferenceSpec) bool {
 	return inferenceSpec != nil && inferenceSpec.Preset != nil &&
-		plugin.IsCustomPreset(string(inferenceSpec.Preset.Name))
+		pkgmodel.IsCustomPreset(string(inferenceSpec.Preset.Name))
 }
 
 // ReplacedError reports that the inputs a deployment was built from no longer

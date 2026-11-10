@@ -23,9 +23,9 @@ import (
 	"k8s.io/klog/v2"
 	"knative.dev/pkg/apis"
 
+	"github.com/kaito-project/kaito/api/internal/speculativedecoding"
 	kaitov1beta1 "github.com/kaito-project/kaito/api/v1beta1"
 	"github.com/kaito-project/kaito/pkg/utils/consts"
-	"github.com/kaito-project/kaito/pkg/utils/speculativedecoding"
 )
 
 // MaxMultiRoleInferenceNameLength caps new MultiRoleInference names so the

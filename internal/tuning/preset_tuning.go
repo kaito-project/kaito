@@ -20,6 +20,7 @@ import (
 	"path"
 	"strings"
 
+	"gopkg.in/yaml.v2"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/resource"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -109,11 +110,11 @@ func PrepareOutputDir(outputDir string) (string, error) {
 // GetOutputDirFromTrainingArgs retrieves the output directory from training arguments if specified.
 func GetOutputDirFromTrainingArgs(trainingArgs map[string]runtime.RawExtension) (string, *apis.FieldError) {
 	if trainingArgsRaw, exists := trainingArgs["TrainingArguments"]; exists {
-		outputDirValue, found, err := utils.SearchRawExtension(trainingArgsRaw, "output_dir")
-		if err != nil {
+		var args map[string]interface{}
+		if err := yaml.Unmarshal(trainingArgsRaw.Raw, &args); err != nil {
 			return "", apis.ErrGeneric(fmt.Sprintf("Failed to parse 'output_dir': %v", err), "output_dir")
 		}
-		if found {
+		if outputDirValue, found := args["output_dir"]; found {
 			outputDir, ok := outputDirValue.(string)
 			if !ok {
 				return "", apis.ErrInvalidValue("output_dir is not a string", "output_dir")

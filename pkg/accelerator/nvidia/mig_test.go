@@ -11,7 +11,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package mig
+package nvidia
 
 import (
 	"testing"
@@ -131,24 +131,24 @@ func TestValidateMIGProfile(t *testing.T) {
 }
 
 func TestKnownMIGProfiles(t *testing.T) {
-	profiles := KnownMIGProfiles()
+	profiles := knownMIGProfiles()
 	if len(profiles) == 0 {
-		t.Error("KnownMIGProfiles() returned empty slice")
+		t.Error("knownMIGProfiles() returned empty slice")
 	}
 	expectedCount := len(knownProfiles)
 	if len(profiles) != expectedCount {
-		t.Errorf("KnownMIGProfiles() returned %d profiles, expected %d", len(profiles), expectedCount)
+		t.Errorf("knownMIGProfiles() returned %d profiles, expected %d", len(profiles), expectedCount)
 	}
 	// Verify all returned profiles are valid
 	for _, p := range profiles {
 		if err := ValidateMIGProfile(p); err != nil {
-			t.Errorf("KnownMIGProfiles() contains invalid profile %q: %v", p, err)
+			t.Errorf("knownMIGProfiles() contains invalid profile %q: %v", p, err)
 		}
 	}
 	// Verify sorted
 	for i := 1; i < len(profiles); i++ {
 		if profiles[i-1] > profiles[i] {
-			t.Errorf("KnownMIGProfiles() not sorted: %q > %q", profiles[i-1], profiles[i])
+			t.Errorf("knownMIGProfiles() not sorted: %q > %q", profiles[i-1], profiles[i])
 		}
 	}
 }

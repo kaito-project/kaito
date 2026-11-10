@@ -30,7 +30,6 @@ import (
 
 	"github.com/kaito-project/kaito/pkg/catalog/hfgen"
 	"github.com/kaito-project/kaito/pkg/model"
-	"github.com/kaito-project/kaito/pkg/utils/plugin"
 )
 
 const testCustomConfigJSON = `{
@@ -83,7 +82,7 @@ func TestResolveCustomModelIsContentAddressed(t *testing.T) {
 
 	assert.Equal(t, mustConfigDigest(t, testCustomConfigJSON), resolved.Digest)
 	assert.Equal(t, CustomModelName(resolved.Digest), resolved.Name)
-	assert.True(t, strings.HasPrefix(resolved.Name, plugin.CustomModelNamePrefix))
+	assert.True(t, strings.HasPrefix(resolved.Name, model.CustomModelNamePrefix))
 	require.NotNil(t, resolved.Model)
 	assert.NotEmpty(t, resolved.Model.GetInferenceParameters().TotalSafeTensorFileSize,
 		"a custom model must be sizable, or node estimation has nothing to work from")
@@ -126,13 +125,13 @@ func TestResolveCustomModelRebuildsFromConfigAlone(t *testing.T) {
 	require.NoError(t, err)
 	name := CustomModelName(mustConfigDigest(t, uniqueConfig))
 	cacheKey := customModelCacheKey(name, sizeBytes, "")
-	require.False(t, plugin.KaitoModelRegister.Has(cacheKey), "config must not already be cached")
+	require.False(t, model.KaitoModelRegister.Has(cacheKey), "config must not already be cached")
 
 	cm := customConfigMap("byo-config", validCustomData(uniqueConfig), true)
 
 	cold, err := ResolveCustomModelFromConfigMap(cm)
 	require.NoError(t, err)
-	require.True(t, plugin.KaitoModelRegister.Has(cacheKey), "a cold resolution must populate the cache")
+	require.True(t, model.KaitoModelRegister.Has(cacheKey), "a cold resolution must populate the cache")
 
 	// Independently re-derive from the same bytes: what the cache holds must be
 	// exactly what a fresh process would compute.
@@ -227,18 +226,18 @@ func TestGetModelByNameRejectsReservedCustomNames(t *testing.T) {
 	// would let a workspace address, or collide with, a cached model identity
 	// it never supplied the configuration for.
 	_, err := GetModelByName(context.Background(),
-		plugin.CustomModelNamePrefix+"deadbeef", "", "", "", nil)
+		model.CustomModelNamePrefix+"deadbeef", "", "", "", nil)
 	require.Error(t, err)
 
-	assert.False(t, plugin.IsValidPreset(plugin.CustomModelNamePrefix+"deadbeef"))
-	assert.True(t, plugin.IsValidPreset(plugin.PresetNameCustom))
+	assert.False(t, model.IsValidPreset(model.CustomModelNamePrefix+"deadbeef"))
+	assert.True(t, model.IsValidPreset(model.PresetNameCustom))
 }
 
 func TestGetModelByNameResolvesCustomPreset(t *testing.T) {
 	cm := customConfigMap("byo-config", validCustomData(testCustomConfigJSON), true)
 	c := fakeClientWith(cm)
 
-	m, err := GetModelByName(context.Background(), plugin.PresetNameCustom, "byo-config", "", "default", c)
+	m, err := GetModelByName(context.Background(), model.PresetNameCustom, "byo-config", "", "default", c)
 	require.NoError(t, err)
 	require.NotNil(t, m)
 	assert.NotEmpty(t, m.GetInferenceParameters().TotalSafeTensorFileSize)

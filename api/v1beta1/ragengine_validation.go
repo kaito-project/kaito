@@ -30,6 +30,7 @@ import (
 	"knative.dev/pkg/apis"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
+	"github.com/kaito-project/kaito/api/internal/validation"
 	"github.com/kaito-project/kaito/pkg/k8sclient"
 	"github.com/kaito-project/kaito/pkg/sku"
 	"github.com/kaito-project/kaito/pkg/utils"
@@ -241,7 +242,7 @@ func (e *LocalEmbeddingSpec) validateCreate() (errs *apis.FieldError) {
 			errs = errs.Also(apis.ErrInvalidValue("Invalid image format, require full input image URL", "Image"))
 		} else {
 			// Executes if image is of correct format
-			err := utils.ExtractAndValidateRepoName(e.Image)
+			err := validation.ExtractAndValidateRepoName(e.Image)
 			if err != nil {
 				errs = errs.Also(apis.ErrInvalidValue(err.Error(), "Image"))
 			}

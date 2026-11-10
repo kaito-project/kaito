@@ -11,34 +11,34 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package plugin
+package model
 
 import (
 	"strings"
 	"sync"
-
-	"github.com/kaito-project/kaito/pkg/model"
 )
 
 // Registration is a struct that holds the name and an instance of a struct
-// that implements the model.Model interface. It is used to register and manage
+// that implements the Model interface. It is used to register and manage
 // different model instances within the KAITO framework.
 type Registration struct {
 	// Name is the name of the model. It is used as a key to register and
 	// retrieve the model metadata and instance.
 	Name string
 
-	// Instance is the actual model instance that implements the model.Model
+	// Instance is the actual model instance that implements the Model
 	// interface. It is used to retrieve the model's compute/storage requirements
 	// and runtime parameters.
-	Instance model.Model
+	Instance Model
 }
 
+// ModelRegister is a concurrency-safe registry of models keyed by name.
 type ModelRegister struct {
 	sync.RWMutex
 	models map[string]*Registration
 }
 
+// KaitoModelRegister is the process-wide model registry.
 var KaitoModelRegister ModelRegister
 
 const (
@@ -111,7 +111,8 @@ func (reg *ModelRegister) Register(r *Registration) {
 	reg.models[r.Name] = r
 }
 
-func (reg *ModelRegister) MustGet(name string) model.Model {
+// MustGet returns the model registered under name, or nil if none is.
+func (reg *ModelRegister) MustGet(name string) Model {
 	reg.Lock()
 	defer reg.Unlock()
 	r, ok := reg.models[name]
@@ -121,6 +122,7 @@ func (reg *ModelRegister) MustGet(name string) model.Model {
 	return r.Instance
 }
 
+// Has reports whether a model is registered under name.
 func (reg *ModelRegister) Has(name string) bool {
 	reg.Lock()
 	defer reg.Unlock()

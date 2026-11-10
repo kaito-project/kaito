@@ -44,6 +44,7 @@ import (
 	"github.com/kaito-project/kaito/internal/manifests"
 	"github.com/kaito-project/kaito/internal/manifests/builder"
 	"github.com/kaito-project/kaito/internal/nodeprovision"
+	"github.com/kaito-project/kaito/pkg/accelerator/nvidia"
 	"github.com/kaito-project/kaito/pkg/catalog"
 	"github.com/kaito-project/kaito/pkg/catalog/hfgen"
 	"github.com/kaito-project/kaito/pkg/estimator/maxnumseqestimator"
@@ -52,7 +53,6 @@ import (
 	"github.com/kaito-project/kaito/pkg/sku"
 	"github.com/kaito-project/kaito/pkg/utils"
 	"github.com/kaito-project/kaito/pkg/utils/consts"
-	"github.com/kaito-project/kaito/pkg/utils/mig"
 )
 
 // SpecDecoDecision tracks which branch the speculative decoding injection took.
@@ -368,7 +368,7 @@ func getGPUConfig(ctx *builder.WorkspaceGeneratorContext) (*sku.GPUConfig, error
 	// Partition path: build GPU config from the partition spec (MIG mode).
 	if featuregates.FeatureGates[consts.FeatureFlagEnableMIG] && partition != nil &&
 		partition.Mode == v1beta1.PartitionModeMIG {
-		return utils.GetMIGGPUConfig(partition.Profile)
+		return sku.MIGGPUConfig(partition.Profile)
 	}
 
 	// NAP is enabled - try to get GPU config from known SKU
@@ -706,7 +706,7 @@ func GenerateInferencePodSpec(gpuConfig *sku.GPUConfig, numNodes int, streamingM
 			// so it is read from the spec. Node-detected MIG under the "single" strategy
 			// has no spec profile and keeps requesting nvidia.com/gpu.
 			if p := ctx.Workspace.Resource.Partition; p != nil && p.Mode == v1beta1.PartitionModeMIG && p.Profile != "" {
-				gpuResourceName = corev1.ResourceName(mig.MIGResourceName(p.Profile))
+				gpuResourceName = corev1.ResourceName(nvidia.MIGResourceName(p.Profile))
 			}
 			resourceReq = corev1.ResourceRequirements{
 				Requests: corev1.ResourceList{
@@ -828,7 +828,7 @@ func GenerateInferencePodSpec(gpuConfig *sku.GPUConfig, numNodes int, streamingM
 			spec.Tolerations = append(spec.Tolerations, corev1.Toleration{
 				Effect:   corev1.TaintEffectNoSchedule,
 				Operator: corev1.TolerationOpExists,
-				Key:      mig.MIGResourceName(p.Profile),
+				Key:      nvidia.MIGResourceName(p.Profile),
 			})
 		}
 		spec.Volumes = volumes

@@ -28,7 +28,6 @@ import (
 	"github.com/kaito-project/kaito/pkg/model"
 	"github.com/kaito-project/kaito/pkg/sku"
 	"github.com/kaito-project/kaito/pkg/utils/consts"
-	"github.com/kaito-project/kaito/pkg/utils/plugin"
 )
 
 func TestVLLMCompatibleModel_GetInferenceParameters(t *testing.T) {
@@ -527,7 +526,7 @@ func TestRegisterModel(t *testing.T) {
 			if tt.expectedResult {
 				assert.NotNil(t, result)
 				// Verify the model was registered
-				registered := plugin.KaitoModelRegister.MustGet(tt.hfModelCardID)
+				registered := model.KaitoModelRegister.MustGet(tt.hfModelCardID)
 				assert.NotNil(t, registered)
 				assert.Equal(t, result, registered)
 			} else {
@@ -806,7 +805,7 @@ func registerHermeticSpeculativeDecodingTestModels(t *testing.T) {
 	t.Helper()
 	for _, modelName := range []string{"nvidia/DeepSeek-V4-Flash-NVFP4", "XiaomiMiMo/MiMo-7B-Base"} {
 		key := strings.ToLower(modelName)
-		if plugin.KaitoModelRegister.MustGet(key) != nil {
+		if model.KaitoModelRegister.MustGet(key) != nil {
 			continue
 		}
 		param, err := hfgen.GeneratePreset(modelName, "", []byte(hermeticSpeculativeDecodingCatalogYAML))
@@ -1085,7 +1084,7 @@ func catalogBackedLegacyAliases(t *testing.T) map[string]string {
 	}
 
 	aliases := make(map[string]string)
-	for shortName, hfName := range plugin.LegacyBuiltinToCatalog {
+	for shortName, hfName := range model.LegacyBuiltinToCatalog {
 		if _, ok := catalogModels[strings.ToLower(hfName)]; ok {
 			aliases[shortName] = hfName
 		}
@@ -1106,7 +1105,7 @@ func TestGenerateHuggingFaceModel_CatalogOnlyModelsUseCatalogPath(t *testing.T) 
 			assert.True(t, isVLLM,
 				"model %q should be a vLLMCompatibleModel", modelName)
 
-			registered := plugin.KaitoModelRegister.MustGet(modelName)
+			registered := model.KaitoModelRegister.MustGet(modelName)
 			assert.NotNil(t, registered,
 				"model %q should be registered under full HF name after catalog generation", modelName)
 		})
@@ -1123,7 +1122,7 @@ func TestGetModelByName_ShortNameRedirectsToCatalog(t *testing.T) {
 			_, isVLLM := result.(*vLLMCompatibleModel)
 			assert.True(t, isVLLM, "model %q should resolve to vLLMCompatibleModel", shortName)
 
-			registered := plugin.KaitoModelRegister.MustGet(hfName)
+			registered := model.KaitoModelRegister.MustGet(hfName)
 			assert.NotNil(t, registered)
 		})
 	}
@@ -1143,10 +1142,10 @@ func TestGetModelByNameWithToken_ShortNameRedirectsToCatalog(t *testing.T) {
 }
 
 func TestLegacyBuiltinAliasesResolveToCanonicalIDs(t *testing.T) {
-	for shortName, hfName := range plugin.LegacyBuiltinToCatalog {
+	for shortName, hfName := range model.LegacyBuiltinToCatalog {
 		t.Run(shortName, func(t *testing.T) {
-			assert.Equal(t, hfName, plugin.ResolveHFModelID(shortName))
-			assert.Equal(t, hfName, plugin.ResolveHFModelID(strings.ToUpper(shortName)))
+			assert.Equal(t, hfName, model.ResolveHFModelID(shortName))
+			assert.Equal(t, hfName, model.ResolveHFModelID(strings.ToUpper(shortName)))
 		})
 	}
 }

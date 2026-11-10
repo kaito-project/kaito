@@ -51,7 +51,6 @@ import (
 	"github.com/kaito-project/kaito/pkg/sku"
 	"github.com/kaito-project/kaito/pkg/utils"
 	"github.com/kaito-project/kaito/pkg/utils/consts"
-	"github.com/kaito-project/kaito/pkg/utils/plugin"
 )
 
 func getCPUVLLMImageName() string {
@@ -372,7 +371,7 @@ func TestGeneratePresetInference(t *testing.T) {
 
 			workspace.Inference.Config = tc.inferenceConfig
 
-			model := plugin.KaitoModelRegister.MustGet(tc.modelName)
+			model := pkgmodel.KaitoModelRegister.MustGet(tc.modelName)
 
 			svc := &corev1.Service{
 				ObjectMeta: metav1.ObjectMeta{
@@ -600,7 +599,7 @@ func TestApplyPresetCacheMutations_CacheGatedOnStreaming(t *testing.T) {
 	}
 	mockClient.CreateOrUpdateObjectInMap(svc)
 
-	model := plugin.KaitoModelRegister.MustGet("test-model")
+	model := pkgmodel.KaitoModelRegister.MustGet("test-model")
 
 	createdObject, err := GeneratePresetInference(context.TODO(), workspace, testutil.MockWorkspaceWithPresetHash, model, mockClient, nil)
 	if err != nil {
@@ -715,7 +714,7 @@ func TestApplyPresetCacheMutations_CacheFeatureGate(t *testing.T) {
 			}
 			mockClient.CreateOrUpdateObjectInMap(svc)
 
-			model := plugin.KaitoModelRegister.MustGet("test-model")
+			model := pkgmodel.KaitoModelRegister.MustGet("test-model")
 
 			createdObject, err := GeneratePresetInference(context.TODO(), workspace, testutil.MockWorkspaceWithPresetHash, model, mockClient, nil)
 			if err != nil {
@@ -1074,7 +1073,7 @@ func TestGetGPUConfig(t *testing.T) {
 			mockClient := testutil.NewClient()
 			tc.callMocks(mockClient)
 
-			model := plugin.KaitoModelRegister.MustGet(tc.model)
+			model := pkgmodel.KaitoModelRegister.MustGet(tc.model)
 
 			gctx := &builder.WorkspaceGeneratorContext{
 				Ctx:        context.TODO(),
@@ -2299,7 +2298,7 @@ func TestGeneratePresetInferenceNodeImageWeights(t *testing.T) {
 	}
 	mockClient.CreateOrUpdateObjectInMap(svc)
 
-	model := plugin.KaitoModelRegister.MustGet("test-deepgemm-model")
+	model := pkgmodel.KaitoModelRegister.MustGet("test-deepgemm-model")
 
 	result, err := GeneratePresetInference(context.TODO(), workspace, testutil.MockWorkspaceWithPresetHash, model, mockClient, nil)
 	if err != nil {
@@ -2425,7 +2424,7 @@ func TestGeneratePresetInferenceCUDAToolkitProvisioner(t *testing.T) {
 		}
 		mockClient.CreateOrUpdateObjectInMap(svc)
 
-		m := plugin.KaitoModelRegister.MustGet(presetName)
+		m := pkgmodel.KaitoModelRegister.MustGet(presetName)
 		result2, err := GeneratePresetInference(context.TODO(), workspace, testutil.MockWorkspaceWithPresetHash, m, mockClient, nil)
 		if err != nil {
 			t.Fatalf("GeneratePresetInference returned error: %v", err)
@@ -2521,7 +2520,7 @@ func TestGeneratePresetInferenceCUDAToolkitProvisioner(t *testing.T) {
 		}
 		mockClient.CreateOrUpdateObjectInMap(svc)
 
-		m := plugin.KaitoModelRegister.MustGet("test-deepgemm-model")
+		m := pkgmodel.KaitoModelRegister.MustGet("test-deepgemm-model")
 		result, err := GeneratePresetInference(context.TODO(), workspace, testutil.MockWorkspaceWithPresetHash, m, mockClient, nil)
 		if err != nil {
 			t.Fatalf("GeneratePresetInference returned error: %v", err)
@@ -2573,7 +2572,7 @@ func TestPresetInferenceRuntimeImages(t *testing.T) {
 				require.ErrorContains(t, err, "CPU preset inference supports only vllm")
 				assert.Empty(t, image)
 				ws.Status.TargetNodeCount = 1
-				_, err = GeneratePresetInference(context.Background(), ws, testutil.MockWorkspaceWithPresetHash, plugin.KaitoModelRegister.MustGet("test-model"), nil, nil)
+				_, err = GeneratePresetInference(context.Background(), ws, testutil.MockWorkspaceWithPresetHash, pkgmodel.KaitoModelRegister.MustGet("test-model"), nil, nil)
 				require.ErrorContains(t, err, "CPU preset inference supports only vllm")
 				return
 			}
@@ -2626,7 +2625,7 @@ func TestGeneratePresetInference_VLLMCPUSkipsLMCache(t *testing.T) {
 			ws.Resource.InstanceType = "Standard_D16s_v6"
 			ws.Status.TargetNodeCount = 1
 			ws.Annotations = map[string]string{v1beta1.AnnotationWorkspaceRuntime: runtimeName}
-			result, err := GeneratePresetInference(t.Context(), ws, testutil.MockWorkspaceWithPresetHash, plugin.KaitoModelRegister.MustGet("test-model"), nil, nil)
+			result, err := GeneratePresetInference(t.Context(), ws, testutil.MockWorkspaceWithPresetHash, pkgmodel.KaitoModelRegister.MustGet("test-model"), nil, nil)
 			require.NoError(t, err)
 			spec := &result.Workload.(*appsv1.StatefulSet).Spec.Template.Spec
 			assert.Equal(t, getCPUVLLMImageName(), spec.Containers[0].Image)
@@ -2739,7 +2738,7 @@ func TestGeneratePresetInference_CapturedTarget(t *testing.T) {
 			ws.Inference.Config = ""
 			ws.Inference.Adapters = nil
 			ws.Status.TargetNodeCount = 1
-			gctx := &builder.WorkspaceGeneratorContext{Ctx: context.Background(), Workspace: ws, Model: plugin.KaitoModelRegister.MustGet("test-model"), KubeClient: c}
+			gctx := &builder.WorkspaceGeneratorContext{Ctx: context.Background(), Workspace: ws, Model: pkgmodel.KaitoModelRegister.MustGet("test-model"), KubeClient: c}
 			config, err := getGPUConfig(gctx)
 			require.NoError(t, err)
 			require.Equal(t, cpu, config == nil)

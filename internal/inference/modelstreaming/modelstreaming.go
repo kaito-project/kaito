@@ -29,7 +29,6 @@ import (
 	pkgmodel "github.com/kaito-project/kaito/pkg/model"
 	mmconsts "github.com/kaito-project/kaito/pkg/modelmirror/consts"
 	"github.com/kaito-project/kaito/pkg/utils/consts"
-	"github.com/kaito-project/kaito/pkg/utils/plugin"
 )
 
 // Shared SAS-fetch wiring, referenced by both SetStreamingConfig (which wires the main
@@ -131,10 +130,10 @@ func ResolveHFModelID(ws *v1beta1.Workspace) string {
 		return ""
 	}
 	presetName := string(ws.Inference.Preset.Name)
-	if plugin.IsCustomPreset(presetName) {
-		return plugin.CustomModelNamePrefix + ws.Inference.Config
+	if pkgmodel.IsCustomPreset(presetName) {
+		return pkgmodel.CustomModelNamePrefix + ws.Inference.Config
 	}
-	return plugin.ResolveHFModelID(presetName)
+	return pkgmodel.ResolveHFModelID(presetName)
 }
 
 // ResolveStreamingServiceAccount resolves the ServiceAccount name for streaming.

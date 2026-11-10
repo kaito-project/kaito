@@ -22,7 +22,6 @@ import (
 	appsv1 "k8s.io/api/apps/v1"
 	"k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	k8sruntime "k8s.io/apimachinery/pkg/runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
 	"github.com/kaito-project/kaito/pkg/utils/consts"
@@ -326,96 +325,9 @@ func TestInferencePoolName(t *testing.T) {
 	}
 }
 
-func TestContains(t *testing.T) {
-	tests := []struct {
-		name     string
-		slice    []string
-		element  string
-		expected bool
-	}{
-		{"element present", []string{"a", "b", "c"}, "b", true},
-		{"element absent", []string{"a", "b", "c"}, "d", false},
-		{"empty slice", []string{}, "a", false},
-		{"nil slice", nil, "a", false},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			assert.Equal(t, tt.expected, Contains(tt.slice, tt.element))
-		})
-	}
-}
-
-func TestSearchRawExtension(t *testing.T) {
-	tests := []struct {
-		name      string
-		raw       k8sruntime.RawExtension
-		key       string
-		wantValue interface{}
-		wantFound bool
-		wantErr   bool
-	}{
-		{
-			name:      "key found",
-			raw:       k8sruntime.RawExtension{Raw: []byte(`{"model": "llama2"}`)},
-			key:       "model",
-			wantValue: "llama2",
-			wantFound: true,
-		},
-		{
-			name:      "key not found",
-			raw:       k8sruntime.RawExtension{Raw: []byte(`{"model": "llama2"}`)},
-			key:       "version",
-			wantFound: false,
-		},
-		{
-			name:    "invalid yaml",
-			raw:     k8sruntime.RawExtension{Raw: []byte(`{invalid`)},
-			key:     "model",
-			wantErr: true,
-		},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			val, found, err := SearchRawExtension(tt.raw, tt.key)
-			if tt.wantErr {
-				assert.Error(t, err)
-				return
-			}
-			require.NoError(t, err)
-			assert.Equal(t, tt.wantFound, found)
-			if tt.wantFound {
-				assert.Equal(t, tt.wantValue, val)
-			}
-		})
-	}
-}
-
 func TestShellCmd(t *testing.T) {
 	cmd := ShellCmd("echo hello")
 	assert.Equal(t, []string{"/bin/sh", "-c", "echo hello"}, cmd)
-}
-
-func TestExtractAndValidateRepoName(t *testing.T) {
-	tests := []struct {
-		name    string
-		image   string
-		wantErr bool
-	}{
-		{"lowercase repo", "registry.io/org/mymodel:v1", false},
-		{"uppercase repo", "registry.io/org/MyModel:v1", true},
-		{"no tag lowercase", "registry.io/org/mymodel", false},
-		{"mixed case in org", "registry.io/Org/mymodel:v1", false}, // only repo name checked
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			err := ExtractAndValidateRepoName(tt.image)
-			if tt.wantErr {
-				assert.Error(t, err)
-			} else {
-				assert.NoError(t, err)
-			}
-		})
-	}
 }
 
 func TestGetReleaseNamespace(t *testing.T) {

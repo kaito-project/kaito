@@ -28,7 +28,6 @@ import (
 	"github.com/kaito-project/kaito/pkg/catalog"
 	"github.com/kaito-project/kaito/pkg/k8sclient"
 	"github.com/kaito-project/kaito/pkg/model"
-	"github.com/kaito-project/kaito/pkg/utils/plugin"
 )
 
 // InferenceConfig represents the structure of the inference configuration
@@ -94,7 +93,7 @@ func (w *Workspace) validateInferenceConfig(ctx context.Context) (errs *apis.Fie
 		if rawMaxModelLen, exists := inferenceConfig.VLLM["max-model-len"]; exists && strings.TrimSpace(rawMaxModelLen) != "" {
 			if w.Inference != nil && w.Inference.Preset != nil {
 				presetName := strings.ToLower(string(w.Inference.Preset.Name))
-				if plugin.IsValidPreset(presetName) {
+				if model.IsValidPreset(presetName) {
 					modelPreset, err := catalog.GetModelByName(ctx, presetName, w.Inference.Config, w.Inference.Preset.PresetOptions.ModelAccessSecret, w.Namespace, k8sclient.Client)
 					if err != nil {
 						return apis.ErrInvalidValue(fmt.Sprintf("failed to get model preset: %v", err), "preset")

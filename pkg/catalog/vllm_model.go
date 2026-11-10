@@ -27,7 +27,6 @@ import (
 
 	"github.com/kaito-project/kaito/pkg/catalog/hfgen"
 	"github.com/kaito-project/kaito/pkg/model"
-	"github.com/kaito-project/kaito/pkg/utils/plugin"
 )
 
 const (
@@ -88,18 +87,18 @@ func registerModel(hfModelCardID string, param *model.PresetParam) model.Model {
 		return nil
 	}
 
-	model := &vLLMCompatibleModel{
+	m := &vLLMCompatibleModel{
 		model:               param.Metadata,
 		generatedRunParams:  param.VLLM.ModelRunParams,
 		speculativeDecoding: param.SpeculativeDecoding,
 	}
-	r := &plugin.Registration{
+	r := &model.Registration{
 		Name:     hfModelCardID,
-		Instance: model,
+		Instance: m,
 	}
 	klog.InfoS("Registering VLLM-compatible model", "model", hfModelCardID, "metadata", param.Metadata)
-	plugin.KaitoModelRegister.Register(r)
-	return model
+	model.KaitoModelRegister.Register(r)
+	return m
 }
 
 // GetModelByNameWithToken returns a vLLM-compatible model for the given modelName using
@@ -108,8 +107,8 @@ func registerModel(hfModelCardID string, param *model.PresetParam) model.Model {
 // Pass an empty string for token when working with public models that require no authentication.
 func GetModelByNameWithToken(ctx context.Context, modelName, token string) (model.Model, error) {
 	modelName = strings.ToLower(modelName)
-	modelName = plugin.ResolveHFModelID(modelName)
-	if m := plugin.KaitoModelRegister.MustGet(modelName); m != nil {
+	modelName = model.ResolveHFModelID(modelName)
+	if m := model.KaitoModelRegister.MustGet(modelName); m != nil {
 		return m, nil
 	}
 	if strings.Contains(modelName, "/") {
@@ -126,19 +125,19 @@ func GetModelByNameWithToken(ctx context.Context, modelName, token string) (mode
 // then generates a preset for the corresponding HuggingFace model.
 // Prefer GetModelByNameWithToken when the token has already been resolved by the caller.
 func GetModelByName(ctx context.Context, modelName, configMapName, secretName, secretNamespace string, kubeClient client.Client) (model.Model, error) {
-	if plugin.IsCustomPreset(modelName) {
+	if model.IsCustomPreset(modelName) {
 		resolved, err := ResolveCustomModel(ctx, kubeClient, configMapName, secretNamespace)
 		if err != nil {
 			return nil, err
 		}
 		return resolved.Model, nil
 	}
-	if plugin.IsReservedCustomModelName(modelName) {
-		return nil, fmt.Errorf("model name %q is reserved: select preset %q and supply the model configuration through 'inference.config'", modelName, plugin.PresetNameCustom)
+	if model.IsReservedCustomModelName(modelName) {
+		return nil, fmt.Errorf("model name %q is reserved: select preset %q and supply the model configuration through 'inference.config'", modelName, model.PresetNameCustom)
 	}
 	modelName = strings.ToLower(modelName)
-	modelName = plugin.ResolveHFModelID(modelName)
-	if m := plugin.KaitoModelRegister.MustGet(modelName); m != nil {
+	modelName = model.ResolveHFModelID(modelName)
+	if m := model.KaitoModelRegister.MustGet(modelName); m != nil {
 		return m, nil
 	}
 	if !strings.Contains(modelName, "/") {

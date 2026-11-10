@@ -56,6 +56,7 @@ func init() {
 	cachetest.RegisterExpectations(cachetest.Expectations{
 		Provider:          cache.ProviderName(ProviderName),
 		NewForConformance: func() cache.Provider { return NewProvider() },
+		E2EExempt:         true,
 		ModelWeights: cachetest.MutationExpectation{
 			Supported:   true,
 			ExpectEmpty: true,

@@ -148,6 +148,35 @@ func TestApplyMutations(t *testing.T) {
 	}
 }
 
+func TestApplyMutations_DeduplicatesVolumeMountsByPath(t *testing.T) {
+	spec := &corev1.PodSpec{
+		Containers: []corev1.Container{{
+			Name:  "model",
+			Image: "registry.example/kaito-base:v1",
+			VolumeMounts: []corev1.VolumeMount{
+				{Name: "shared", MountPath: "/model"},
+				{Name: "user-cache", MountPath: "/cache"},
+			},
+		}},
+	}
+	mutations := &PodMutations{
+		VolumeMounts: []corev1.VolumeMount{
+			{Name: "shared", MountPath: "/cache-client"},
+			{Name: "provider-cache", MountPath: "/cache"},
+		},
+	}
+
+	applyMutations(spec, mutations)
+
+	mounts := spec.Containers[0].VolumeMounts
+	if len(mounts) != 3 {
+		t.Fatalf("expected same volume at a distinct path to be retained and duplicate path skipped, got %v", mounts)
+	}
+	if mounts[2].Name != "shared" || mounts[2].MountPath != "/cache-client" {
+		t.Fatalf("unexpected appended mount: %#v", mounts[2])
+	}
+}
+
 func TestApplyMutations_TargetsMatchingContainers(t *testing.T) {
 	spec := &corev1.PodSpec{
 		Containers: []corev1.Container{

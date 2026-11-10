@@ -131,6 +131,12 @@ compare-base-image-configs: ## Compare base_images.yaml with ConfigMap template 
 generate-vllm-arch-list: ## Regenerate pkg/catalog/vllm_model_arch_list.txt.
 	@./hack/generate_vllm_arch_list.sh
 
+.PHONY: generate-chunksizes
+generate-chunksizes: ## Regenerate pkg/cache/dacs/chunksize/chunksizes_generated.go from models.yaml (fetches safetensors headers from HuggingFace).
+	go run ./hack/gen-chunksizes/main.go \
+		-models pkg/cache/dacs/chunksize/models.yaml \
+		-out pkg/cache/dacs/chunksize/chunksizes_generated.go
+
 ## --------------------------------------
 ## Unit Tests
 ## --------------------------------------
@@ -627,7 +633,7 @@ vet: ## Run go vet against code.
 .PHONY: lint
 lint: $(GOLANGCI_LINT) ## Run golangci-lint against code.
 	$(GOLANGCI_LINT) run -v
-	
+
 .PHONY: lint-fix
 lint-fix: $(GOLANGCI_LINT) ## Run golangci-lint against code.
 	$(GOLANGCI_LINT) run --fix

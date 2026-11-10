@@ -45,6 +45,10 @@ dependencies:
   version: "0.4.1"
   repository: oci://localcsidriver.azurecr.io/acstor/charts
   condition: localCSIDriver.useLocalCSIDriver
+- name: dacs
+  version: "0.1.0-alpha.2"
+  repository: oci://mcr.microsoft.com/dacs/helmchart
+  condition: cache.providers.dacs.enabled
 - name: productionstack
   version: "0.5.2"
   repository: oci://mcr.microsoft.com/aks/kaito/helm

@@ -8,8 +8,11 @@ dependencies:
 - name: local-csi-driver
   repository: oci://localcsidriver.azurecr.io/acstor/charts
   version: 0.4.1
+- name: dacs
+  repository: oci://mcr.microsoft.com/dacs/helmchart
+  version: 0.1.0-alpha.2
 - name: productionstack
   repository: oci://mcr.microsoft.com/aks/kaito/helm
   version: 0.5.2
-digest: sha256:2d4a447091a8dd6d59b8b5b57983908d990f86923c0319e4eb53b2add7103351
-generated: "2026-10-23T23:38:45.373965286Z"
+digest: sha256:bff7ce780d8991470714c4630efa8bb9d92d32d32ff88e7d9e59a5aa2e0333ce
+generated: "2026-10-27T14:57:49.133264628Z"

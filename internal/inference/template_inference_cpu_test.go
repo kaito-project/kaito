@@ -48,6 +48,7 @@ func TestCreateTemplateInferenceDoesNotSelectCPUPresetBehavior(t *testing.T) {
 	}
 
 	mockClient := testutil.NewClient()
+	mockClient.On("Get", mock.Anything, mock.Anything, mock.IsType(&appsv1.StatefulSet{}), mock.Anything).Return(testutil.NotFoundError())
 	mockClient.On("Create", mock.Anything, mock.IsType(&appsv1.StatefulSet{}), mock.Anything).Return(nil)
 
 	obj, err := CreateTemplateInference(context.Background(), workspace, mockClient, nil)

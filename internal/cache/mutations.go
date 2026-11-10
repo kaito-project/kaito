@@ -195,7 +195,7 @@ func collectMutations(ctx context.Context, ws *kaitov1beta1.Workspace, attachmen
 
 	if config := attachment.ModelWeights; config != nil && config.Mode != ModeDisabled {
 		mutations, err := collectConcernMutations(ctx, ws, config, CacheConcernModelWeights,
-			modelName, modelRevision, ss, true)
+			modelName, modelRevision, ss)
 		if err != nil {
 			return nil, err
 		}
@@ -204,7 +204,7 @@ func collectMutations(ctx context.Context, ws *kaitov1beta1.Workspace, attachmen
 
 	if config := attachment.KVCache; config != nil && config.Mode != ModeDisabled {
 		mutations, err := collectConcernMutations(ctx, ws, config, CacheConcernKVCache,
-			modelName, modelRevision, ss, false)
+			modelName, modelRevision, ss)
 		if err != nil {
 			return nil, err
 		}
@@ -215,7 +215,7 @@ func collectMutations(ctx context.Context, ws *kaitov1beta1.Workspace, attachmen
 }
 
 func collectConcernMutations(ctx context.Context, ws *kaitov1beta1.Workspace, config *ConcernConfig,
-	concern CacheConcern, modelName, modelRevision string, ss *appsv1.StatefulSet, checkApplicability bool) (*PodMutations, error) {
+	concern CacheConcern, modelName, modelRevision string, ss *appsv1.StatefulSet) (*PodMutations, error) {
 	label := "KV cache"
 	if concern == CacheConcernModelWeights {
 		label = "model weights cache"
@@ -230,7 +230,7 @@ func collectConcernMutations(ctx context.Context, ws *kaitov1beta1.Workspace, co
 			"concern", concern, "provider", config.Provider, "error", err)
 		return nil, nil
 	}
-	if checkApplicability && !providerAppliesTo(provider, concern, ws, ss) {
+	if !providerAppliesTo(provider, concern, ws, ss) {
 		klog.V(2).InfoS("Cache provider not applicable to this workload, skipping",
 			"concern", concern, "provider", config.Provider, "workspace", ws.Name)
 		return nil, nil
@@ -303,7 +303,7 @@ func mergeMutations(dst, src *PodMutations) {
 }
 
 // applyMutations injects the collected mutations into the pod spec.
-// It deduplicates by name to avoid invalid PodSpecs with duplicate entries.
+// It deduplicates entries using the uniqueness key enforced by the Pod API.
 func applyMutations(spec *corev1.PodSpec, mutations *PodMutations) {
 	if mutations == nil || len(spec.Containers) == 0 {
 		return
@@ -329,15 +329,16 @@ func applyMutations(spec *corev1.PodSpec, mutations *PodMutations) {
 			}
 		}
 
-		// Deduplicate volume mounts by name (first wins).
+		// Mount paths must be unique within a container. First wins so an
+		// existing user mount is never replaced by a provider mutation.
 		existingMounts := make(map[string]struct{}, len(container.VolumeMounts))
 		for _, m := range container.VolumeMounts {
-			existingMounts[m.Name] = struct{}{}
+			existingMounts[m.MountPath] = struct{}{}
 		}
 		for _, m := range mutations.VolumeMounts {
-			if _, exists := existingMounts[m.Name]; !exists {
+			if _, exists := existingMounts[m.MountPath]; !exists {
 				container.VolumeMounts = append(container.VolumeMounts, m)
-				existingMounts[m.Name] = struct{}{}
+				existingMounts[m.MountPath] = struct{}{}
 			}
 		}
 	}
@@ -414,7 +415,7 @@ func ApplyTemplateCacheMutations(ctx context.Context, ws *kaitov1beta1.Workspace
 
 	// Apply env vars, volumes, and mounts to the pod spec.
 	applyMutations(&ss.Spec.Template.Spec, mutations)
-	return nil
+	return setMutationHash(ss, attachment, mutations)
 }
 
 func attachmentRequires(attachment *Attachment) bool {

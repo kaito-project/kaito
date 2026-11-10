@@ -245,18 +245,25 @@ cache:
       # glibc requirement: the client is built against glibc 2.35 (manylinux_2_35),
       # so the inference/base image using the cache MUST be glibc >= 2.35
       # (Ubuntu 22.04+), otherwise the library fails to load at runtime.
-      clientImage: ""
+      clientImage: "mcr.microsoft.com/dacs/runai-dacs-client:v0.1.0"
+      # KAITO renders this Cache resource; the DACS chart installs its controller.
+      cache:
+        enabled: true
+        name: cache-sample
+        namespace: kube-system
+        spec:
+          nodeSelectorKey: nexus.azure.com/processing-unit
+          nodeSelectorValue: cpu
+          scaling:
+            dynamic:
+              percentageOfNodesToUse: 100
+              minServers: 1
+              maxServers: 100
+          serverSizeInGB: 4
+          serverThreads: 80
+          storage:
+            hostPath:
+              nodeCacheFolderPath: /var/lib/ssd/cacheserver
 dacs:
   manager:
     namespace: kube-system
-  cacheServer:
-    nodeSelectorLabelKey: nexus.azure.com/processing-unit
-    nodeSelectorLabelValues: [ "cpu" ]
-  cache:
-    enabled: true
-    namespace: kube-system
-    name: cache-sample
-    dynamic:
-      percentageOfNodesToUse: 100
-      minServers: 1
-      maxServers: 100

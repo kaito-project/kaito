@@ -62,9 +62,51 @@ helm install workspace ./charts/kaito/workspace  \
 | featureGates.distributedCache                  | bool   | `false`                                                  | Allowed values: `true`, `false`. Enables the distributed cache feature (model weights and KV cache injection). |
 | cache.providers.dacs.enabled                   | bool   | `true`                                                   | Allowed values: `true`, `false`. Enables the DACS distributed cache provider and installs the bundled `dacs` subchart. Mutually exclusive with `localCSIDriver.useLocalCSIDriver` (keep that `false` when enabling DACS). |
 | cache.providers.dacs.discoveryEndpoint         | string | `""`                                                     | DACS cache server discovery URL. Auto-discovered from the Cache CR status when empty. |
-| cache.providers.dacs.clientImage               | string | `""`                                                     | OCI image bundling the DACS client libraries, mounted into inference pods. Requires glibc >= 2.35 (Ubuntu 22.04+). |
+| cache.providers.dacs.clientImage               | string | `"mcr.microsoft.com/dacs/runai-dacs-client:v0.1.0"` | OCI image bundling the DACS client libraries, mounted into inference pods as an ImageVolume. Requires glibc >= 2.35 (Ubuntu 22.04+). |
+| cache.providers.dacs.cache.enabled             | bool   | `true` | Creates the KAITO-owned Cache resource when the DACS provider is enabled. Set to `false` to use an existing externally managed Cache. |
+| cache.providers.dacs.cache.name                | string | `"cache-sample"` | Name of the Cache resource. |
+| cache.providers.dacs.cache.namespace           | string | `"kube-system"` | Namespace of the Cache resource; empty uses the Helm release namespace. |
+| cache.providers.dacs.cache.spec                | object | (see values.yaml) | Cache CR spec, including node selection, dynamic/static scaling, capacity, and storage. |
 | gpu-feature-discovery.nfd.enabled              | bool   | `true`                                                   | Allowed values: `true`, `false`. Set to `false` if NFD is already installed (e.g., via the NVIDIA GPU Operator) to avoid CRD conflicts. Only applies when the GFD subchart is active (`featureGates.disableNodeAutoProvisioning=true`). |
 | gpu-feature-discovery.gfd.enabled              | bool   | `true`                                                   | Allowed values: `true`, `false`. Set to `false` if GFD is already installed (e.g., via the NVIDIA GPU Operator). Only applies when the GFD subchart is active (`featureGates.disableNodeAutoProvisioning=true`). |
+
+## DACS Cache configuration
+
+The bundled DACS chart is pinned to `0.1.0` and installs only the
+controller. KAITO renders the Cache resource from
+`cache.providers.dacs.cache`, keeping node selection and scaling configurable
+through this chart:
+
+```yaml
+cache:
+  providers:
+    dacs:
+      cache:
+        enabled: true
+        name: cache-sample
+        namespace: kube-system
+        spec:
+          nodeSelectorKey: nexus.azure.com/processing-unit
+          nodeSelectorValue: cpu
+          scaling:
+            dynamic:
+              percentageOfNodesToUse: 100
+              minServers: 1
+              maxServers: 100
+```
+
+For static scaling, set `spec.scaling.dynamic: null` and
+`spec.scaling.static.numServers` to the desired count. To use an externally
+managed Cache, set `cache.providers.dacs.cache.enabled=false`. The former
+`dacs.cache.*` and `dacs.cacheServer.*` values do not configure Cache resources
+in this version; `dacs.cache.enabled=true` is rejected upstream.
+
+When upgrading an older release that owns a Cache, preserve its name, namespace,
+and spec in `cache.providers.dacs.cache` so Helm retains the same resource.
+Simply disabling the old Cache template without a replacement can cause Helm to
+delete it. An existing Cache owned by a different Helm release must be migrated
+before enabling KAITO management. Apply the target DACS CRD before upgrading an
+existing installation, since Helm does not upgrade CRDs automatically.
 
 ## Karpenter NodeClass Updates
 

@@ -79,7 +79,7 @@ const (
 	// size on the streamer than the cache-server stores would defeat cache
 	// hits. RUNAI_STREAMER_CHUNK_BYTESIZE therefore defaults to the DACS default
 	// so the two stay aligned out of the box. Operators can still override it via
-	// DACS_ENV_RUNAI_STREAMER_CHUNK_BYTESIZE if the cache-server is retuned.
+	// DACS_ENV_RUNAI_STREAMER_CHUNK_BYTESIZE if the cache-server is reconfigured.
 	dacsDefaultChunkByteSize = 32 * 1024 * 1024 // 33554432
 
 	// runaiChunkEnv (run:ai streamer read chunk size) and siChunkEnv (DACS

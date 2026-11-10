@@ -247,7 +247,7 @@ func readGeneratedBlocks(path string) (map[generatedBlockKey]string, error) {
 
 	raw := string(rawBytes)
 	markerRE := regexp.MustCompile(`(?m)^\t// === ([^\n]+) ===\n`)
-	repoRE := regexp.MustCompile(`(?m)^\t// repo:\s+(\S+) @ (\S+)\n`)
+	repoPattern := regexp.MustCompile(`(?m)^\t// repo:\s+(\S+) @ (\S+)\n`)
 	matches := markerRE.FindAllStringSubmatchIndex(raw, -1)
 	for i, match := range matches {
 		end := len(raw)
@@ -257,7 +257,7 @@ func readGeneratedBlocks(path string) (map[generatedBlockKey]string, error) {
 			end = closing + 1
 		}
 		block := raw[match[0]:end]
-		repoMatch := repoRE.FindStringSubmatch(block)
+		repoMatch := repoPattern.FindStringSubmatch(block)
 		if len(repoMatch) != 3 {
 			continue
 		}

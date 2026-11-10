@@ -575,6 +575,7 @@ func TestApplyInferenceWithTemplate(t *testing.T) {
 			callMocks: func(c *testutil.MockClient) {
 				c.On("Get", mock.IsType(context.Background()), mock.Anything, mock.IsType(&appsv1.Deployment{}), mock.Anything).Return(testutil.NotFoundError())
 				c.On("Get", mock.IsType(context.Background()), mock.Anything, mock.IsType(&corev1.ConfigMap{}), mock.Anything).Return(nil)
+				c.On("Get", mock.IsType(context.Background()), mock.Anything, mock.IsType(&appsv1.StatefulSet{}), mock.Anything).Return(testutil.NotFoundError())
 				c.On("Create", mock.IsType(context.Background()), mock.IsType(&appsv1.StatefulSet{}), mock.Anything).Return(errors.New("Failed to create deployment"))
 				c.On("Get", mock.IsType(context.Background()), mock.Anything, mock.IsType(&v1beta1.Workspace{}), mock.Anything).Return(nil)
 				c.StatusMock.On("Update", mock.IsType(context.Background()), mock.IsType(&v1beta1.Workspace{}), mock.Anything).Return(nil)
@@ -586,7 +587,7 @@ func TestApplyInferenceWithTemplate(t *testing.T) {
 			callMocks: func(c *testutil.MockClient) {
 				c.On("Get", mock.IsType(context.Background()), mock.Anything, mock.IsType(&appsv1.Deployment{}), mock.Anything).Return(testutil.NotFoundError())
 				c.On("Create", mock.IsType(context.Background()), mock.IsType(&appsv1.StatefulSet{}), mock.Anything).Return(nil)
-				c.On("Get", mock.Anything, mock.Anything, mock.IsType(&appsv1.StatefulSet{}), mock.Anything).Return(nil)
+				c.On("Get", mock.Anything, mock.Anything, mock.IsType(&appsv1.StatefulSet{}), mock.Anything).Return(testutil.NotFoundError())
 				c.On("Get", mock.IsType(context.Background()), mock.Anything, mock.IsType(&v1beta1.Workspace{}), mock.Anything).Return(nil)
 				c.StatusMock.On("Update", mock.IsType(context.Background()), mock.IsType(&v1beta1.Workspace{}), mock.Anything).Return(nil)
 			},
@@ -620,6 +621,80 @@ func TestApplyInferenceWithTemplate(t *testing.T) {
 			} else {
 				assert.Equal(t, tc.expectedError.Error(), err.Error())
 			}
+		})
+	}
+}
+
+func TestApplyInferenceWithTemplateUpdatesExistingStatefulSet(t *testing.T) {
+	templateWorkspace := func(image, revision string) *v1beta1.Workspace {
+		ws := testutil.MockWorkspaceWithInferenceTemplate.DeepCopy()
+		ws.Annotations = map[string]string{v1beta1.WorkspaceRevisionAnnotation: revision}
+		ws.Inference.Template = &corev1.PodTemplateSpec{
+			Spec: corev1.PodSpec{
+				Containers: []corev1.Container{{Name: "custom-llm-container", Image: image}},
+			},
+		}
+		return ws
+	}
+
+	testcases := map[string]struct {
+		existingRevision string
+		workspace        *v1beta1.Workspace
+		expectedImage    string
+		expectedRevision string
+	}{
+		"creates the statefulset with the workspace revision": {
+			workspace:        templateWorkspace("custom-llm:v2", "2"),
+			expectedImage:    "custom-llm:v2",
+			expectedRevision: "2",
+		},
+		"rolls out template changes when the workspace revision changes": {
+			existingRevision: "1",
+			workspace:        templateWorkspace("custom-llm:v2", "2"),
+			expectedImage:    "custom-llm:v2",
+			expectedRevision: "2",
+		},
+		"keeps the existing statefulset when the workspace revision is unchanged": {
+			existingRevision: "1",
+			workspace:        templateWorkspace("custom-llm:v2", "1"),
+			expectedImage:    "custom-llm:v1",
+			expectedRevision: "1",
+		},
+	}
+
+	for name, tc := range testcases {
+		t.Run(name, func(t *testing.T) {
+			ctx := context.Background()
+			key := client.ObjectKeyFromObject(tc.workspace)
+			existing := &appsv1.StatefulSet{
+				ObjectMeta: v1.ObjectMeta{
+					Name:        key.Name,
+					Namespace:   key.Namespace,
+					Annotations: map[string]string{v1beta1.WorkspaceRevisionAnnotation: tc.existingRevision},
+				},
+				Spec: appsv1.StatefulSetSpec{
+					Replicas: lo.ToPtr(int32(1)),
+					Template: corev1.PodTemplateSpec{
+						Spec: corev1.PodSpec{
+							Containers: []corev1.Container{{Name: "custom-llm-container", Image: "custom-llm:v1"}},
+						},
+					},
+				},
+			}
+			builder := fake.NewClientBuilder().WithScheme(testutil.NewTestScheme())
+			if tc.existingRevision != "" {
+				builder = builder.WithObjects(existing)
+			}
+			reconciler := &WorkspaceReconciler{Client: builder.Build()}
+
+			require.NoError(t, reconciler.applyInference(ctx, tc.workspace))
+
+			got := &appsv1.StatefulSet{}
+			require.NoError(t, reconciler.Get(ctx, key, got))
+			require.Len(t, got.Spec.Template.Spec.Containers, 1)
+			assert.Equal(t, tc.expectedImage, got.Spec.Template.Spec.Containers[0].Image)
+			assert.Equal(t, tc.expectedRevision, got.Annotations[v1beta1.WorkspaceRevisionAnnotation])
+			assert.Equal(t, int32(1), *got.Spec.Replicas)
 		})
 	}
 }

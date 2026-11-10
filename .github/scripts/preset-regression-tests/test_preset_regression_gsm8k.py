@@ -37,7 +37,7 @@ from preset_regression_gsm8k import (
 from preset_regression_test_utils import load_yaml, validate_coverage
 
 ROOT = Path(__file__).resolve().parents[3]
-MODEL_CATALOG = ROOT / "presets/workspace/models/model_catalog.yaml"
+MODEL_CATALOG = ROOT / "pkg/catalog/model_catalog.yaml"
 GSM_CONFIG = ROOT / "benchmarks/gsm8k/config.yaml"
 GSM_BASELINES = ROOT / "benchmarks/gsm8k/baselines.yaml"
 

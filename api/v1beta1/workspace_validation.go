@@ -36,6 +36,9 @@ import (
 	"knative.dev/pkg/apis"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
+	"github.com/kaito-project/kaito/api/internal/speculativedecoding"
+	"github.com/kaito-project/kaito/pkg/accelerator/nvidia"
+	"github.com/kaito-project/kaito/pkg/catalog"
 	"github.com/kaito-project/kaito/pkg/featuregates"
 	"github.com/kaito-project/kaito/pkg/k8sclient"
 	"github.com/kaito-project/kaito/pkg/model"
@@ -43,10 +46,6 @@ import (
 	"github.com/kaito-project/kaito/pkg/sku"
 	"github.com/kaito-project/kaito/pkg/utils"
 	"github.com/kaito-project/kaito/pkg/utils/consts"
-	"github.com/kaito-project/kaito/pkg/utils/mig"
-	"github.com/kaito-project/kaito/pkg/utils/plugin"
-	"github.com/kaito-project/kaito/pkg/utils/speculativedecoding"
-	"github.com/kaito-project/kaito/presets/workspace/models"
 )
 
 const (
@@ -439,7 +438,7 @@ func (r *TuningSpec) validateCreate(ctx context.Context, workspaceNamespace stri
 	// Currently require a preset to specified, in future we can consider defining a template
 	if r.Preset == nil {
 		errs = errs.Also(apis.ErrMissingField("Preset"))
-	} else if presetName := string(r.Preset.Name); !plugin.IsValidPreset(presetName) {
+	} else if presetName := string(r.Preset.Name); !model.IsValidPreset(presetName) {
 		errs = errs.Also(apis.ErrInvalidValue(fmt.Sprintf("Unsupported tuning preset name %s", presetName), "presetName"))
 	}
 	return errs
@@ -600,7 +599,7 @@ func (r *ResourceSpec) validateCreateWithInference(ctx context.Context, inferenc
 		presetName = strings.ToLower(string(inference.Preset.Name))
 		secretName = inference.Preset.PresetOptions.ModelAccessSecret
 		// Since inference.Preset exists, we must validate preset name.
-		if !plugin.IsValidPreset(presetName) {
+		if !model.IsValidPreset(presetName) {
 			// Return to skip the rest of checks, the Inference spec validation will return proper err msg.
 			return errs
 		}
@@ -808,7 +807,7 @@ func (r *ResourceSpec) validateCreateWithInference(ctx context.Context, inferenc
 
 	if presetName != "" && skuConfig != nil {
 		if napDisabled || (runtime != model.RuntimeNameVLLM && !napDisabled) {
-			modelPreset, err := models.GetModelByName(context.TODO(), presetName, configMapName, secretName, wsNamespace, k8sclient.Client) // InferenceSpec has been validated so the name is valid.
+			modelPreset, err := catalog.GetModelByName(context.TODO(), presetName, configMapName, secretName, wsNamespace, k8sclient.Client) // InferenceSpec has been validated so the name is valid.
 			if err != nil {
 				errs = errs.Also(apis.ErrInvalidValue(fmt.Sprintf("failed to get model preset: %v", err), "preset"))
 				return errs
@@ -893,7 +892,7 @@ func (r *ResourceSpec) validateMIGPartition() (errs *apis.FieldError) {
 	if r.Partition.Count != nil {
 		return apis.ErrInvalidValue("count is only valid for accelerator mode", "partition.count")
 	}
-	if err := mig.ValidateMIGProfile(r.Partition.Profile); err != nil {
+	if err := nvidia.ValidateMIGProfile(r.Partition.Profile); err != nil {
 		return apis.ErrInvalidValue(err.Error(), "partition.profile")
 	}
 
@@ -926,11 +925,11 @@ func (r *ResourceSpec) validateAcceleratorPartition() (errs *apis.FieldError) {
 func (r *ResourceSpec) validateMIGModelFit(ctx context.Context, presetName, configMapName, secretName, wsNamespace string, bypassResourceChecks bool) (errs *apis.FieldError) {
 	// The profile is already validated by validateMIGPartition before this runs,
 	// so this failure is defensive and should not occur in practice.
-	migConfig, err := utils.GetMIGGPUConfig(r.Partition.Profile)
+	migConfig, err := sku.MIGGPUConfig(r.Partition.Profile)
 	if err != nil {
 		return apis.ErrInvalidValue(err.Error(), "partition.profile")
 	}
-	modelPreset, err := models.GetModelByName(ctx, presetName, configMapName, secretName, wsNamespace, k8sclient.Client)
+	modelPreset, err := catalog.GetModelByName(ctx, presetName, configMapName, secretName, wsNamespace, k8sclient.Client)
 	if err != nil {
 		return apis.ErrInvalidValue(fmt.Sprintf("failed to get model preset: %v", err), "preset")
 	}
@@ -1043,13 +1042,13 @@ func (i *InferenceSpec) validateCreate(ctx context.Context, runtime model.Runtim
 	if i.Preset != nil {
 		presetName := string(i.Preset.Name)
 		// Validate preset name
-		if !plugin.IsValidPreset(presetName) {
+		if !model.IsValidPreset(presetName) {
 			// A name in the reserved "custom-" namespace is not merely unknown:
 			// it is an internal, content-addressed registry key, so point the
 			// user at the supported way to bring their own weights instead of a
 			// generic "unsupported" message.
-			if plugin.IsReservedCustomModelName(presetName) {
-				errs = errs.Also(apis.ErrInvalidValue(fmt.Sprintf("inference preset name %q is reserved; select preset %q and supply the model configuration through 'inference.config'", presetName, plugin.PresetNameCustom), "presetName"))
+			if model.IsReservedCustomModelName(presetName) {
+				errs = errs.Also(apis.ErrInvalidValue(fmt.Sprintf("inference preset name %q is reserved; select preset %q and supply the model configuration through 'inference.config'", presetName, model.PresetNameCustom), "presetName"))
 			} else {
 				errs = errs.Also(apis.ErrInvalidValue(fmt.Sprintf("Unsupported inference preset name %s", presetName), "presetName"))
 			}
@@ -1059,7 +1058,7 @@ func (i *InferenceSpec) validateCreate(ctx context.Context, runtime model.Runtim
 		if err := i.validateCustomPreset(); err != nil {
 			return errs.Also(err)
 		}
-		modelPreset, err := models.GetModelByName(ctx, string(i.Preset.Name), i.Config, i.Preset.PresetOptions.ModelAccessSecret, wsNamespace, k8sclient.Client)
+		modelPreset, err := catalog.GetModelByName(ctx, string(i.Preset.Name), i.Config, i.Preset.PresetOptions.ModelAccessSecret, wsNamespace, k8sclient.Client)
 		if err != nil {
 			errs = errs.Also(apis.ErrInvalidValue(fmt.Sprintf("failed to get model preset: %v", err), "preset"))
 			return errs
@@ -1112,9 +1111,9 @@ func (i *InferenceSpec) validateUpdate(old *InferenceSpec) (errs *apis.FieldErro
 	// repointing it would swap the weights underneath an already-sized
 	// deployment. Serving a different model means a new Workspace or
 	// InferenceSet and an explicit cutover.
-	if i.Preset != nil && plugin.IsCustomPreset(string(i.Preset.Name)) && i.Config != old.Config {
+	if i.Preset != nil && model.IsCustomPreset(string(i.Preset.Name)) && i.Config != old.Config {
 		errs = errs.Also(apis.ErrGeneric(
-			fmt.Sprintf("field is immutable for preset %q: serving a different model or different runtime settings requires a new Workspace or InferenceSet", plugin.PresetNameCustom),
+			fmt.Sprintf("field is immutable for preset %q: serving a different model or different runtime settings requires a new Workspace or InferenceSet", model.PresetNameCustom),
 			"config"))
 	}
 	// inference.template can be changed, but cannot be set/unset.

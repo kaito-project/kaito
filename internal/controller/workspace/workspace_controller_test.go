@@ -1,0 +1,2811 @@
+// Copyright (c) KAITO authors.
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+package workspace
+
+import (
+	"context"
+	"crypto/sha256"
+	"encoding/hex"
+	"encoding/json"
+	"errors"
+	"fmt"
+	"reflect"
+	"sort"
+	"strings"
+	"testing"
+	"time"
+
+	"github.com/samber/lo"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
+	"github.com/stretchr/testify/require"
+	appsv1 "k8s.io/api/apps/v1"
+	batchv1 "k8s.io/api/batch/v1"
+	corev1 "k8s.io/api/core/v1"
+	storagev1 "k8s.io/api/storage/v1"
+	apierrors "k8s.io/apimachinery/pkg/api/errors"
+	"k8s.io/apimachinery/pkg/api/meta"
+	"k8s.io/apimachinery/pkg/api/resource"
+	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/apimachinery/pkg/types"
+	kubefake "k8s.io/client-go/kubernetes/fake"
+	"sigs.k8s.io/controller-runtime/pkg/client"
+	"sigs.k8s.io/controller-runtime/pkg/client/fake"
+
+	kaitov1alpha1 "github.com/kaito-project/kaito/api/v1alpha1"
+	"github.com/kaito-project/kaito/api/v1beta1"
+	"github.com/kaito-project/kaito/internal/estimator/nodesestimator"
+	"github.com/kaito-project/kaito/internal/inference"
+	"github.com/kaito-project/kaito/internal/inference/modelstreaming"
+	"github.com/kaito-project/kaito/internal/inference/modelstreaming/registry"
+	"github.com/kaito-project/kaito/internal/k8s/nodes"
+	"github.com/kaito-project/kaito/internal/k8s/resources"
+	byoprovisioner "github.com/kaito-project/kaito/internal/nodeprovision/byo-provisioner"
+	"github.com/kaito-project/kaito/internal/testutil"
+	"github.com/kaito-project/kaito/pkg/catalog"
+	"github.com/kaito-project/kaito/pkg/estimator"
+	"github.com/kaito-project/kaito/pkg/featuregates"
+	"github.com/kaito-project/kaito/pkg/k8sclient"
+	mmconsts "github.com/kaito-project/kaito/pkg/modelmirror/consts"
+	"github.com/kaito-project/kaito/pkg/utils/consts"
+)
+
+func TestSelectWorkspaceNodes(t *testing.T) {
+	testutil.RegisterTestModel()
+	testcases := map[string]struct {
+		qualified []*corev1.Node
+		preferred []string
+		previous  []string
+		count     int
+		expected  []string
+	}{
+		"two qualified nodes, need one": {
+			qualified: []*corev1.Node{
+				{
+					ObjectMeta: v1.ObjectMeta{
+						Name: "node2",
+					},
+				},
+				{
+					ObjectMeta: v1.ObjectMeta{
+						Name: "node1",
+					},
+				},
+			},
+			preferred: []string{},
+			previous:  []string{},
+			count:     1,
+			expected:  []string{"node1"},
+		},
+
+		"three qualified nodes, prefer two of them": {
+			qualified: []*corev1.Node{
+				{
+					ObjectMeta: v1.ObjectMeta{
+						Name: "node1",
+					},
+				},
+				{
+					ObjectMeta: v1.ObjectMeta{
+						Name: "node2",
+					},
+				},
+				{
+					ObjectMeta: v1.ObjectMeta{
+						Name: "node3",
+					},
+				},
+			},
+			preferred: []string{"node3", "node2"},
+			previous:  []string{},
+			count:     2,
+			expected:  []string{"node2", "node3"},
+		},
+
+		"three qualified nodes, two of them are selected previously, need two": {
+			qualified: []*corev1.Node{
+				{
+					ObjectMeta: v1.ObjectMeta{
+						Name: "node1",
+					},
+				},
+				{
+					ObjectMeta: v1.ObjectMeta{
+						Name: "node2",
+					},
+				},
+				{
+					ObjectMeta: v1.ObjectMeta{
+						Name: "node3",
+					},
+				},
+			},
+			preferred: []string{},
+			previous:  []string{"node3", "node2"},
+			count:     2,
+			expected:  []string{"node2", "node3"},
+		},
+
+		"three qualified nodes, one preferred, one previous, need two": {
+			qualified: []*corev1.Node{
+				{
+					ObjectMeta: v1.ObjectMeta{
+						Name: "node1",
+					},
+				},
+				{
+					ObjectMeta: v1.ObjectMeta{
+						Name: "node2",
+					},
+				},
+				{
+					ObjectMeta: v1.ObjectMeta{
+						Name: "node3",
+					},
+				},
+			},
+			preferred: []string{"node3"},
+			previous:  []string{"node2"},
+			count:     2,
+			expected:  []string{"node2", "node3"},
+		},
+
+		"three qualified nodes, one preferred, one previous, need one": {
+			qualified: []*corev1.Node{
+				{
+					ObjectMeta: v1.ObjectMeta{
+						Name: "node1",
+					},
+				},
+				{
+					ObjectMeta: v1.ObjectMeta{
+						Name: "node2",
+					},
+				},
+				{
+					ObjectMeta: v1.ObjectMeta{
+						Name: "node3",
+					},
+				},
+			},
+			preferred: []string{"node3"},
+			previous:  []string{"node2"},
+			count:     1,
+			expected:  []string{"node3"},
+		},
+
+		"three qualified nodes, one is created by gpu-provisioner, need one": {
+			qualified: []*corev1.Node{
+				{
+					ObjectMeta: v1.ObjectMeta{
+						Name: "node1",
+					},
+				},
+				{
+					ObjectMeta: v1.ObjectMeta{
+						Name: "node2",
+					},
+				},
+				{
+					ObjectMeta: v1.ObjectMeta{
+						Name: "node3",
+						Labels: map[string]string{
+							consts.LabelGPUProvisionerCustom: consts.GPUString,
+						},
+					},
+				},
+			},
+			preferred: []string{},
+			previous:  []string{},
+			count:     1,
+			expected:  []string{"node3"},
+		},
+		"three qualified nodes, one is created by gpu-provisioner, one is preferred, one is previous, need two": {
+			qualified: []*corev1.Node{
+				{
+					ObjectMeta: v1.ObjectMeta{
+						Name: "node1",
+					},
+				},
+				{
+					ObjectMeta: v1.ObjectMeta{
+						Name: "node2",
+					},
+				},
+				{
+					ObjectMeta: v1.ObjectMeta{
+						Name: "node3",
+						Labels: map[string]string{
+							consts.LabelGPUProvisionerCustom: consts.GPUString,
+						},
+					},
+				},
+			},
+			preferred: []string{"node2"},
+			previous:  []string{"node1"},
+			count:     2,
+			expected:  []string{"node1", "node2"},
+		},
+		"three qualified nodes, one is created by gpu-provisioner, one is preferred, one is previous, need three": {
+			qualified: []*corev1.Node{
+				{
+					ObjectMeta: v1.ObjectMeta{
+						Name: "node1",
+					},
+				},
+				{
+					ObjectMeta: v1.ObjectMeta{
+						Name: "node2",
+					},
+				},
+				{
+					ObjectMeta: v1.ObjectMeta{
+						Name: "node3",
+						Labels: map[string]string{
+							consts.LabelGPUProvisionerCustom: consts.GPUString,
+						},
+					},
+				},
+			},
+			preferred: []string{"node2"},
+			previous:  []string{"node1"},
+			count:     3,
+			expected:  []string{"node1", "node2", "node3"},
+		},
+		"three qualified nodes, one is created by gpu-provisioner (machine), the other created by karpenter (nodeClaim), one is preferred, need two": {
+			qualified: []*corev1.Node{
+				{
+					ObjectMeta: v1.ObjectMeta{
+						Name: "node1",
+					},
+				},
+				{
+					ObjectMeta: v1.ObjectMeta{
+						Name: "node2",
+						Labels: map[string]string{
+							consts.LabelNodePool: consts.KaitoNodePoolName,
+						},
+					},
+				},
+				{
+					ObjectMeta: v1.ObjectMeta{
+						Name: "node3",
+						Labels: map[string]string{
+							consts.LabelGPUProvisionerCustom: consts.GPUString,
+						},
+					},
+				},
+			},
+			preferred: []string{"node1"},
+			previous:  []string{},
+			count:     2,
+			expected:  []string{"node1", "node3"},
+		},
+		"three qualified nodes, one is created by  by karpenter (nodeClaim), two is preferred, need two": {
+			qualified: []*corev1.Node{
+				{
+					ObjectMeta: v1.ObjectMeta{
+						Name: "node1",
+					},
+				},
+				{
+					ObjectMeta: v1.ObjectMeta{
+						Name: "node2",
+					},
+				},
+				{
+					ObjectMeta: v1.ObjectMeta{
+						Name: "node3",
+						Labels: map[string]string{
+							consts.LabelNodePool: consts.KaitoNodePoolName,
+						},
+					},
+				},
+			},
+			preferred: []string{"node1"},
+			previous:  []string{},
+			count:     2,
+			expected:  []string{"node1", "node3"},
+		},
+	}
+
+	for k, tc := range testcases {
+		t.Run(k, func(t *testing.T) {
+			selectedNodes := nodes.SelectNodes(tc.qualified, tc.preferred, tc.previous, tc.count)
+
+			selectedNodesArray := []string{}
+
+			for _, each := range selectedNodes {
+				selectedNodesArray = append(selectedNodesArray, each.Name)
+			}
+
+			sort.Strings(selectedNodesArray)
+			sort.Strings(tc.expected)
+
+			if !reflect.DeepEqual(selectedNodesArray, tc.expected) {
+				t.Errorf("%s: selected Nodes %+v are different from the expected %+v", k, selectedNodesArray, tc.expected)
+			}
+		})
+	}
+}
+
+func TestEnsureService(t *testing.T) {
+	testutil.RegisterTestModel()
+	testcases := map[string]struct {
+		callMocks     func(c *testutil.MockClient)
+		expectedError error
+		workspace     *v1beta1.Workspace
+	}{
+		"Existing service is found for workspace": {
+			callMocks: func(c *testutil.MockClient) {
+				c.On("Get", mock.IsType(context.Background()), types.NamespacedName{Name: "testWorkspace", Namespace: "kaito"}, mock.IsType(&corev1.Service{}), mock.Anything).Return(nil)
+				c.On("Get", mock.IsType(context.Background()), types.NamespacedName{Name: "testWorkspace-headless", Namespace: "kaito"}, mock.IsType(&corev1.Service{}), mock.Anything).Return(nil)
+			},
+			expectedError: nil,
+			workspace:     testutil.MockWorkspaceDistributedModel,
+		},
+		"Service creation fails": {
+			callMocks: func(c *testutil.MockClient) {
+				c.On("Get", mock.IsType(context.Background()), types.NamespacedName{Name: "testWorkspace", Namespace: "kaito"}, mock.IsType(&corev1.Service{}), mock.Anything).Return(testutil.NotFoundError())
+				c.On("Create", mock.IsType(context.Background()), mock.MatchedBy(func(s *corev1.Service) bool { return s.Name == "testWorkspace" }), mock.Anything).Return(errors.New("cannot create service"))
+			},
+			expectedError: errors.New("cannot create service"),
+			workspace:     testutil.MockWorkspaceDistributedModel,
+		},
+		"Successfully creates a new service": {
+			callMocks: func(c *testutil.MockClient) {
+				c.On("Get", mock.IsType(context.Background()), types.NamespacedName{Name: "testWorkspace", Namespace: "kaito"}, mock.IsType(&corev1.Service{}), mock.Anything).Return(testutil.NotFoundError())
+				c.On("Create", mock.IsType(context.Background()), mock.MatchedBy(func(s *corev1.Service) bool { return s.Name == "testWorkspace" }), mock.Anything).Return(nil)
+				c.On("Get", mock.IsType(context.Background()), types.NamespacedName{Name: "testWorkspace-headless", Namespace: "kaito"}, mock.IsType(&corev1.Service{}), mock.Anything).Return(testutil.NotFoundError())
+				c.On("Create", mock.IsType(context.Background()), mock.MatchedBy(func(s *corev1.Service) bool { return s.Name == "testWorkspace-headless" }), mock.Anything).Return(nil)
+			},
+			expectedError: nil,
+			workspace:     testutil.MockWorkspaceDistributedModel,
+		},
+		"Successfully creates a new service for a custom model": {
+			callMocks: func(c *testutil.MockClient) {
+				c.On("Get", mock.IsType(context.Background()), types.NamespacedName{Name: "testCustomWorkspace", Namespace: "kaito"}, mock.IsType(&corev1.Service{}), mock.Anything).Return(testutil.NotFoundError())
+				c.On("Create", mock.IsType(context.Background()), mock.MatchedBy(func(s *corev1.Service) bool { return s.Name == "testCustomWorkspace" }), mock.Anything).Return(nil)
+				c.On("Get", mock.IsType(context.Background()), types.NamespacedName{Name: "testCustomWorkspace-headless", Namespace: "kaito"}, mock.IsType(&corev1.Service{}), mock.Anything).Return(testutil.NotFoundError())
+				c.On("Create", mock.IsType(context.Background()), mock.MatchedBy(func(s *corev1.Service) bool { return s.Name == "testCustomWorkspace-headless" }), mock.Anything).Return(nil)
+			},
+			expectedError: nil,
+			workspace:     testutil.MockWorkspaceCustomModel,
+		},
+	}
+
+	for k, tc := range testcases {
+		t.Run(k, func(t *testing.T) {
+			mockClient := testutil.NewClient()
+			tc.callMocks(mockClient)
+
+			reconciler := &WorkspaceReconciler{
+				Client: mockClient,
+				Scheme: testutil.NewTestScheme(),
+			}
+			ctx := context.Background()
+
+			err := reconciler.ensureService(ctx, tc.workspace)
+			if tc.expectedError == nil {
+				assert.NoError(t, err)
+			} else {
+				assert.Equal(t, tc.expectedError.Error(), err.Error())
+			}
+		})
+	}
+
+}
+
+func TestApplyInferenceWithPreset(t *testing.T) {
+	testutil.RegisterTestModel()
+	testcases := map[string]struct {
+		callMocks     func(c *testutil.MockClient)
+		workspace     v1beta1.Workspace
+		expectedError error
+	}{
+		"Fail to get inference because associated workload with workspace cannot be retrieved": {
+			callMocks: func(c *testutil.MockClient) {
+				c.On("Get", mock.IsType(context.Background()), mock.Anything, mock.IsType(&appsv1.Deployment{}), mock.Anything).Return(testutil.NotFoundError())
+				c.On("Get", mock.IsType(context.Background()), mock.Anything, mock.IsType(&corev1.ConfigMap{}), mock.Anything).Return(nil)
+				c.On("Get", mock.IsType(context.Background()), mock.Anything, mock.IsType(&appsv1.StatefulSet{}), mock.Anything).Return(errors.New("Failed to get resource"))
+				c.On("Get", mock.IsType(context.Background()), mock.Anything, mock.IsType(&v1beta1.Workspace{}), mock.Anything).Return(nil)
+				c.StatusMock.On("Update", mock.IsType(context.Background()), mock.IsType(&v1beta1.Workspace{}), mock.Anything).Return(nil)
+			},
+			workspace:     *testutil.MockWorkspaceDistributedModel,
+			expectedError: errors.New("Failed to get resource"),
+		},
+		"Inference workload exists but not ready": {
+			callMocks: func(c *testutil.MockClient) {
+				numRep := int32(1)
+				relevantMap := c.CreateMapWithType(&appsv1.StatefulSet{})
+				relevantMap[client.ObjectKey{Namespace: "kaito", Name: "testWorkspace"}] = &appsv1.StatefulSet{
+					ObjectMeta: v1.ObjectMeta{
+						Name:      "testWorkspace",
+						Namespace: "kaito",
+						Annotations: map[string]string{
+							v1beta1.WorkspaceRevisionAnnotation: "1",
+						},
+					},
+					Spec: appsv1.StatefulSetSpec{
+						Replicas: &numRep,
+						Template: corev1.PodTemplateSpec{
+							Spec: corev1.PodSpec{
+								Containers: []corev1.Container{{
+									Name:      "inference-container",
+									Image:     "inference-image:latest",
+									Resources: corev1.ResourceRequirements{Limits: corev1.ResourceList{corev1.ResourceName(consts.NvidiaGPU): resource.MustParse("1")}},
+								}},
+							},
+						},
+					},
+					Status: appsv1.StatefulSetStatus{
+						ReadyReplicas: 0,
+					},
+				}
+				c.On("Get", mock.IsType(context.Background()), mock.Anything, mock.IsType(&appsv1.Deployment{}), mock.Anything).Return(testutil.NotFoundError())
+				c.On("Get", mock.IsType(context.Background()), mock.Anything, mock.IsType(&corev1.ConfigMap{}), mock.Anything).Return(nil)
+				c.On("Get", mock.IsType(context.Background()), mock.Anything, mock.IsType(&storagev1.StorageClass{}), mock.Anything).Return(nil)
+				c.On("Get", mock.Anything, mock.Anything, mock.IsType(&appsv1.StatefulSet{}), mock.Anything).Return(nil)
+				c.On("Update", mock.Anything, mock.IsType(&appsv1.StatefulSet{}), mock.Anything).Return(nil)
+
+				c.On("Get", mock.IsType(context.Background()), mock.Anything, mock.IsType(&corev1.Service{}), mock.Anything).Return(nil)
+
+				c.On("Get", mock.IsType(context.Background()), mock.Anything, mock.IsType(&v1beta1.Workspace{}), mock.Anything).Return(nil)
+				c.StatusMock.On("Update", mock.IsType(context.Background()), mock.IsType(&v1beta1.Workspace{}), mock.Anything).Return(nil)
+			},
+			workspace:     *testutil.MockWorkspaceWithPreset,
+			expectedError: nil,
+		},
+		"Apply inference from existing workload": {
+			callMocks: func(c *testutil.MockClient) {
+				numRep := int32(1)
+				relevantMap := c.CreateMapWithType(&appsv1.StatefulSet{})
+				relevantMap[client.ObjectKey{Namespace: "kaito", Name: "testWorkspace"}] = &appsv1.StatefulSet{
+					ObjectMeta: v1.ObjectMeta{
+						Name:      "testWorkspace",
+						Namespace: "kaito",
+					},
+					Spec: appsv1.StatefulSetSpec{
+						Replicas: &numRep,
+						Template: corev1.PodTemplateSpec{
+							Spec: corev1.PodSpec{
+								Containers: []corev1.Container{{
+									Name:      "inference-container",
+									Image:     "inference-image:latest",
+									Resources: corev1.ResourceRequirements{Limits: corev1.ResourceList{corev1.ResourceName(consts.NvidiaGPU): resource.MustParse("1")}},
+								}},
+							},
+						},
+					},
+					Status: appsv1.StatefulSetStatus{
+						ReadyReplicas: 1,
+					},
+				}
+				c.On("Get", mock.IsType(context.Background()), mock.Anything, mock.IsType(&appsv1.Deployment{}), mock.Anything).Return(testutil.NotFoundError())
+				c.On("Get", mock.IsType(context.Background()), mock.Anything, mock.IsType(&corev1.ConfigMap{}), mock.Anything).Return(nil)
+				c.On("Get", mock.Anything, mock.Anything, mock.IsType(&appsv1.StatefulSet{}), mock.Anything).Return(nil)
+				c.On("Update", mock.Anything, mock.IsType(&appsv1.StatefulSet{}), mock.Anything).Return(nil)
+				c.On("Get", mock.IsType(context.Background()), mock.Anything, mock.IsType(&v1beta1.Workspace{}), mock.Anything).Return(nil)
+				c.StatusMock.On("Update", mock.IsType(context.Background()), mock.IsType(&v1beta1.Workspace{}), mock.Anything).Return(nil)
+			},
+			workspace:     *testutil.MockWorkspaceDistributedModel,
+			expectedError: nil,
+		},
+
+		"Update statefulset with new configuration": {
+			callMocks: func(c *testutil.MockClient) {
+				c.On("Get", mock.IsType(context.Background()), mock.Anything, mock.IsType(&appsv1.Deployment{}), mock.Anything).Return(testutil.NotFoundError())
+				c.On("Get", mock.IsType(context.Background()), mock.Anything, mock.IsType(&corev1.ConfigMap{}), mock.Anything).Return(nil)
+				c.On("Get", mock.IsType(context.Background()), mock.Anything, mock.IsType(&storagev1.StorageClass{}), mock.Anything).Return(nil)
+				// Mocking existing StatefulSet object
+				c.On("Get", mock.Anything, mock.Anything, mock.IsType(&appsv1.StatefulSet{}), mock.Anything).
+					Run(func(args mock.Arguments) {
+						ss := args.Get(2).(*appsv1.StatefulSet)
+						*ss = *testutil.MockStatefulSetUpdated.DeepCopy()
+						ss.Spec.Template.Spec.Containers[0].Resources.Limits = corev1.ResourceList{corev1.ResourceName(consts.NvidiaGPU): resource.MustParse("1")}
+					}).
+					Return(nil)
+
+				c.On("Update", mock.IsType(context.Background()), mock.IsType(&appsv1.StatefulSet{}), mock.Anything).Return(nil)
+				c.On("Get", mock.IsType(context.Background()), mock.Anything, mock.IsType(&v1beta1.Workspace{}), mock.Anything).Return(nil)
+				c.StatusMock.On("Update", mock.IsType(context.Background()), mock.IsType(&v1beta1.Workspace{}), mock.Anything).Return(nil)
+			},
+			workspace:     *testutil.MockWorkspaceWithPreset,
+			expectedError: nil,
+		},
+	}
+
+	for k, tc := range testcases {
+		t.Run(k, func(t *testing.T) {
+			mockClient := testutil.NewClient()
+			tc.callMocks(mockClient)
+
+			reconciler := &WorkspaceReconciler{
+				Client:    mockClient,
+				Scheme:    testutil.NewTestScheme(),
+				Estimator: &nodesestimator.NodeEstimator{},
+			}
+			ctx := context.Background()
+
+			t.Setenv("CLOUD_PROVIDER", consts.AzureCloudName)
+			t.Setenv("RELEASE_NAMESPACE", "kaito")
+			if tc.workspace.Status.TargetNodeCount == 0 {
+				req, reqErr := nodesestimator.RequestFromWorkspace(t.Context(), &tc.workspace, mockClient)
+				if reqErr != nil {
+					t.Errorf("Failed to build estimate request: %v", reqErr)
+					return
+				}
+				cnt, err := reconciler.Estimator.EstimateNodeCount(t.Context(), req, mockClient)
+				if err != nil {
+					t.Errorf("Failed to estimate node count: %v", err)
+					return
+				}
+				tc.workspace.Status.TargetNodeCount = cnt
+			}
+
+			err := reconciler.applyInference(ctx, &tc.workspace)
+			if tc.expectedError == nil {
+				assert.NoError(t, err)
+			} else {
+				assert.Equal(t, tc.expectedError.Error(), err.Error())
+			}
+		})
+	}
+}
+
+func TestApplyInferenceWithTemplate(t *testing.T) {
+	testcases := map[string]struct {
+		callMocks     func(c *testutil.MockClient)
+		workspace     v1beta1.Workspace
+		expectedError error
+	}{
+		"Fail to apply inference from workspace template": {
+			callMocks: func(c *testutil.MockClient) {
+				c.On("Get", mock.IsType(context.Background()), mock.Anything, mock.IsType(&appsv1.Deployment{}), mock.Anything).Return(testutil.NotFoundError())
+				c.On("Get", mock.IsType(context.Background()), mock.Anything, mock.IsType(&corev1.ConfigMap{}), mock.Anything).Return(nil)
+				c.On("Create", mock.IsType(context.Background()), mock.IsType(&appsv1.StatefulSet{}), mock.Anything).Return(errors.New("Failed to create deployment"))
+				c.On("Get", mock.IsType(context.Background()), mock.Anything, mock.IsType(&v1beta1.Workspace{}), mock.Anything).Return(nil)
+				c.StatusMock.On("Update", mock.IsType(context.Background()), mock.IsType(&v1beta1.Workspace{}), mock.Anything).Return(nil)
+			},
+			workspace:     *testutil.MockWorkspaceWithInferenceTemplate,
+			expectedError: errors.New("Failed to create deployment"),
+		},
+		"Apply inference from workspace template": {
+			callMocks: func(c *testutil.MockClient) {
+				c.On("Get", mock.IsType(context.Background()), mock.Anything, mock.IsType(&appsv1.Deployment{}), mock.Anything).Return(testutil.NotFoundError())
+				c.On("Create", mock.IsType(context.Background()), mock.IsType(&appsv1.StatefulSet{}), mock.Anything).Return(nil)
+				c.On("Get", mock.Anything, mock.Anything, mock.IsType(&appsv1.StatefulSet{}), mock.Anything).Return(nil)
+				c.On("Get", mock.IsType(context.Background()), mock.Anything, mock.IsType(&v1beta1.Workspace{}), mock.Anything).Return(nil)
+				c.StatusMock.On("Update", mock.IsType(context.Background()), mock.IsType(&v1beta1.Workspace{}), mock.Anything).Return(nil)
+			},
+			workspace:     *testutil.MockWorkspaceWithInferenceTemplate,
+			expectedError: nil,
+		},
+	}
+
+	for k, tc := range testcases {
+		t.Run(k, func(t *testing.T) {
+			mockClient := testutil.NewClient()
+			depObj := &appsv1.StatefulSet{}
+
+			mockClient.UpdateCb = func(key types.NamespacedName) {
+				mockClient.GetObjectFromMap(depObj, key)
+				depObj.Status.ReadyReplicas = 1
+				mockClient.CreateOrUpdateObjectInMap(depObj)
+			}
+
+			tc.callMocks(mockClient)
+
+			reconciler := &WorkspaceReconciler{
+				Client: mockClient,
+				Scheme: testutil.NewTestScheme(),
+			}
+			ctx := context.Background()
+
+			err := reconciler.applyInference(ctx, &tc.workspace)
+			if tc.expectedError == nil {
+				assert.NoError(t, err)
+			} else {
+				assert.Equal(t, tc.expectedError.Error(), err.Error())
+			}
+		})
+	}
+}
+
+func computeLegacyHash(w *v1beta1.Workspace) string {
+	hasher := sha256.New()
+	encoder := json.NewEncoder(hasher)
+	encoder.Encode(w.Resource)
+	encoder.Encode(w.Inference)
+	encoder.Encode(w.Tuning)
+	return hex.EncodeToString(hasher.Sum(nil))
+}
+
+func TestComputeHashIncludesOnlyEnabledSpeculativeDecodingState(t *testing.T) {
+	wsWithout := testutil.MockWorkspaceWithComputeHash.DeepCopy()
+	delete(wsWithout.Annotations, v1beta1.AnnotationEnableSpeculativeDecoding)
+
+	wsFalse := wsWithout.DeepCopy()
+	if wsFalse.Annotations == nil {
+		wsFalse.Annotations = map[string]string{}
+	}
+	wsFalse.Annotations[v1beta1.AnnotationEnableSpeculativeDecoding] = "false"
+
+	wsTrue := wsWithout.DeepCopy()
+	if wsTrue.Annotations == nil {
+		wsTrue.Annotations = map[string]string{}
+	}
+	wsTrue.Annotations[v1beta1.AnnotationEnableSpeculativeDecoding] = "true"
+
+	legacy := computeLegacyHash(wsWithout)
+	assert.Equal(t, legacy, ComputeHash(wsWithout), "absent speculative-decoding annotation must preserve the legacy workspace hash")
+	assert.Equal(t, legacy, ComputeHash(wsFalse), "disabled speculative-decoding annotation must preserve the legacy workspace hash")
+	assert.NotEqual(t, legacy, ComputeHash(wsTrue), "enabled speculative-decoding annotation must affect workspace revision hash")
+}
+
+func TestSyncInferenceMutablePodSpec(t *testing.T) {
+	makeSpecs := func() (*corev1.PodSpec, *corev1.PodSpec) {
+		existing := &corev1.PodSpec{
+			Containers: []corev1.Container{
+				{
+					Name:         "inference",
+					Image:        "old-image:latest",
+					Command:      []string{"old-cmd"},
+					Args:         []string{"old-arg"},
+					Env:          []corev1.EnvVar{{Name: "OLD", Value: "1"}},
+					VolumeMounts: []corev1.VolumeMount{{Name: "old", MountPath: "/old"}},
+					Resources: corev1.ResourceRequirements{
+						Limits: corev1.ResourceList{
+							corev1.ResourceName("nvidia.com/gpu"): resource.MustParse("1"),
+						},
+					},
+					StartupProbe:  &corev1.Probe{InitialDelaySeconds: 30},
+					LivenessProbe: &corev1.Probe{ProbeHandler: corev1.ProbeHandler{Exec: &corev1.ExecAction{Command: []string{"python3", "/workspace/vllm/lmcache_server.py", "--health-check"}}}},
+				},
+			},
+			InitContainers: []corev1.Container{{Name: "old-init"}},
+			Volumes:        []corev1.Volume{{Name: "old-vol"}},
+			Tolerations: []corev1.Toleration{
+				{
+					Key:      "nvidia.com/gpu",
+					Operator: corev1.TolerationOpExists,
+					Effect:   corev1.TaintEffectNoSchedule,
+				},
+			},
+			Affinity: &corev1.Affinity{
+				NodeAffinity: &corev1.NodeAffinity{
+					RequiredDuringSchedulingIgnoredDuringExecution: &corev1.NodeSelector{},
+				},
+			},
+		}
+		desired := &corev1.PodSpec{
+			Containers: []corev1.Container{
+				{
+					Name:          "inference",
+					Image:         "new-image:latest",
+					Command:       []string{"new-cmd"},
+					Args:          []string{"new-arg"},
+					Env:           []corev1.EnvVar{{Name: "NEW", Value: "2"}},
+					VolumeMounts:  []corev1.VolumeMount{{Name: "new", MountPath: "/new"}},
+					Resources:     corev1.ResourceRequirements{},
+					LivenessProbe: &corev1.Probe{ProbeHandler: corev1.ProbeHandler{HTTPGet: &corev1.HTTPGetAction{Path: "/health"}}},
+				},
+			},
+			InitContainers: []corev1.Container{{Name: "new-init"}},
+			Volumes:        []corev1.Volume{{Name: "new-vol"}},
+			Tolerations: []corev1.Toleration{
+				{
+					Key:      "sku",
+					Operator: corev1.TolerationOpEqual,
+					Value:    "cpu",
+					Effect:   corev1.TaintEffectNoSchedule,
+				},
+			},
+			Affinity: &corev1.Affinity{
+				PodAntiAffinity: &corev1.PodAntiAffinity{
+					RequiredDuringSchedulingIgnoredDuringExecution: []corev1.PodAffinityTerm{{}},
+				},
+			},
+		}
+		return existing, desired
+	}
+
+	t.Run("preserves target-dependent fields for same-runtime mutable spec refresh", func(t *testing.T) {
+		existing, desired := makeSpecs()
+		originalImage := existing.Containers[0].Image
+		originalResources := existing.Containers[0].Resources.DeepCopy()
+		originalStartupProbe := existing.Containers[0].StartupProbe.DeepCopy()
+		originalTolerations := append([]corev1.Toleration(nil), existing.Tolerations...)
+		originalAffinity := existing.Affinity.DeepCopy()
+
+		syncInferenceMutablePodSpec(existing, desired)
+
+		assert.Equal(t, originalImage, existing.Containers[0].Image)
+		assert.Equal(t, desired.Containers[0].Command, existing.Containers[0].Command)
+		assert.Equal(t, desired.Containers[0].Args, existing.Containers[0].Args)
+		assert.Equal(t, desired.Containers[0].Env, existing.Containers[0].Env)
+		assert.Equal(t, desired.Containers[0].VolumeMounts, existing.Containers[0].VolumeMounts)
+		assert.Equal(t, desired.Containers[0].LivenessProbe, existing.Containers[0].LivenessProbe)
+		assert.Equal(t, desired.InitContainers, existing.InitContainers)
+		assert.Equal(t, desired.Volumes, existing.Volumes)
+		assert.Equal(t, *originalResources, existing.Containers[0].Resources)
+		assert.Equal(t, *originalStartupProbe, *existing.Containers[0].StartupProbe)
+		assert.Equal(t, originalTolerations, existing.Tolerations)
+		assert.Equal(t, *originalAffinity, *existing.Affinity)
+	})
+}
+
+func TestSyncControllerRevision(t *testing.T) {
+	testcases := map[string]struct {
+		callMocks     func(c *testutil.MockClient)
+		workspace     v1beta1.Workspace
+		expectedError error
+		verifyCalls   func(c *testutil.MockClient)
+	}{
+
+		"No new revision needed": {
+			callMocks: func(c *testutil.MockClient) {
+				c.On("List", mock.IsType(context.Background()), mock.IsType(&appsv1.ControllerRevisionList{}), mock.Anything, mock.Anything).Return(nil)
+				c.On("Get", mock.IsType(context.Background()), mock.Anything, mock.IsType(&appsv1.ControllerRevision{}), mock.Anything).
+					Run(func(args mock.Arguments) {
+						dep := args.Get(2).(*appsv1.ControllerRevision)
+						*dep = appsv1.ControllerRevision{
+							ObjectMeta: v1.ObjectMeta{
+								Annotations: map[string]string{
+									WorkspaceHashAnnotation: ComputeHash(&testutil.MockWorkspaceWithComputeHash),
+								},
+							},
+							Revision: 1,
+						}
+					}).
+					Return(nil)
+				// Add mock for workspace retrieval in updateWorkspaceWithRetry
+				c.On("Get", mock.IsType(context.Background()), mock.Anything, mock.IsType(&v1beta1.Workspace{}), mock.Anything).
+					Run(func(args mock.Arguments) {
+						ws := args.Get(2).(*v1beta1.Workspace)
+						*ws = testutil.MockWorkspaceWithComputeHash
+					}).
+					Return(nil)
+				c.On("Update", mock.IsType(context.Background()), mock.IsType(&v1beta1.Workspace{}), mock.Anything).
+					Return(nil)
+			},
+			workspace:     testutil.MockWorkspaceWithComputeHash,
+			expectedError: nil,
+			verifyCalls: func(c *testutil.MockClient) {
+				c.AssertNumberOfCalls(t, "List", 1)
+				c.AssertNumberOfCalls(t, "Create", 0)
+				c.AssertNumberOfCalls(t, "Get", 2) // 1 for ControllerRevision, 1 for Workspace
+				c.AssertNumberOfCalls(t, "Delete", 0)
+				c.AssertNumberOfCalls(t, "Update", 1)
+			},
+		},
+
+		"Fail to create ControllerRevision": {
+			callMocks: func(c *testutil.MockClient) {
+				c.On("List", mock.IsType(context.Background()), mock.IsType(&appsv1.ControllerRevisionList{}), mock.Anything, mock.Anything).Return(nil)
+				c.On("Create", mock.IsType(context.Background()), mock.IsType(&appsv1.ControllerRevision{}), mock.Anything).Return(errors.New("failed to create ControllerRevision"))
+				c.On("Get", mock.IsType(context.Background()), mock.Anything, mock.IsType(&appsv1.ControllerRevision{}), mock.Anything).
+					Return(apierrors.NewNotFound(appsv1.Resource("ControllerRevision"), testutil.MockWorkspaceFailToCreateCR.Name))
+			},
+			workspace:     testutil.MockWorkspaceFailToCreateCR,
+			expectedError: errors.New("failed to create new ControllerRevision: failed to create ControllerRevision"),
+			verifyCalls: func(c *testutil.MockClient) {
+				c.AssertNumberOfCalls(t, "List", 1)
+				c.AssertNumberOfCalls(t, "Create", 1)
+				c.AssertNumberOfCalls(t, "Get", 1)
+				c.AssertNumberOfCalls(t, "Delete", 0)
+				c.AssertNumberOfCalls(t, "Update", 0)
+			},
+		},
+
+		"Successfully create new ControllerRevision": {
+			callMocks: func(c *testutil.MockClient) {
+				c.On("List", mock.IsType(context.Background()), mock.IsType(&appsv1.ControllerRevisionList{}), mock.Anything, mock.Anything).Return(nil)
+				c.On("Create", mock.IsType(context.Background()), mock.IsType(&appsv1.ControllerRevision{}), mock.Anything).Return(nil)
+				c.On("Get", mock.IsType(context.Background()), mock.Anything, mock.IsType(&appsv1.ControllerRevision{}), mock.Anything).
+					Return(apierrors.NewNotFound(appsv1.Resource("ControllerRevision"), testutil.MockWorkspaceFailToCreateCR.Name))
+				// Add mock for workspace retrieval in updateWorkspaceWithRetry
+				c.On("Get", mock.IsType(context.Background()), mock.Anything, mock.IsType(&v1beta1.Workspace{}), mock.Anything).
+					Run(func(args mock.Arguments) {
+						ws := args.Get(2).(*v1beta1.Workspace)
+						*ws = testutil.MockWorkspaceSuccessful
+					}).
+					Return(nil)
+				c.On("Update", mock.IsType(context.Background()), mock.IsType(&v1beta1.Workspace{}), mock.Anything).
+					Return(nil)
+			},
+			workspace:     testutil.MockWorkspaceSuccessful,
+			expectedError: nil,
+			verifyCalls: func(c *testutil.MockClient) {
+				c.AssertNumberOfCalls(t, "List", 1)
+				c.AssertNumberOfCalls(t, "Create", 1)
+				c.AssertNumberOfCalls(t, "Get", 2) // 1 for ControllerRevision, 1 for Workspace
+				c.AssertNumberOfCalls(t, "Delete", 0)
+				c.AssertNumberOfCalls(t, "Update", 1)
+			},
+		},
+
+		"Successfully delete old ControllerRevision": {
+			callMocks: func(c *testutil.MockClient) {
+				revisions := &appsv1.ControllerRevisionList{}
+				jsonData, _ := json.Marshal(testutil.MockWorkspaceWithUpdatedDeployment)
+
+				for i := 0; i <= consts.MaxRevisionHistoryLimit; i++ {
+					revision := &appsv1.ControllerRevision{
+						ObjectMeta: v1.ObjectMeta{
+							Name: fmt.Sprintf("revision-%d", i),
+						},
+						Revision: int64(i),
+						Data:     runtime.RawExtension{Raw: jsonData},
+					}
+					revisions.Items = append(revisions.Items, *revision)
+				}
+				relevantMap := c.CreateMapWithType(revisions)
+
+				for _, obj := range revisions.Items {
+					m := obj
+					objKey := client.ObjectKeyFromObject(&m)
+					relevantMap[objKey] = &m
+				}
+				c.On("List", mock.IsType(context.Background()), mock.IsType(&appsv1.ControllerRevisionList{}), mock.Anything, mock.Anything).Return(nil)
+				c.On("Create", mock.IsType(context.Background()), mock.IsType(&appsv1.ControllerRevision{}), mock.Anything).Return(nil)
+				c.On("Get", mock.IsType(context.Background()), mock.Anything, mock.IsType(&appsv1.ControllerRevision{}), mock.Anything).
+					Return(apierrors.NewNotFound(appsv1.Resource("ControllerRevision"), testutil.MockWorkspaceFailToCreateCR.Name))
+				c.On("Delete", mock.IsType(context.Background()), mock.IsType(&appsv1.ControllerRevision{}), mock.Anything).Return(nil)
+				// Add mock for workspace retrieval in updateWorkspaceWithRetry
+				c.On("Get", mock.IsType(context.Background()), mock.Anything, mock.IsType(&v1beta1.Workspace{}), mock.Anything).
+					Run(func(args mock.Arguments) {
+						ws := args.Get(2).(*v1beta1.Workspace)
+						*ws = testutil.MockWorkspaceWithDeleteOldCR
+					}).
+					Return(nil)
+				c.On("Update", mock.IsType(context.Background()), mock.IsType(&v1beta1.Workspace{}), mock.Anything).
+					Return(nil)
+			},
+			workspace:     testutil.MockWorkspaceWithDeleteOldCR,
+			expectedError: nil,
+			verifyCalls: func(c *testutil.MockClient) {
+				c.AssertNumberOfCalls(t, "List", 1)
+				c.AssertNumberOfCalls(t, "Create", 1)
+				c.AssertNumberOfCalls(t, "Get", 2) // 1 for ControllerRevision, 1 for Workspace
+				c.AssertNumberOfCalls(t, "Delete", 1)
+				c.AssertNumberOfCalls(t, "Update", 1)
+			},
+		},
+
+		"Fail to update Workspace annotations": {
+			callMocks: func(c *testutil.MockClient) {
+				revisions := &appsv1.ControllerRevisionList{}
+				jsonData, _ := json.Marshal(testutil.MockWorkspaceWithUpdatedDeployment)
+
+				for i := 0; i <= consts.MaxRevisionHistoryLimit; i++ {
+					revision := &appsv1.ControllerRevision{
+						ObjectMeta: v1.ObjectMeta{
+							Name: fmt.Sprintf("revision-%d", i),
+						},
+						Revision: int64(i),
+						Data:     runtime.RawExtension{Raw: jsonData},
+					}
+					revisions.Items = append(revisions.Items, *revision)
+				}
+				relevantMap := c.CreateMapWithType(revisions)
+
+				for _, obj := range revisions.Items {
+					m := obj
+					objKey := client.ObjectKeyFromObject(&m)
+					relevantMap[objKey] = &m
+				}
+				c.On("List", mock.IsType(context.Background()), mock.IsType(&appsv1.ControllerRevisionList{}), mock.Anything, mock.Anything).Return(nil)
+				c.On("Create", mock.IsType(context.Background()), mock.IsType(&appsv1.ControllerRevision{}), mock.Anything).Return(nil)
+				c.On("Get", mock.IsType(context.Background()), mock.Anything, mock.IsType(&appsv1.ControllerRevision{}), mock.Anything).
+					Return(apierrors.NewNotFound(appsv1.Resource("ControllerRevision"), testutil.MockWorkspaceFailToCreateCR.Name))
+				c.On("Delete", mock.IsType(context.Background()), mock.IsType(&appsv1.ControllerRevision{}), mock.Anything).Return(nil)
+				// Add mock for workspace retrieval in updateWorkspaceWithRetry
+				c.On("Get", mock.IsType(context.Background()), mock.Anything, mock.IsType(&v1beta1.Workspace{}), mock.Anything).
+					Run(func(args mock.Arguments) {
+						ws := args.Get(2).(*v1beta1.Workspace)
+						*ws = testutil.MockWorkspaceUpdateCR
+					}).
+					Return(nil)
+				c.On("Update", mock.IsType(context.Background()), mock.IsType(&v1beta1.Workspace{}), mock.Anything).
+					Return(fmt.Errorf("failed to update Workspace annotations"))
+			},
+			workspace:     testutil.MockWorkspaceUpdateCR,
+			expectedError: fmt.Errorf("failed to update Workspace annotations: %w", fmt.Errorf("failed to update Workspace annotations")),
+			verifyCalls: func(c *testutil.MockClient) {
+				c.AssertNumberOfCalls(t, "List", 1)
+				c.AssertNumberOfCalls(t, "Create", 1)
+				c.AssertNumberOfCalls(t, "Get", 2) // 1 for ControllerRevision, 1 for Workspace
+				c.AssertNumberOfCalls(t, "Delete", 1)
+				c.AssertNumberOfCalls(t, "Update", 1)
+			},
+		},
+	}
+	for k, tc := range testcases {
+		t.Run(k, func(t *testing.T) {
+			mockClient := testutil.NewClient()
+			tc.callMocks(mockClient)
+
+			reconciler := &WorkspaceReconciler{
+				Client: mockClient,
+				Scheme: testutil.NewTestScheme(),
+			}
+			ctx := context.Background()
+
+			err := reconciler.syncControllerRevision(ctx, &tc.workspace)
+			if tc.expectedError == nil {
+				assert.NoError(t, err)
+			} else {
+				assert.Equal(t, tc.expectedError.Error(), err.Error())
+			}
+			if tc.verifyCalls != nil {
+				tc.verifyCalls(mockClient)
+			}
+		})
+	}
+}
+
+// mockEstimator is a mock implementation of estimator.NodesEstimator for testing
+type mockEstimator struct {
+	mock.Mock
+}
+
+func (m *mockEstimator) Name() string {
+	args := m.Called()
+	return args.String(0)
+}
+
+func (m *mockEstimator) EstimateNodeCount(ctx context.Context, req estimator.NodeEstimateRequest, client client.Client) (int32, error) {
+	args := m.Called(ctx, req, client)
+	return args.Get(0).(int32), args.Error(1)
+}
+
+func TestUpdateWorkspaceTargetNodeCount(t *testing.T) {
+	// The request builder resolves the model from the registry before the
+	// estimator runs, so the preset must be registered even though the estimator
+	// itself is mocked.
+	testutil.RegisterTestModel()
+
+	tests := map[string]struct {
+		workspace      *v1beta1.Workspace
+		setupMocks     func(*testutil.MockClient, *mockEstimator, *int32)
+		expectedError  bool
+		expectedTarget int32
+	}{
+		"should return false when targetNodeCount already set": {
+			workspace: &v1beta1.Workspace{
+				ObjectMeta: v1.ObjectMeta{Name: "test-workspace", Namespace: "default"},
+				Status:     v1beta1.WorkspaceStatus{TargetNodeCount: 2},
+			},
+			setupMocks:     func(c *testutil.MockClient, e *mockEstimator, _ *int32) {},
+			expectedError:  false,
+			expectedTarget: 2,
+		},
+		"should set targetNodeCount to 1 when zero and no inference": {
+			workspace: &v1beta1.Workspace{
+				ObjectMeta: v1.ObjectMeta{Name: "test-workspace", Namespace: "default"},
+				Status:     v1beta1.WorkspaceStatus{TargetNodeCount: 0},
+			},
+			setupMocks: func(c *testutil.MockClient, e *mockEstimator, updatedTarget *int32) {
+				// Mock Get used by resources.UpdateStatusWithRetry to populate the workspace object
+				c.On("Get", mock.Anything, mock.Anything, mock.IsType(&v1beta1.Workspace{}), mock.Anything).
+					Run(func(args mock.Arguments) {
+						ws := args.Get(2).(*v1beta1.Workspace)
+						ws.ObjectMeta = v1.ObjectMeta{Name: "test-workspace", Namespace: "default"}
+						ws.Status = v1beta1.WorkspaceStatus{TargetNodeCount: 0}
+					}).Return(nil).Once()
+				c.StatusMock.On("Update", mock.Anything, mock.IsType(&v1beta1.Workspace{}), mock.Anything).
+					Run(func(args mock.Arguments) {
+						ws := args.Get(1).(*v1beta1.Workspace)
+						*updatedTarget = ws.Status.TargetNodeCount
+					}).Return(nil)
+			},
+			expectedError:  false,
+			expectedTarget: 1,
+		},
+		"should use estimator when inference present and set returned value": {
+			workspace: &v1beta1.Workspace{
+				ObjectMeta: v1.ObjectMeta{Name: "test-workspace", Namespace: "default"},
+				Inference:  &v1beta1.InferenceSpec{Preset: &v1beta1.PresetSpec{PresetMeta: v1beta1.PresetMeta{Name: "test-model"}}},
+				Status:     v1beta1.WorkspaceStatus{TargetNodeCount: 0},
+			},
+			setupMocks: func(c *testutil.MockClient, e *mockEstimator, updatedTarget *int32) {
+				e.On("EstimateNodeCount", mock.Anything, mock.IsType(estimator.NodeEstimateRequest{}), mock.Anything).Return(int32(3), nil)
+				c.On("Get", mock.Anything, mock.Anything, mock.IsType(&v1beta1.Workspace{}), mock.Anything).
+					Run(func(args mock.Arguments) {
+						ws := args.Get(2).(*v1beta1.Workspace)
+						ws.ObjectMeta = v1.ObjectMeta{Name: "test-workspace", Namespace: "default"}
+						ws.Status = v1beta1.WorkspaceStatus{TargetNodeCount: 0}
+					}).Return(nil).Once()
+				c.StatusMock.On("Update", mock.Anything, mock.IsType(&v1beta1.Workspace{}), mock.Anything).
+					Run(func(args mock.Arguments) {
+						ws := args.Get(1).(*v1beta1.Workspace)
+						*updatedTarget = ws.Status.TargetNodeCount
+					}).Return(nil)
+			},
+			expectedError:  false,
+			expectedTarget: 3,
+		},
+		"should return error when estimator fails": {
+			workspace: &v1beta1.Workspace{
+				ObjectMeta: v1.ObjectMeta{Name: "test-workspace", Namespace: "default"},
+				Inference:  &v1beta1.InferenceSpec{Preset: &v1beta1.PresetSpec{PresetMeta: v1beta1.PresetMeta{Name: "test-model"}}},
+				Status:     v1beta1.WorkspaceStatus{TargetNodeCount: 0},
+			},
+			setupMocks: func(c *testutil.MockClient, e *mockEstimator, _ *int32) {
+				e.On("EstimateNodeCount", mock.Anything, mock.IsType(estimator.NodeEstimateRequest{}), mock.Anything).Return(int32(0), fmt.Errorf("estimator error"))
+				c.On("Get", mock.Anything, mock.Anything, mock.IsType(&v1beta1.Workspace{}), mock.Anything).
+					Run(func(args mock.Arguments) {
+						ws := args.Get(2).(*v1beta1.Workspace)
+						ws.ObjectMeta = v1.ObjectMeta{Name: "test-workspace", Namespace: "default"}
+						ws.Status = v1beta1.WorkspaceStatus{TargetNodeCount: 0}
+					}).Return(nil).Once()
+			},
+			expectedError:  true,
+			expectedTarget: 0,
+		},
+		"should persist estimate without error": {
+			workspace: &v1beta1.Workspace{
+				ObjectMeta: v1.ObjectMeta{Name: "test-workspace", Namespace: "default"},
+				Inference:  &v1beta1.InferenceSpec{Preset: &v1beta1.PresetSpec{PresetMeta: v1beta1.PresetMeta{Name: "test-model"}}},
+				Status:     v1beta1.WorkspaceStatus{TargetNodeCount: 0},
+			},
+			setupMocks: func(c *testutil.MockClient, e *mockEstimator, updatedTarget *int32) {
+				e.On("EstimateNodeCount", mock.Anything, mock.IsType(estimator.NodeEstimateRequest{}), mock.Anything).Return(int32(4), nil)
+				c.On("Get", mock.Anything, mock.Anything, mock.IsType(&v1beta1.Workspace{}), mock.Anything).
+					Run(func(args mock.Arguments) {
+						ws := args.Get(2).(*v1beta1.Workspace)
+						ws.ObjectMeta = v1.ObjectMeta{Name: "test-workspace", Namespace: "default"}
+						ws.Status = v1beta1.WorkspaceStatus{TargetNodeCount: 0}
+					}).Return(nil).Once()
+				c.StatusMock.On("Update", mock.Anything, mock.IsType(&v1beta1.Workspace{}), mock.Anything).
+					Run(func(args mock.Arguments) {
+						ws := args.Get(1).(*v1beta1.Workspace)
+						*updatedTarget = ws.Status.TargetNodeCount
+					}).Return(nil)
+			},
+			expectedError:  false,
+			expectedTarget: 4,
+		},
+	}
+
+	for name, tt := range tests {
+		t.Run(name, func(t *testing.T) {
+			mockClient := testutil.NewClient()
+			mockEst := &mockEstimator{}
+			var updatedTarget int32
+
+			if tt.setupMocks != nil {
+				tt.setupMocks(mockClient, mockEst, &updatedTarget)
+			}
+
+			reconciler := &WorkspaceReconciler{Client: mockClient, Estimator: mockEst}
+			err := reconciler.UpdateWorkspaceTargetNodeCount(context.Background(), tt.workspace)
+			if tt.expectedError {
+				assert.Error(t, err)
+			} else {
+				assert.NoError(t, err)
+			}
+			// In the over-limit case we still expect TargetNodeCount to be
+			// persisted (and reflected on the in-memory object) so the user
+			// can see what the estimator computed.
+			if !tt.expectedError || tt.expectedTarget != 0 {
+				assert.Equal(t, tt.expectedTarget, tt.workspace.Status.TargetNodeCount)
+			}
+
+			mockClient.AssertExpectations(t)
+			mockEst.AssertExpectations(t)
+		})
+	}
+}
+
+func TestEnsureModelMirror_StaticWithPartialSASFails(t *testing.T) {
+	ws := &v1beta1.Workspace{
+		ObjectMeta: v1.ObjectMeta{
+			Name:      "ws-static-partial-sas",
+			Namespace: "default",
+			Annotations: map[string]string{
+				modelstreaming.AnnotationStaticModelMirror: "true",
+				modelstreaming.AnnotationStreamDatarefsURL: "https://x/models/m/versions/1",
+				modelstreaming.AnnotationStreamSourceType:  modelstreaming.SourceTypeBYO,
+				// inference.kaito.sh/stream-identity-client-id intentionally omitted (partial core set).
+			},
+		},
+		Inference: &v1beta1.InferenceSpec{
+			Preset: &v1beta1.PresetSpec{PresetMeta: v1beta1.PresetMeta{Name: "microsoft/phi-4"}},
+		},
+	}
+
+	reconciler := &WorkspaceReconciler{}
+	err := reconciler.ensureModelMirror(context.Background(), ws)
+	assert.Error(t, err)
+	assert.Contains(t, err.Error(), modelstreaming.AnnotationStaticModelMirror)
+	assert.Contains(t, err.Error(), modelstreaming.AnnotationStreamIdentityClientID)
+}
+
+func TestEnsureModelMirror_StaticWithoutSASFails(t *testing.T) {
+	ws := &v1beta1.Workspace{
+		ObjectMeta: v1.ObjectMeta{
+			Name:      "ws-static-no-sas",
+			Namespace: "default",
+			Annotations: map[string]string{
+				modelstreaming.AnnotationStaticModelMirror: "true",
+			},
+		},
+		Inference: &v1beta1.InferenceSpec{
+			Preset: &v1beta1.PresetSpec{PresetMeta: v1beta1.PresetMeta{Name: "microsoft/phi-4"}},
+		},
+	}
+
+	reconciler := &WorkspaceReconciler{}
+	err := reconciler.ensureModelMirror(context.Background(), ws)
+	assert.Error(t, err)
+	assert.Contains(t, err.Error(), modelstreaming.AnnotationStaticModelMirror)
+}
+
+// TestEnsureModelMirror_ManagedStampsServiceAccount verifies the managed (download) path
+// resolves the streaming ServiceAccount and stamps it onto the created ModelMirror CR, so the
+// download Job can later mount a workload-identity-authenticated StorageClass.
+func TestEnsureModelMirror_ManagedStampsServiceAccount(t *testing.T) {
+	t.Setenv("CLOUD_PROVIDER", consts.AzureCloudName)
+
+	const saName = "kaito-model-streamer"
+	streamer, err := registry.GetModelStreamer(consts.AzureCloudName)
+	assert.NoError(t, err)
+	prevSA := modelstreaming.StreamingDefaults.ServiceAccount
+	prevSC := modelstreaming.StreamingDefaults.StorageClass
+	prevStreamer := modelstreaming.StreamingDefaults.ModelStreamer
+	modelstreaming.StreamingDefaults.ServiceAccount = saName
+	modelstreaming.StreamingDefaults.StorageClass = "blob-fuse"
+	modelstreaming.StreamingDefaults.ModelStreamer = streamer
+	t.Cleanup(func() {
+		modelstreaming.StreamingDefaults.ServiceAccount = prevSA
+		modelstreaming.StreamingDefaults.StorageClass = prevSC
+		modelstreaming.StreamingDefaults.ModelStreamer = prevStreamer
+	})
+
+	mockClient := testutil.NewClient()
+	// Seed the streaming ServiceAccount (exists + WI annotation) so ValidateAuth passes.
+	mockClient.CreateOrUpdateObjectInMap(&corev1.ServiceAccount{
+		ObjectMeta: v1.ObjectMeta{
+			Name:        saName,
+			Namespace:   "default",
+			Annotations: map[string]string{"azure.workload.identity/client-id": "00000000-0000-0000-0000-000000000000"},
+		},
+	})
+	// Seed the StorageClass with the Azure blob CSI provisioner so SC validation passes.
+	mockClient.CreateOrUpdateObjectInMap(&storagev1.StorageClass{
+		ObjectMeta:  v1.ObjectMeta{Name: "blob-fuse"},
+		Provisioner: consts.CSIDriverNameForCloud(consts.AzureCloudName),
+	})
+	mockClient.On("Get", mock.Anything, mock.Anything, mock.IsType(&corev1.ServiceAccount{}), mock.Anything).Return(nil)
+	mockClient.On("Get", mock.Anything, mock.Anything, mock.IsType(&storagev1.StorageClass{}), mock.Anything).Return(nil)
+	// Matching the key rather than mock.Anything is what makes this test able to fail if
+	// the mirror is ever looked up outside the workspace's namespace.
+	mockClient.On("Get", mock.Anything,
+		mock.MatchedBy(func(key client.ObjectKey) bool { return key.Namespace == "default" }),
+		mock.IsType(&kaitov1alpha1.ModelMirror{}), mock.Anything).Return(testutil.NotFoundError())
+	mockClient.On("Create", mock.Anything, mock.IsType(&kaitov1alpha1.ModelMirror{}), mock.Anything).Return(nil)
+
+	ws := &v1beta1.Workspace{
+		ObjectMeta: v1.ObjectMeta{Name: "ws-managed-sa", Namespace: "default"},
+		Inference: &v1beta1.InferenceSpec{
+			Preset: &v1beta1.PresetSpec{PresetMeta: v1beta1.PresetMeta{Name: "microsoft/phi-4"}},
+		},
+	}
+
+	reconciler := &WorkspaceReconciler{Client: mockClient}
+	err = reconciler.ensureModelMirror(context.Background(), ws)
+	assert.NoError(t, err)
+
+	// The created CR must carry the resolved ServiceAccount and be Managed.
+	crMap := mockClient.CreateMapWithType(&kaitov1alpha1.ModelMirror{})
+	var created *kaitov1alpha1.ModelMirror
+	for _, obj := range crMap {
+		if mm, ok := obj.(*kaitov1alpha1.ModelMirror); ok {
+			created = mm
+			break
+		}
+	}
+	assert.NotNil(t, created, "a ModelMirror CR should have been created")
+	assert.Equal(t, kaitov1alpha1.ModelMirrorModeManaged, created.Spec.Mode)
+	assert.Equal(t, saName, created.Spec.ServiceAccountName)
+	assert.Equal(t, ws.Namespace, created.Namespace, "the mirror must be created in the workspace's namespace")
+}
+
+// TestEnsureModelMirror_StaticCreatedInWorkspaceNamespace guards the static path, which
+// builds its own ModelMirror literal and so cannot be covered by the managed test above.
+func TestEnsureModelMirror_StaticCreatedInWorkspaceNamespace(t *testing.T) {
+	t.Setenv("CLOUD_PROVIDER", consts.AzureCloudName)
+
+	const saName = "kaito-model-streamer"
+	prevSA := modelstreaming.StreamingDefaults.ServiceAccount
+	modelstreaming.StreamingDefaults.ServiceAccount = saName
+	t.Cleanup(func() { modelstreaming.StreamingDefaults.ServiceAccount = prevSA })
+
+	mockClient := testutil.NewClient()
+	mockClient.CreateOrUpdateObjectInMap(&corev1.ServiceAccount{
+		ObjectMeta: v1.ObjectMeta{
+			Name:        saName,
+			Namespace:   "other-ns",
+			Annotations: map[string]string{"azure.workload.identity/client-id": "00000000-0000-0000-0000-000000000000"},
+		},
+	})
+	mockClient.On("Get", mock.Anything, mock.Anything, mock.IsType(&corev1.ServiceAccount{}), mock.Anything).Return(nil)
+	mockClient.On("Get", mock.Anything, mock.Anything, mock.IsType(&kaitov1alpha1.ModelMirror{}), mock.Anything).Return(testutil.NotFoundError())
+	mockClient.On("Create", mock.Anything, mock.IsType(&kaitov1alpha1.ModelMirror{}), mock.Anything).Return(nil)
+
+	ws := &v1beta1.Workspace{
+		ObjectMeta: v1.ObjectMeta{
+			Name:      "ws-static",
+			Namespace: "other-ns",
+			Annotations: map[string]string{
+				modelstreaming.AnnotationStaticModelMirror:      "true",
+				modelstreaming.AnnotationStreamDatarefsURL:      "https://example.blob.core.windows.net/models",
+				modelstreaming.AnnotationStreamIdentityClientID: "00000000-0000-0000-0000-000000000000",
+				modelstreaming.AnnotationStreamSourceType:       "public",
+			},
+		},
+		Inference: &v1beta1.InferenceSpec{
+			Preset: &v1beta1.PresetSpec{PresetMeta: v1beta1.PresetMeta{Name: "microsoft/phi-4"}},
+		},
+	}
+
+	reconciler := &WorkspaceReconciler{Client: mockClient}
+	require.NoError(t, reconciler.ensureModelMirror(context.Background(), ws))
+
+	var created *kaitov1alpha1.ModelMirror
+	for _, obj := range mockClient.CreateMapWithType(&kaitov1alpha1.ModelMirror{}) {
+		if mm, ok := obj.(*kaitov1alpha1.ModelMirror); ok {
+			created = mm
+			break
+		}
+	}
+	require.NotNil(t, created, "a static ModelMirror CR should have been created")
+	assert.Equal(t, kaitov1alpha1.ModelMirrorModeStatic, created.Spec.Mode)
+	assert.Equal(t, "other-ns", created.Namespace, "the mirror must be created in the workspace's namespace")
+}
+
+func TestSyncWorkspaceStatus(t *testing.T) {
+	originalDisableNAP := featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning]
+	featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning] = true
+	t.Cleanup(func() {
+		featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning] = originalDisableNAP
+	})
+
+	testcases := map[string]struct {
+		workspace                *v1beta1.Workspace
+		statefulSet              *appsv1.StatefulSet
+		statefulSetNotFound      bool
+		job                      *batchv1.Job
+		jobNotFound              bool
+		reconcileErr             error
+		expectedState            v1beta1.WorkspaceState
+		verifyInferenceCondition bool
+		expectedInferenceStatus  v1.ConditionStatus
+		verifyTuningCondition    bool
+		expectedTuningStatus     v1.ConditionStatus
+		verifySucceededCondition bool
+		expectedSucceededStatus  v1.ConditionStatus
+		verifyDeletingCondition  bool
+		expectedDeletingStatus   v1.ConditionStatus
+	}{
+		"inference pending with pre-existing conditions": {
+			// Tests that syncWorkspaceStatus correctly handles a workspace that already has
+			// conditions in its status (a common case in steady-state operation).
+			// The pre-existing conditions include all four conditions that modifyFn will set,
+			// ensuring no slice re-allocation occurs during the update path.
+			// See TestShallowCopyBug for the unit-level regression test of the deep copy fix.
+			workspace: func() *v1beta1.Workspace {
+				ws := testutil.MockWorkspaceDistributedModel.DeepCopy()
+				ws.Status.State = v1beta1.WorkspaceStatePending
+				ws.Status.Conditions = []v1.Condition{
+					{
+						Type:   string(v1beta1.ConditionTypeNodeStatus),
+						Status: v1.ConditionFalse,
+						Reason: "NodeNotReady",
+					},
+					{
+						Type:   string(v1beta1.ConditionTypeResourceStatus),
+						Status: v1.ConditionFalse,
+						Reason: "workspaceResourceStatusNotReady",
+					},
+					{
+						Type:   string(v1beta1.WorkspaceConditionTypeInferenceStatus),
+						Status: v1.ConditionFalse,
+						Reason: "WorkspaceInferenceStatusPending",
+					},
+					{
+						Type:   string(v1beta1.WorkspaceConditionTypeSucceeded),
+						Status: v1.ConditionFalse,
+						Reason: "workspacePending",
+					},
+				}
+				return ws
+			}(),
+			statefulSetNotFound:      true,
+			expectedState:            v1beta1.WorkspaceStatePending,
+			verifyInferenceCondition: true,
+			expectedInferenceStatus:  v1.ConditionFalse,
+			verifySucceededCondition: true,
+			expectedSucceededStatus:  v1.ConditionFalse,
+		},
+		"inference ready": {
+			workspace: func() *v1beta1.Workspace {
+				ws := testutil.MockWorkspaceDistributedModel.DeepCopy()
+				ws.Annotations = map[string]string{v1beta1.AnnotationDisableBenchmark: "true"}
+				return ws
+			}(),
+			statefulSet: &appsv1.StatefulSet{
+				ObjectMeta: v1.ObjectMeta{Name: testutil.MockWorkspaceDistributedModel.Name, Namespace: testutil.MockWorkspaceDistributedModel.Namespace},
+				Spec: appsv1.StatefulSetSpec{
+					Replicas: lo.ToPtr(int32(1)),
+				},
+				Status: appsv1.StatefulSetStatus{ReadyReplicas: 1},
+			},
+			expectedState:            v1beta1.WorkspaceStateReady,
+			verifyInferenceCondition: true,
+			expectedInferenceStatus:  v1.ConditionTrue,
+			verifySucceededCondition: true,
+			expectedSucceededStatus:  v1.ConditionTrue,
+		},
+		"legacy preset workspace without benchmark probe stays ready": {
+			// Benchmark is enabled (no disable-benchmark annotation), but the ready
+			// StatefulSet has no benchmark startup probe — i.e. a workspace created
+			// before the benchmark feature.
+			workspace: func() *v1beta1.Workspace {
+				ws := testutil.MockWorkspaceWithPresetVLLM.DeepCopy()
+				ws.Status.State = v1beta1.WorkspaceStatePending
+				return ws
+			}(),
+			statefulSet: &appsv1.StatefulSet{
+				ObjectMeta: v1.ObjectMeta{Name: testutil.MockWorkspaceWithPresetVLLM.Name, Namespace: testutil.MockWorkspaceWithPresetVLLM.Namespace},
+				Spec: appsv1.StatefulSetSpec{
+					Replicas: lo.ToPtr(int32(1)),
+					// No benchmark startup probe → hasBenchmarkProbe=false → benchmarkApplicable=false.
+				},
+				Status: appsv1.StatefulSetStatus{ReadyReplicas: 1},
+			},
+			expectedState:            v1beta1.WorkspaceStateReady,
+			verifySucceededCondition: true,
+			expectedSucceededStatus:  v1.ConditionTrue,
+		},
+		"inference pending during initialization": {
+			workspace:           testutil.MockWorkspaceDistributedModel.DeepCopy(),
+			statefulSetNotFound: true,
+			reconcileErr:        fmt.Errorf("temporary apiserver unavailable"),
+			expectedState:       v1beta1.WorkspaceStatePending,
+		},
+		"inference terminal reconcile error does not change state": {
+			workspace:                testutil.MockWorkspaceDistributedModel.DeepCopy(),
+			statefulSetNotFound:      true,
+			reconcileErr:             apierrors.NewBadRequest("invalid inference spec"),
+			expectedState:            v1beta1.WorkspaceStatePending,
+			verifyInferenceCondition: true,
+			expectedInferenceStatus:  v1.ConditionFalse,
+			verifySucceededCondition: true,
+			expectedSucceededStatus:  v1.ConditionFalse,
+		},
+		"inference not ready after established": {
+			workspace: func() *v1beta1.Workspace {
+				ws := testutil.MockWorkspaceDistributedModel.DeepCopy()
+				ws.Status.State = v1beta1.WorkspaceStateReady
+				return ws
+			}(),
+			statefulSetNotFound: true,
+			expectedState:       v1beta1.WorkspaceStateNotReady,
+		},
+		"tuning running": {
+			workspace: &v1beta1.Workspace{
+				ObjectMeta: v1.ObjectMeta{Name: "test-tuning-workspace", Namespace: "kaito"},
+				Tuning: &v1beta1.TuningSpec{
+					Preset: &v1beta1.PresetSpec{PresetMeta: v1beta1.PresetMeta{Name: "falcon-7b"}},
+				},
+			},
+			job: &batchv1.Job{
+				ObjectMeta: v1.ObjectMeta{Name: "test-tuning-workspace", Namespace: "kaito"},
+				Status:     batchv1.JobStatus{Active: 1},
+			},
+			expectedState:            v1beta1.WorkspaceStateRunning,
+			verifyTuningCondition:    true,
+			expectedTuningStatus:     v1.ConditionTrue,
+			verifySucceededCondition: true,
+			expectedSucceededStatus:  v1.ConditionFalse,
+		},
+		"tuning pending before start": {
+			workspace: &v1beta1.Workspace{
+				ObjectMeta: v1.ObjectMeta{Name: "test-tuning-workspace-pending", Namespace: "kaito"},
+				Tuning: &v1beta1.TuningSpec{
+					Preset: &v1beta1.PresetSpec{PresetMeta: v1beta1.PresetMeta{Name: "falcon-7b"}},
+				},
+			},
+			jobNotFound:           true,
+			expectedState:         v1beta1.WorkspaceStatePending,
+			verifyTuningCondition: true,
+			expectedTuningStatus:  v1.ConditionFalse,
+		},
+		"deleting does not change state": {
+			workspace: func() *v1beta1.Workspace {
+				ws := testutil.MockWorkspaceDistributedModel.DeepCopy()
+				now := v1.Now()
+				ws.DeletionTimestamp = &now
+				ws.Status.State = v1beta1.WorkspaceStateReady
+				return ws
+			}(),
+			statefulSetNotFound:     true,
+			expectedState:           v1beta1.WorkspaceStateReady,
+			verifyDeletingCondition: true,
+			expectedDeletingStatus:  v1.ConditionTrue,
+		},
+	}
+
+	for name, tc := range testcases {
+		t.Run(name, func(t *testing.T) {
+			mockClient := testutil.NewClient()
+			ws := tc.workspace.DeepCopy()
+			mockClient.CreateOrUpdateObjectInMap(ws)
+			if tc.statefulSet != nil {
+				mockClient.CreateOrUpdateObjectInMap(tc.statefulSet.DeepCopy())
+			}
+			if tc.job != nil {
+				mockClient.CreateOrUpdateObjectInMap(tc.job.DeepCopy())
+			}
+
+			mockClient.On("Get", mock.Anything, mock.Anything, mock.IsType(&v1beta1.Workspace{}), mock.Anything).Return(nil).Twice()
+			// Live SKU selection may add node list calls during reconciliation.
+			mockClient.On("List", mock.Anything, mock.IsType(&corev1.NodeList{}), mock.Anything).Return(nil)
+
+			if ws.Inference != nil {
+				if tc.statefulSetNotFound {
+					mockClient.On("Get", mock.Anything, mock.Anything, mock.IsType(&appsv1.StatefulSet{}), mock.Anything).
+						Return(apierrors.NewNotFound(appsv1.Resource("StatefulSet"), ws.Name)).Once()
+				} else {
+					mockClient.On("Get", mock.Anything, mock.Anything, mock.IsType(&appsv1.StatefulSet{}), mock.Anything).Return(nil).Once()
+				}
+			}
+
+			if ws.Tuning != nil {
+				if tc.jobNotFound {
+					mockClient.On("Get", mock.Anything, mock.Anything, mock.IsType(&batchv1.Job{}), mock.Anything).
+						Return(apierrors.NewNotFound(batchv1.Resource("Job"), ws.Name)).Once()
+				} else {
+					mockClient.On("Get", mock.Anything, mock.Anything, mock.IsType(&batchv1.Job{}), mock.Anything).Return(nil).Once()
+				}
+			}
+
+			var synced *v1beta1.Workspace
+			mockClient.StatusMock.On("Update", mock.Anything, mock.IsType(&v1beta1.Workspace{}), mock.Anything).Run(func(args mock.Arguments) {
+				synced = args.Get(1).(*v1beta1.Workspace).DeepCopy()
+			}).Return(nil).Once()
+
+			reconciler := &WorkspaceReconciler{Client: mockClient, nodeProvisioner: byoprovisioner.NewBYOProvisioner(mockClient)}
+			err := reconciler.syncWorkspaceStatus(context.Background(), types.NamespacedName{Name: ws.Name, Namespace: ws.Namespace}, tc.reconcileErr)
+			assert.NoError(t, err)
+			if assert.NotNil(t, synced) {
+				assert.Equal(t, tc.expectedState, synced.Status.State)
+				if tc.verifyInferenceCondition {
+					inferenceCondition := meta.FindStatusCondition(synced.Status.Conditions, string(v1beta1.WorkspaceConditionTypeInferenceStatus))
+					assert.NotNil(t, inferenceCondition)
+					assert.Equal(t, tc.expectedInferenceStatus, inferenceCondition.Status)
+				}
+				if tc.verifyTuningCondition {
+					tuningCondition := meta.FindStatusCondition(synced.Status.Conditions, string(v1beta1.WorkspaceConditionTypeTuningJobStatus))
+					assert.NotNil(t, tuningCondition)
+					assert.Equal(t, tc.expectedTuningStatus, tuningCondition.Status)
+				}
+				if tc.verifySucceededCondition {
+					succeededCondition := meta.FindStatusCondition(synced.Status.Conditions, string(v1beta1.WorkspaceConditionTypeSucceeded))
+					assert.NotNil(t, succeededCondition)
+					assert.Equal(t, tc.expectedSucceededStatus, succeededCondition.Status)
+				}
+				if tc.verifyDeletingCondition {
+					deletingCondition := meta.FindStatusCondition(synced.Status.Conditions, string(v1beta1.WorkspaceConditionTypeDeleting))
+					assert.NotNil(t, deletingCondition)
+					assert.Equal(t, tc.expectedDeletingStatus, deletingCondition.Status)
+				}
+			}
+		})
+	}
+}
+
+func TestBuildReconcileErrMessageAppender(t *testing.T) {
+	noErrAppender := buildReconcileErrMessageAppender(nil)
+	assert.Equal(t, "workspace is ready", noErrAppender("workspace is ready"))
+
+	withErrAppender := buildReconcileErrMessageAppender(errors.New("boom"))
+	assert.Equal(t, "workspace is ready (last reconcile error: boom)", withErrAppender("workspace is ready"))
+
+	// A NodeClassInvalid message is the ProvisionNodes error itself, truncated when long, so it is not appended twice.
+	nodeClassErr := errors.New(`NodeClass "nc" is not ready (UnhealthyDependents): SubnetsReady=False (SubnetIDInvalid): ` + strings.Repeat("x", 300))
+	truncated := resources.TruncateMessage(nodeClassErr.Error(), 256)
+	assert.Equal(t, truncated, buildReconcileErrMessageAppender(nodeClassErr)(truncated))
+}
+
+func TestApplyInferenceWorkspaceStatus(t *testing.T) {
+	t.Run("ready when inference and resource are ready", func(t *testing.T) {
+		status := &v1beta1.WorkspaceStatus{State: v1beta1.WorkspaceStatePending}
+		wObj := &v1beta1.Workspace{ObjectMeta: v1.ObjectMeta{Annotations: map[string]string{v1beta1.AnnotationDisableBenchmark: "true"}}}
+		applyInferenceWorkspaceStatus(context.Background(), status, wObj, buildReconcileErrMessageAppender(nil), true, v1.ConditionTrue, false, "", "")
+
+		assert.Equal(t, v1beta1.WorkspaceStateReady, status.State)
+		inferenceCondition := meta.FindStatusCondition(status.Conditions, string(v1beta1.WorkspaceConditionTypeInferenceStatus))
+		assert.NotNil(t, inferenceCondition)
+		assert.Equal(t, v1.ConditionTrue, inferenceCondition.Status)
+
+		succeededCondition := meta.FindStatusCondition(status.Conditions, string(v1beta1.WorkspaceConditionTypeSucceeded))
+		assert.NotNil(t, succeededCondition)
+		assert.Equal(t, v1.ConditionTrue, succeededCondition.Status)
+	})
+
+	t.Run("not ready after established", func(t *testing.T) {
+		status := &v1beta1.WorkspaceStatus{State: v1beta1.WorkspaceStateReady}
+		applyInferenceWorkspaceStatus(context.Background(), status, &v1beta1.Workspace{}, buildReconcileErrMessageAppender(nil), false, v1.ConditionTrue, false, "", "")
+
+		assert.Equal(t, v1beta1.WorkspaceStateNotReady, status.State)
+		inferenceCondition := meta.FindStatusCondition(status.Conditions, string(v1beta1.WorkspaceConditionTypeInferenceStatus))
+		assert.NotNil(t, inferenceCondition)
+		assert.Equal(t, v1.ConditionFalse, inferenceCondition.Status)
+	})
+
+	t.Run("not ready surfaces SAS token fetch failure reason", func(t *testing.T) {
+		status := &v1beta1.WorkspaceStatus{State: v1beta1.WorkspaceStatePending}
+		applyInferenceWorkspaceStatus(context.Background(), status, &v1beta1.Workspace{}, buildReconcileErrMessageAppender(nil),
+			false, v1.ConditionTrue, false, "SASTokenFetchFailed", "SAS token fetch failed: the streaming init container could not obtain a SAS token; check the fetch-sas init container logs")
+
+		inferenceCondition := meta.FindStatusCondition(status.Conditions, string(v1beta1.WorkspaceConditionTypeInferenceStatus))
+		assert.NotNil(t, inferenceCondition)
+		assert.Equal(t, v1.ConditionFalse, inferenceCondition.Status)
+		assert.Equal(t, "SASTokenFetchFailed", inferenceCondition.Reason)
+		assert.Contains(t, inferenceCondition.Message, "SAS token fetch failed")
+	})
+
+	t.Run("not-ready path preserves benchmark condition and refreshes observedGeneration", func(t *testing.T) {
+		wObj := &v1beta1.Workspace{
+			ObjectMeta: v1.ObjectMeta{Generation: 2},
+			Inference: &v1beta1.InferenceSpec{
+				Preset: &v1beta1.PresetSpec{
+					PresetMeta: v1beta1.PresetMeta{Name: "test-model"},
+				},
+			},
+		}
+		// Pre-populate status as if a previous reconcile completed the benchmark.
+		status := &v1beta1.WorkspaceStatus{
+			State: v1beta1.WorkspaceStateReady,
+			Performance: &v1beta1.Performance{
+				Metrics: map[string]v1beta1.Metric{
+					BenchmarkMetricPeakTPM: {Value: "12345"},
+				},
+			},
+			Conditions: []v1.Condition{
+				{
+					Type:               string(v1beta1.WorkspaceConditionTypeBenchmarkCompleted),
+					Status:             v1.ConditionTrue,
+					Reason:             "BenchmarkCompleted",
+					ObservedGeneration: 1,
+				},
+			},
+		}
+
+		// inferenceReady=false drives the not-ready path. benchmarkApplicable=true.
+		// Write-once: the recorded result and condition must be preserved (no clear).
+		applyInferenceWorkspaceStatus(context.Background(), status, wObj, buildReconcileErrMessageAppender(nil), false, v1.ConditionTrue, true, "", "")
+
+		assert.NotNil(t, status.Performance, "Performance must be preserved on not-ready (write-once)")
+		if status.Performance != nil {
+			m, ok := status.Performance.Metrics[BenchmarkMetricPeakTPM]
+			assert.True(t, ok)
+			assert.Equal(t, "12345", m.Value)
+		}
+		benchmarkCond := meta.FindStatusCondition(status.Conditions, string(v1beta1.WorkspaceConditionTypeBenchmarkCompleted))
+		if assert.NotNil(t, benchmarkCond, "BenchmarkCompleted must be preserved on not-ready (write-once)") {
+			assert.Equal(t, v1.ConditionTrue, benchmarkCond.Status)
+			assert.Equal(t, int64(2), benchmarkCond.ObservedGeneration)
+		}
+	})
+
+	t.Run("write-once: recovery after flap does not re-read logs", func(t *testing.T) {
+		wObj := &v1beta1.Workspace{
+			ObjectMeta: v1.ObjectMeta{Name: "ws", Namespace: "default"},
+			Inference: &v1beta1.InferenceSpec{
+				Preset: &v1beta1.PresetSpec{PresetMeta: v1beta1.PresetMeta{Name: "test-model"}},
+			},
+		}
+		status := &v1beta1.WorkspaceStatus{
+			State: v1beta1.WorkspaceStateNotReady,
+			Performance: &v1beta1.Performance{
+				Metrics: map[string]v1beta1.Metric{BenchmarkMetricPeakTPM: {Value: "12345"}},
+			},
+			Conditions: []v1.Condition{{
+				Type:   string(v1beta1.WorkspaceConditionTypeBenchmarkCompleted),
+				Status: v1.ConditionTrue,
+				Reason: "BenchmarkCompleted",
+			}},
+		}
+
+		// Empty fake client: if the skip guard did NOT fire, applyBenchmarkStatus would
+		// try to read logs and fail. We assert it stays Ready with the result intact.
+		k8sclient.SetGlobalClientGoClient(kubefake.NewClientset())
+		applyInferenceWorkspaceStatus(context.Background(), status, wObj, buildReconcileErrMessageAppender(nil), true, v1.ConditionTrue, true, "", "")
+
+		assert.Equal(t, v1beta1.WorkspaceStateReady, status.State)
+		m, ok := status.Performance.Metrics[BenchmarkMetricPeakTPM]
+		assert.True(t, ok)
+		assert.Equal(t, "12345", m.Value)
+	})
+
+	t.Run("legacy workspace: benchmark skipped, stays ready", func(t *testing.T) {
+		wObj := &v1beta1.Workspace{
+			ObjectMeta: v1.ObjectMeta{Name: "legacy", Namespace: "default"},
+			Inference: &v1beta1.InferenceSpec{
+				Preset: &v1beta1.PresetSpec{PresetMeta: v1beta1.PresetMeta{Name: "test-model"}},
+			},
+		}
+		status := &v1beta1.WorkspaceStatus{State: v1beta1.WorkspaceStatePending}
+
+		// benchmarkApplicable=false (no probe). Empty fake client would fail a log read;
+		// asserting Ready proves applyBenchmarkStatus was not invoked.
+		k8sclient.SetGlobalClientGoClient(kubefake.NewClientset())
+		applyInferenceWorkspaceStatus(context.Background(), status, wObj, buildReconcileErrMessageAppender(nil), true, v1.ConditionTrue, false, "", "")
+
+		assert.Equal(t, v1beta1.WorkspaceStateReady, status.State)
+		succeeded := meta.FindStatusCondition(status.Conditions, string(v1beta1.WorkspaceConditionTypeSucceeded))
+		if assert.NotNil(t, succeeded) {
+			assert.Equal(t, v1.ConditionTrue, succeeded.Status)
+		}
+		assert.Nil(t, meta.FindStatusCondition(status.Conditions, string(v1beta1.WorkspaceConditionTypeBenchmarkCompleted)))
+	})
+
+	t.Run("benchmark guard skips StreamLogs and refreshes observedGeneration when BenchmarkCompleted is already True", func(t *testing.T) {
+		wObj := &v1beta1.Workspace{
+			ObjectMeta: v1.ObjectMeta{
+				Name:       "ws",
+				Namespace:  "default",
+				Generation: 2,
+			},
+			Inference: &v1beta1.InferenceSpec{
+				Preset: &v1beta1.PresetSpec{PresetMeta: v1beta1.PresetMeta{Name: "test-model"}},
+			},
+		}
+		status := &v1beta1.WorkspaceStatus{
+			State: v1beta1.WorkspaceStateReady,
+			Performance: &v1beta1.Performance{
+				Metrics: map[string]v1beta1.Metric{
+					BenchmarkMetricPeakTPM: {Value: "12345"},
+				},
+			},
+			Conditions: []v1.Condition{
+				{
+					Type:               string(v1beta1.WorkspaceConditionTypeBenchmarkCompleted),
+					Status:             v1.ConditionTrue,
+					Reason:             "BenchmarkCompleted",
+					ObservedGeneration: 1,
+				},
+			},
+		}
+
+		// Drive the whole ready path so both the L1203 refresh and applyBenchmarkStatus's
+		// write-once guard run together. Empty fake client would fail a log read, so
+		// reaching Ready proves the guard fired (no StreamLogs attempt).
+		k8sclient.SetGlobalClientGoClient(kubefake.NewClientset())
+		applyInferenceWorkspaceStatus(context.Background(), status, wObj, buildReconcileErrMessageAppender(nil), true, v1.ConditionTrue, true, "", "")
+
+		// Result and condition must be unchanged — the guard must have fired.
+		m, ok := status.Performance.Metrics[BenchmarkMetricPeakTPM]
+		assert.True(t, ok)
+		assert.Equal(t, "12345", m.Value)
+		benchmarkCond := meta.FindStatusCondition(status.Conditions, string(v1beta1.WorkspaceConditionTypeBenchmarkCompleted))
+		assert.Equal(t, v1.ConditionTrue, benchmarkCond.Status)
+		assert.Equal(t, int64(2), benchmarkCond.ObservedGeneration)
+	})
+}
+
+func Test_hasBenchmarkStartupProbe(t *testing.T) {
+	containerName := "ws"
+	mkSS := func(probe *corev1.Probe) *appsv1.StatefulSet {
+		return &appsv1.StatefulSet{
+			Spec: appsv1.StatefulSetSpec{
+				Template: corev1.PodTemplateSpec{
+					Spec: corev1.PodSpec{
+						Containers: []corev1.Container{
+							{Name: containerName, StartupProbe: probe},
+						},
+					},
+				},
+			},
+		}
+	}
+	execProbe := func(cmd ...string) *corev1.Probe {
+		return &corev1.Probe{ProbeHandler: corev1.ProbeHandler{Exec: &corev1.ExecAction{Command: cmd}}}
+	}
+
+	cases := map[string]struct {
+		ss   *appsv1.StatefulSet
+		want bool
+	}{
+		"benchmark non-distributed": {mkSS(execProbe("python3", "/workspace/vllm/benchmark_entrypoint.py")), true},
+		"benchmark distributed shell": {mkSS(execProbe("/bin/sh", "-c",
+			`if [ "$POD_INDEX" = "0" ]; then python3 /workspace/vllm/benchmark_entrypoint.py; else true; fi`)), true},
+		"distributed health check": {mkSS(execProbe("/bin/sh", "-c",
+			"python3 /workspace/vllm/multi-node-health-check.py readiness")), false},
+		"legacy http probe": {mkSS(&corev1.Probe{ProbeHandler: corev1.ProbeHandler{
+			HTTPGet: &corev1.HTTPGetAction{Path: "/health"}}}), false},
+		"no startup probe": {mkSS(nil), false},
+		"empty command":    {mkSS(execProbe()), false},
+		"no containers":    {&appsv1.StatefulSet{}, false},
+	}
+	for name, tc := range cases {
+		t.Run(name, func(t *testing.T) {
+			assert.Equal(t, tc.want, hasBenchmarkStartupProbe(tc.ss))
+		})
+	}
+}
+
+func TestApplyTuningWorkspaceStatus(t *testing.T) {
+	t.Run("failed tuning sets failed state", func(t *testing.T) {
+		status := &v1beta1.WorkspaceStatus{State: v1beta1.WorkspaceStateRunning}
+		applyTuningWorkspaceStatus(status, 1, buildReconcileErrMessageAppender(nil), &tuningStatusSnapshot{failed: true})
+
+		assert.Equal(t, v1beta1.WorkspaceStateFailed, status.State)
+		tuningCondition := meta.FindStatusCondition(status.Conditions, string(v1beta1.WorkspaceConditionTypeTuningJobStatus))
+		assert.NotNil(t, tuningCondition)
+		assert.Equal(t, v1.ConditionFalse, tuningCondition.Status)
+	})
+
+	t.Run("running tuning sets running state", func(t *testing.T) {
+		status := &v1beta1.WorkspaceStatus{State: v1beta1.WorkspaceStatePending}
+		applyTuningWorkspaceStatus(status, 1, buildReconcileErrMessageAppender(nil), &tuningStatusSnapshot{started: true, active: 1})
+
+		assert.Equal(t, v1beta1.WorkspaceStateRunning, status.State)
+		tuningCondition := meta.FindStatusCondition(status.Conditions, string(v1beta1.WorkspaceConditionTypeTuningJobStatus))
+		assert.NotNil(t, tuningCondition)
+		assert.Equal(t, v1.ConditionTrue, tuningCondition.Status)
+	})
+}
+
+func TestSetWorkspaceCondition(t *testing.T) {
+	originalTime := v1.NewTime(time.Unix(1700000000, 0))
+
+	testCases := []struct {
+		name                              string
+		initialConditions                 []v1.Condition
+		generation                        int64
+		conditionStatus                   v1.ConditionStatus
+		reason                            string
+		message                           string
+		expectedMessage                   string
+		expectedReason                    string
+		expectedGeneration                int64
+		expectLastTransitionTimeUnchanged bool
+	}{
+		{
+			name: "no change keeps LastTransitionTime",
+			initialConditions: []v1.Condition{
+				{
+					Type:               string(v1beta1.WorkspaceConditionTypeSucceeded),
+					Status:             v1.ConditionTrue,
+					Reason:             "workspaceSucceeded",
+					Message:            "workspace succeeds",
+					ObservedGeneration: 1,
+					LastTransitionTime: originalTime,
+				},
+			},
+			generation:                        1,
+			conditionStatus:                   v1.ConditionTrue,
+			reason:                            "workspaceSucceeded",
+			message:                           "workspace succeeds",
+			expectedMessage:                   "workspace succeeds",
+			expectedReason:                    "workspaceSucceeded",
+			expectedGeneration:                1,
+			expectLastTransitionTimeUnchanged: true,
+		},
+		{
+			name: "message change keeps LastTransitionTime",
+			initialConditions: []v1.Condition{
+				{
+					Type:               string(v1beta1.WorkspaceConditionTypeSucceeded),
+					Status:             v1.ConditionTrue,
+					Reason:             "workspaceSucceeded",
+					Message:            "workspace succeeds",
+					ObservedGeneration: 1,
+					LastTransitionTime: originalTime,
+				},
+			},
+			generation:                        2,
+			conditionStatus:                   v1.ConditionTrue,
+			reason:                            "workspaceSucceeded",
+			message:                           "workspace succeeds (updated)",
+			expectedMessage:                   "workspace succeeds (updated)",
+			expectedReason:                    "workspaceSucceeded",
+			expectedGeneration:                2,
+			expectLastTransitionTimeUnchanged: true,
+		},
+		{
+			name: "generation change keeps LastTransitionTime",
+			initialConditions: []v1.Condition{
+				{
+					Type:               string(v1beta1.WorkspaceConditionTypeSucceeded),
+					Status:             v1.ConditionTrue,
+					Reason:             "workspaceSucceeded",
+					Message:            "workspace succeeds",
+					ObservedGeneration: 1,
+					LastTransitionTime: originalTime,
+				},
+			},
+			generation:                        2,
+			conditionStatus:                   v1.ConditionTrue,
+			reason:                            "workspaceSucceeded",
+			message:                           "workspace succeeds",
+			expectedMessage:                   "workspace succeeds",
+			expectedReason:                    "workspaceSucceeded",
+			expectedGeneration:                2,
+			expectLastTransitionTimeUnchanged: true,
+		},
+		{
+			name: "reason change keeps LastTransitionTime",
+			initialConditions: []v1.Condition{
+				{
+					Type:               string(v1beta1.WorkspaceConditionTypeSucceeded),
+					Status:             v1.ConditionTrue,
+					Reason:             "workspaceSucceeded",
+					Message:            "workspace succeeds",
+					ObservedGeneration: 1,
+					LastTransitionTime: originalTime,
+				},
+			},
+			generation:                        2,
+			conditionStatus:                   v1.ConditionTrue,
+			reason:                            "workspaceUpdated",
+			message:                           "workspace succeeds",
+			expectedMessage:                   "workspace succeeds",
+			expectedReason:                    "workspaceUpdated",
+			expectedGeneration:                2,
+			expectLastTransitionTimeUnchanged: true,
+		},
+		{
+			name: "status change updates LastTransitionTime",
+			initialConditions: []v1.Condition{
+				{
+					Type:               string(v1beta1.WorkspaceConditionTypeSucceeded),
+					Status:             v1.ConditionTrue,
+					Reason:             "workspaceSucceeded",
+					Message:            "workspace succeeds",
+					ObservedGeneration: 1,
+					LastTransitionTime: originalTime,
+				},
+			},
+			generation:                        2,
+			conditionStatus:                   v1.ConditionFalse,
+			reason:                            "workspacePending",
+			message:                           "workspace is pending",
+			expectedMessage:                   "workspace is pending",
+			expectedReason:                    "workspacePending",
+			expectedGeneration:                2,
+			expectLastTransitionTimeUnchanged: false,
+		},
+		{
+			name:                              "new condition sets LastTransitionTime",
+			initialConditions:                 []v1.Condition{},
+			generation:                        3,
+			conditionStatus:                   v1.ConditionFalse,
+			reason:                            "workspacePending",
+			message:                           "workspace is waiting",
+			expectedMessage:                   "workspace is waiting (last reconcile error: transient error)",
+			expectedReason:                    "workspacePending",
+			expectedGeneration:                3,
+			expectLastTransitionTimeUnchanged: false,
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			appendMessage := buildReconcileErrMessageAppender(nil)
+			if tc.name == "new condition sets LastTransitionTime" {
+				appendMessage = buildReconcileErrMessageAppender(errors.New("transient error"))
+			}
+
+			status := &v1beta1.WorkspaceStatus{
+				Conditions: tc.initialConditions,
+			}
+
+			setWorkspaceCondition(status, tc.generation, appendMessage,
+				v1beta1.WorkspaceConditionTypeSucceeded, tc.conditionStatus, tc.reason, tc.message)
+
+			condition := meta.FindStatusCondition(status.Conditions, string(v1beta1.WorkspaceConditionTypeSucceeded))
+			if assert.NotNil(t, condition) {
+				if tc.expectLastTransitionTimeUnchanged {
+					assert.True(t, condition.LastTransitionTime.Equal(&originalTime), "LastTransitionTime should stay unchanged")
+				} else {
+					assert.False(t, condition.LastTransitionTime.IsZero(), "LastTransitionTime should be initialized/updated")
+					if len(tc.initialConditions) > 0 {
+						assert.False(t, condition.LastTransitionTime.Equal(&originalTime), "LastTransitionTime should be updated")
+					}
+				}
+				assert.Equal(t, tc.expectedGeneration, condition.ObservedGeneration)
+				assert.Equal(t, tc.expectedReason, condition.Reason)
+				assert.Equal(t, tc.expectedMessage, condition.Message)
+			}
+		})
+	}
+}
+
+func TestShouldUpgradeBaseImage(t *testing.T) {
+	t.Setenv("PRESET_REGISTRY_NAME", "mcr.microsoft.com/aks/kaito")
+	baseTag, err := inference.GetBaseImageTag(catalog.MustGet("base"))
+	require.NoError(t, err)
+	baseImage := "mcr.microsoft.com/aks/kaito/kaito-base:" + baseTag
+	tests := []struct {
+		name     string
+		ws       *v1beta1.Workspace
+		existing *appsv1.StatefulSet
+		desired  *appsv1.StatefulSet
+		expect   bool
+	}{
+		{
+			name: "upgrade label matches current tag and image differs",
+			ws: &v1beta1.Workspace{
+				ObjectMeta: v1.ObjectMeta{
+					Labels: map[string]string{
+						kaitov1alpha1.LabelUpgradeToVersion: baseTag,
+					},
+				},
+			},
+			existing: &appsv1.StatefulSet{
+				Spec: appsv1.StatefulSetSpec{
+					Template: corev1.PodTemplateSpec{
+						Spec: corev1.PodSpec{
+							Containers: []corev1.Container{{Image: "mcr.microsoft.com/aks/kaito/kaito-base:0.0.1"}},
+						},
+					},
+				},
+			},
+			desired: &appsv1.StatefulSet{
+				Spec: appsv1.StatefulSetSpec{
+					Template: corev1.PodTemplateSpec{
+						Spec: corev1.PodSpec{
+							Containers: []corev1.Container{{Image: baseImage}},
+						},
+					},
+				},
+			},
+			expect: true,
+		},
+		{
+			name: "upgrade label matches but image already matches",
+			ws: &v1beta1.Workspace{
+				ObjectMeta: v1.ObjectMeta{
+					Labels: map[string]string{
+						kaitov1alpha1.LabelUpgradeToVersion: baseTag,
+					},
+				},
+			},
+			existing: &appsv1.StatefulSet{
+				Spec: appsv1.StatefulSetSpec{
+					Template: corev1.PodTemplateSpec{
+						Spec: corev1.PodSpec{
+							Containers: []corev1.Container{{Image: baseImage}},
+						},
+					},
+				},
+			},
+			desired: &appsv1.StatefulSet{
+				Spec: appsv1.StatefulSetSpec{
+					Template: corev1.PodTemplateSpec{
+						Spec: corev1.PodSpec{
+							Containers: []corev1.Container{{Image: baseImage}},
+						},
+					},
+				},
+			},
+			expect: false,
+		},
+		{
+			name: "stale upgrade label does not match current tag",
+			ws: &v1beta1.Workspace{
+				ObjectMeta: v1.ObjectMeta{
+					Labels: map[string]string{
+						kaitov1alpha1.LabelUpgradeToVersion: "0.0.1",
+					},
+				},
+			},
+			existing: &appsv1.StatefulSet{
+				Spec: appsv1.StatefulSetSpec{
+					Template: corev1.PodTemplateSpec{
+						Spec: corev1.PodSpec{
+							Containers: []corev1.Container{{Image: "mcr.microsoft.com/aks/kaito/kaito-base:0.0.1"}},
+						},
+					},
+				},
+			},
+			desired: &appsv1.StatefulSet{
+				Spec: appsv1.StatefulSetSpec{
+					Template: corev1.PodTemplateSpec{
+						Spec: corev1.PodSpec{
+							Containers: []corev1.Container{{Image: baseImage}},
+						},
+					},
+				},
+			},
+			expect: false,
+		},
+		{
+			name: "no upgrade label",
+			ws: &v1beta1.Workspace{
+				ObjectMeta: v1.ObjectMeta{
+					Labels: map[string]string{},
+				},
+			},
+			existing: &appsv1.StatefulSet{
+				Spec: appsv1.StatefulSetSpec{
+					Template: corev1.PodTemplateSpec{
+						Spec: corev1.PodSpec{
+							Containers: []corev1.Container{{Image: "mcr.microsoft.com/aks/kaito/kaito-base:0.0.1"}},
+						},
+					},
+				},
+			},
+			desired: &appsv1.StatefulSet{
+				Spec: appsv1.StatefulSetSpec{
+					Template: corev1.PodTemplateSpec{
+						Spec: corev1.PodSpec{
+							Containers: []corev1.Container{{Image: baseImage}},
+						},
+					},
+				},
+			},
+			expect: false,
+		},
+		{
+			name: "nil labels",
+			ws: &v1beta1.Workspace{
+				ObjectMeta: v1.ObjectMeta{},
+			},
+			existing: &appsv1.StatefulSet{
+				Spec: appsv1.StatefulSetSpec{
+					Template: corev1.PodTemplateSpec{
+						Spec: corev1.PodSpec{
+							Containers: []corev1.Container{{Image: "old:v1"}},
+						},
+					},
+				},
+			},
+			desired: &appsv1.StatefulSet{
+				Spec: appsv1.StatefulSetSpec{
+					Template: corev1.PodTemplateSpec{
+						Spec: corev1.PodSpec{
+							Containers: []corev1.Container{{Image: "new:v2"}},
+						},
+					},
+				},
+			},
+			expect: false,
+		},
+		{
+			name: "upgrade with sidecar containers - matches by statefulset name",
+			ws: &v1beta1.Workspace{
+				ObjectMeta: v1.ObjectMeta{
+					Name: "my-workspace",
+					Labels: map[string]string{
+						kaitov1alpha1.LabelUpgradeToVersion: baseTag,
+					},
+				},
+			},
+			existing: &appsv1.StatefulSet{
+				ObjectMeta: v1.ObjectMeta{Name: "my-workspace"},
+				Spec: appsv1.StatefulSetSpec{
+					Template: corev1.PodTemplateSpec{
+						Spec: corev1.PodSpec{
+							Containers: []corev1.Container{
+								{Name: "http-proxy", Image: "proxy:latest"},
+								{Name: "my-workspace", Image: "mcr.microsoft.com/aks/kaito/kaito-base:0.0.1"},
+							},
+						},
+					},
+				},
+			},
+			desired: &appsv1.StatefulSet{
+				ObjectMeta: v1.ObjectMeta{Name: "my-workspace"},
+				Spec: appsv1.StatefulSetSpec{
+					Template: corev1.PodTemplateSpec{
+						Spec: corev1.PodSpec{
+							Containers: []corev1.Container{
+								{Name: "http-proxy", Image: "proxy:latest"},
+								{Name: "my-workspace", Image: baseImage},
+							},
+						},
+					},
+				},
+			},
+			expect: true,
+		},
+		{
+			name: "no upgrade when sidecar differs but inference container matches",
+			ws: &v1beta1.Workspace{
+				ObjectMeta: v1.ObjectMeta{
+					Name: "my-workspace",
+					Labels: map[string]string{
+						kaitov1alpha1.LabelUpgradeToVersion: baseTag,
+					},
+				},
+			},
+			existing: &appsv1.StatefulSet{
+				ObjectMeta: v1.ObjectMeta{Name: "my-workspace"},
+				Spec: appsv1.StatefulSetSpec{
+					Template: corev1.PodTemplateSpec{
+						Spec: corev1.PodSpec{
+							Containers: []corev1.Container{
+								{Name: "http-proxy", Image: "proxy:v1"},
+								{Name: "my-workspace", Image: baseImage},
+							},
+						},
+					},
+				},
+			},
+			desired: &appsv1.StatefulSet{
+				ObjectMeta: v1.ObjectMeta{Name: "my-workspace"},
+				Spec: appsv1.StatefulSetSpec{
+					Template: corev1.PodTemplateSpec{
+						Spec: corev1.PodSpec{
+							Containers: []corev1.Container{
+								{Name: "http-proxy", Image: "proxy:v2"},
+								{Name: "my-workspace", Image: baseImage},
+							},
+						},
+					},
+				},
+			},
+			expect: false,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got := shouldUpgradeBaseImage(tt.ws, tt.existing, tt.desired, catalog.MustGet("base"))
+			assert.Equal(t, tt.expect, got)
+		})
+	}
+}
+
+func TestPreserveDeployedImages(t *testing.T) {
+	existing := &appsv1.StatefulSet{
+		Spec: appsv1.StatefulSetSpec{
+			Template: corev1.PodTemplateSpec{
+				Spec: corev1.PodSpec{
+					Containers: []corev1.Container{
+						{Name: "workspace", Image: "kaito-base:v1"},
+						{Name: "sidecar", Image: "sidecar:v1"},
+					},
+					InitContainers: []corev1.Container{
+						{Name: "cuda-toolkit-provisioner", Image: "kaito-base:v1"},
+					},
+				},
+			},
+		},
+	}
+	desired := &appsv1.StatefulSet{
+		Spec: appsv1.StatefulSetSpec{
+			Template: corev1.PodTemplateSpec{
+				Spec: corev1.PodSpec{
+					Containers: []corev1.Container{
+						{Name: "workspace", Image: "kaito-base:v2"},
+						{Name: "sidecar", Image: "sidecar:v2"},
+						{Name: "new-sidecar", Image: "new-sidecar:v1"},
+					},
+					InitContainers: []corev1.Container{
+						{Name: "cuda-toolkit-provisioner", Image: "kaito-base:v2"},
+					},
+				},
+			},
+		},
+	}
+
+	preserveDeployedImages(existing, desired)
+
+	assert.Equal(t, "kaito-base:v1", desired.Spec.Template.Spec.Containers[0].Image)
+	assert.Equal(t, "sidecar:v1", desired.Spec.Template.Spec.Containers[1].Image)
+	assert.Equal(t, "new-sidecar:v1", desired.Spec.Template.Spec.Containers[2].Image)
+	assert.Equal(t, "kaito-base:v1", desired.Spec.Template.Spec.InitContainers[0].Image)
+}
+
+func TestPreserveLMCacheTopologyForDeployedImage(t *testing.T) {
+	oldLivenessProbe := &corev1.Probe{ProbeHandler: corev1.ProbeHandler{
+		HTTPGet: &corev1.HTTPGetAction{Path: "/health"},
+	}}
+	existing := &appsv1.StatefulSet{Spec: appsv1.StatefulSetSpec{Template: corev1.PodTemplateSpec{Spec: corev1.PodSpec{
+		Containers: []corev1.Container{{
+			Name: "workspace", Image: "kaito-base:0.6.3", LivenessProbe: oldLivenessProbe,
+		}},
+	}}}}
+	desired := &appsv1.StatefulSet{Spec: appsv1.StatefulSetSpec{Template: corev1.PodTemplateSpec{Spec: corev1.PodSpec{
+		Containers: []corev1.Container{{
+			Name:  "workspace",
+			Image: "kaito-base:0.6.4",
+			Env: []corev1.EnvVar{
+				{Name: "KEEP", Value: "true"},
+				{Name: lmCacheDeploymentModeEnvName, Value: "sidecar"},
+			},
+			VolumeMounts: []corev1.VolumeMount{
+				{Name: "keep", MountPath: "/keep"},
+				{Name: lmCacheRuntimeVolumeName, MountPath: "/var/run/kaito-lmcache"},
+			},
+			LivenessProbe: &corev1.Probe{
+				ProbeHandler: corev1.ProbeHandler{
+					Exec: &corev1.ExecAction{Command: []string{"python3", "/workspace/vllm/lmcache_server.py", "--health-check"}},
+				},
+			},
+		}},
+		InitContainers: []corev1.Container{
+			{Name: "keep-init"},
+			{Name: lmCacheSidecarName, Image: "kaito-base:0.6.4"},
+		},
+		Volumes: []corev1.Volume{
+			{Name: "keep"},
+			{Name: lmCacheRuntimeVolumeName},
+		},
+	}}}}
+
+	sameImage := desired.DeepCopy()
+	sameImage.Spec.Template.Spec.Containers[0].Image = "kaito-base:0.6.3"
+	assert.False(t, preserveLMCacheTopologyForDeployedImage(existing, sameImage))
+
+	assert.True(t, preserveLMCacheTopologyForDeployedImage(existing, desired))
+	assert.Equal(t, oldLivenessProbe, desired.Spec.Template.Spec.Containers[0].LivenessProbe)
+	assert.Equal(t, []corev1.EnvVar{{Name: "KEEP", Value: "true"}}, desired.Spec.Template.Spec.Containers[0].Env)
+	assert.Equal(t, []corev1.VolumeMount{{Name: "keep", MountPath: "/keep"}}, desired.Spec.Template.Spec.Containers[0].VolumeMounts)
+	assert.Equal(t, []corev1.Container{{Name: "keep-init"}}, desired.Spec.Template.Spec.InitContainers)
+	assert.Equal(t, []corev1.Volume{{Name: "keep"}}, desired.Spec.Template.Spec.Volumes)
+
+	preserveDeployedImages(existing, desired)
+	syncInferenceMutablePodSpec(&existing.Spec.Template.Spec, &desired.Spec.Template.Spec)
+	assert.Equal(t, "kaito-base:0.6.3", existing.Spec.Template.Spec.Containers[0].Image)
+	assert.Equal(t, oldLivenessProbe, existing.Spec.Template.Spec.Containers[0].LivenessProbe)
+	assert.False(t, hasContainer(existing.Spec.Template.Spec.InitContainers, lmCacheSidecarName))
+}
+
+func TestDetectInferencePodFailure(t *testing.T) {
+	podList := func(pods ...corev1.Pod) *corev1.PodList {
+		return &corev1.PodList{Items: pods}
+	}
+	waitingContainer := func(name, reason string) corev1.ContainerStatus {
+		return corev1.ContainerStatus{Name: name, State: corev1.ContainerState{Waiting: &corev1.ContainerStateWaiting{Reason: reason, Message: reason + " message"}}}
+	}
+	oomContainer := func(name string) corev1.ContainerStatus {
+		return corev1.ContainerStatus{Name: name, LastTerminationState: corev1.ContainerState{Terminated: &corev1.ContainerStateTerminated{Reason: "OOMKilled", ExitCode: 137}}}
+	}
+
+	t.Run("LMCache failures", func(t *testing.T) {
+		testcases := map[string]struct {
+			status          corev1.ContainerStatus
+			expectedReason  string
+			expectedMessage string
+		}{
+			"running but not ready": {
+				status: corev1.ContainerStatus{
+					Name:  lmCacheSidecarName,
+					State: corev1.ContainerState{Running: &corev1.ContainerStateRunning{}},
+				},
+				expectedReason:  inferenceReasonLMCacheNotReady,
+				expectedMessage: "readiness probe",
+			},
+			"image pull failure": {
+				status:          waitingContainer(lmCacheSidecarName, "ImagePullBackOff"),
+				expectedReason:  inferenceReasonLMCacheNotReady,
+				expectedMessage: "ImagePullBackOff",
+			},
+			"ready": {
+				status:          corev1.ContainerStatus{Name: lmCacheSidecarName, Ready: true},
+				expectedReason:  "",
+				expectedMessage: "",
+			},
+		}
+		for name, tc := range testcases {
+			t.Run(name, func(t *testing.T) {
+				reason, message := detectLMCacheFailure(podList(corev1.Pod{Status: corev1.PodStatus{
+					InitContainerStatuses: []corev1.ContainerStatus{tc.status},
+				}}))
+				assert.Equal(t, tc.expectedReason, reason)
+				assert.Contains(t, message, tc.expectedMessage)
+			})
+		}
+	})
+
+	t.Run("container-level failures", func(t *testing.T) {
+		testcases := map[string]struct {
+			pods           *corev1.PodList
+			expectedReason string
+		}{
+			"image pull backoff": {
+				pods:           podList(corev1.Pod{Status: corev1.PodStatus{ContainerStatuses: []corev1.ContainerStatus{waitingContainer("infer", "ImagePullBackOff")}}}),
+				expectedReason: inferenceReasonImagePullError,
+			},
+			"err image pull": {
+				pods:           podList(corev1.Pod{Status: corev1.PodStatus{ContainerStatuses: []corev1.ContainerStatus{waitingContainer("infer", "ErrImagePull")}}}),
+				expectedReason: inferenceReasonImagePullError,
+			},
+			"crash loop backoff": {
+				pods:           podList(corev1.Pod{Status: corev1.PodStatus{ContainerStatuses: []corev1.ContainerStatus{waitingContainer("infer", "CrashLoopBackOff")}}}),
+				expectedReason: inferenceReasonCrashLoopBackOff,
+			},
+			"oom killed": {
+				pods:           podList(corev1.Pod{Status: corev1.PodStatus{ContainerStatuses: []corev1.ContainerStatus{oomContainer("infer")}}}),
+				expectedReason: inferenceReasonOOMKilled,
+			},
+			"container start config error": {
+				pods:           podList(corev1.Pod{Status: corev1.PodStatus{ContainerStatuses: []corev1.ContainerStatus{waitingContainer("infer", "CreateContainerConfigError")}}}),
+				expectedReason: inferenceReasonContainerStartError,
+			},
+			"init container image pull failure is caught": {
+				pods:           podList(corev1.Pod{Status: corev1.PodStatus{InitContainerStatuses: []corev1.ContainerStatus{waitingContainer("init", "ImagePullBackOff")}}}),
+				expectedReason: inferenceReasonImagePullError,
+			},
+			"oom takes precedence over crash loop": {
+				pods: podList(corev1.Pod{Status: corev1.PodStatus{ContainerStatuses: []corev1.ContainerStatus{
+					waitingContainer("infer", "CrashLoopBackOff"),
+					oomContainer("sidecar"),
+				}}}),
+				expectedReason: inferenceReasonOOMKilled,
+			},
+			"no failure": {
+				pods:           podList(corev1.Pod{Status: corev1.PodStatus{ContainerStatuses: []corev1.ContainerStatus{{Name: "infer", Ready: true}}}}),
+				expectedReason: "",
+			},
+		}
+		for name, tc := range testcases {
+			t.Run(name, func(t *testing.T) {
+				reason, _ := detectContainerFailure(tc.pods)
+				assert.Equal(t, tc.expectedReason, reason)
+			})
+		}
+	})
+
+	t.Run("evicted pod", func(t *testing.T) {
+		testcases := map[string]struct {
+			message        string
+			expectedReason string
+		}{
+			"disk pressure": {
+				message:        "The node was low on resource: ephemeral-storage.",
+				expectedReason: inferenceReasonNodeDiskPressure,
+			},
+			"memory pressure": {
+				message:        "The node was low on resource: memory.",
+				expectedReason: inferenceReasonNodeMemoryPressure,
+			},
+			"generic eviction": {
+				message:        "evicted for an unspecified reason",
+				expectedReason: inferenceReasonEvicted,
+			},
+		}
+		for name, tc := range testcases {
+			t.Run(name, func(t *testing.T) {
+				pods := podList(corev1.Pod{
+					ObjectMeta: v1.ObjectMeta{Name: "pod-a"},
+					Status:     corev1.PodStatus{Phase: corev1.PodFailed, Reason: "Evicted", Message: tc.message},
+				})
+				reason, message := detectEvictedPod(pods)
+				assert.Equal(t, tc.expectedReason, reason)
+				assert.Contains(t, message, "pod-a")
+			})
+		}
+	})
+
+	t.Run("unschedulable pod", func(t *testing.T) {
+		pods := podList(corev1.Pod{
+			ObjectMeta: v1.ObjectMeta{Name: "pod-b"},
+			Status: corev1.PodStatus{
+				Phase: corev1.PodPending,
+				Conditions: []corev1.PodCondition{{
+					Type:    corev1.PodScheduled,
+					Status:  corev1.ConditionFalse,
+					Reason:  corev1.PodReasonUnschedulable,
+					Message: "0/3 nodes are available: insufficient nvidia.com/gpu.",
+				}},
+			},
+		})
+		reason, message := detectUnschedulablePod(pods)
+		assert.Equal(t, inferenceReasonUnschedulable, reason)
+		assert.Contains(t, message, "pod-b")
+	})
+
+	t.Run("sas init failure", func(t *testing.T) {
+		pods := podList(corev1.Pod{Status: corev1.PodStatus{InitContainerStatuses: []corev1.ContainerStatus{{
+			Name:                 modelstreaming.SASFetchInitContainerName,
+			LastTerminationState: corev1.ContainerState{Terminated: &corev1.ContainerStateTerminated{ExitCode: 1}},
+		}}}})
+		reason, message := detectSASInitFailure(pods)
+		assert.Equal(t, inferenceReasonSASTokenFetchFailed, reason)
+		assert.Contains(t, message, "SAS token fetch failed")
+	})
+
+	t.Run("sas init config mismatch is not misreported as a token failure", func(t *testing.T) {
+		pods := podList(corev1.Pod{Status: corev1.PodStatus{InitContainerStatuses: []corev1.ContainerStatus{{
+			Name: modelstreaming.SASFetchInitContainerName,
+			State: corev1.ContainerState{Terminated: &corev1.ContainerStateTerminated{
+				ExitCode: int32(modelstreaming.SASFetchExitConfigMismatch),
+			}},
+		}}}})
+		reason, message := detectSASInitFailure(pods)
+		assert.Equal(t, inferenceReasonModelBundleMismatch, reason)
+		assert.Contains(t, message, "model bundle verification failed")
+	})
+
+	t.Run("sas init config mismatch behind a crash loop", func(t *testing.T) {
+		pods := podList(corev1.Pod{Status: corev1.PodStatus{InitContainerStatuses: []corev1.ContainerStatus{{
+			Name:  modelstreaming.SASFetchInitContainerName,
+			State: corev1.ContainerState{Waiting: &corev1.ContainerStateWaiting{Reason: "CrashLoopBackOff"}},
+			LastTerminationState: corev1.ContainerState{Terminated: &corev1.ContainerStateTerminated{
+				ExitCode: int32(modelstreaming.SASFetchExitConfigMismatch),
+			}},
+		}}}})
+		reason, _ := detectSASInitFailure(pods)
+		assert.Equal(t, inferenceReasonModelBundleMismatch, reason)
+	})
+
+	t.Run("truncate long message", func(t *testing.T) {
+		long := ""
+		for range make([]struct{}, maxInferenceMessageLen+50) {
+			long += "a"
+		}
+		out := resources.TruncateMessage(long, maxInferenceMessageLen)
+		assert.Equal(t, maxInferenceMessageLen+len("..."), len(out))
+	})
+}
+
+func TestStreamingValidationError(t *testing.T) {
+	base := errors.New(`StorageClass "kaito-model-mirror" not found`)
+	err := &streamingValidationError{reason: reasonModelStreamingStorageClassNotFound, err: base}
+
+	assert.Equal(t, base.Error(), err.Error())
+	assert.ErrorIs(t, err, base)
+
+	var sve *streamingValidationError
+	require.True(t, errors.As(error(err), &sve))
+	assert.Equal(t, reasonModelStreamingStorageClassNotFound, sve.reason)
+}
+
+func TestModelMirrorCondition(t *testing.T) {
+	ready := &kaitov1alpha1.ModelMirror{
+		Status: kaitov1alpha1.ModelMirrorStatus{Phase: kaitov1alpha1.ModelMirrorPhaseReady},
+	}
+
+	t.Run("ready mirror is ready", func(t *testing.T) {
+		st, reason, msg := modelMirrorCondition(ready, "", "")
+		assert.Equal(t, v1.ConditionTrue, st)
+		assert.Equal(t, "ModelMirrorReady", reason)
+		assert.Equal(t, "Model download complete", msg)
+	})
+
+	// A Static mirror a managed workspace may not use reports Ready on its own account.
+	t.Run("refused mirror is not ready despite its phase", func(t *testing.T) {
+		st, reason, msg := modelMirrorCondition(ready, reasonModelMirrorCreateFailed,
+			`ModelMirror abc123 in namespace ns has mode "Static" but this workspace requires mode "Managed"`)
+		assert.Equal(t, v1.ConditionFalse, st)
+		assert.Equal(t, reasonModelMirrorCreateFailed, reason)
+		assert.Contains(t, msg, "Static")
+	})
+
+	t.Run("download failure surfaces", func(t *testing.T) {
+		cr := &kaitov1alpha1.ModelMirror{
+			Status: kaitov1alpha1.ModelMirrorStatus{FailureMessage: "download job failed"},
+		}
+		st, _, msg := modelMirrorCondition(cr, "", "")
+		assert.Equal(t, v1.ConditionFalse, st)
+		assert.Equal(t, "download job failed", msg)
+	})
+
+	t.Run("unrelated inference failure does not mask a ready mirror", func(t *testing.T) {
+		st, reason, _ := modelMirrorCondition(ready, inferenceReasonOOMKilled, "container was OOMKilled")
+		assert.Equal(t, v1.ConditionTrue, st)
+		assert.Equal(t, "ModelMirrorReady", reason)
+	})
+}
+
+func TestStreamingValidationReasonFallback(t *testing.T) {
+	sve := &streamingValidationError{
+		reason: reasonModelStreamingStorageClassNotFound,
+		err:    errors.New(`storageclass "kaito-model-mirror" not found`),
+	}
+	wrapped := fmt.Errorf("ensure model mirror: %w", sve)
+
+	t.Run("fills empty reason", func(t *testing.T) {
+		reason, msg := streamingValidationReason(wrapped, "", "")
+		assert.Equal(t, reasonModelStreamingStorageClassNotFound, reason)
+		assert.Contains(t, msg, "kaito-model-mirror")
+	})
+
+	t.Run("pod classification wins", func(t *testing.T) {
+		reason, msg := streamingValidationReason(wrapped, inferenceReasonOOMKilled, "container was OOMKilled")
+		assert.Equal(t, inferenceReasonOOMKilled, reason)
+		assert.Equal(t, "container was OOMKilled", msg)
+	})
+
+	t.Run("unrelated error is ignored", func(t *testing.T) {
+		reason, msg := streamingValidationReason(errors.New("boom"), "", "")
+		assert.Empty(t, reason)
+		assert.Empty(t, msg)
+	})
+
+	t.Run("nil error is ignored", func(t *testing.T) {
+		reason, msg := streamingValidationReason(nil, "", "")
+		assert.Empty(t, reason)
+		assert.Empty(t, msg)
+	})
+
+	t.Run("reason lands on the InferenceReady condition", func(t *testing.T) {
+		status := &v1beta1.WorkspaceStatus{State: v1beta1.WorkspaceStatePending}
+		applyInferenceWorkspaceStatus(context.Background(), status, &v1beta1.Workspace{},
+			buildReconcileErrMessageAppender(nil), false, v1.ConditionTrue, false,
+			reasonModelStreamingStorageClassNotFound, `storageclass "kaito-model-mirror" not found`)
+
+		c := meta.FindStatusCondition(status.Conditions, string(v1beta1.WorkspaceConditionTypeInferenceStatus))
+		require.NotNil(t, c)
+		assert.Equal(t, v1.ConditionFalse, c.Status)
+		assert.Equal(t, reasonModelStreamingStorageClassNotFound, c.Reason)
+		assert.Contains(t, c.Message, "kaito-model-mirror")
+	})
+}
+
+// TestAppendReconcileErrMessage_NoDuplication covers the interaction between
+// streamingValidationReason and buildReconcileErrMessageAppender. The typed error
+// already supplies the reconcile error as the condition message, so appending it
+// again would render `X (last reconcile error: X)`.
+func TestAppendReconcileErrMessage_NoDuplication(t *testing.T) {
+	sve := &streamingValidationError{
+		reason: reasonModelStreamingStorageClassNotFound,
+		err:    fmt.Errorf("StorageClass %q not found", "does-not-exist-sc"),
+	}
+
+	t.Run("typed error is not appended twice", func(t *testing.T) {
+		var reconcileErr error = sve
+		_, msg := streamingValidationReason(reconcileErr, "", "")
+		got := buildReconcileErrMessageAppender(reconcileErr)(msg)
+
+		assert.NotContains(t, got, "last reconcile error")
+		assert.Equal(t, sve.Error(), got)
+	})
+
+	t.Run("truncated typed error is not appended twice", func(t *testing.T) {
+		long := &streamingValidationError{
+			reason: reasonModelStreamingStorageClassNotFound,
+			err:    fmt.Errorf("%s", strings.Repeat("x", maxInferenceMessageLen+50)),
+		}
+		var reconcileErr error = long
+		_, msg := streamingValidationReason(reconcileErr, "", "")
+		require.True(t, strings.HasSuffix(msg, "..."), "expected the message to be truncated")
+
+		got := buildReconcileErrMessageAppender(reconcileErr)(msg)
+		assert.NotContains(t, got, "last reconcile error")
+	})
+
+	t.Run("unrelated message still gets the reconcile error appended", func(t *testing.T) {
+		reconcileErr := fmt.Errorf("boom")
+		got := buildReconcileErrMessageAppender(reconcileErr)("Inference workload is not ready")
+
+		assert.Equal(t, "Inference workload is not ready (last reconcile error: boom)", got)
+	})
+
+	t.Run("nil reconcile error leaves the message untouched", func(t *testing.T) {
+		assert.Equal(t, "all good", buildReconcileErrMessageAppender(nil)("all good"))
+	})
+}
+
+func TestModelMirrorPendingReason(t *testing.T) {
+	withReady := func(status v1.ConditionStatus, reason string) *kaitov1alpha1.ModelMirror {
+		return &kaitov1alpha1.ModelMirror{
+			Status: kaitov1alpha1.ModelMirrorStatus{
+				Conditions: []v1.Condition{{
+					Type:   mmconsts.ConditionTypeReady,
+					Status: status,
+					Reason: reason,
+				}},
+			},
+		}
+	}
+
+	cases := []struct {
+		name string
+		cr   *kaitov1alpha1.ModelMirror
+		want string
+	}{
+		{
+			name: "OOMKilled forwards the actionable reason",
+			cr:   withReady(v1.ConditionFalse, mmconsts.ReasonDownloadOOMKilled),
+			want: mmconsts.ReasonDownloadOOMKilled,
+		},
+		{
+			name: "evicted forwards the actionable reason",
+			cr:   withReady(v1.ConditionFalse, mmconsts.ReasonDownloadEvicted),
+			want: mmconsts.ReasonDownloadEvicted,
+		},
+		{
+			name: "no Ready condition yet falls back to the generic reason",
+			cr:   &kaitov1alpha1.ModelMirror{},
+			want: reasonModelMirrorPending,
+		},
+		{
+			name: "only StorageReady written falls back to the generic reason",
+			cr: &kaitov1alpha1.ModelMirror{
+				Status: kaitov1alpha1.ModelMirrorStatus{
+					Conditions: []v1.Condition{{
+						Type:   mmconsts.ConditionTypeStorageReady,
+						Status: v1.ConditionFalse,
+						Reason: mmconsts.ReasonPVCPending,
+					}},
+				},
+			},
+			want: reasonModelMirrorPending,
+		},
+		{
+			name: "Ready=True is not forwarded onto a False condition",
+			cr:   withReady(v1.ConditionTrue, mmconsts.ReasonDownloadSucceeded),
+			want: reasonModelMirrorPending,
+		},
+		{
+			name: "empty reason falls back to the generic reason",
+			cr:   withReady(v1.ConditionFalse, ""),
+			want: reasonModelMirrorPending,
+		},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			assert.Equal(t, tc.want, modelMirrorPendingReason(tc.cr))
+		})
+	}
+}
+
+func TestModelMirrorPendingReason_ClosedVocabulary(t *testing.T) {
+	allowed := map[string]bool{
+		mmconsts.ReasonPVCBound:          true,
+		mmconsts.ReasonPVCPending:        true,
+		mmconsts.ReasonPVCCreateFailed:   true,
+		mmconsts.ReasonJobCreateFailed:   true,
+		mmconsts.ReasonDownloadFailed:    true,
+		mmconsts.ReasonDownloadOOMKilled: true,
+		mmconsts.ReasonDownloadEvicted:   true,
+		mmconsts.ReasonDownloadSucceeded: true,
+		mmconsts.ReasonStaticMirror:      true,
+		mmconsts.ReasonInvalidSpec:       true,
+		reasonModelMirrorPending:         true,
+	}
+
+	for reason := range allowed {
+		cr := &kaitov1alpha1.ModelMirror{
+			Status: kaitov1alpha1.ModelMirrorStatus{
+				Conditions: []v1.Condition{{
+					Type:   mmconsts.ConditionTypeReady,
+					Status: v1.ConditionFalse,
+					Reason: reason,
+				}},
+			},
+		}
+		assert.True(t, allowed[modelMirrorPendingReason(cr)],
+			"forwarded reason %q must stay within the closed vocabulary", reason)
+	}
+}
+
+func TestEnsureModelMirror_StaticAnnotationsCarryReason(t *testing.T) {
+	cases := []struct {
+		name        string
+		annotations map[string]string
+		wantMessage string
+	}{
+		{
+			name: "partial core SAS annotations",
+			annotations: map[string]string{
+				modelstreaming.AnnotationStaticModelMirror: "true",
+			},
+			wantMessage: "missing",
+		},
+		{
+			name: "invalid stream source type",
+			annotations: map[string]string{
+				modelstreaming.AnnotationStaticModelMirror:      "true",
+				modelstreaming.AnnotationStreamDatarefsURL:      "https://example.com/refs",
+				modelstreaming.AnnotationStreamIdentityClientID: "00000000-0000-0000-0000-000000000000",
+				modelstreaming.AnnotationStreamSourceType:       "bogus",
+			},
+			wantMessage: "stream-source-type",
+		},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			c := &WorkspaceReconciler{}
+			err := c.ensureModelMirror(context.Background(), &v1beta1.Workspace{
+				ObjectMeta: v1.ObjectMeta{Name: "ws", Namespace: "default", Annotations: tc.annotations},
+			})
+			require.Error(t, err)
+
+			reason, msg := streamingValidationReason(fmt.Errorf("reconcile: %w", err), "", "")
+			assert.Equal(t, reasonModelStreamingInvalidAnnotations, reason)
+			assert.Contains(t, msg, tc.wantMessage)
+		})
+	}
+}
+
+func TestUpdateWorkspaceTargetNodeCountDeclaredCPUInitialization(t *testing.T) {
+	testutil.RegisterTestModel()
+	for _, gate := range []string{consts.FeatureFlagDisableNodeAutoProvisioning} {
+		old := featuregates.FeatureGates[gate]
+		defer func(g string, v bool) { featuregates.FeatureGates[g] = v }(gate, old)
+		featuregates.FeatureGates[gate] = true
+	}
+	scheme := runtime.NewScheme()
+	require.NoError(t, corev1.AddToScheme(scheme))
+	require.NoError(t, appsv1.AddToScheme(scheme))
+	require.NoError(t, v1beta1.AddToScheme(scheme))
+	ws := &v1beta1.Workspace{ObjectMeta: v1.ObjectMeta{Name: "cpu-workspace", Namespace: "default"},
+		Resource:  v1beta1.ResourceSpec{InstanceType: "Standard_D16s_v6", LabelSelector: &v1.LabelSelector{MatchLabels: map[string]string{"pool": "cpu"}}},
+		Inference: &v1beta1.InferenceSpec{Preset: &v1beta1.PresetSpec{PresetMeta: v1beta1.PresetMeta{Name: "test-model"}}},
+		Status:    v1beta1.WorkspaceStatus{}}
+	node := &corev1.Node{ObjectMeta: v1.ObjectMeta{Name: "cpu", Labels: map[string]string{"pool": "cpu", corev1.LabelArchStable: "amd64"}}, Status: corev1.NodeStatus{Conditions: []corev1.NodeCondition{{Type: corev1.NodeReady, Status: corev1.ConditionTrue}}}}
+	c := fake.NewClientBuilder().WithScheme(scheme).WithStatusSubresource(ws).WithObjects(ws, node).Build()
+	r := &WorkspaceReconciler{Client: c}
+	require.NoError(t, r.UpdateWorkspaceTargetNodeCount(context.Background(), ws))
+	require.Equal(t, int32(1), ws.Status.TargetNodeCount)
+	stored := &v1beta1.Workspace{}
+	require.NoError(t, c.Get(context.Background(), client.ObjectKeyFromObject(ws), stored))
+	require.Equal(t, int32(1), stored.Status.TargetNodeCount)
+	require.NoError(t, r.UpdateWorkspaceTargetNodeCount(context.Background(), ws))
+}
+
+func TestUpdateWorkspaceTargetNodeCountCPUPresetsAndCustomTemplates(t *testing.T) {
+	testutil.RegisterTestModel()
+	t.Setenv("CLOUD_PROVIDER", consts.AzureCloudName)
+	for gate, enabled := range map[string]bool{
+		consts.FeatureFlagVLLM:                        true,
+		consts.FeatureFlagDisableNodeAutoProvisioning: false,
+	} {
+		old := featuregates.FeatureGates[gate]
+		t.Cleanup(func() { featuregates.FeatureGates[gate] = old })
+		featuregates.FeatureGates[gate] = enabled
+	}
+	for _, runtimeName := range []string{"vllm", "transformers"} {
+		for _, preset := range []bool{false, true} {
+			t.Run(fmt.Sprintf("runtime=%s/preset=%t", runtimeName, preset), func(t *testing.T) {
+				count := 2
+				inferenceSpec := &v1beta1.InferenceSpec{Template: &corev1.PodTemplateSpec{
+					Spec: corev1.PodSpec{Containers: []corev1.Container{{Name: "custom", Image: "example.com/custom:v1"}}},
+				}}
+				if preset {
+					count = 1
+					inferenceSpec = &v1beta1.InferenceSpec{Preset: &v1beta1.PresetSpec{PresetMeta: v1beta1.PresetMeta{Name: "test-model"}}}
+				}
+				// Custom templates admitted by the served alpha API retain Resource.Count
+				// on both the estimator and non-vLLM paths, even on Azure CPU SKUs.
+				ws := &v1beta1.Workspace{
+					ObjectMeta: v1.ObjectMeta{Name: "cpu-target-count", Namespace: "default", Annotations: map[string]string{v1beta1.AnnotationWorkspaceRuntime: runtimeName}},
+					Resource: v1beta1.ResourceSpec{
+						//nolint:staticcheck //SA1019: preserve legacy custom-template Resource.Count behavior
+						Count: &count, InstanceType: "Standard_D8s_v5",
+					},
+					Inference: inferenceSpec,
+				}
+				scheme := runtime.NewScheme()
+				require.NoError(t, corev1.AddToScheme(scheme))
+				require.NoError(t, v1beta1.AddToScheme(scheme))
+				c := fake.NewClientBuilder().WithScheme(scheme).WithStatusSubresource(ws).WithObjects(ws).Build()
+				r := &WorkspaceReconciler{Client: c, Estimator: &nodesestimator.NodeEstimator{}}
+				require.NoError(t, r.UpdateWorkspaceTargetNodeCount(context.Background(), ws))
+				require.Equal(t, int32(count), ws.Status.TargetNodeCount)
+				stored := &v1beta1.Workspace{}
+				require.NoError(t, c.Get(context.Background(), client.ObjectKeyFromObject(ws), stored))
+				require.Equal(t, int32(count), stored.Status.TargetNodeCount)
+				require.NoError(t, r.UpdateWorkspaceTargetNodeCount(context.Background(), ws))
+				require.Equal(t, int32(count), ws.Status.TargetNodeCount)
+			})
+		}
+	}
+}

@@ -47,24 +47,24 @@ import (
 
 	kaitov1alpha1 "github.com/kaito-project/kaito/api/v1alpha1"
 	kaitov1beta1 "github.com/kaito-project/kaito/api/v1beta1"
-	"github.com/kaito-project/kaito/pkg/cache"
-	autoupgrade "github.com/kaito-project/kaito/pkg/controllers/autoupgrade"
-	drift "github.com/kaito-project/kaito/pkg/controllers/drift"
-	multiroleinference "github.com/kaito-project/kaito/pkg/controllers/multiroleinference"
+	"github.com/kaito-project/kaito/internal/cache"
+	"github.com/kaito-project/kaito/internal/controller/autoupgrade"
+	"github.com/kaito-project/kaito/internal/controller/drift"
+	"github.com/kaito-project/kaito/internal/controller/inferenceset"
+	modelmirrorcontroller "github.com/kaito-project/kaito/internal/controller/modelmirror"
+	"github.com/kaito-project/kaito/internal/controller/multiroleinference"
+	"github.com/kaito-project/kaito/internal/controller/workspace"
+	"github.com/kaito-project/kaito/internal/inference/modelstreaming"
+	"github.com/kaito-project/kaito/internal/inference/modelstreaming/registry"
+	karpenterutils "github.com/kaito-project/kaito/internal/k8s/karpenter"
+	nodeprovisionmanager "github.com/kaito-project/kaito/internal/nodeprovision/manager"
+	"github.com/kaito-project/kaito/internal/version"
+	workspacewebhook "github.com/kaito-project/kaito/internal/webhook/workspace"
 	"github.com/kaito-project/kaito/pkg/featuregates"
-	"github.com/kaito-project/kaito/pkg/inferenceset"
 	"github.com/kaito-project/kaito/pkg/k8sclient"
 	mmconsts "github.com/kaito-project/kaito/pkg/modelmirror/consts"
-	mmcontrollers "github.com/kaito-project/kaito/pkg/modelmirror/controllers"
-	nodeprovisionmanager "github.com/kaito-project/kaito/pkg/nodeprovision/manager"
 	"github.com/kaito-project/kaito/pkg/sku"
 	"github.com/kaito-project/kaito/pkg/utils/consts"
-	karpenterutils "github.com/kaito-project/kaito/pkg/utils/karpenter"
-	"github.com/kaito-project/kaito/pkg/version"
-	"github.com/kaito-project/kaito/pkg/workspace/controllers"
-	"github.com/kaito-project/kaito/pkg/workspace/inference/modelstreaming"
-	"github.com/kaito-project/kaito/pkg/workspace/inference/modelstreaming/registry"
-	"github.com/kaito-project/kaito/pkg/workspace/webhooks"
 )
 
 const (
@@ -313,7 +313,7 @@ func main() {
 		modelstreaming.StreamingDefaults.ModelStreamer = streamer
 	}
 
-	workspaceReconciler := controllers.NewWorkspaceReconciler(
+	workspaceReconciler := workspace.NewWorkspaceReconciler(
 		kClient,
 		mgr.GetScheme(),
 		log.Log.WithName("controllers").WithName("Workspace"),
@@ -390,7 +390,7 @@ func main() {
 
 	// ModelMirror controller — requires ModelMirror feature gate.
 	if featuregates.FeatureGates[consts.FeatureFlagModelMirror] {
-		mmReconciler := mmcontrollers.NewModelMirrorReconciler(
+		mmReconciler := modelmirrorcontroller.NewModelMirrorReconciler(
 			kClient,
 			mgr.GetAPIReader(),
 			log.Log.WithName("controllers").WithName("ModelMirror"),
@@ -427,7 +427,7 @@ func main() {
 		})
 		ctx = sharedmain.WithHealthProbesDisabled(ctx)
 		ctx = sharedmain.WithHADisabled(ctx)
-		go sharedmain.MainWithConfig(ctx, "webhook", ctrl.GetConfigOrDie(), webhooks.NewControllerWebhooks()...)
+		go sharedmain.MainWithConfig(ctx, "webhook", ctrl.GetConfigOrDie(), workspacewebhook.NewControllerWebhooks()...)
 
 		// wait 2 seconds to allow reconciling webhookconfiguration and service endpoint.
 		time.Sleep(2 * time.Second)

@@ -29,7 +29,7 @@ push to a development registry with `OUTPUT_TYPE=type=image,push=true`.
 Production publication follows the release workflow, not a local Makefile push.
 
 Publication uses the existing runtime-image workflow and the `base-cpu`
-entry in `presets/workspace/models/base_images.yaml`. This image has its own tag
+entry in `pkg/catalog/base_images.yaml`. This image has its own tag
 history; adding it does not change the existing GPU `base` image tag. The shared
 E2E setup builds it alongside the GPU image when `build_kaito_base_image` is true;
 this does not add a CPU inference E2E test.

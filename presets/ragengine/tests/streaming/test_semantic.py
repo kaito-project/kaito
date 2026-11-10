@@ -37,14 +37,18 @@ def _parse(data: str) -> OpenAIChatChunkParseResult:
 def test_sse_framer_handles_fragmented_event():
     framer = SSEFramer()
 
-    assert framer.feed('data: {"choices":[{"index":0,"delta":{"content":"hel') == []
-    events = framer.feed('lo"}}]}\n\n')
+    assert framer.feed(b'data: {"choices":[{"index":0,"delta":{"content":"hel') == []
+    events = framer.feed(b'lo"}}]}\n\n')
 
     assert len(events) == 1
     result = parse_openai_chat_sse_event(events[0])
     assert result.status == OpenAIChatChunkParseStatus.PARSED
     assert result.parsed_choices == (
-        ParsedOpenAIChoice(choice_index=0, content="hello"),
+        ParsedOpenAIChoice(
+            choice_index=0,
+            content="hello",
+            choice={"index": 0, "delta": {"content": "hello"}},
+        ),
     )
     assert result.contents == ("hello",)
 
@@ -53,8 +57,8 @@ def test_sse_framer_handles_multiple_events_in_one_chunk():
     framer = SSEFramer()
 
     events = framer.feed(
-        'data: {"choices":[{"index":0,"delta":{"content":"first"}}]}\n\n'
-        'data: {"choices":[{"index":0,"delta":{"content":"second"}}]}\n\n'
+        b'data: {"choices":[{"index":0,"delta":{"content":"first"}}]}\n\n'
+        b'data: {"choices":[{"index":0,"delta":{"content":"second"}}]}\n\n'
     )
 
     assert [parse_openai_chat_sse_event(event).contents for event in events] == [
@@ -72,7 +76,7 @@ def test_openai_parser_detects_done_event():
 
 def test_sse_framer_handles_crlf_separator():
     events = SSEFramer().feed(
-        'data: {"choices":[{"index":0,"delta":{"content":"crlf"}}]}\r\n\r\n'
+        b'data: {"choices":[{"index":0,"delta":{"content":"crlf"}}]}\r\n\r\n'
     )
 
     result = parse_openai_chat_sse_event(events[0])
@@ -94,7 +98,15 @@ def test_openai_parser_tolerates_chunk_without_delta_content():
 
     assert result.status == OpenAIChatChunkParseStatus.PARSED
     assert result.parsed_choices == (
-        ParsedOpenAIChoice(choice_index=2, finish_reason="stop"),
+        ParsedOpenAIChoice(
+            choice_index=2,
+            finish_reason="stop",
+            choice={
+                "index": 2,
+                "delta": {"role": "assistant"},
+                "finish_reason": "stop",
+            },
+        ),
     )
     assert result.contents == ()
     assert result.finish_reasons == ("stop",)
@@ -111,6 +123,11 @@ def test_openai_parser_extracts_choice_index_content_and_finish_reason():
             choice_index=3,
             content="safe",
             finish_reason="stop",
+            choice={
+                "index": 3,
+                "delta": {"content": "safe"},
+                "finish_reason": "stop",
+            },
         ),
     )
 
@@ -123,11 +140,20 @@ def test_openai_parser_keeps_multiple_choices_aligned():
 
     assert result.status == OpenAIChatChunkParseStatus.PARSED
     assert result.parsed_choices == (
-        ParsedOpenAIChoice(choice_index=0, content="first"),
+        ParsedOpenAIChoice(
+            choice_index=0,
+            content="first",
+            choice={"index": 0, "delta": {"content": "first"}},
+        ),
         ParsedOpenAIChoice(
             choice_index=2,
             content="second",
             finish_reason="stop",
+            choice={
+                "index": 2,
+                "delta": {"content": "second"},
+                "finish_reason": "stop",
+            },
         ),
     )
 
@@ -136,7 +162,13 @@ def test_openai_parser_preserves_empty_delta_content():
     result = _parse('{"choices":[{"index":0,"delta":{"content":""}}]}')
 
     assert result.status == OpenAIChatChunkParseStatus.PARSED
-    assert result.parsed_choices == (ParsedOpenAIChoice(choice_index=0, content=""),)
+    assert result.parsed_choices == (
+        ParsedOpenAIChoice(
+            choice_index=0,
+            content="",
+            choice={"index": 0, "delta": {"content": ""}},
+        ),
+    )
 
 
 def test_openai_parser_supports_empty_choices():
@@ -191,7 +223,7 @@ def test_openai_parser_keeps_legacy_content_and_finish_reason_fields():
 
 def test_openai_builder_builds_delta_content_chunk():
     chunk = build_openai_chat_delta_sse_chunk("safe text")
-    result = parse_openai_chat_sse_event(SSEFramer().feed(chunk)[0])
+    result = parse_openai_chat_sse_event(SSEFramer().feed(chunk.encode())[0])
 
     assert result.status == OpenAIChatChunkParseStatus.PARSED
     assert result.contents == ("safe text",)
@@ -199,7 +231,7 @@ def test_openai_builder_builds_delta_content_chunk():
 
 def test_openai_builder_builds_content_filter_finish_chunk():
     chunk = build_openai_chat_finish_reason_sse_chunk(finish_reason="content_filter")
-    result = parse_openai_chat_sse_event(SSEFramer().feed(chunk)[0])
+    result = parse_openai_chat_sse_event(SSEFramer().feed(chunk.encode())[0])
 
     assert result.status == OpenAIChatChunkParseStatus.PARSED
     assert result.finish_reasons == ("content_filter",)
@@ -207,6 +239,6 @@ def test_openai_builder_builds_content_filter_finish_chunk():
 
 def test_openai_builder_builds_done_chunk():
     chunk = build_sse_done_chunk()
-    result = parse_openai_chat_sse_event(SSEFramer().feed(chunk)[0])
+    result = parse_openai_chat_sse_event(SSEFramer().feed(chunk.encode())[0])
 
     assert result.status == OpenAIChatChunkParseStatus.DONE

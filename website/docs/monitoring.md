@@ -11,7 +11,7 @@ vLLM exposes Prometheus metrics at the `/metrics` endpoint. These metrics provid
 vLLM version: 0.8.2
 
 :::note
-vLLM V1 engine is now enabled by default. Check [here](https://docs.vllm.ai/en/latest/getting_started/v1_user_guide.html) for details.
+vLLM V1 engine is now enabled by default. Check [here](https://docs.vllm.ai/en/latest/usage/v1_guide.html) for details.
 :::
 
 | Category | Metric Name | Type | Description |

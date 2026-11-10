@@ -17,73 +17,16 @@ import (
 	"fmt"
 	"net/url"
 	"os"
-	"sort"
 	"strings"
 
-	"gopkg.in/yaml.v2"
-	corev1 "k8s.io/api/core/v1"
-	"k8s.io/apimachinery/pkg/api/equality"
-	"k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
-	"k8s.io/apimachinery/pkg/runtime"
-	"sigs.k8s.io/controller-runtime/pkg/client"
 
-	"github.com/kaito-project/kaito/pkg/sku"
 	"github.com/kaito-project/kaito/pkg/utils/consts"
-	"github.com/kaito-project/kaito/pkg/utils/mig"
 )
 
 const (
 	errInvalidModelVersionURL = "invalid model version URL: %s. Expected format: https://huggingface.co/<org>/<model>/commit/<revision>"
 )
-
-// TruncateMessage shortens msg to at most maxLen bytes, appending "..." when truncated.
-func TruncateMessage(msg string, maxLen int) string {
-	if len(msg) <= maxLen {
-		return msg
-	}
-	return msg[:maxLen] + "..."
-}
-
-func Contains(s []string, e string) bool {
-	for _, a := range s {
-		if a == e {
-			return true
-		}
-	}
-	return false
-}
-
-// GetMIGGPUConfig builds a GPUConfig from a MIG profile string. Each MIG workload
-// is scheduled on exactly one hardware-isolated slice.
-func GetMIGGPUConfig(migProfile string) (*sku.GPUConfig, error) {
-	_, memGB, err := mig.ParseMIGProfile(migProfile)
-	if err != nil {
-		return nil, fmt.Errorf("invalid MIG profile: %w", err)
-	}
-	return &sku.GPUConfig{
-		SKU:      "unknown",
-		GPUCount: 1,
-		GPUMem:   resource.MustParse(fmt.Sprintf("%dGi", memGB)),
-		IsMIG:    true,
-	}, nil
-}
-
-// SearchRawExtension performs a search for a key within a runtime.RawExtension.
-func SearchRawExtension(raw runtime.RawExtension, key string) (interface{}, bool, error) {
-	var data map[string]interface{}
-	if err := yaml.Unmarshal(raw.Raw, &data); err != nil {
-		return nil, false, fmt.Errorf("failed to unmarshal runtime.RawExtension: %w", err)
-	}
-
-	result, found := data[key]
-	if !found {
-		return nil, false, nil
-	}
-
-	return result, true, nil
-}
 
 func BuildCmdStr(baseCommand string, runParams ...map[string]string) string {
 	updatedBaseCommand := baseCommand
@@ -128,68 +71,6 @@ func GetReleaseNamespace() (string, error) {
 		return namespace, nil
 	}
 	return "", fmt.Errorf("failed to determine release namespace from file %s and env var %s", namespaceFilePath, consts.DefaultReleaseNamespaceEnvVar)
-}
-
-func ExtractAndValidateRepoName(image string) error {
-	// Extract repository name (part after the last / and before the colon :)
-	// For example given image: modelsregistry.azurecr.io/ADAPTER_HERE:0.0.1
-	parts := strings.Split(image, "/")
-	lastPart := parts[len(parts)-1]             // Extracts "ADAPTER_HERE:0.0.1"
-	repoName := strings.Split(lastPart, ":")[0] // Extracts "ADAPTER_HERE"
-
-	// Check if repository name is lowercase
-	if repoName != strings.ToLower(repoName) {
-		return fmt.Errorf("repository name must be lowercase")
-	}
-
-	return nil
-}
-
-func SelectNodes(qualified []*corev1.Node, preferred []string, previous []string, count int) []*corev1.Node {
-
-	sort.Slice(qualified, func(i, j int) bool {
-		iPreferred := Contains(preferred, qualified[i].Name)
-		jPreferred := Contains(preferred, qualified[j].Name)
-
-		if iPreferred && !jPreferred {
-			return true
-		} else if !iPreferred && jPreferred {
-			return false
-		} else { // either all are preferred, or none is preferred
-			iPrevious := Contains(previous, qualified[i].Name)
-			jPrevious := Contains(previous, qualified[j].Name)
-
-			if iPrevious && !jPrevious {
-				return true
-			} else if !iPrevious && jPrevious {
-				return false
-			} else { // either all are previous, or none is previous
-				var iCreatedByGPUProvisioner, jCreatedByGPUProvisioner bool
-				_, iCreatedByGPUProvisioner = qualified[i].Labels[consts.LabelGPUProvisionerCustom]
-				_, jCreatedByGPUProvisioner = qualified[j].Labels[consts.LabelGPUProvisionerCustom]
-				// Choose node created by gpu-provisioner and karpenter since it is more likely to be empty to use.
-				var iCreatedByKarpenter, jCreatedByKarpenter bool
-				_, iCreatedByKarpenter = qualified[i].Labels[consts.LabelNodePool]
-				_, jCreatedByKarpenter = qualified[j].Labels[consts.LabelNodePool]
-
-				if (iCreatedByGPUProvisioner && !jCreatedByGPUProvisioner) ||
-					(iCreatedByKarpenter && !jCreatedByKarpenter) {
-					return true
-				} else if (!iCreatedByGPUProvisioner && jCreatedByGPUProvisioner) ||
-					(!iCreatedByKarpenter && jCreatedByKarpenter) {
-					return false
-				} else {
-					return qualified[i].Name < qualified[j].Name
-				}
-			}
-		}
-	})
-
-	if len(qualified) <= count {
-		return qualified
-	}
-
-	return qualified[0:count]
 }
 
 // ParseHuggingFaceModelVersion parses the model version in the format of https://huggingface.co/<org>/<model>/commit/<revision>
@@ -242,34 +123,4 @@ func GetRayLeaderHost(meta metav1.ObjectMeta) string {
 // InferencePoolName returns the name of the inference pool for the given workspace.
 func InferencePoolName(workspaceName string) string {
 	return fmt.Sprintf("%s-inferencepool", workspaceName)
-}
-
-// ClientObjectSpecEqual compares the spec field of two client.Objects for equality.
-// For example:
-//
-//	a:   {"apiVersion": "apps/v1", "kind": "Deployment", "spec": {"replicas": 2}}
-//	b:   {"apiVersion": "apps/v1", "kind": "Deployment", "spec": {"replicas": 2}}
-//	result: true
-//
-//	c:   {"apiVersion": "apps/v1", "kind": "Deployment", "spec": {"replicas": 3}}
-//	d:   {"apiVersion": "apps/v1", "kind": "Deployment", "spec": {"replicas": 2}}
-//	result: false
-func ClientObjectSpecEqual(a, b client.Object) (bool, error) {
-	aUnstructured, err := runtime.DefaultUnstructuredConverter.ToUnstructured(a)
-	if err != nil {
-		return false, err
-	}
-	bUnstructured, err := runtime.DefaultUnstructuredConverter.ToUnstructured(b)
-	if err != nil {
-		return false, err
-	}
-	aSpec, aOK, err := unstructured.NestedMap(aUnstructured, "spec")
-	if err != nil {
-		return false, err
-	}
-	bSpec, bOK, err := unstructured.NestedMap(bUnstructured, "spec")
-	if err != nil {
-		return false, err
-	}
-	return aOK && bOK && equality.Semantic.DeepEqual(aSpec, bSpec), nil
 }

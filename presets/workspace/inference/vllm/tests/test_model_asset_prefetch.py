@@ -148,7 +148,7 @@ def test_unaffected_launches_do_not_connect_ray(runtime, overrides):
 def test_prefetches_huggingface_assets_on_every_node(runtime):
     ray, strategy, _, _ = runtime
     args = make_args(
-        model="Qwen/Qwen3.6-35B-A3B",
+        model="Qwen/Qwen3.6-27B",
         revision="model-revision",
         tokenizer_revision="tokenizer-revision",
     )
@@ -159,15 +159,15 @@ def test_prefetches_huggingface_assets_on_every_node(runtime):
         call(
             {},
             [
-                ("Qwen/Qwen3.6-35B-A3B", "model-revision"),
-                ("Qwen/Qwen3.6-35B-A3B", "tokenizer-revision"),
+                ("Qwen/Qwen3.6-27B", "model-revision"),
+                ("Qwen/Qwen3.6-27B", "tokenizer-revision"),
             ],
         ),
         call(
             {},
             [
-                ("Qwen/Qwen3.6-35B-A3B", "model-revision"),
-                ("Qwen/Qwen3.6-35B-A3B", "tokenizer-revision"),
+                ("Qwen/Qwen3.6-27B", "model-revision"),
+                ("Qwen/Qwen3.6-27B", "tokenizer-revision"),
             ],
         ),
     ]
@@ -285,14 +285,14 @@ def test_worker_prefetches_huggingface_nonweight_assets(runtime, monkeypatch):
     model_asset_prefetch._prefetch_model_assets_on_node(
         {},
         [
-            ("Qwen/Qwen3.6-35B-A3B", "model-revision"),
+            ("Qwen/Qwen3.6-27B", "model-revision"),
             ("org/tokenizer", None),
         ],
     )
 
     assert huggingface_hub.snapshot_download.call_args_list == [
         call(
-            repo_id="Qwen/Qwen3.6-35B-A3B",
+            repo_id="Qwen/Qwen3.6-27B",
             revision="model-revision",
             allow_patterns=model_asset_prefetch._HF_NON_WEIGHT_PATTERNS,
         ),

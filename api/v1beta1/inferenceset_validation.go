@@ -20,13 +20,10 @@ import (
 
 	"github.com/robfig/cron/v3"
 	admissionregistrationv1 "k8s.io/api/admissionregistration/v1"
-	apiequality "k8s.io/apimachinery/pkg/api/equality"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/util/validation"
 	"k8s.io/klog/v2"
 	"knative.dev/pkg/apis"
-
-	"github.com/kaito-project/kaito/pkg/utils/consts"
-	"github.com/kaito-project/kaito/pkg/utils/speculativedecoding"
 )
 
 func (is *InferenceSet) SupportedVerbs() []admissionregistrationv1.OperationType {
@@ -37,138 +34,77 @@ func (is *InferenceSet) SupportedVerbs() []admissionregistrationv1.OperationType
 }
 
 func (is *InferenceSet) Validate(ctx context.Context) (errs *apis.FieldError) {
+	if !is.DeletionTimestamp.IsZero() {
+		klog.V(2).InfoS("Skip validation for deleting inferenceset", "inferenceset", fmt.Sprintf("%s/%s", is.Namespace, is.Name))
+		return nil
+	}
+
 	errmsgs := validation.IsDNS1123Label(is.Name)
 	if len(errmsgs) > 0 {
 		errs = errs.Also(apis.ErrInvalidValue(strings.Join(errmsgs, ", "), "name"))
 	}
-	base := apis.GetBaseline(ctx)
-	if base == nil {
+	if apis.GetBaseline(ctx) == nil {
 		klog.V(2).InfoS("Validate creation", "inferenceset", fmt.Sprintf("%s/%s", is.Namespace, is.Name))
 		errs = errs.Also(is.validateCreate().ViaField("spec"))
 	} else {
 		klog.V(2).InfoS("Validate update", "inferenceset", fmt.Sprintf("%s/%s", is.Namespace, is.Name))
-		old := base.(*InferenceSet)
-		errs = errs.Also(
-			is.validateUpdate(old).ViaField("spec"),
-		)
+		errs = errs.Also(validateInferenceSetMaintenanceWindow(is.Spec.AutoUpgrade).ViaField("spec"))
 	}
-	// Speculative-decoding validation is normally handled by the projected
-	// child-Workspace validation path below. Keep the direct mirror only as a
-	// fallback when that hook is not wired (for example, in narrow unit tests).
+	// Template-level rules (instanceType, partition, annotations, inference
+	// immutability, ...) are enforced by validating the child Workspace this
+	// InferenceSet would create, so both resources share one rule set. Fail
+	// closed if that validator is not wired rather than skip those rules.
 	if ValidateInferenceSetWorkspace == nil {
-		errs = errs.Also(is.validateSpeculativeDecoding())
+		return errs.Also(apis.ErrGeneric("InferenceSet child Workspace validation is not configured", "spec", "template"))
 	}
-	if ValidateInferenceSetWorkspace != nil {
-		errs = errs.Also(ValidateInferenceSetWorkspace(ctx, is).ViaField("spec", "template"))
-	}
-	return errs
+	return errs.Also(ValidateInferenceSetWorkspace(ctx, is))
 }
 
 // ValidateInferenceSetWorkspace validates the child Workspace an InferenceSet
-// would create. It is assigned at startup (see pkg/workspace/webhooks) to a
-// controller-side implementation, avoiding an import cycle with the util
-// package that builds the Workspace.
+// would create, using the admission baseline in ctx (if any) as the previous
+// InferenceSet. Returned errors are rooted at the InferenceSet. It is assigned
+// at startup (see internal/webhook/workspace) to a controller-side implementation,
+// avoiding an import cycle with the util package that builds the Workspace.
 var ValidateInferenceSetWorkspace func(ctx context.Context, is *InferenceSet) *apis.FieldError
 
 func (is *InferenceSet) validateCreate() (errs *apis.FieldError) {
 	if is.Spec.Replicas != nil && *is.Spec.Replicas < 0 {
 		errs = errs.Also(apis.ErrInvalidValue(*is.Spec.Replicas, "replicas", "must be non-negative"))
 	}
-	errs = errs.Also(is.validateInstanceType().ViaField("template"))
-	errs = errs.Also(is.validateCapacityTypeAnnotation().ViaField("template"))
 	errs = errs.Also(validateInferenceSetMaintenanceWindow(is.Spec.AutoUpgrade))
+	errs = errs.Also(validateInferenceSetSelectorNotEmpty(is.Spec.Selector))
+	errs = errs.Also(validateInferenceSetSelectorMatchLabels(is.Spec.Selector, is.Spec.Template.Labels))
 	return errs
 }
 
-func (is *InferenceSet) validateUpdate(old *InferenceSet) (errs *apis.FieldError) {
-	errs = errs.Also(is.validateInstanceType().ViaField("template"))
-	errs = errs.Also(validateInferenceSetMaintenanceWindow(is.Spec.AutoUpgrade))
-	// Partition config is immutable once set.
-	if !apiequality.Semantic.DeepEqual(is.Spec.Template.Resource.Partition, old.Spec.Template.Resource.Partition) {
-		errs = errs.Also(apis.ErrGeneric("field is immutable", "template", "resource", "partition"))
+// validateInferenceSetSelectorNotEmpty rejects an unset or empty spec.labelSelector.
+// It is enforced on create only so existing InferenceSets with an empty
+// (immutable) selector remain updatable. Paths are relative to spec.
+func validateInferenceSetSelectorNotEmpty(selector *metav1.LabelSelector) *apis.FieldError {
+	if selector == nil {
+		return apis.ErrMissingField("labelSelector")
 	}
-	errs = errs.Also(is.validateCapacityTypeAnnotationUpdate(old))
-	return errs
+	if IsEmptyLabelSelector(selector) {
+		return apis.ErrGeneric("labelSelector must not be empty", "labelSelector")
+	}
+	return nil
 }
 
-func (is *InferenceSet) validateCapacityTypeAnnotation() *apis.FieldError {
-	if !consts.IsKarpenterProvisioner() {
+// validateInferenceSetSelectorMatchLabels rejects template.metadata.labels that
+// conflict with spec.labelSelector.matchLabels, which are copied onto every child
+// Workspace. matchExpressions are not checked: MultiRoleInference may generate
+// selectors whose expressions describe nodes rather than the template labels.
+// Paths are relative to spec.
+func validateInferenceSetSelectorMatchLabels(selector *metav1.LabelSelector, templateLabels map[string]string) (errs *apis.FieldError) {
+	if selector == nil {
 		return nil
 	}
-	capacityType := is.Spec.Template.Annotations[AnnotationCapacityType]
-	if consts.IsSupportedKarpenterCapacityType(capacityType) {
-		return nil
+	for k, v := range selector.MatchLabels {
+		if tv, ok := templateLabels[k]; ok && tv != v {
+			errs = errs.Also(apis.ErrInvalidValue(tv, fmt.Sprintf("template.metadata.labels[%s]", k),
+				fmt.Sprintf("must equal labelSelector.matchLabels[%s] %q", k, v)))
+		}
 	}
-	return apis.ErrInvalidValue(
-		fmt.Sprintf("%q is not a supported capacity type; choose one of: %s, %s",
-			capacityType, consts.KarpenterCapacityTypeOnDemand, consts.KarpenterCapacityTypeSpot),
-		fmt.Sprintf("metadata.annotations[%s]", AnnotationCapacityType),
-	)
-}
-
-func (is *InferenceSet) validateCapacityTypeAnnotationUpdate(old *InferenceSet) *apis.FieldError {
-	if !consts.IsKarpenterProvisioner() {
-		return nil
-	}
-	oldValue := old.Spec.Template.Annotations[AnnotationCapacityType]
-	newValue := is.Spec.Template.Annotations[AnnotationCapacityType]
-	if oldValue == newValue {
-		return nil
-	}
-	if !consts.IsSupportedKarpenterCapacityType(oldValue) {
-		return is.validateCapacityTypeAnnotation().ViaField("template")
-	}
-	return apis.ErrGeneric(
-		fmt.Sprintf("annotation %s is immutable after creation", AnnotationCapacityType),
-		"template", "metadata", "annotations", AnnotationCapacityType,
-	)
-}
-
-// validateSpeculativeDecoding mirrors the Workspace validator for the
-// kaito.sh/enable-speculative-decoding opt-in. The InferenceSet controller
-// clones Spec.Template.Annotations onto each child Workspace, so gating at
-// admission avoids surfacing a valid InferenceSet whose replicas would then
-// silently drop speculative decoding.
-func (is *InferenceSet) validateSpeculativeDecoding() (errs *apis.FieldError) {
-	inf := is.Spec.Template.Inference
-	presetName := ""
-	if inf.Preset != nil {
-		presetName = string(inf.Preset.Name)
-	}
-	runtime := EffectiveInferenceRuntime(is.Spec.Template.Annotations)
-
-	status, invalidValue := speculativedecoding.ValidateOptIn(
-		is.Spec.Template.Annotations,
-		AnnotationEnableSpeculativeDecoding,
-		presetName,
-		runtime,
-	)
-	switch status {
-	case speculativedecoding.OptInDisabled:
-		return nil
-	case speculativedecoding.OptInInvalidValue:
-		return errs.Also(apis.ErrInvalidValue(
-			fmt.Sprintf("annotation %s has invalid value %q; expected \"true\" or \"false\"", AnnotationEnableSpeculativeDecoding, invalidValue),
-			fmt.Sprintf("spec.template.metadata.annotations[%s]", AnnotationEnableSpeculativeDecoding),
-		))
-	case speculativedecoding.OptInMissingPreset:
-		return errs.Also(apis.ErrGeneric(
-			"kaito.sh/enable-speculative-decoding requires a preset inference; remove the annotation or set spec.template.inference.preset.name",
-			fmt.Sprintf("spec.template.metadata.annotations[%s]", AnnotationEnableSpeculativeDecoding),
-		))
-	case speculativedecoding.OptInRuntimeMismatch:
-		return errs.Also(apis.ErrGeneric(
-			fmt.Sprintf(
-				"kaito.sh/enable-speculative-decoding requires the vLLM runtime; effective runtime resolves to %q (preset %q)",
-				runtime, presetName,
-			),
-			fmt.Sprintf("spec.template.metadata.annotations[%s]", AnnotationEnableSpeculativeDecoding),
-		))
-	}
-
-	// Any preset is accepted: presets registered in generator.speculativeDecodingByPreset
-	// get their preset-tuned config (e.g. mtp for DeepSeek R1/V3/V3.2); everything else
-	// falls back to the universal ngram default at pod-spec generation time.
 	return errs
 }
 
@@ -188,28 +124,6 @@ func validateInferenceSetMaintenanceWindow(autoUpgrade *AutoUpgradePolicy) (errs
 	if window.Duration != nil && window.Duration.Duration <= 0 {
 		errs = errs.Also(apis.ErrInvalidValue(window.Duration.Duration.String(), "autoUpgrade.maintenanceWindow.duration",
 			"must be a positive duration"))
-	}
-	return errs
-}
-
-// validateInstanceType ensures instanceType is set when node auto-provisioning
-// is enabled, and is empty when using BYO (Bring Your Own) nodes.
-func (is *InferenceSet) validateInstanceType() (errs *apis.FieldError) {
-	instanceType := is.Spec.Template.Resource.InstanceType
-	switch consts.ActiveNodeProvisioner {
-	case consts.NodeProvisionerBYO:
-		// BYO mode: instanceType must be empty.
-		if instanceType != "" {
-			errs = errs.Also(apis.ErrInvalidValue(instanceType, "resource.instanceType",
-				"instanceType must be empty when nodeProvisioner is byo"))
-		}
-	case consts.NodeProvisionerKarpenter, consts.NodeProvisionerAzureGPU:
-		// Auto-provisioning modes: instanceType is required.
-		if instanceType == "" {
-			errs = errs.Also(apis.ErrMissingField("resource.instanceType"))
-		}
-	default:
-		// Unknown or unset provisioner: no validation (backward compat).
 	}
 	return errs
 }

@@ -29,12 +29,12 @@ import (
 	"k8s.io/klog/v2"
 	"knative.dev/pkg/apis"
 
+	"github.com/kaito-project/kaito/api/internal/speculativedecoding"
+	kaitov1beta1 "github.com/kaito-project/kaito/api/v1beta1"
 	"github.com/kaito-project/kaito/pkg/model"
 	"github.com/kaito-project/kaito/pkg/sku"
 	"github.com/kaito-project/kaito/pkg/utils"
 	"github.com/kaito-project/kaito/pkg/utils/consts"
-	"github.com/kaito-project/kaito/pkg/utils/plugin"
-	"github.com/kaito-project/kaito/pkg/utils/speculativedecoding"
 )
 
 const (
@@ -62,6 +62,7 @@ func (w *Workspace) Validate(ctx context.Context) (errs *apis.FieldError) {
 	base := apis.GetBaseline(ctx)
 	if base == nil {
 		klog.InfoS("Validate creation", "workspace", fmt.Sprintf("%s/%s", w.Namespace, w.Name))
+		errs = errs.Also(kaitov1beta1.ValidateWorkspaceNameLength(w.Name))
 		errs = errs.Also(w.validateCreate().ViaField("spec"))
 		errs = errs.Also(w.validateSpeculativeDecoding())
 		if w.Inference != nil {
@@ -142,7 +143,7 @@ func (w *Workspace) validateSpeculativeDecoding() (errs *apis.FieldError) {
 	// Any preset is accepted: presets registered in generator.speculativeDecodingByPreset
 	// get their preset-tuned config (e.g. mtp for DeepSeek R1/V3/V3.2); everything else
 	// falls back to the universal ngram default at pod-spec generation time
-	// (pkg/workspace/inference/preset_inferences.go applySpeculativeDecoding).
+	// (internal/inference/preset_inferences.go applySpeculativeDecoding).
 	// So there is no admission-time "preset must be in the supported list" gate.
 	//
 	// Current reachable methods in this PR are only preset-tuned mtp and the
@@ -272,7 +273,7 @@ func (r *TuningSpec) validateCreate(ctx context.Context, workspaceNamespace stri
 	// Currently require a preset to specified, in future we can consider defining a template
 	if r.Preset == nil {
 		errs = errs.Also(apis.ErrMissingField("Preset"))
-	} else if presetName := string(r.Preset.Name); !plugin.IsValidPreset(presetName) {
+	} else if presetName := string(r.Preset.Name); !model.IsValidPreset(presetName) {
 		errs = errs.Also(apis.ErrInvalidValue(fmt.Sprintf("Unsupported tuning preset name %s", presetName), "presetName"))
 	}
 	return errs
@@ -386,7 +387,7 @@ func (r *ResourceSpec) validateCreateWithInference(inference *InferenceSpec, byp
 	if inference.Preset != nil {
 		presetName = strings.ToLower(string(inference.Preset.Name))
 		// Since inference.Preset exists, we must validate preset name.
-		if !plugin.IsValidPreset(presetName) {
+		if !model.IsValidPreset(presetName) {
 			// Return to skip the rest of checks, the Inference spec validation will return proper err msg.
 			return errs
 		}
@@ -402,8 +403,8 @@ func (r *ResourceSpec) validateCreateWithInference(inference *InferenceSpec, byp
 	// Check if instancetype exists in our SKUs map for the particular cloud provider
 	if skuConfig := skuHandler.GetGPUConfigBySKU(instanceType); skuConfig != nil {
 		if presetName != "" {
-			model := plugin.KaitoModelRegister.MustGet(presetName) // InferenceSpec has been validated so the name is valid.
-			params := model.GetInferenceParameters()
+			m := model.KaitoModelRegister.MustGet(presetName) // InferenceSpec has been validated so the name is valid.
+			params := m.GetInferenceParameters()
 
 			machineCount := *r.Count
 			machineTotalGPUMem := resource.NewQuantity(int64(machineCount)*skuConfig.GPUMem.Value(), resource.BinarySI) // Total GPU memory
@@ -487,12 +488,12 @@ func (i *InferenceSpec) validateCreate(ctx context.Context, runtime model.Runtim
 	if i.Preset != nil {
 		presetName := string(i.Preset.Name)
 		// Validate preset name
-		if !plugin.IsValidPreset(presetName) {
+		if !model.IsValidPreset(presetName) {
 			errs = errs.Also(apis.ErrInvalidValue(fmt.Sprintf("Unsupported inference preset name %s", presetName), "presetName"))
 			// Need to return here. Otherwise, a panic will be hit when doing following checks.
 			return errs
 		}
-		modelPreset := plugin.KaitoModelRegister.MustGet(string(i.Preset.Name))
+		modelPreset := model.KaitoModelRegister.MustGet(string(i.Preset.Name))
 		params := modelPreset.GetInferenceParameters()
 		// Validate private preset has private image specified
 		if params.ImageAccessMode == string(ModelImageAccessModePrivate) &&

@@ -94,8 +94,9 @@ class PresetRegressionTestUtilsTest(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "missing required baseline"):
             validate_coverage(targets, {"targets": []}, True)
 
-    def test_stale_baseline_is_rejected(self):
-        with self.assertRaisesRegex(ValueError, "active matrix targets"):
+    def test_stale_baseline_is_ignored(self):
+        self.assertEqual(
+            [("org/current", "gpu")],
             validate_coverage(
                 [{"model": "org/current", "instanceType": "gpu"}],
                 {
@@ -104,7 +105,8 @@ class PresetRegressionTestUtilsTest(unittest.TestCase):
                     ]
                 },
                 False,
-            )
+            ),
+        )
 
 
 if __name__ == "__main__":

@@ -5,7 +5,7 @@
 ```bash
 export REGISTRY=mcr.microsoft.com/aks/kaito
 export IMG_NAME=workspace
-export IMG_TAG=0.13.0-rc.0
+export IMG_TAG=0.13.0
 helm install workspace ./charts/kaito/workspace  \
 --set image.repository=${REGISTRY}/${IMG_NAME} --set image.tag=${IMG_TAG} \
 --namespace kaito-workspace --create-namespace
@@ -18,7 +18,7 @@ helm install workspace ./charts/kaito/workspace  \
 | affinity                                       | object | `{}`                                                     | Pod affinity rules.                                           |
 | image.pullPolicy                               | string | `"IfNotPresent"`                                         | Allowed values: `Always`, `IfNotPresent`, `Never`.            |
 | image.repository                               | string | `mcr.microsoft.com/aks/kaito/workspace`                  | Controller image repository.                                  |
-| image.tag                                      | string | `"0.10.0"`                                               | Controller image tag.                                         |
+| image.tag                                      | string | `"0.13.0"`                                               | Controller image tag.                                         |
 | imagePullSecrets                               | list   | `[]`                                                     | List of image pull secret references (`[{name: <secret>}]`).  |
 | nodeSelector                                   | object | `{"kubernetes.io/os": "linux"}`                          | Controller pod node selector.                                 |
 | podAnnotations                                 | object | `{}`                                                     | Extra annotations added to the controller pod.                |
@@ -43,7 +43,7 @@ helm install workspace ./charts/kaito/workspace  \
 | karpenterProviders.azure.kind                  | string | `"AKSNodeClass"`                                         | Karpenter NodeClass API kind. |
 | karpenterProviders.azure.version               | string | `"v1beta1"`                                              | Karpenter NodeClass API version. |
 | karpenterProviders.azure.resourceName          | string | `"aksnodeclasses"`                                       | Plural resource name for the NodeClass CRD. Combined with `group` to form the full CRD name. |
-| karpenterProviders.azure.nodeClasses           | list   | (see values.yaml)                                        | NodeClass definitions to create at startup, and the allowlist for the `kaito.sh/node-class-name` annotation. Exactly one entry must have `default: true`. Each entry has `name`, `spec`, and optionally `default: true`. Passed to the controller as `--karpenter-node-classes`, so changing it rolls the Deployment. |
+| karpenterProviders.azure.nodeClasses           | list   | (see values.yaml)                                        | NodeClass definitions to reconcile at startup, and the allowlist for the `kaito.sh/node-class-name` annotation. Exactly one entry must have `default: true`. Each entry has `name`, `spec`, and optionally `default: true`. Passed to the controller as `--karpenter-node-classes`, so changing it rolls the Deployment. |
 | tolerations                                    | list   | `[]`                                                     | Controller pod tolerations.                                   |
 | webhook.port                                   | int    | `9443`                                                   | Webhook HTTPS port. Valid TCP port (1–65535); must not conflict with other container ports. |
 | logging.level                                  | string | `"error"`                                                | Knative zap logging level. Allowed values: `debug`, `info`, `warn`, `error`, `dpanic`, `panic`, `fatal`. |
@@ -53,7 +53,7 @@ helm install workspace ./charts/kaito/workspace  \
 | localCSIDriver.useLocalCSIDriver               | bool   | `true`                                                   | Allowed values: `true`, `false`. Enables use of the bundled local CSI driver. |
 | nvidiaDevicePlugin.enabled                     | bool   | `true`                                                   | Allowed values: `true`, `false`. Set to `false` if the cluster already has an NVIDIA device plugin (e.g., via GPU Operator). |
 | nvidiaDevicePlugin.daemonsetName               | string | `"nvidia-device-plugin-daemonset"`                       | DNS-1123 name of the generated DaemonSet.                     |
-| nvidiaDevicePlugin.image                       | string | `"mcr.microsoft.com/oss/v2/nvidia/k8s-device-plugin:v0.18.2-1"` | Full image reference for the device plugin container. |
+| nvidiaDevicePlugin.image                       | string | `"mcr.microsoft.com/oss/v2/nvidia/k8s-device-plugin:v0.20.1-5"` | Full image reference for the device plugin container. |
 | nvidiaDevicePlugin.imagePullPolicy             | string | `"IfNotPresent"`                                         | Allowed values: `Always`, `IfNotPresent`, `Never`.            |
 | featureGates.vLLM                              | bool   | `true`                                                   | Allowed values: `true`, `false`. Enables the vLLM inference runtime feature gate. |
 | featureGates.disableNodeAutoProvisioning       | bool   | `false`                                                  | Allowed values: `true`, `false`. When `true`, disables Node Auto-Provisioning (NAP) and installs the `gpu-feature-discovery` subchart as a standalone replacement. |
@@ -61,6 +61,23 @@ helm install workspace ./charts/kaito/workspace  \
 | featureGates.enableInferenceSetController      | bool   | `true`                                                  | Allowed values: `true`, `false`. Enables the InferenceSet controller and its RBAC. |
 | gpu-feature-discovery.nfd.enabled              | bool   | `true`                                                   | Allowed values: `true`, `false`. Set to `false` if NFD is already installed (e.g., via the NVIDIA GPU Operator) to avoid CRD conflicts. Only applies when the GFD subchart is active (`featureGates.disableNodeAutoProvisioning=true`). |
 | gpu-feature-discovery.gfd.enabled              | bool   | `true`                                                   | Allowed values: `true`, `false`. Set to `false` if GFD is already installed (e.g., via the NVIDIA GPU Operator). Only applies when the GFD subchart is active (`featureGates.disableNodeAutoProvisioning=true`). |
+
+## Karpenter NodeClass Updates
+
+When `nodeProvisioner=karpenter`, KAITO reconciles the configured NodeClasses at
+controller startup. Missing resources are created. Existing resources must have
+`karpenter.kaito.sh/managed-by: kaito`; otherwise startup fails without adopting
+them.
+
+The configured `spec` is authoritative: omitted fields are removed, subject to
+defaults applied by the provider API. KAITO also synchronizes its default label,
+while preserving unrelated metadata and status. Changing the chart values rolls
+the controller Deployment and applies the new configuration. Manual edits are
+not continuously reconciled, but may be overwritten on the next restart.
+
+Removing an entry does not delete its NodeClass; it only removes the name from
+the Workspace selection allowlist. Spec updates may trigger Karpenter drift and
+node replacement according to the NodePool disruption policies.
 
 ## NVIDIA GPU Operator Coexistence
 

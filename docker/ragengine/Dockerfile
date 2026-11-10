@@ -1,5 +1,5 @@
 # Build the manager binary
-FROM --platform=$BUILDPLATFORM mcr.microsoft.com/oss/go/microsoft/golang:1.26 AS dependencies
+FROM --platform=$BUILDPLATFORM mcr.microsoft.com/oss/go/microsoft/golang:1.26.10 AS dependencies
 ARG TARGETOS
 ARG TARGETARCH
 
@@ -23,6 +23,7 @@ ARG BUILD_DATE
 # Copy the go source
 COPY cmd/ cmd/
 COPY api/ api/
+COPY internal/ internal/
 COPY pkg/ pkg/
 COPY presets/ presets/
 
@@ -34,7 +35,7 @@ COPY presets/ presets/
 RUN --mount=type=cache,target=${GOCACHE} \
     --mount=type=cache,id=ragengine-controller,sharing=locked,target=/go/pkg/mod \
     GOEXPERIMENT=nosystemcrypto CGO_ENABLED=0 GOOS=${TARGETOS:-linux} GOARCH=${TARGETARCH} GO111MODULE=on \
-    go build -ldflags "-X 'github.com/kaito-project/kaito/pkg/version.Version=${VERSION}' -X 'github.com/kaito-project/kaito/pkg/version.BuildDate=${BUILD_DATE}'" -a -o manager cmd/ragengine/*.go
+    go build -ldflags "-X 'github.com/kaito-project/kaito/internal/version.Version=${VERSION}' -X 'github.com/kaito-project/kaito/internal/version.BuildDate=${BUILD_DATE}'" -a -o manager cmd/ragengine/*.go
 
 # Use distroless as minimal base image to package the manager binary
 # Refer to https://github.com/GoogleContainerTools/distroless for more details

@@ -21,6 +21,7 @@ import (
 	"os"
 	"testing"
 
+	azurev1beta1 "github.com/Azure/karpenter-provider-azure/pkg/apis/v1beta1"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	v1 "k8s.io/api/apps/v1"
@@ -48,22 +49,12 @@ var _ = BeforeSuite(func() {
 	kaitoNamespace := os.Getenv("KAITO_NAMESPACE")
 
 	if nodeProvisionerName == "azkarpenter" {
-		karpenterNamespace := os.Getenv("KARPENTER_NAMESPACE")
-		//check karpenter deployment is up and running
-		karpenterDeployment := &v1.Deployment{
-			ObjectMeta: metav1.ObjectMeta{
-				Name:      "karpenter",
-				Namespace: karpenterNamespace,
-			},
-		}
-
+		// Karpenter is managed by AKS node auto-provisioning, so it has no
+		// in-cluster deployment; wait for its AKSNodeClass API instead.
 		Eventually(func() error {
-			return utils.TestingCluster.KubeClient.Get(ctx, client.ObjectKey{
-				Namespace: karpenterDeployment.Namespace,
-				Name:      karpenterDeployment.Name,
-			}, karpenterDeployment, &client.GetOptions{})
+			return utils.TestingCluster.KubeClient.List(ctx, &azurev1beta1.AKSNodeClassList{})
 		}, utils.PollTimeout, utils.PollInterval).
-			Should(Succeed(), "Failed to wait for	karpenter deployment")
+			Should(Succeed(), "Failed to wait for AKSNodeClass API")
 	}
 
 	// Only check GPU provisioner if the flag is not set

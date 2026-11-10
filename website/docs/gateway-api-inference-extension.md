@@ -11,7 +11,7 @@ Gateway API Inference Extension extends [Gateway API](https://gateway-api.sigs.k
 
 - [InferencePool](https://gateway-api-inference-extension.sigs.k8s.io/api-types/inferencepool/) CRD to represent model-serving backends
 - A reference Endpoint Picker Plugin (EPP) that uses inference server metrics and policies to pick the best backend. In KAITO, the EPP is provided by the [llm-d Router](https://github.com/llm-d/llm-d-router) project, which builds on the GWIE EPP with advanced scheduling plugins including KV cache-aware routing, prefill/decode (P/D) disaggregation, and pluggable filters/scorers.
-- Optional [Body-Based Routing](https://github.com/kubernetes-sigs/gateway-api-inference-extension/tree/main/pkg/bbr) (BBR) that extracts model names from OpenAI-style requests and injects a header for routing purposes
+- Optional [Body-Based Routing](https://github.com/llm-d/llm-d-inference-payload-processor) (BBR) that extracts model names from OpenAI-style requests and injects a header for routing purposes
 
 KAITO uses GWIE to route requests for models to the right Workspace pods, improving latency and GPU utilization.
 

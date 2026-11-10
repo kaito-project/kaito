@@ -20,7 +20,7 @@ deploymentStrategy:
 image:
   repository: mcr.microsoft.com/aks/kaito/workspace
   pullPolicy: IfNotPresent
-  tag: 0.13.0-rc.0
+  tag: 0.13.0
 imagePullSecrets: []
 podAnnotations: {}
 podSecurityContext:
@@ -48,6 +48,7 @@ featureGates:
   ModelStreaming: false
   enableBaseImageAutoUpgrade: false
   enableEPPFlowControl: false
+  distributedCache: false
 defaultModelMirrorStorageClass: ""
 defaultStreamingServiceAccount: ""
 # Resource overrides for the ModelMirror download Job. Empty uses the controller defaults:
@@ -74,14 +75,22 @@ karpenterProviders:
         spec:
           imageFamily: "Ubuntu2204"
           osDiskSizeGB: 300
+          gpu:
+            mode: "Driver"
+            nvidia:
+              managementMode: "Managed"
       - name: "image-family-azure-linux"
         spec:
           imageFamily: "AzureLinux"
           osDiskSizeGB: 300
+          gpu:
+            mode: "Driver"
+            nvidia:
+              managementMode: "Managed"
 nvidiaDevicePlugin:
   enabled: true
   daemonsetName: "nvidia-device-plugin-daemonset"
-  image: "mcr.microsoft.com/oss/v2/nvidia/k8s-device-plugin:v0.18.2-12"
+  image: "mcr.microsoft.com/oss/v2/nvidia/k8s-device-plugin:v0.20.1-5"
   imagePullPolicy: "IfNotPresent"
 
 # Spot instance support for Azure GPU node pools.
@@ -116,6 +125,8 @@ clusterName: "kaito"
 flux2:
   helmController:
     create: true
+    image: mcr.microsoft.com/oss/v2/fluxcd/helm-controller
+    tag: v1.6.5-8
     container:
       # helm-controller >= v1.5 defaults to Helm v4 behaviors (server-side apply and
       # kstatus health checks), which keep KAITO-managed InferencePool HelmReleases
@@ -124,6 +135,8 @@ flux2:
         - --feature-gates=UseHelm3Defaults=true
   sourceController:
     create: true
+    image: mcr.microsoft.com/oss/v2/fluxcd/source-controller
+    tag: v1.9.6-7
   imageAutomationController:
     create: false
   imageReflectionController:
@@ -135,12 +148,18 @@ flux2:
   policies:
     create: false
 gpu-feature-discovery:
+  image:
+    repository: mcr.microsoft.com/oss/v2/nvidia/k8s-device-plugin
+    tag: v0.20.1-5
   affinity:
     nodeAffinity: {}
   nfd:
     # Set to false if Node Feature Discovery is already installed on the cluster
     # (e.g., via the NVIDIA GPU Operator). This avoids CRD and resource conflicts.
     enabled: true
+    image:
+      repository: mcr.microsoft.com/oss/v2/kubernetes-sigs/node-feature-discovery
+      tag: v0.19.0-14
     master:
       tolerations:
       - key: CriticalAddonsOnly
@@ -150,14 +169,14 @@ gpu-feature-discovery:
   gfd:
     enabled: true
 local-csi-driver:
+  # Leave driver/manager tags unset so they track the subchart appVersion;
+  # the chart templates pass flags that only the matching image understands.
   image:
     driver:
       repository: mcr.microsoft.com/acstor/local-csi-driver
-      tag: v0.3.0
       pullPolicy: Always
     manager:
       repository: mcr.microsoft.com/acstor/local-csi-manager
-      tag: v0.3.0
       pullPolicy: Always
     csiProvisioner:
       pullPolicy: Always
@@ -201,3 +220,10 @@ local-csi-driver:
 # See https://github.com/kaito-project/production-stack for more details
 productionstack:
   enabled: false
+
+# Distributed cache provider configuration.
+# Only active when featureGates.distributedCache is true.
+# Each cache provider is configured under cache.providers.<name>. No provider is
+# bundled with this framework; install a provider and add its config here.
+cache:
+  providers: {}

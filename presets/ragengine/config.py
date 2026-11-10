@@ -46,20 +46,6 @@ REMOTE_EMBEDDING_ACCESS_SECRET = os.getenv(
 =========================================================================
 """
 
-# Reranking Configuration
-# For now we support simple LLMReranker, future additions would include
-# FlagEmbeddingReranker, SentenceTransformerReranker, CohereReranker
-LLM_RERANKER_BATCH_SIZE = int(
-    os.getenv("LLM_RERANKER_BATCH_SIZE", 5)
-)  # Default LLM batch size
-LLM_RERANKER_TOP_N = int(
-    os.getenv("LLM_RERANKER_TOP_N", 3)
-)  # Default top 3 reranked nodes
-
-"""
-=========================================================================
-"""
-
 # LLM (Large Language Model) configuration
 # LLM_INFERENCE_URL will be None if InferenceService is not configured in RAGEngine spec
 LLM_INFERENCE_URL = os.getenv("LLM_INFERENCE_URL")

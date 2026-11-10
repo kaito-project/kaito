@@ -18,25 +18,25 @@ import (
 
 	"knative.dev/pkg/apis"
 
+	"github.com/kaito-project/kaito/pkg/catalog"
 	"github.com/kaito-project/kaito/pkg/featuregates"
+	"github.com/kaito-project/kaito/pkg/model"
 	mmconsts "github.com/kaito-project/kaito/pkg/modelmirror/consts"
 	"github.com/kaito-project/kaito/pkg/utils/consts"
-	"github.com/kaito-project/kaito/pkg/utils/plugin"
-	"github.com/kaito-project/kaito/presets/workspace/models"
 )
 
 // validateCustomPreset checks the inputs that only apply to a bring-your-own
 // model. The model configuration itself is validated when the preset is
 // resolved; these are the surrounding constraints that resolution cannot see.
 func (i *InferenceSpec) validateCustomPreset() *apis.FieldError {
-	if i.Preset == nil || !plugin.IsCustomPreset(string(i.Preset.Name)) {
+	if i.Preset == nil || !model.IsCustomPreset(string(i.Preset.Name)) {
 		return nil
 	}
 
 	if i.Config == "" {
 		return apis.ErrMissingField(fmt.Sprintf(
 			"'config' is required by preset %q and must reference an immutable ConfigMap containing %q and %q",
-			plugin.PresetNameCustom, models.CustomModelConfigKey, models.CustomModelSizeKey))
+			model.PresetNameCustom, catalog.CustomModelConfigKey, catalog.CustomModelSizeKey))
 	}
 
 	// Weights come from an operator-supplied bundle, never from HuggingFace, so
@@ -44,13 +44,13 @@ func (i *InferenceSpec) validateCustomPreset() *apis.FieldError {
 	if i.Preset.PresetOptions.ModelAccessSecret != "" {
 		return apis.ErrGeneric(fmt.Sprintf(
 			"'modelAccessSecret' does not apply to preset %q: weights are served from the configured model source, not downloaded from HuggingFace",
-			plugin.PresetNameCustom), "preset.presetOptions.modelAccessSecret")
+			model.PresetNameCustom), "preset.presetOptions.modelAccessSecret")
 	}
 
 	//nolint:staticcheck //SA1019: the deprecated image override cannot describe a custom model
 	if i.Preset.PresetOptions.Image != "" {
 		return apis.ErrGeneric(fmt.Sprintf(
-			"'image' does not apply to preset %q", plugin.PresetNameCustom), "preset.presetOptions.image")
+			"'image' does not apply to preset %q", model.PresetNameCustom), "preset.presetOptions.image")
 	}
 
 	return nil
@@ -61,21 +61,23 @@ func (i *InferenceSpec) validateCustomPreset() *apis.FieldError {
 // has no way to obtain weights, and there is deliberately no HuggingFace
 // fallback for a model that does not exist there.
 func (w *Workspace) validateCustomModelStreaming() *apis.FieldError {
-	if w.Inference == nil || w.Inference.Preset == nil || !plugin.IsCustomPreset(string(w.Inference.Preset.Name)) {
+	if w.Inference == nil || w.Inference.Preset == nil || !model.IsCustomPreset(string(w.Inference.Preset.Name)) {
 		return nil
 	}
 
 	if !featuregates.FeatureGates[consts.FeatureFlagModelStreaming] {
 		return apis.ErrGeneric(fmt.Sprintf(
 			"preset %q requires the %s feature gate to be enabled",
-			plugin.PresetNameCustom, consts.FeatureFlagModelStreaming), "inference.preset.name")
+			model.PresetNameCustom, consts.FeatureFlagModelStreaming), "inference.preset.name")
 	}
 
 	annotations := w.GetAnnotations()
-	if annotations[mmconsts.AnnotationModelStreaming] != "true" {
-		return apis.ErrMissingField(fmt.Sprintf(
-			"preset %q requires annotation %s=\"true\"",
-			plugin.PresetNameCustom, mmconsts.AnnotationModelStreaming))
+	// Streaming is on by default once the feature gate is enabled; only an
+	// explicit opt-out leaves a custom model without a source for its weights.
+	if annotations[mmconsts.AnnotationModelStreaming] == "disabled" {
+		return apis.ErrInvalidValue(fmt.Sprintf(
+			"preset %q requires model streaming; remove annotation %s=\"disabled\"",
+			model.PresetNameCustom, mmconsts.AnnotationModelStreaming), mmconsts.AnnotationModelStreaming)
 	}
 	// The source type itself is validated by the streaming configuration, but a
 	// custom model has no HuggingFace identity to fall back on, so the
@@ -83,7 +85,7 @@ func (w *Workspace) validateCustomModelStreaming() *apis.FieldError {
 	if annotations[consts.AnnotationStreamSourceType] != consts.SourceTypeBYO {
 		return apis.ErrInvalidValue(fmt.Sprintf(
 			"preset %q requires annotation %s=%q: the model bundle must come from a versioned, operator-owned source",
-			plugin.PresetNameCustom, consts.AnnotationStreamSourceType, consts.SourceTypeBYO), consts.AnnotationStreamSourceType)
+			model.PresetNameCustom, consts.AnnotationStreamSourceType, consts.SourceTypeBYO), consts.AnnotationStreamSourceType)
 	}
 
 	return nil

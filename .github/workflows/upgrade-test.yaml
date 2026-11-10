@@ -16,7 +16,7 @@ permissions:
 
 env:
   OLD_CHART_VERSION: ${{ github.event.inputs.old_chart_version || '0.9.0' }}
-  GO_VERSION: "1.26.6"
+  GO_VERSION: "1.26.10"
 
 jobs:
   chart-upgrade-test:
@@ -104,6 +104,7 @@ jobs:
 
           # Wait for deployment to be rolled out
           kubectl rollout status deploy/kaito-workspace -n kaito-workspace --timeout=300s
+          ./hack/wait-for-daemonsets.sh kaito-workspace
         env:
           REGISTRY: ${{ env.REGISTRY }}
 
@@ -297,6 +298,7 @@ jobs:
 
           # Wait for deployment to be rolled out
           kubectl rollout status deploy/kaito-workspace -n kaito-workspace --timeout=300s
+          ./hack/wait-for-daemonsets.sh kaito-workspace
         env:
           REGISTRY: ${{ env.REGISTRY }}
 

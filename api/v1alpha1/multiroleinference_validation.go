@@ -23,10 +23,15 @@ import (
 	"k8s.io/klog/v2"
 	"knative.dev/pkg/apis"
 
+	"github.com/kaito-project/kaito/api/internal/speculativedecoding"
 	kaitov1beta1 "github.com/kaito-project/kaito/api/v1beta1"
 	"github.com/kaito-project/kaito/pkg/utils/consts"
-	"github.com/kaito-project/kaito/pkg/utils/speculativedecoding"
 )
+
+// MaxMultiRoleInferenceNameLength caps new MultiRoleInference names so the
+// child InferenceSet names "<name>-<role>" fit the 63-character DNS label
+// limit enforced on InferenceSet names. Prefill is the longest role type.
+const MaxMultiRoleInferenceNameLength = validation.DNS1123LabelMaxLength - len("-") - len(MultiRoleInferenceRolePrefill)
 
 func (m *MultiRoleInference) SupportedVerbs() []admissionregistrationv1.OperationType {
 	return []admissionregistrationv1.OperationType{
@@ -45,6 +50,9 @@ func (m *MultiRoleInference) Validate(ctx context.Context) (errs *apis.FieldErro
 	base := apis.GetBaseline(ctx)
 	if base == nil {
 		klog.InfoS("Validate creation", "multiroleinference", fmt.Sprintf("%s/%s", m.Namespace, m.Name))
+		if len(m.Name) > MaxMultiRoleInferenceNameLength {
+			errs = errs.Also(apis.ErrInvalidValue(fmt.Sprintf("must be no more than %d characters", MaxMultiRoleInferenceNameLength), "name"))
+		}
 		errs = errs.Also(m.validateCreate().ViaField("spec"))
 		errs = errs.Also(m.validateCapacityTypeAnnotation())
 	} else {

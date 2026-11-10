@@ -31,7 +31,7 @@ RUN apt-get update -y && apt upgrade -y && \
 
 FROM dependencies AS base
 
-ARG UV_VERSION=0.10.10
+ARG UV_VERSION=0.13.4
 
 COPY presets/workspace/dependencies/requirements.txt /workspace/requirements.txt
 
@@ -69,6 +69,9 @@ COPY presets/workspace/inference/${MODEL_TYPE}/inference_api.py \
 
 # 2. vLLM
 COPY presets/workspace/inference/vllm/inference_api.py \
+    presets/workspace/inference/vllm/kaito_inference_config.py \
+    presets/workspace/inference/vllm/lmcache_server.py \
+    presets/workspace/inference/vllm/vllm_kv_transfer.py \
     presets/workspace/inference/vllm/multi-node-health-check.py \
     presets/workspace/inference/vllm/list_supported_llm_archs.py \
     presets/workspace/inference/vllm/benchmark_entrypoint.py \

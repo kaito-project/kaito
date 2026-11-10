@@ -28,7 +28,7 @@ const (
 	DefaultAdapterVolumePath  = "/mnt/adapter"
 	DefaultWeightsVolumePath  = "/workspace/weights"
 
-	DefaultORASToolImage = "mcr.microsoft.com/oss/v2/oras-project/oras:v1.2.3"
+	DefaultORASToolImage = "mcr.microsoft.com/oss/v2/oras-project/oras:v1.3.5-2"
 
 	// InferenceConfigKey is the ConfigMap entry holding vLLM runtime overrides.
 	InferenceConfigKey = "inference_config.yaml"

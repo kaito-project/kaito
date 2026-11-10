@@ -111,7 +111,7 @@ helm upgrade kaito-workspace kaito/workspace \
   -f kaito-aws-values.yaml
 ```
 
-Setting `nodeProvisioner=karpenter` does two things: it renders the `kaito-nodeclasses` ConfigMap (here the `EC2NodeClass` you defined above), and it starts the controller with `--node-provisioner=karpenter`. The upgrade re-renders the ConfigMap and triggers a controller rollout; on startup the new pod reads that ConfigMap and creates the `default` `EC2NodeClass`, so the node class only appears after this step.
+Setting `nodeProvisioner=karpenter` passes the NodeClass definitions to the controller through `--karpenter-node-classes`. Changing these values triggers a controller rollout. At startup, KAITO creates the missing `default` `EC2NodeClass` or updates it if it is labeled `karpenter.kaito.sh/managed-by: kaito`; it refuses to adopt resources without that ownership label. The configured spec replaces the existing spec, subject to API defaults. Removed entries are not deleted, and spec updates may trigger Karpenter drift according to the NodePool disruption policies.
 
 ### Alternative: set up with KAITO make targets
 

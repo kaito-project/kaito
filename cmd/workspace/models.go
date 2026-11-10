@@ -14,5 +14,5 @@
 package main
 
 import (
-	_ "github.com/kaito-project/kaito/presets/workspace/models"
+	_ "github.com/kaito-project/kaito/pkg/catalog"
 )

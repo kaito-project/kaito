@@ -47,23 +47,24 @@ import (
 
 	kaitov1alpha1 "github.com/kaito-project/kaito/api/v1alpha1"
 	kaitov1beta1 "github.com/kaito-project/kaito/api/v1beta1"
-	autoupgrade "github.com/kaito-project/kaito/pkg/controllers/autoupgrade"
-	drift "github.com/kaito-project/kaito/pkg/controllers/drift"
-	multiroleinference "github.com/kaito-project/kaito/pkg/controllers/multiroleinference"
+	"github.com/kaito-project/kaito/internal/cache"
+	"github.com/kaito-project/kaito/internal/controller/autoupgrade"
+	"github.com/kaito-project/kaito/internal/controller/drift"
+	"github.com/kaito-project/kaito/internal/controller/inferenceset"
+	modelmirrorcontroller "github.com/kaito-project/kaito/internal/controller/modelmirror"
+	"github.com/kaito-project/kaito/internal/controller/multiroleinference"
+	"github.com/kaito-project/kaito/internal/controller/workspace"
+	"github.com/kaito-project/kaito/internal/inference/modelstreaming"
+	"github.com/kaito-project/kaito/internal/inference/modelstreaming/registry"
+	karpenterutils "github.com/kaito-project/kaito/internal/k8s/karpenter"
+	nodeprovisionmanager "github.com/kaito-project/kaito/internal/nodeprovision/manager"
+	"github.com/kaito-project/kaito/internal/version"
+	workspacewebhook "github.com/kaito-project/kaito/internal/webhook/workspace"
 	"github.com/kaito-project/kaito/pkg/featuregates"
-	"github.com/kaito-project/kaito/pkg/inferenceset"
 	"github.com/kaito-project/kaito/pkg/k8sclient"
 	mmconsts "github.com/kaito-project/kaito/pkg/modelmirror/consts"
-	mmcontrollers "github.com/kaito-project/kaito/pkg/modelmirror/controllers"
-	nodeprovisionmanager "github.com/kaito-project/kaito/pkg/nodeprovision/manager"
 	"github.com/kaito-project/kaito/pkg/sku"
 	"github.com/kaito-project/kaito/pkg/utils/consts"
-	karpenterutils "github.com/kaito-project/kaito/pkg/utils/karpenter"
-	"github.com/kaito-project/kaito/pkg/version"
-	"github.com/kaito-project/kaito/pkg/workspace/controllers"
-	"github.com/kaito-project/kaito/pkg/workspace/inference/modelstreaming"
-	"github.com/kaito-project/kaito/pkg/workspace/inference/modelstreaming/registry"
-	"github.com/kaito-project/kaito/pkg/workspace/webhooks"
 )
 
 const (
@@ -135,7 +136,7 @@ func main() {
 	flag.StringVar(&karpenterNodeClassKind, "karpenter-node-class-kind", "AKSNodeClass", "Karpenter NodeClass API kind. Only used when node-provisioner=karpenter.")
 	flag.StringVar(&karpenterNodeClassVersion, "karpenter-node-class-version", "v1beta1", "Karpenter NodeClass API version. Only used when node-provisioner=karpenter.")
 	flag.StringVar(&karpenterNodeClassResourceName, "karpenter-node-class-resource-name", "aksnodeclasses", "Plural resource name for the NodeClass CRD (e.g. aksnodeclasses). Combined with --karpenter-node-class-group to form the full CRD name. Only used when node-provisioner=karpenter.")
-	flag.StringVar(&karpenterNodeClasses, "karpenter-node-classes", "", `JSON array of NodeClasses KAITO creates and lets Workspaces select, e.g. [{"name":"image-family-ubuntu","default":true,"spec":{...}}]. "spec" is passed through to the provider's NodeClass unchanged. Exactly one entry must be default. Required when node-provisioner=karpenter.`)
+	flag.StringVar(&karpenterNodeClasses, "karpenter-node-classes", "", `JSON array of NodeClasses KAITO reconciles at startup and lets Workspaces select, e.g. [{"name":"image-family-ubuntu","default":true,"spec":{...}}]. "spec" authoritatively replaces the provider's NodeClass spec. Existing resources must have karpenter.kaito.sh/managed-by=kaito. Exactly one entry must be default. Required when node-provisioner=karpenter.`)
 	flag.BoolVar(&printVersionAndExit, "version", false, "Print version and exit.")
 	flag.StringVar(&defaultModelMirrorStorageClass, "default-model-mirror-storage-class", "", "StorageClass for ModelMirror PVCs.")
 	flag.StringVar(&defaultStreamingServiceAccount, "default-streaming-service-account", "", "Default ServiceAccount for streaming inference pods.")
@@ -262,7 +263,7 @@ func main() {
 	// This is necessary because nodeProvisioner.Start() runs before mgr.Start(),
 	// and the manager's cached client is not usable until the cache is started.
 	// The direct client is only used for lightweight CRD existence checks and
-	// global AKSNodeClass creation during startup.
+	// global NodeClass reconciliation during startup.
 	directClient, directErr := client.New(cfg, client.Options{Scheme: scheme})
 	if directErr != nil {
 		klog.ErrorS(directErr, "unable to create direct client for provisioner Start")
@@ -312,7 +313,7 @@ func main() {
 		modelstreaming.StreamingDefaults.ModelStreamer = streamer
 	}
 
-	workspaceReconciler := controllers.NewWorkspaceReconciler(
+	workspaceReconciler := workspace.NewWorkspaceReconciler(
 		kClient,
 		mgr.GetScheme(),
 		log.Log.WithName("controllers").WithName("Workspace"),
@@ -323,6 +324,15 @@ func main() {
 	if err = workspaceReconciler.SetupWithManager(mgr); err != nil {
 		klog.ErrorS(err, "unable to create controller", "controller", "Workspace")
 		exitWithErrorFunc()
+	}
+
+	// Cache controller — monitors provider readiness.
+	if featuregates.FeatureGates[consts.FeatureFlagDistributedCache] {
+		cacheController := cache.NewController(kClient, mgr.GetEventRecorderFor("KAITO-Cache-controller"))
+		if err = cacheController.SetupWithManager(mgr); err != nil {
+			klog.ErrorS(err, "unable to create controller", "controller", "Cache")
+			exitWithErrorFunc()
+		}
 	}
 
 	if featuregates.FeatureGates[consts.FeatureFlagEnableInferenceSetController] {
@@ -380,7 +390,7 @@ func main() {
 
 	// ModelMirror controller — requires ModelMirror feature gate.
 	if featuregates.FeatureGates[consts.FeatureFlagModelMirror] {
-		mmReconciler := mmcontrollers.NewModelMirrorReconciler(
+		mmReconciler := modelmirrorcontroller.NewModelMirrorReconciler(
 			kClient,
 			mgr.GetAPIReader(),
 			log.Log.WithName("controllers").WithName("ModelMirror"),
@@ -417,7 +427,7 @@ func main() {
 		})
 		ctx = sharedmain.WithHealthProbesDisabled(ctx)
 		ctx = sharedmain.WithHADisabled(ctx)
-		go sharedmain.MainWithConfig(ctx, "webhook", ctrl.GetConfigOrDie(), webhooks.NewControllerWebhooks()...)
+		go sharedmain.MainWithConfig(ctx, "webhook", ctrl.GetConfigOrDie(), workspacewebhook.NewControllerWebhooks()...)
 
 		// wait 2 seconds to allow reconciling webhookconfiguration and service endpoint.
 		time.Sleep(2 * time.Second)

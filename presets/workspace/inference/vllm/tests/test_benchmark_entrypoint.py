@@ -66,6 +66,65 @@ def test_health_check_exception():
         assert bm._health_check() is False
 
 
+# ── _resolve_processor (vLLM-resolved tokenizer) ──────────────────────────────
+
+
+@pytest.fixture
+def resolved_file(tmp_path, monkeypatch):
+    path = tmp_path / "kaito" / "resolved_tokenizer"
+    monkeypatch.setattr(bm, "RESOLVED_TOKENIZER_FILE", path)
+    return path
+
+
+def test_resolve_processor_prefers_vllm_tokenizer(resolved_file, tmp_path, monkeypatch):
+    monkeypatch.setenv("KAITO_PROCESSOR", "custom-model-config-qwen")
+    (tmp_path / "tokenizer_config.json").write_text("{}")
+    bm.publish_resolved_tokenizer(str(tmp_path))
+    with patch.object(bm, "_log") as log:
+        assert bm._resolve_processor() == str(tmp_path)
+    log.assert_not_called()
+
+
+def test_resolve_processor_vllm_hub_id_falls_through(resolved_file, monkeypatch):
+    monkeypatch.setenv("KAITO_PROCESSOR", "org/model")
+    bm.publish_resolved_tokenizer("other/model")
+    with patch.object(bm, "_log") as log:
+        assert bm._resolve_processor() == "org/model"
+    log.assert_not_called()
+
+
+def test_resolve_processor_vllm_dir_without_tokenizer_falls_back(
+    resolved_file, tmp_path, monkeypatch
+):
+    monkeypatch.setenv("KAITO_PROCESSOR", "org/model")
+    bm.publish_resolved_tokenizer(str(tmp_path))
+    with patch.object(bm, "_log") as log:
+        assert bm._resolve_processor() == "org/model"
+    log.assert_called_once_with(
+        f"resolved_tokenizer_miss dir={tmp_path} reason=no_tokenizer_files"
+    )
+
+
+def test_resolve_processor_vllm_missing_path_falls_back(
+    resolved_file, tmp_path, monkeypatch
+):
+    monkeypatch.setenv("KAITO_PROCESSOR", "org/model")
+    gone = tmp_path / "model_streamer" / "deadbeef"
+    bm.publish_resolved_tokenizer(str(gone))
+    with patch.object(bm, "_log") as log:
+        assert bm._resolve_processor() == "org/model"
+    log.assert_called_once_with(
+        f"resolved_tokenizer_miss dir={gone} reason=not_a_directory"
+    )
+
+
+def test_resolve_processor_unpublished_falls_back(resolved_file, monkeypatch):
+    monkeypatch.setenv("KAITO_PROCESSOR", "org/model")
+    with patch.object(bm, "_log") as log:
+        assert bm._resolve_processor() == "org/model"
+    assert log.call_args.args[0].startswith("resolved_tokenizer_miss reason=unreadable")
+
+
 # ── _log ──────────────────────────────────────────────────────────────────────
 
 

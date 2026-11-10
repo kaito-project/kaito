@@ -94,7 +94,8 @@ rules:
   {{- end }}
   - apiGroups: [""]
     resources: ["events"]
-    verbs: ["create", "patch", "update"]
+    # list surfaces the provisioning failure Events of NodeClaims in Workspace status.
+    verbs: ["create", "patch", "update", "list"]
   - apiGroups: [""]
     resources: ["secrets"]
     verbs: ["get", "list", "watch"]

@@ -29,7 +29,7 @@ parent_dir = str(Path(__file__).resolve().parent.parent)
 sys.path.append(parent_dir)
 
 try:
-    from inference_api import KaitoConfig
+    from inference_api import KaitoInferenceConfig
 except ImportError as e:
     raise ImportError(f"Error importing required module(s): {e}") from e
 
@@ -68,7 +68,7 @@ def setup_server(request, tmp_path_factory, autouse=True):
 
     # prepare testing config file
     config_file = tmp_file_dir / "config.yaml"
-    kaito_config = KaitoConfig(
+    kaito_config = KaitoInferenceConfig(
         vllm={"max-model-len": TEST_MODEL_LEN, "served-model-name": TEST_MODEL_NAME},
         max_probe_steps=0,
         kv_cache_cpu_memory_utilization=0.6,

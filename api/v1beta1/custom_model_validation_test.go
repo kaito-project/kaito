@@ -21,15 +21,15 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
 	"github.com/kaito-project/kaito/pkg/featuregates"
+	"github.com/kaito-project/kaito/pkg/model"
 	mmconsts "github.com/kaito-project/kaito/pkg/modelmirror/consts"
 	"github.com/kaito-project/kaito/pkg/utils/consts"
-	"github.com/kaito-project/kaito/pkg/utils/plugin"
 )
 
 func customInferenceSpec() *InferenceSpec {
 	return &InferenceSpec{
 		Preset: &PresetSpec{
-			PresetMeta: PresetMeta{Name: ModelName(plugin.PresetNameCustom)},
+			PresetMeta: PresetMeta{Name: ModelName(model.PresetNameCustom)},
 		},
 		Config: "byo-config",
 	}
@@ -126,10 +126,19 @@ func TestValidateCustomModelStreaming(t *testing.T) {
 			errSubstr:   consts.FeatureFlagModelStreaming,
 		},
 		{
-			name:        "streaming annotation missing",
+			// Streaming defaults to on, so the annotation is optional.
+			name:        "streaming annotation omitted",
 			gateEnabled: true,
 			annotations: map[string]string{consts.AnnotationStreamSourceType: consts.SourceTypeBYO},
-			errSubstr:   mmconsts.AnnotationModelStreaming,
+		},
+		{
+			name:        "streaming explicitly disabled",
+			gateEnabled: true,
+			annotations: map[string]string{
+				mmconsts.AnnotationModelStreaming: "disabled",
+				consts.AnnotationStreamSourceType: consts.SourceTypeBYO,
+			},
+			errSubstr: mmconsts.AnnotationModelStreaming,
 		},
 		{
 			name:        "wrong source type",
@@ -153,7 +162,7 @@ func TestValidateCustomModelStreaming(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			featuregates.FeatureGates[consts.FeatureFlagModelStreaming] = tt.gateEnabled
 
-			presetName := plugin.PresetNameCustom
+			presetName := model.PresetNameCustom
 			if tt.presetName != "" {
 				presetName = tt.presetName
 			}

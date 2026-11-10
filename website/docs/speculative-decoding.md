@@ -108,6 +108,8 @@ spec:
       apps: phi-4-mini
   template:
     metadata:
+      labels:
+        apps: phi-4-mini
       annotations:
         kaito.sh/enable-speculative-decoding: "true"
     resource:

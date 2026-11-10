@@ -75,7 +75,7 @@ helm upgrade kaito-workspace kaito/workspace \
   --set nodeProvisioner=karpenter
 ```
 
-Setting `nodeProvisioner=karpenter` does two things: it renders the `kaito-nodeclasses` ConfigMap (the built-in `AKSNodeClass` definitions), and it starts the controller with `--node-provisioner=karpenter`. The upgrade re-renders the ConfigMap and triggers a controller rollout; on startup the new pod reads that ConfigMap and creates the `AKSNodeClass` resources, so the node classes only appear after this step.
+Setting `nodeProvisioner=karpenter` passes the NodeClass definitions to the controller through `--karpenter-node-classes`. Changing these values triggers a controller rollout. At startup, KAITO creates missing `AKSNodeClass` resources and updates existing ones labeled `karpenter.kaito.sh/managed-by: kaito`; it refuses to adopt resources without that ownership label. The configured spec replaces the existing spec, subject to API defaults. Removed entries are not deleted, and spec updates may trigger Karpenter drift according to the NodePool disruption policies.
 
 ### Alternative: set up with KAITO make targets
 
@@ -209,7 +209,7 @@ resource's top-level `metadata.annotations`; the selection applies to every role
 
 When using Azure Karpenter, KAITO ships **two built-in `AKSNodeClass` definitions** and lets you choose which one a `Workspace` uses through an annotation.
 
-These node classes are defined in the KAITO workspace Helm chart under `karpenterProviders.azure.nodeClasses`, rendered into the `kaito-nodeclasses` ConfigMap, and created by the controller at startup:
+These node classes are defined in the KAITO workspace Helm chart under `karpenterProviders.azure.nodeClasses`, passed through `--karpenter-node-classes`, and reconciled by the controller at startup:
 
 | NodeClass name | Image family | OS disk size | Default |
 | --- | --- | --- | --- |

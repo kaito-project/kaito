@@ -22,12 +22,12 @@ import (
 	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
+	"knative.dev/pkg/apis"
 	"sigs.k8s.io/controller-runtime/pkg/client/fake"
 
 	"github.com/kaito-project/kaito/pkg/k8sclient"
 	"github.com/kaito-project/kaito/pkg/model"
 	"github.com/kaito-project/kaito/pkg/utils/consts"
-	"github.com/kaito-project/kaito/pkg/utils/plugin"
 )
 
 const DefaultReleaseNamespace = "kaito-workspace"
@@ -116,15 +116,15 @@ func RegisterValidationTestModels() {
 	var test testModel
 	var testPrivate testModelPrivate
 	var testStatic testModelStatic
-	plugin.KaitoModelRegister.Register(&plugin.Registration{
+	model.KaitoModelRegister.Register(&model.Registration{
 		Name:     "test-validation",
 		Instance: &test,
 	})
-	plugin.KaitoModelRegister.Register(&plugin.Registration{
+	model.KaitoModelRegister.Register(&model.Registration{
 		Name:     "private-test-validation",
 		Instance: &testPrivate,
 	})
-	plugin.KaitoModelRegister.Register(&plugin.Registration{
+	model.KaitoModelRegister.Register(&model.Registration{
 		Name:     "test-validation-static",
 		Instance: &testStatic,
 	})
@@ -1212,6 +1212,8 @@ func TestWorkspaceValidateName(t *testing.T) {
 		workspaceName string
 		wantErr       bool
 		errField      string
+		// update validates the Workspace as an update of itself.
+		update bool
 	}{
 		{
 			name:          "Valid name",
@@ -1230,13 +1232,34 @@ func TestWorkspaceValidateName(t *testing.T) {
 			wantErr:       true,
 			errField:      "name",
 		},
+		{
+			name:          "Name at the maximum length",
+			workspaceName: strings.Repeat("a", 52),
+			wantErr:       false,
+		},
+		{
+			name:          "Name over the maximum length on create",
+			workspaceName: strings.Repeat("a", 53),
+			wantErr:       true,
+			errField:      "name",
+		},
+		{
+			name:          "Existing name over the maximum length can still be updated",
+			workspaceName: strings.Repeat("a", 63),
+			wantErr:       false,
+			update:        true,
+		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			workspace := testWorkspace.DeepCopy()
 			workspace.Name = tt.workspaceName
-			errs := workspace.Validate(context.Background())
+			ctx := context.Background()
+			if tt.update {
+				ctx = apis.WithinUpdate(ctx, workspace.DeepCopy())
+			}
+			errs := workspace.Validate(ctx)
 			if (errs != nil) != tt.wantErr {
 				t.Errorf("Validate() error = %v, wantErr %v", errs, tt.wantErr)
 			}

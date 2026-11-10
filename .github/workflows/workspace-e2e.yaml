@@ -18,10 +18,18 @@ on:
         description: "The azure location to run the e2e test in"
         required: false
         type: string
-        default: "swedencentral"
+        default: "polandcentral"
+      node_provisioner:
+        description: "Node provisioner"
+        required: false
+        type: choice
+        default: "gpuprovisioner"
+        options:
+          - gpuprovisioner
+          - azkarpenter
 
 env:
-  GO_VERSION: "1.26.6"
+  GO_VERSION: "1.26.10"
 
 permissions:
   id-token: write # This is required for requesting the JWT
@@ -37,6 +45,6 @@ jobs:
     with:
       pull_request_number: ${{ github.event.pull_request.number }}
       git_sha: ${{ github.event.pull_request.head.sha || github.sha }}
-      node_provisioner: gpuprovisioner
+      node_provisioner: ${{ inputs.node_provisioner || 'gpuprovisioner' }}
       ginkgo_label: ${{ inputs.ginkgo_label || '' }}
-      region: ${{ inputs.region || 'swedencentral' }}
+      region: ${{ inputs.region || 'polandcentral' }}

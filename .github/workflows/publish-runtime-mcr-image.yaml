@@ -9,11 +9,11 @@ on:
     branches:
       - main
     paths:
-      - presets/workspace/models/base_images.yaml
+      - pkg/catalog/base_images.yaml
   workflow_dispatch:
 
 env:
-    GO_VERSION: "1.26.6"
+    GO_VERSION: "1.26.10"
     BRANCH_NAME: ${{ github.head_ref || github.ref_name }}
 
 permissions:

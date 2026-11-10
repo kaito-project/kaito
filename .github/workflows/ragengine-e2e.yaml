@@ -8,12 +8,14 @@ on:
   pull_request:
     paths:
       - 'test/**'
-      - 'pkg/ragengine/**'
+      - 'internal/rag/**'
+      - 'internal/controller/ragengine/**'
+      - 'internal/webhook/ragengine/**'
       - '.github/**'
       - 'presets/ragengine/**'
 
 env:
-  GO_VERSION: "1.26.6"
+  GO_VERSION: "1.26.10"
 
 permissions:
   id-token: write # This is required for requesting the JWT

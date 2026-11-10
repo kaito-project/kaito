@@ -18,6 +18,8 @@ type ConditionType string
 
 const (
 	// ConditionTypeNodeClaimStatus is the state when checking nodeClaim status.
+	// With the Karpenter node provisioner, while False, NodeClaimNotReady means provisioning is in progress and any
+	// other reason means the latest attempt failed.
 	ConditionTypeNodeClaimStatus = ConditionType("NodeClaimReady")
 
 	// ConditionTypeNodeStatus is the state when checking node status.
@@ -77,4 +79,10 @@ const (
 	// failures the controller can observe, so a bring-your-own deployment has a
 	// single readiness condition for its model rather than two.
 	WorkspaceConditionTypeModelConfigReady = ConditionType("ModelConfigReady")
+
+	// WorkspaceConditionTypeModelCacheReady indicates whether the model cache is ready.
+	WorkspaceConditionTypeModelCacheReady = ConditionType("ModelCacheReady")
+
+	// WorkspaceConditionTypeKVCacheReady indicates whether the KV cache is ready.
+	WorkspaceConditionTypeKVCacheReady = ConditionType("KVCacheReady")
 )

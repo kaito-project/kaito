@@ -18,7 +18,8 @@ import textwrap
 import time
 
 import pytest
-from llm_guard import scan_output
+from guardrail_core import config as shared_scanner_config
+from guardrail_core.scanning import scan_output
 
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "../../..")))
 
@@ -183,106 +184,6 @@ def _patch_scan_output(monkeypatch, fn):
 
 def _counter_value(metric, **labels) -> float:
     return metric.labels(**labels)._value.get()
-
-
-@pytest.fixture
-def fake_llm_guard_scanners(monkeypatch):
-    """Replace llm_guard's Regex / BanSubstrings with simple recording stubs.
-
-    Returns ``(FakeRegex, FakeBanSubstrings)`` so individual tests can assert on
-    isinstance / captured kwargs.
-    """
-
-    class FakeRegex:
-        def __init__(self, patterns, *, is_blocked=True, match_type=None, redact=False):
-            self.patterns = patterns
-            self.is_blocked = is_blocked
-            self.match_type = match_type
-            self.redact = redact
-
-    class FakeBanSubstrings:
-        def __init__(
-            self,
-            substrings,
-            *,
-            match_type=None,
-            case_sensitive=False,
-            contains_all=False,
-            redact=False,
-        ):
-            self.substrings = substrings
-            self.match_type = match_type
-            self.case_sensitive = case_sensitive
-            self.contains_all = contains_all
-            self.redact = redact
-
-    class FakeInvisibleText:
-        def scan(self, prompt):
-            return prompt.replace("\u200b", ""), "\u200b" not in prompt, 1.0
-
-    class FakeTokenLimit:
-        def __init__(self, *, limit=4096, encoding_name="cl100k_base", model_name=None):
-            self.limit = limit
-            self.encoding_name = encoding_name
-            self.model_name = model_name
-
-        def scan(self, prompt):
-            return prompt[: self.limit], len(prompt) <= self.limit, 1.0
-
-    class FakeJSON:
-        def __init__(self, *, required_elements=0, repair=True):
-            self.required_elements = required_elements
-            self.repair = repair
-
-    class FakeReadingTime:
-        def __init__(self, max_time, *, truncate=False):
-            self.max_time = max_time
-            self.truncate = truncate
-
-    monkeypatch.setattr(
-        scanner_schemas_module.llm_guard_output_scanners,
-        "Regex",
-        FakeRegex,
-        raising=False,
-    )
-    monkeypatch.setattr(
-        scanner_schemas_module.llm_guard_output_scanners,
-        "BanSubstrings",
-        FakeBanSubstrings,
-        raising=False,
-    )
-    monkeypatch.setattr(
-        scanner_schemas_module.llm_guard_input_scanners,
-        "InvisibleText",
-        FakeInvisibleText,
-        raising=False,
-    )
-    monkeypatch.setattr(
-        scanner_schemas_module.llm_guard_input_scanners,
-        "TokenLimit",
-        FakeTokenLimit,
-        raising=False,
-    )
-    monkeypatch.setattr(
-        scanner_schemas_module.llm_guard_output_scanners,
-        "JSON",
-        FakeJSON,
-        raising=False,
-    )
-    monkeypatch.setattr(
-        scanner_schemas_module.llm_guard_output_scanners,
-        "ReadingTime",
-        FakeReadingTime,
-        raising=False,
-    )
-    return (
-        FakeRegex,
-        FakeBanSubstrings,
-        FakeInvisibleText,
-        FakeTokenLimit,
-        FakeJSON,
-        FakeReadingTime,
-    )
 
 
 # ---------------------------------------------------------------------------
@@ -519,7 +420,7 @@ def test_from_config_returns_empty_scanners_when_policy_scanners_is_not_a_list(
 
 
 def test_from_config_skips_invalid_scanners_and_filters_non_string_values(
-    tmp_path, monkeypatch, fake_llm_guard_scanners
+    tmp_path, monkeypatch
 ):
     _write_policy(
         tmp_path,
@@ -673,6 +574,117 @@ def test_apply_policy_file_rejects_non_dict_top_level(tmp_path, monkeypatch):
 # ---------------------------------------------------------------------------
 # _parse_policy_scanner_configs edge cases
 # ---------------------------------------------------------------------------
+
+
+@pytest.mark.parametrize(
+    ("raw", "expected"),
+    [
+        ({"type": "ban_substrings", "substrings": ["secret"]}, _ban_subs_cfg()),
+        ({"type": "regex", "patterns": ["a"]}, _regex_cfg()),
+        ({"type": "invisible_text"}, _invisible_text_cfg()),
+        ({"type": "token_limit"}, _token_limit_cfg(limit=4096)),
+        ({"type": "json"}, _json_cfg()),
+        ({"type": "reading_time", "max_time": 0.5}, _reading_time_cfg()),
+        ({"type": "secrets"}, _secrets_cfg()),
+        ({"type": "sensitive"}, _sensitive_cfg()),
+    ],
+)
+def test_shared_schemas_preserve_defaults_and_compatibility_exports(raw, expected):
+    schema_name = type(expected.config).__name__
+    assert getattr(scanner_schemas_module, schema_name) is getattr(
+        shared_scanner_config, schema_name
+    )
+    assert ParsedScannerConfig is shared_scanner_config.ParsedScannerConfig
+    assert (
+        scanner_schemas_module.SCANNER_REGISTRY
+        is shared_scanner_config.SCANNER_REGISTRY
+    )
+    assert output_guardrails_module._parse_policy_scanner_configs(
+        [raw], "guardrails.yaml"
+    ) == (expected,)
+
+
+@pytest.mark.parametrize(
+    ("raw", "expected"),
+    [
+        (
+            {"type": "banSubstrings", "substrings": ["secret", None, "", 1]},
+            _ban_subs_cfg(),
+        ),
+        (
+            {"type": "regex", "patterns": ["a"], "is-blocked": None, "extra": True},
+            _regex_cfg(),
+        ),
+        (
+            {"type": "token-limit", "limit": True},
+            _token_limit_cfg(limit=True),
+        ),
+        (
+            {"type": "json", "requiredElements": True, "repair": None},
+            _json_cfg(required_elements=True),
+        ),
+        (
+            {"type": "readingTime", "maxTime": True, "truncate": None},
+            _reading_time_cfg(max_time=1.0),
+        ),
+        (
+            {"type": "secrets", "redact-mode": "PARTIAL"},
+            _secrets_cfg(redact_mode="partial"),
+        ),
+        (
+            {"type": "sensitive", "detectors": ["EMAIL", "", None, "email"]},
+            _sensitive_cfg(detectors=["email"]),
+        ),
+        (
+            {
+                "type": "regex",
+                "patterns": ["a"],
+                "isBlocked": False,
+                "is-blocked": True,
+            },
+            _regex_cfg(is_blocked=True),
+        ),
+    ],
+)
+def test_policy_adapter_preserves_fields_rejected_by_strict_parser(raw, expected):
+    assert output_guardrails_module._parse_policy_scanner_configs(
+        [raw], "guardrails.yaml"
+    ) == (expected,)
+
+
+@pytest.mark.parametrize("default_action", ["block", "redact"])
+@pytest.mark.parametrize("action", [None, "", 42, "unsupported"])
+def test_policy_adapter_invalid_actions_inherit_policy_default(
+    default_action, action, caplog
+):
+    parsed = output_guardrails_module._parse_policy_scanner_configs(
+        [{"type": "regex", "patterns": ["a"], "action": action}],
+        "guardrails.yaml",
+        default_action,
+    )
+    assert parsed == (_regex_cfg(action_on_hit=default_action),)
+    if action == "unsupported":
+        assert "output_guardrails_policy_invalid_action" in caplog.text
+
+
+@pytest.mark.parametrize(
+    "raw",
+    [
+        {"type": "ban_substrings", "substrings": []},
+        {"type": "regex", "patterns": ["["]},
+        {"type": "invisible_text", "unexpected": True},
+        {"type": "token_limit", "limit": 0},
+        {"type": "json", "repair": "yes"},
+        {"type": "reading_time", "max_time": -1},
+        {"type": "secrets", "redact_mode": "unknown"},
+        {"type": "sensitive", "detectors": ["unknown"]},
+    ],
+)
+def test_policy_adapter_logs_invalid_entries_and_keeps_valid_scanners(raw, caplog):
+    assert output_guardrails_module._parse_policy_scanner_configs(
+        [raw, {"type": "regex", "patterns": ["a"]}], "guardrails.yaml"
+    ) == (_regex_cfg(),)
+    assert "output_guardrails_policy_invalid_scanner_config" in caplog.text
 
 
 def test_parse_policy_scanner_configs_skips_unknown_and_invalid_schema():
@@ -892,11 +904,60 @@ def test_parse_policy_scanner_configs_allows_non_redact_scanners_for_block(
 # ---------------------------------------------------------------------------
 
 
-def test_build_scanners_supports_normalized_ban_substrings_type(
-    fake_llm_guard_scanners,
+@pytest.mark.parametrize("default_action", ["block", "redact"])
+@pytest.mark.parametrize("scanner_action", [None, "block", "redact"])
+@pytest.mark.parametrize(
+    ("raw", "content", "redacted"),
+    [
+        (
+            {"type": "ban_substrings", "substrings": ["secret"]},
+            "a secret",
+            "a [REDACTED]",
+        ),
+        ({"type": "regex", "patterns": ["secret"]}, "a secret", "a [REDACTED]"),
+        ({"type": "invisible_text"}, "a\u200bb", "ab"),
+        ({"type": "token_limit", "limit": 1}, "hello world", "hello"),
+        ({"type": "json", "required_elements": 1}, "not json", "not json"),
+        (
+            {"type": "reading_time", "max_time": 0.005, "truncate": True},
+            "hello world",
+            "hello",
+        ),
+        ({"type": "secrets"}, "AKIA1234567890ABCDEF", "******"),
+        ({"type": "sensitive"}, "alice@example.com", "<EMAIL>"),
+    ],
+)
+def test_shared_builder_preserves_all_scanner_actions(
+    raw, content, redacted, default_action, scanner_action, monkeypatch
 ):
-    _, FakeBanSubstrings, _, _, _, _ = fake_llm_guard_scanners
+    parsed = output_guardrails_module._parse_policy_scanner_configs(
+        [raw], "guardrails.yaml"
+    )[0]
+    parsed.action_on_hit = scanner_action
+    calls = []
 
+    def build(config, *, default_action):
+        calls.append((config, default_action))
+        return shared_scanner_config.build_scanner(
+            config, default_action=default_action
+        )
+
+    monkeypatch.setattr(output_guardrails_module, "build_scanner", build)
+    guardrails = OutputGuardrails(
+        enabled=True, action_on_hit=default_action, scanner_configs=(parsed,)
+    )
+    response = guardrails.guard_response(_make_response(content), {"messages": []})
+
+    assert calls == [(parsed, default_action)]
+    expected = (
+        DEFAULT_BLOCK_MESSAGE
+        if (scanner_action or default_action) == "block"
+        else redacted
+    )
+    assert response.choices[0].message.content == expected
+
+
+def test_build_scanners_supports_normalized_ban_substrings_type():
     parsed = output_guardrails_module._parse_policy_scanner_configs(
         [{"type": "ban-substrings", "substrings": ["secret"]}],
         "guardrails.yaml",
@@ -920,7 +981,7 @@ def test_build_scanners_supports_normalized_ban_substrings_type(
     assert scanners[0].redact is True
 
 
-def test_build_scanners_uses_per_scanner_action(fake_llm_guard_scanners):
+def test_build_scanners_uses_per_scanner_action():
     parsed = (
         _regex_cfg(patterns=["a"], action_on_hit="redact"),
         _ban_subs_cfg(substrings=["secret"], action_on_hit="block"),
@@ -938,9 +999,7 @@ def test_build_scanners_uses_per_scanner_action(fake_llm_guard_scanners):
     assert scanners[1].redact is False
 
 
-def test_build_scanners_builds_invisible_text_and_token_limit(fake_llm_guard_scanners):
-    _, _, FakeInvisibleText, FakeTokenLimit, _, _ = fake_llm_guard_scanners
-
+def test_build_scanners_builds_invisible_text_and_token_limit():
     guardrails = OutputGuardrails(
         enabled=True,
         scanner_configs=(
@@ -952,15 +1011,18 @@ def test_build_scanners_builds_invisible_text_and_token_limit(fake_llm_guard_sca
     scanners = guardrails._build_scanners()
 
     assert len(scanners) == 2
-    assert isinstance(scanners[0]._scanner, FakeInvisibleText)
-    assert isinstance(scanners[1]._scanner, FakeTokenLimit)
-    assert scanners[1]._scanner.limit == 32
-    assert scanners[1]._scanner.encoding_name == "cl100k_base"
+    from guardrail_core.native_scanners import (
+        NativeInvisibleTextScanner,
+        NativeTokenLimitScanner,
+    )
+
+    assert isinstance(scanners[0], NativeInvisibleTextScanner)
+    assert isinstance(scanners[1], NativeTokenLimitScanner)
+    assert scanners[1].limit == 32
+    assert scanners[1].encoding_name == "cl100k_base"
 
 
-def test_build_scanners_forwards_token_limit_model_name(fake_llm_guard_scanners):
-    _, _, _, FakeTokenLimit, _, _ = fake_llm_guard_scanners
-
+def test_build_scanners_forwards_token_limit_model_name():
     guardrails = OutputGuardrails(
         enabled=True,
         scanner_configs=(
@@ -975,13 +1037,13 @@ def test_build_scanners_forwards_token_limit_model_name(fake_llm_guard_scanners)
     scanners = guardrails._build_scanners()
 
     assert len(scanners) == 1
-    assert isinstance(scanners[0]._scanner, FakeTokenLimit)
-    assert scanners[0]._scanner.model_name == "gpt-4"
+    from guardrail_core.native_scanners import NativeTokenLimitScanner
+
+    assert isinstance(scanners[0], NativeTokenLimitScanner)
+    assert scanners[0].model_name == "gpt-4"
 
 
-def test_build_scanners_builds_json_and_reading_time(fake_llm_guard_scanners):
-    _, _, _, _, FakeJSON, FakeReadingTime = fake_llm_guard_scanners
-
+def test_build_scanners_builds_json_and_reading_time():
     guardrails = OutputGuardrails(
         enabled=True,
         scanner_configs=(
@@ -993,30 +1055,20 @@ def test_build_scanners_builds_json_and_reading_time(fake_llm_guard_scanners):
     scanners = guardrails._build_scanners()
 
     assert len(scanners) == 2
-    assert isinstance(scanners[0], FakeJSON)
+    from guardrail_core.native_scanners import (
+        NativeJSONScanner,
+        NativeReadingTimeScanner,
+    )
+
+    assert isinstance(scanners[0], NativeJSONScanner)
     assert scanners[0].required_elements == 2
     assert scanners[0].repair is False
-    assert isinstance(scanners[1], FakeReadingTime)
+    assert isinstance(scanners[1], NativeReadingTimeScanner)
     assert scanners[1].max_time == 0.25
     assert scanners[1].truncate is True
 
 
 def test_build_scanners_supports_secrets_type(monkeypatch):
-    class FakeSecrets:
-        def __init__(self, *, redact_mode="all"):
-            self.redact_mode = redact_mode
-
-        @staticmethod
-        def redact_value(value, mode):
-            return f"{mode}:{value}"
-
-    monkeypatch.setattr(
-        scanner_schemas_module.llm_guard_input_scanners,
-        "Secrets",
-        FakeSecrets,
-        raising=False,
-    )
-
     parsed = output_guardrails_module._parse_policy_scanner_configs(
         [{"type": "secrets", "redactMode": "partial"}],
         "guardrails.yaml",
@@ -1025,12 +1077,12 @@ def test_build_scanners_supports_secrets_type(monkeypatch):
 
     scanners = guardrails._build_scanners()
     monkeypatch.setattr(
-        scanners[0], "_detect_secret_values", lambda output: {"secret-value"}
+        scanners[0], "_detect_secret_values", lambda output: {"secret-token"}
     )
 
     assert parsed == (_secrets_cfg(redact_mode="partial"),)
-    assert scanners[0].scan("ignored", "secret-value") == (
-        "partial:secret-value",
+    assert scanners[0].scan("ignored", "secret-token") == (
+        "se..en",
         False,
         1.0,
     )
@@ -1055,21 +1107,17 @@ def test_secrets_config_build_works_with_scan_output_end_to_end():
 def test_output_secrets_scanner_deduplicates_detector_hits(monkeypatch):
     secret = "AKIA1234567890ABCDEF"
 
-    class FoundSecret:
-        secret_value = secret
-
-    class FakeSecretsCollection:
-        def __init__(self):
-            self.files = {"detected": [FoundSecret(), FoundSecret()]}
-
-        def __getitem__(self, file_path):
-            return self.files[file_path]
-
-        def scan_file(self, path):
-            pass
+    import guardrail_core.secrets.scanner as secrets_scanner_module
 
     monkeypatch.setattr(
-        scanner_schemas_module, "SecretsCollection", FakeSecretsCollection
+        secrets_scanner_module,
+        "detect_builtin_secrets",
+        lambda output: {secret},
+    )
+    monkeypatch.setattr(
+        secrets_scanner_module,
+        "detect_kaito_provider_secrets",
+        lambda output: {secret},
     )
     scanner = SecretsConfig(redact_mode="all").build("redact")
 
@@ -1194,9 +1242,7 @@ def test_build_scanners_skips_configs_whose_build_raises(monkeypatch):
     )
 
 
-def test_regex_config_build_uses_value_lookup_for_fullmatch(
-    fake_llm_guard_scanners,
-):
+def test_regex_config_build_uses_value_lookup_for_fullmatch():
     """Regression test: enum value 'fullmatch' must work end-to-end (the enum
     NAME is FULL_MATCH, so a name-based lookup would raise KeyError)."""
     from guardrail_core.native_scanners import RegexMatchType

@@ -235,6 +235,9 @@ var reservedSelectorLabelKeys = map[string]struct{}{
 	consts.KarpenterWorkspaceNamespaceKey:    {},
 	consts.KarpenterInferenceSetKey:          {},
 	consts.KarpenterInferenceSetNamespaceKey: {},
+
+	// Controller-owned workload isolation labels.
+	consts.WorkspaceCreatedByInferenceSetLabel: {},
 }
 
 // IsReservedSelectorLabel reports whether the given label key is reserved by
@@ -244,17 +247,36 @@ func IsReservedSelectorLabel(key string) bool {
 	return ok
 }
 
-// SanitizedMatchLabels returns the MatchLabels of selector with any
+// IsEmptyLabelSelector reports whether selector is nil or has no matchLabels
+// and no matchExpressions. Both forms mean "no node selector" for BYO GPU SKU
+// auto-selection.
+func IsEmptyLabelSelector(selector *metav1.LabelSelector) bool {
+	return selector == nil || (len(selector.MatchLabels) == 0 && len(selector.MatchExpressions) == 0)
+}
+
+// AutoSelectsSKU reports whether BYO mode should auto-select the GPU SKU,
+// which happens when neither instanceType nor a non-empty labelSelector is set.
+func (r *ResourceSpec) AutoSelectsSKU() bool {
+	return r.InstanceType == "" && IsEmptyLabelSelector(r.LabelSelector)
+}
+
+// SanitizedMatchLabels normalizes matchLabels and supported single-value In
+// matchExpressions into a map with any
 // KAITO-reserved keys removed. Returns nil when selector is nil or has no
 // non-reserved entries. The returned map is always a fresh copy when at
 // least one entry is preserved; callers must not assume identity with the
 // input map.
 func SanitizedMatchLabels(selector *metav1.LabelSelector) map[string]string {
-	if selector == nil || len(selector.MatchLabels) == 0 {
+	if selector == nil {
 		return nil
 	}
-	out := make(map[string]string, len(selector.MatchLabels))
-	for k, v := range selector.MatchLabels {
+	// Admission accepts exactly the selectors supported by LabelSelectorAsMap.
+	matchLabels, err := metav1.LabelSelectorAsMap(selector)
+	if err != nil {
+		return nil
+	}
+	out := make(map[string]string, len(matchLabels))
+	for k, v := range matchLabels {
 		if IsReservedSelectorLabel(k) {
 			continue
 		}
@@ -264,25 +286,6 @@ func SanitizedMatchLabels(selector *metav1.LabelSelector) map[string]string {
 		return nil
 	}
 	return out
-}
-
-// EffectiveInferenceRuntime returns the runtime that a generated Workspace
-// with the given annotations would resolve to via GetWorkspaceRuntimeName.
-// Kept here (rather than inline in the InferenceSet webhook) so any admission
-// path that projects a set of annotations onto a Workspace can share the
-// exact same effective-runtime computation the runtime layer uses.
-func EffectiveInferenceRuntime(annotations map[string]string) model.RuntimeName {
-	if !featuregates.FeatureGates[consts.FeatureFlagVLLM] {
-		return model.RuntimeNameHuggingfaceTransformers
-	}
-	runtime := model.RuntimeNameVLLM
-	switch annotations[AnnotationWorkspaceRuntime] {
-	case string(model.RuntimeNameHuggingfaceTransformers):
-		runtime = model.RuntimeNameHuggingfaceTransformers
-	case string(model.RuntimeNameVLLM):
-		runtime = model.RuntimeNameVLLM
-	}
-	return runtime
 }
 
 // GetInferenceSetRuntimeName returns the runtime name for an InferenceSet.
@@ -317,5 +320,6 @@ func IsInferenceSetBenchmarkEnabled(iObj *InferenceSet) bool {
 func ShouldRunInferenceSetBenchmark(iObj *InferenceSet) bool {
 	return IsInferenceSetBenchmarkEnabled(iObj) &&
 		GetInferenceSetRuntimeName(iObj) == model.RuntimeNameVLLM &&
-		iObj.Spec.Template.Inference.Preset != nil
+		iObj.Spec.Template.Inference.Preset != nil &&
+		!IsCPUInferenceTarget(&iObj.Spec.Template.Inference, iObj.Spec.Template.Resource.InstanceType)
 }

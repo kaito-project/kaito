@@ -6,7 +6,7 @@ This page describes the current user-facing behavior of RAGEngine output
 guardrails.
 
 RAGEngine output guardrails can scan assistant responses before they are
-returned from the non-streaming `/v1/chat/completions` endpoint.
+returned from `/v1/chat/completions`, including supported streaming policies.
 
 The CRD entry point is intentionally small:
 
@@ -23,6 +23,7 @@ policy file rather than scanner-specific CRD fields.
 
 - assistant text returned by `/v1/chat/completions`
 - non-streaming responses
+- streaming passthrough responses with the restrictions below
 - ConfigMap-backed YAML policy configuration
 - policy hot reload
 - Prometheus metrics and structured logs
@@ -38,10 +39,51 @@ policy file rather than scanner-specific CRD fields.
 
 ## Current Non-Support
 
-- streaming response scanning
 - scanner-specific CRD fields
 - per-scanner fail-open or fail-closed controls
 - audit event storage
+
+## Streaming Responses
+
+For `stream=true`, output guardrails support `ban_substrings`, `invisible_text`,
+`secrets`, and `sensitive` scanners with `block` or `redact` actions.
+`ban_substrings` does not support `contains_all=true` in streaming mode, and
+`secrets` redaction requires `redact_mode=all`. Unsupported streaming policies
+are rejected before opening the upstream stream.
+
+RAGEngine uses `guardrail_core.streaming` to frame upstream SSE bytes and parse
+OpenAI chunks. Streaming input accepts only bytes. The HTTP upstream preserves
+bytes so invalid UTF-8 cannot be silently replaced before validation.
+
+Streaming guardrails permit an empty `choices` list (e.g. usage-only chunks),
+or one choice with integer index `0`. This restriction includes role-only and
+other choices without text; multi-choice and nonzero-index chunks are refused.
+Role-only and usage-only chunks do not contribute text to scanning.
+
+**Behavior change:** no-data SSE events, including comments, heartbeats,
+blank-only events, and empty data fields, are skipped rather than refused.
+Malformed JSON and invalid OpenAI payloads still enter the refusal flow.
+Invalid UTF-8, events exceeding the shared framer's 1 MiB wire-byte limit, and
+incomplete events at EOF also produce the configured block message, a
+`content_filter` finish event, and `[DONE]`. Pending holdback text is discarded
+on these failures; it is never flushed as a fallback.
+
+Normal EOF finalizes framing before scanning the remaining holdback. A trailing
+CR may complete an event, but a missing terminating blank line is never invented.
+Upstream streams are closed on completion, refusal, downstream close, and
+cancellation; cancellation propagates rather than becoming a refusal.
+The existing redaction-before-block order, holdback sizing, and Secrets
+post-redaction verification remain unchanged.
+
+The holdback window uses `guardrail_core.streaming.window`. Scanner failures
+discard pending text and enter the same refusal flow; RAGEngine logs the failure
+type without logging model text. Cancellation still propagates.
+
+RAGEngine pins `kaito-guardrail-core==0.2.0` in its requirements. For local
+development, run `pip install -r presets/ragengine/requirements-test.txt` from
+the repository root, or use `make rag-service-test`. Both use the published
+package rather than installing shared-library source from this repository.
+The service Dockerfile installs the same pinned dependency through requirements.
 
 ## Configuration
 
@@ -92,6 +134,12 @@ Policy parsing is permissive by design:
 - invalid scanner configs are skipped
 - invalid actions fall back to the default action
 - one invalid scanner does not prevent other valid scanners from running
+
+Scanner schemas and construction use `guardrail_core.config`. RAGEngine keeps
+a thin policy adapter rather than using the shared strict `parse_scanner_config`
+entry point: the default action remains `redact`, camelCase and hyphenated field
+names remain accepted, and invalid entries are logged and skipped. This reuse
+does not change scanning, streaming holdback, or response formats.
 
 This example uses explicit scanner-level `action` values, so it does not need a
 top-level `action`. A top-level `action` is optional and serves only as the
@@ -258,6 +306,30 @@ scanners:
 Supported fields:
 
 - `redact_mode`: optional string, one of `all`, `partial`, `hash`; defaults to `all`
+
+Validated provider coverage:
+
+Built-in coverage reflects behavior validated against the pinned
+`bc-detect-secrets` version.
+
+| Provider or format | Detection source | Supported formats |
+| --- | --- | --- |
+| AWS | `detect-secrets` built-in | Access key IDs and contextual secret access keys |
+| Azure | `detect-secrets` built-in | Storage account keys with Azure or `AccountKey` context |
+| GCP | KAITO-specific | `AIza` API keys |
+| GitHub | KAITO-specific | Fixed-length classic and fine-grained access tokens with token-end boundaries |
+| OpenAI | KAITO-specific | Legacy API keys and project or service-account keys |
+| Slack | `detect-secrets` built-in | Tokens and webhook URLs |
+| JWT | `detect-secrets` built-in | Formally valid JSON Web Tokens |
+| Private Key | `detect-secrets` built-in | PEM and supported private-key headers |
+| Basic Auth | `detect-secrets` built-in | Credentials embedded in non-example URLs |
+
+Other provider-specific formats are unsupported unless they match a
+`detect-secrets` built-in or high-entropy detector. Malformed and near-match
+values are intentionally not treated as guaranteed detections.
+
+Secrets are scanned in memory with isolated detector instances. Model output is
+not written to temporary files during detection.
 
 ### `sensitive`
 

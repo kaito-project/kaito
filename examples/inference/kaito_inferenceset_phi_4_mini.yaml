@@ -14,6 +14,9 @@ spec:
     matchLabels:
       apps: phi-4-mini
   template:
+    metadata:
+      labels:
+        apps: phi-4-mini
     inference:
       preset:
         accessMode: public

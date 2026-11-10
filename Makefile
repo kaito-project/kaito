@@ -2,13 +2,13 @@
 # Image URL to use all building/pushing image targets
 REGISTRY ?= YOUR_REGISTRY
 IMG_NAME ?= workspace
-VERSION ?= v0.13.0-rc.0
-GPU_PROVISIONER_VERSION ?= 0.4.4
+VERSION ?= v0.13.0
+GPU_PROVISIONER_VERSION ?= 0.4.5
 RAGENGINE_IMG_NAME ?= ragengine
 IMG_TAG ?= $(subst v,,$(VERSION))
 
 # injection variables
-INJECTION_ROOT := github.com/kaito-project/kaito/pkg/version
+INJECTION_ROOT := github.com/kaito-project/kaito/internal/version
 BUILD_DATE := $(shell date -u +%Y-%m-%dT%H:%M:%SZ)
 GIT_VERSION := $(shell git describe --tags --always --dirty)
 LDFLAGS := -X '$(INJECTION_ROOT).Version=$(GIT_VERSION)' \
@@ -128,7 +128,7 @@ compare-base-image-configs: ## Compare base_images.yaml with ConfigMap template 
 	@./hack/compare_base_image_configs.sh
 
 .PHONY: generate-vllm-arch-list
-generate-vllm-arch-list: ## Regenerate presets/workspace/models/vllm_model_arch_list.txt.
+generate-vllm-arch-list: ## Regenerate pkg/catalog/vllm_model_arch_list.txt.
 	@./hack/generate_vllm_arch_list.sh
 
 ## --------------------------------------
@@ -139,14 +139,13 @@ generate-vllm-arch-list: ## Regenerate presets/workspace/models/vllm_model_arch_
 
 .PHONY: unit-test
 unit-test: ## Run unit tests.
-	go test -v $(shell go list ./pkg/... ./api/... ./presets/... | \
-	grep -v -e /vendor -e /api/v1alpha1/zz_generated.deepcopy.go -e /api/v1beta1/zz_generated.deepcopy.go -e /pkg/utils/test/...) \
+	go test -v $(shell go list ./pkg/... ./internal/... ./api/... | \
+	grep -v -e /vendor -e /api/v1alpha1/zz_generated.deepcopy.go -e /api/v1beta1/zz_generated.deepcopy.go -e /internal/testutil) \
 	-race -coverprofile=coverage.txt -covermode=atomic
 	go tool cover -func=coverage.txt
 
 .PHONY: rag-service-test
 rag-service-test: ## Run RAG Engine service tests with pytest.
-	pip install -e ./guardrail_core
 	pip install -r presets/ragengine/requirements-test.txt
 	pip install pytest-cov
 	pytest --cov -o log_cli=true -o log_cli_level=INFO presets/ragengine/tests
@@ -277,6 +276,9 @@ RAGENGINE_SERVICE_APP_VERSION := $(subst v,,$(RAGENGINE_SERVICE_IMG_TAG))
 
 KAITO_BASE_IMG_NAME ?= kaito-base
 KAITO_BASE_IMG_TAG ?= v0.0.1
+KAITO_CPU_IMG_NAME ?= kaito-base-cpu
+# CPU runtime releases are versioned independently from the GPU base image.
+KAITO_CPU_IMG_TAG ?= 0.0.2
 
 MT_BENCH_IMG_NAME ?= mt-bench-eval
 MT_BENCH_IMG_TAG ?= v0.0.1
@@ -331,6 +333,18 @@ docker-build-kaito-base: docker-buildx ## Build Docker image for KAITO base.
         --pull \
 		$(BUILD_FLAGS) \
         --tag $(REGISTRY)/$(KAITO_BASE_IMG_NAME):$(KAITO_BASE_IMG_TAG) .
+
+.PHONY: docker-build-kaito-base-cpu
+docker-build-kaito-base-cpu: docker-buildx ## Build Docker image for KAITO vLLM CPU base (amd64 only).
+	docker buildx build \
+		--build-arg VERSION=$(KAITO_CPU_IMG_TAG) \
+		--platform=linux/amd64 \
+		--output=$(OUTPUT_TYPE) \
+		--file ./docker/presets/models/cpu/Dockerfile \
+		--pull \
+		$(BUILD_FLAGS) \
+		--tag $(REGISTRY)/$(KAITO_CPU_IMG_NAME):$(KAITO_CPU_IMG_TAG) .
+
 
 .PHONY: docker-build-ragservice
 docker-build-ragservice: docker-buildx ## Build Docker image for RAG Engine service.

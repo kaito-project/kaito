@@ -56,6 +56,7 @@ import (
 	kaitov1beta1 "github.com/kaito-project/kaito/api/v1beta1"
 	"github.com/kaito-project/kaito/internal/cache"
 	"github.com/kaito-project/kaito/internal/estimator/nodesestimator"
+	"github.com/kaito-project/kaito/internal/image"
 	"github.com/kaito-project/kaito/internal/inference"
 	"github.com/kaito-project/kaito/internal/inference/modelstreaming"
 	"github.com/kaito-project/kaito/internal/inference/modelstreaming/registry"
@@ -71,7 +72,6 @@ import (
 	"github.com/kaito-project/kaito/pkg/featuregates"
 	pkgmodel "github.com/kaito-project/kaito/pkg/model"
 	mmconsts "github.com/kaito-project/kaito/pkg/modelmirror/consts"
-	"github.com/kaito-project/kaito/pkg/utils"
 	"github.com/kaito-project/kaito/pkg/utils/consts"
 )
 
@@ -866,7 +866,7 @@ func shouldUpgradeBaseImage(wObj *kaitov1beta1.Workspace, existingObj, desiredSt
 	upgradeVersion := wObj.Labels[kaitov1alpha1.LabelUpgradeToVersion]
 	desiredTag, err := inference.GetBaseImageTag(baseImage)
 	return err == nil && upgradeVersion != "" && upgradeVersion == desiredTag &&
-		inference.ContainerImage(desiredStatefulSet) == utils.GetPresetImageName(baseImage.Registry, baseImage.Name, baseImage.Tag) &&
+		inference.ContainerImage(desiredStatefulSet) == image.PresetImageName(baseImage.Registry, baseImage.Name, baseImage.Tag) &&
 		inference.ContainerImage(existingObj) != inference.ContainerImage(desiredStatefulSet)
 }
 
@@ -1813,7 +1813,7 @@ func (c *WorkspaceReconciler) resolveInferenceContextSize(ctx context.Context, w
 		return 0
 	}
 	if configData, exists := configMap.Data["inference_config.yaml"]; exists {
-		if contextSize, found := utils.ParseExplicitMaxModelLen(configData); found {
+		if contextSize, found := parseExplicitMaxModelLen(configData); found {
 			return contextSize
 		}
 	}

@@ -42,7 +42,7 @@ import (
 	kaitov1alpha1 "github.com/kaito-project/kaito/api/v1alpha1"
 	kaitov1beta1 "github.com/kaito-project/kaito/api/v1beta1"
 	"github.com/kaito-project/kaito/internal/k8s/resources"
-	"github.com/kaito-project/kaito/pkg/utils"
+	"github.com/kaito-project/kaito/internal/manifests"
 	"github.com/kaito-project/kaito/pkg/utils/consts"
 )
 
@@ -581,9 +581,9 @@ func defaultPDPluginsConfig() string {
 }
 
 // inferencePoolName returns the name of the InferencePool resources for the MRI.
-// Delegates to the shared utils.InferencePoolName helper.
+// Delegates to the shared manifests.InferencePoolName helper.
 func inferencePoolName(mriName string) string {
-	return utils.InferencePoolName(mriName)
+	return manifests.InferencePoolName(mriName)
 }
 
 // reconcileInferencePool creates or updates the Flux OCIRepository and HelmRelease

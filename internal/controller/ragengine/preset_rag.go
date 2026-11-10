@@ -27,9 +27,9 @@ import (
 	"github.com/kaito-project/kaito/api/v1beta1"
 	"github.com/kaito-project/kaito/internal/k8s/nodes"
 	"github.com/kaito-project/kaito/internal/k8s/resources"
+	"github.com/kaito-project/kaito/internal/manifests"
 	"github.com/kaito-project/kaito/internal/rag"
 	"github.com/kaito-project/kaito/pkg/sku"
-	"github.com/kaito-project/kaito/pkg/utils"
 	"github.com/kaito-project/kaito/pkg/utils/consts"
 )
 
@@ -202,7 +202,7 @@ func CreatePresetRAG(ctx context.Context, ragEngineObj *v1beta1.RAGEngine, revis
 	var volumes []corev1.Volume
 	var volumeMounts []corev1.VolumeMount
 
-	shmVolume, shmVolumeMount := utils.ConfigSHMVolume()
+	shmVolume, shmVolumeMount := manifests.ConfigSHMVolume()
 	volumes = append(volumes, shmVolume)
 	volumeMounts = append(volumeMounts, shmVolumeMount)
 
@@ -251,7 +251,7 @@ func CreatePresetRAG(ctx context.Context, ragEngineObj *v1beta1.RAGEngine, revis
 			},
 		}
 	}
-	commands := utils.ShellCmd("python3 main.py")
+	commands := []string{"/bin/sh", "-c", "python3 main.py"}
 
 	image := getImageConfig().GetImage()
 

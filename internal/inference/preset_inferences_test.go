@@ -42,20 +42,21 @@ import (
 	"github.com/kaito-project/kaito/api/v1beta1"
 	"github.com/kaito-project/kaito/internal/cache"
 	"github.com/kaito-project/kaito/internal/estimator/nodesestimator"
+	"github.com/kaito-project/kaito/internal/image"
 	"github.com/kaito-project/kaito/internal/k8s/nodes"
+	"github.com/kaito-project/kaito/internal/manifests"
 	"github.com/kaito-project/kaito/internal/manifests/builder"
 	"github.com/kaito-project/kaito/internal/testutil"
 	"github.com/kaito-project/kaito/pkg/catalog"
 	"github.com/kaito-project/kaito/pkg/featuregates"
 	pkgmodel "github.com/kaito-project/kaito/pkg/model"
 	"github.com/kaito-project/kaito/pkg/sku"
-	"github.com/kaito-project/kaito/pkg/utils"
 	"github.com/kaito-project/kaito/pkg/utils/consts"
 )
 
 func getCPUVLLMImageName() string {
 	presetObj := catalog.MustGet("base-cpu")
-	return utils.GetPresetImageName(presetObj.Registry, presetObj.Name, presetObj.Tag)
+	return image.PresetImageName(presetObj.Registry, presetObj.Name, presetObj.Tag)
 }
 
 var ValidStrength string = "0.5"
@@ -826,10 +827,8 @@ func TestGetDistributedInferenceProbe(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			actualProbe := getDistributedInferenceProbe(tc.probeType, tc.workspace, tc.initialDelaySeconds, tc.periodSeconds, tc.timeoutSeconds, tc.failureThreshold, tc.vllmPort)
 			if actualProbe.Exec != nil && tc.expectedProbe.Exec != nil {
-				expected := toParameterMap(tc.expectedProbe.Exec.Command)
-				actual := toParameterMap(actualProbe.Exec.Command)
-				if !reflect.DeepEqual(expected, actual) {
-					t.Errorf("Exec command mismatch: expected %+v, got %+v", expected, actual)
+				if !reflect.DeepEqual(tc.expectedProbe.Exec.Command, actualProbe.Exec.Command) {
+					t.Errorf("Exec command mismatch: expected %q, got %q", tc.expectedProbe.Exec.Command, actualProbe.Exec.Command)
 				}
 			}
 			if actualProbe.HTTPGet != nil && tc.expectedProbe.HTTPGet != nil {
@@ -1981,7 +1980,7 @@ func TestInjectLMCacheSidecar(t *testing.T) {
 			Image:   GetBaseImageName(catalog.MustGet("base")),
 			Command: []string{"/bin/sh", "-c", "python3 /workspace/vllm/inference_api.py --tensor-parallel-size=2"},
 			VolumeMounts: []corev1.VolumeMount{{
-				Name: "config-volume", MountPath: utils.DefaultConfigMapMountPath,
+				Name: "config-volume", MountPath: manifests.DefaultConfigMapMountPath,
 			}},
 		}},
 	}
@@ -2088,7 +2087,7 @@ func TestConfigureLMCacheSidecarReturnsConfigErrors(t *testing.T) {
 			if tc.getErr == nil {
 				mockClient.CreateOrUpdateObjectInMap(&corev1.ConfigMap{
 					ObjectMeta: metav1.ObjectMeta{Name: "test-config", Namespace: "test-ns"},
-					Data:       map[string]string{utils.InferenceConfigKey: tc.configData},
+					Data:       map[string]string{inferenceConfigKey: tc.configData},
 				})
 			}
 
@@ -2341,8 +2340,8 @@ func TestGeneratePresetInferenceNodeImageWeights(t *testing.T) {
 	if m, ok := mountsByPath[cudaPath]; !ok || !m.ReadOnly {
 		t.Errorf("expected read-only cuda mount at %s, got %v", cudaPath, mountsByPath)
 	}
-	if _, ok := mountsByPath[utils.DefaultWeightsVolumePath]; ok {
-		t.Errorf("did not expect default weights mount at %s", utils.DefaultWeightsVolumePath)
+	if _, ok := mountsByPath[pkgmodel.DefaultWeightsVolumePath]; ok {
+		t.Errorf("did not expect default weights mount at %s", pkgmodel.DefaultWeightsVolumePath)
 	}
 
 	// No prewarm init container: local weights load via the RunAI streamer, whose
@@ -2773,7 +2772,7 @@ func TestGeneratePresetInference_CapturedTarget(t *testing.T) {
 			require.NoError(t, err)
 			require.Equal(t, expectedBaseImage.Tag, tag)
 			complete := result.Workload.(*appsv1.StatefulSet).Spec.Template.Spec
-			require.Equal(t, utils.GetPresetImageName(result.BaseImage.Registry, result.BaseImage.Name, tag), complete.Containers[0].Image)
+			require.Equal(t, image.PresetImageName(result.BaseImage.Registry, result.BaseImage.Name, tag), complete.Containers[0].Image)
 			require.Equal(t, spec.Containers[0].Image, complete.Containers[0].Image)
 			require.Equal(t, spec.Containers[0].Resources, complete.Containers[0].Resources)
 			require.Equal(t, spec.Containers[0].ReadinessProbe, complete.Containers[0].ReadinessProbe)

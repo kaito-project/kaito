@@ -29,7 +29,7 @@ import (
 	"k8s.io/klog/v2"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
-	"github.com/kaito-project/kaito/pkg/utils"
+	"github.com/kaito-project/kaito/pkg/k8sclient"
 	"github.com/kaito-project/kaito/pkg/utils/consts"
 )
 
@@ -170,7 +170,7 @@ func EnsureConfigOrCopyFromDefault(ctx context.Context, kubeClient client.Client
 
 	// Resolve release namespace for the template
 	if systemDefault.Namespace == "" {
-		releaseNamespace, err := utils.GetReleaseNamespace()
+		releaseNamespace, err := k8sclient.GetReleaseNamespace()
 		if err != nil {
 			return nil, fmt.Errorf("failed to get release namespace: %v", err)
 		}

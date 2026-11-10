@@ -26,7 +26,6 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
 	"github.com/kaito-project/kaito/pkg/sku"
-	"github.com/kaito-project/kaito/pkg/utils"
 	"github.com/kaito-project/kaito/pkg/utils/consts"
 )
 
@@ -206,7 +205,7 @@ func (m *Metadata) Validate() error {
 		return nil
 	}
 
-	_, _, err := utils.ParseHuggingFaceModelVersion(m.Version)
+	_, _, err := ParseHuggingFaceModelVersion(m.Version)
 	return err
 }
 
@@ -418,22 +417,22 @@ func (p *PresetParam) buildHuggingfaceInferenceCommand(rc RuntimeContext) []stri
 		p.Transformers.ModelRunParams["served_model_name"] = p.Transformers.ModelName
 	}
 	if p.Version != "" {
-		repoId, revision, _ := utils.ParseHuggingFaceModelVersion(p.Version)
+		repoId, revision, _ := ParseHuggingFaceModelVersion(p.Version)
 		p.Transformers.ModelRunParams["pretrained_model_name_or_path"] = repoId
 		if revision != "" {
 			p.Transformers.ModelRunParams["revision"] = revision
 		}
 		p.Transformers.ModelRunParams["allow_remote_files"] = ""
 	}
-	torchCommand := utils.BuildCmdStr(
+	torchCommand := buildCmdStr(
 		p.Transformers.BaseCommand,
 		p.Transformers.AccelerateParams,
 	)
-	modelCommand := utils.BuildCmdStr(
+	modelCommand := buildCmdStr(
 		p.Transformers.InferenceMainFile,
 		p.Transformers.ModelRunParams,
 	)
-	return utils.ShellCmd(torchCommand + " " + modelCommand)
+	return shellCmd(torchCommand + " " + modelCommand)
 }
 
 func (p *PresetParam) buildVLLMInferenceCommand(rc RuntimeContext) []string {
@@ -482,7 +481,7 @@ func (p *PresetParam) buildVLLMInferenceCommand(rc RuntimeContext) []string {
 	// defined by consts.PortKVCacheEvents. Passed from the operator side (rather
 	// than baked into the preset image) so we don't need an image rebuild to
 	// toggle it and users can still override via --kaito-config-file. JSON is
-	// single-quoted so the value survives shell interpolation in ShellCmd.
+	// single-quoted so the value survives shell interpolation in shellCmd.
 	// See https://docs.vllm.ai/en/stable/api/vllm/config/kv_events/
 	if _, ok := p.VLLM.ModelRunParams["kv-events-config"]; !ok {
 		p.VLLM.ModelRunParams["kv-events-config"] = `'{"enable_kv_cache_events":true}'`
@@ -524,12 +523,12 @@ func (p *PresetParam) buildVLLMInferenceCommand(rc RuntimeContext) []string {
 		// with the hyphenated --load-format we set here.
 		delete(p.VLLM.ModelRunParams, "load_format")
 	} else if p.Version != "" {
-		repoId, revision, _ := utils.ParseHuggingFaceModelVersion(p.Version)
+		repoId, revision, _ := ParseHuggingFaceModelVersion(p.Version)
 		p.VLLM.ModelRunParams["model"] = repoId
 		if revision != "" {
 			p.VLLM.ModelRunParams["code-revision"] = revision
 		}
-		p.VLLM.ModelRunParams["download-dir"] = utils.DefaultWeightsVolumePath
+		p.VLLM.ModelRunParams["download-dir"] = DefaultWeightsVolumePath
 	}
 	if rc.ConfigVolume != nil {
 		p.VLLM.ModelRunParams["kaito-config-file"] = path.Join(rc.ConfigVolume.MountPath, ConfigfileNameVLLM)
@@ -573,8 +572,8 @@ func (p *PresetParam) buildVLLMInferenceCommand(rc RuntimeContext) []string {
 		if _, configured := p.VLLM.ModelRunParams["shutdown-timeout"]; !configured {
 			p.VLLM.ModelRunParams["shutdown-timeout"] = vllmShutdownTimeoutSeconds
 		}
-		modelCommand := utils.BuildCmdStr(p.VLLM.BaseCommand, p.VLLM.ModelRunParams)
-		return utils.ShellCmd("exec " + modelCommand)
+		modelCommand := buildCmdStr(p.VLLM.BaseCommand, p.VLLM.ModelRunParams)
+		return shellCmd("exec " + modelCommand)
 	}
 
 	// Multi-node path: set up a Ray cluster for cross-node parallelism.
@@ -642,7 +641,7 @@ func (p *PresetParam) buildMultiNodeRayCommand(rc RuntimeContext) []string {
 	if p.VLLM.RayWorkerParams == nil {
 		p.VLLM.RayWorkerParams = make(map[string]string)
 	}
-	p.VLLM.RayWorkerParams["ray_address"] = utils.GetRayLeaderHost(rc.WorkspaceMetadata)
+	p.VLLM.RayWorkerParams["ray_address"] = RayLeaderHost(rc.WorkspaceMetadata)
 	p.VLLM.RayWorkerParams["ray_port"] = strconv.Itoa(PortRayCluster)
 
 	// Runtime CUDA provisioning downloads over 1 GiB on each new node. The
@@ -658,9 +657,9 @@ func (p *PresetParam) buildMultiNodeRayCommand(rc RuntimeContext) []string {
 		}
 	}
 
-	rayLeaderCommand := utils.BuildCmdStr(p.VLLM.RayLeaderBaseCommand, p.VLLM.RayLeaderParams)
-	modelRunCommand := utils.BuildCmdStr(p.VLLM.BaseCommand, p.VLLM.ModelRunParams)
-	result := utils.BuildIfElseCmdStr(
+	rayLeaderCommand := buildCmdStr(p.VLLM.RayLeaderBaseCommand, p.VLLM.RayLeaderParams)
+	modelRunCommand := buildCmdStr(p.VLLM.BaseCommand, p.VLLM.ModelRunParams)
+	result := buildIfElseCmdStr(
 		`[ "${POD_INDEX}" = "0" ]`,                                        // leader if pod index is 0, otherwise worker
 		strings.Join([]string{rayLeaderCommand, modelRunCommand}, " && "), // start model only after Ray is ready
 		map[string]string{},
@@ -668,7 +667,7 @@ func (p *PresetParam) buildMultiNodeRayCommand(rc RuntimeContext) []string {
 		p.VLLM.RayWorkerParams,
 	)
 
-	return utils.ShellCmd(result)
+	return shellCmd(result)
 }
 
 // getModelFileSize returns the model file size as a resource.Quantity.
@@ -794,9 +793,9 @@ func (p *PresetParam) GetTuningCommand(rc RuntimeContext) []string {
 	}
 
 	p.Transformers.AccelerateParams["num_processes"] = strconv.Itoa(rc.SKUNumGPUs)
-	torchCommand := utils.BuildCmdStr(p.Transformers.BaseCommand, p.Transformers.AccelerateParams)
-	modelCommand := utils.BuildCmdStr(DefaultTuningMainFile, p.Transformers.ModelRunParams)
-	return utils.ShellCmd(torchCommand + " " + modelCommand)
+	torchCommand := buildCmdStr(p.Transformers.BaseCommand, p.Transformers.AccelerateParams)
+	modelCommand := buildCmdStr(DefaultTuningMainFile, p.Transformers.ModelRunParams)
+	return shellCmd(torchCommand + " " + modelCommand)
 }
 
 // isCustomModelName reports whether a model name is a bring-your-own model's

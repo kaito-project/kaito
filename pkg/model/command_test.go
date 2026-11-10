@@ -11,7 +11,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package utils
+package model
 
 import (
 	"strings"
@@ -19,12 +19,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	appsv1 "k8s.io/api/apps/v1"
-	"k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"sigs.k8s.io/controller-runtime/pkg/client"
-
-	"github.com/kaito-project/kaito/pkg/utils/consts"
 )
 
 func TestParseHuggingFaceModelVersion(t *testing.T) {
@@ -253,13 +248,13 @@ func TestBuildIfElseCmdStr(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			actual := BuildIfElseCmdStr(tt.condition, tt.trueCmd, tt.trueCmdParams, tt.falseCmd, tt.falseCmdParams)
+			actual := buildIfElseCmdStr(tt.condition, tt.trueCmd, tt.trueCmdParams, tt.falseCmd, tt.falseCmdParams)
 			assert.Equal(t, tt.expected, actual)
 		})
 	}
 }
 
-func TestGetRayLeaderHost(t *testing.T) {
+func TestRayLeaderHost(t *testing.T) {
 	tests := []struct {
 		name         string
 		meta         metav1.ObjectMeta
@@ -301,44 +296,13 @@ func TestGetRayLeaderHost(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			actualHost := GetRayLeaderHost(tt.meta)
+			actualHost := RayLeaderHost(tt.meta)
 			assert.Equal(t, tt.expectedHost, actualHost)
 		})
 	}
 }
 
-func TestInferencePoolName(t *testing.T) {
-	tests := []struct {
-		workspaceName string
-		expected      string
-	}{
-		{"foo", "foo-inferencepool"},
-		{"bar123", "bar123-inferencepool"},
-		{"test-workspace", "test-workspace-inferencepool"},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.workspaceName, func(t *testing.T) {
-			actual := InferencePoolName(tt.workspaceName)
-			assert.Equal(t, tt.expected, actual)
-		})
-	}
-}
-
 func TestShellCmd(t *testing.T) {
-	cmd := ShellCmd("echo hello")
+	cmd := shellCmd("echo hello")
 	assert.Equal(t, []string{"/bin/sh", "-c", "echo hello"}, cmd)
 }
-
-func TestGetReleaseNamespace(t *testing.T) {
-	t.Run("reads from env var", func(t *testing.T) {
-		t.Setenv(consts.DefaultReleaseNamespaceEnvVar, "my-namespace")
-		ns, err := GetReleaseNamespace()
-		assert.NoError(t, err)
-		assert.Equal(t, "my-namespace", ns)
-	})
-}
-
-var _ = appsv1.Deployment{}
-var _ = resource.Quantity{}
-var _ client.Object = nil

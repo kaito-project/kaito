@@ -18,7 +18,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"math"
-	"strconv"
 	"strings"
 	"time"
 
@@ -38,6 +37,7 @@ import (
 
 	kaitov1alpha1 "github.com/kaito-project/kaito/api/v1alpha1"
 	"github.com/kaito-project/kaito/api/v1beta1"
+	"github.com/kaito-project/kaito/internal/image"
 	"github.com/kaito-project/kaito/internal/inference/modelstreaming"
 	"github.com/kaito-project/kaito/internal/inference/modelstreaming/registry"
 	"github.com/kaito-project/kaito/internal/k8s/nodes"
@@ -51,7 +51,6 @@ import (
 	"github.com/kaito-project/kaito/pkg/featuregates"
 	pkgmodel "github.com/kaito-project/kaito/pkg/model"
 	"github.com/kaito-project/kaito/pkg/sku"
-	"github.com/kaito-project/kaito/pkg/utils"
 	"github.com/kaito-project/kaito/pkg/utils/consts"
 )
 
@@ -436,27 +435,23 @@ func getDistributedInferenceProbe(probeType probeType, wObj *v1beta1.Workspace, 
 	if len(vllmPort) > 0 && vllmPort[0] > 0 {
 		port = vllmPort[0]
 	}
-	args := map[string]string{
-		"leader-address": utils.GetRayLeaderHost(wObj.ObjectMeta),
-	}
+	var portFlag string
 	switch probeType {
 	case probeTypeLiveness:
-		args["ray-port"] = strconv.Itoa(pkgmodel.PortRayCluster)
+		portFlag = fmt.Sprintf("--ray-port=%d", pkgmodel.PortRayCluster)
 	case probeTypeReadiness:
-		args["vllm-port"] = strconv.FormatInt(int64(port), 10)
+		portFlag = fmt.Sprintf("--vllm-port=%d", port)
 	}
 
 	// for distributed inference, we cannot use the default http probe since only the leader pod
 	// exposes the health check endpoint. We need to use presets/workspace/inference/vllm/multi-node-health-check.py
 	// to check the health of both the leader and worker pods.
-	cmd := utils.BuildCmdStr(
-		fmt.Sprintf("%s %s", DefaultVLLMMultiNodeHealthCheckCommand, probeType),
-		args,
-	)
+	cmd := fmt.Sprintf("%s %s --leader-address=%s %s",
+		DefaultVLLMMultiNodeHealthCheckCommand, probeType, pkgmodel.RayLeaderHost(wObj.ObjectMeta), portFlag)
 	probe := &corev1.Probe{
 		ProbeHandler: corev1.ProbeHandler{
 			Exec: &corev1.ExecAction{
-				Command: utils.ShellCmd(cmd),
+				Command: []string{"/bin/sh", "-c", cmd},
 			},
 		},
 		InitialDelaySeconds: initialDelaySeconds,
@@ -535,7 +530,7 @@ func buildBenchmarkStartupProbe(timeout time.Duration, wObj *v1beta1.Workspace, 
 		// Workers exit 0 immediately — they don't serve traffic and don't need to
 		// wait for the leader. This prevents rolling update deadlocks.
 		cmd := `if [ "$POD_INDEX" = "0" ]; then python3 /workspace/vllm/benchmark_entrypoint.py; else true; fi`
-		command = utils.ShellCmd(cmd)
+		command = []string{"/bin/sh", "-c", cmd}
 	}
 
 	return &corev1.Probe{
@@ -552,7 +547,7 @@ func buildBenchmarkStartupProbe(timeout time.Duration, wObj *v1beta1.Workspace, 
 
 // GetBaseImageName returns the full image reference for the selected base image.
 func GetBaseImageName(baseImage pkgmodel.Metadata) string {
-	return utils.GetPresetImageName(baseImage.Registry, baseImage.Name, baseImage.Tag)
+	return image.PresetImageName(baseImage.Registry, baseImage.Name, baseImage.Tag)
 }
 
 // GetBaseImageTag returns the selected base image's catalog tag, unchanged,
@@ -665,7 +660,7 @@ func GenerateInferencePodSpec(gpuConfig *sku.GPUConfig, numNodes int, streamingM
 		// no config volume is mounted and the runtime falls back to its built-in defaults.
 		var cmVolumeMountRef *corev1.VolumeMount
 		if userConfig := ctx.Workspace.Inference.Config; userConfig != "" {
-			cmVolume, cmVolumeMount := utils.InferenceConfigCMVolume(userConfig)
+			cmVolume, cmVolumeMount := inferenceConfigCMVolume(userConfig)
 			volumes = append(volumes, cmVolume)
 			volumeMounts = append(volumeMounts, cmVolumeMount)
 			cmVolumeMountRef = &cmVolumeMount
@@ -683,7 +678,7 @@ func GenerateInferencePodSpec(gpuConfig *sku.GPUConfig, numNodes int, streamingM
 			ctx.Model, isCPUInference, volumes, volumeMounts)
 
 		// add share memory for cross process communication
-		shmVolume, shmVolumeMount := utils.ConfigSHMVolume()
+		shmVolume, shmVolumeMount := manifests.ConfigSHMVolume()
 		volumes = append(volumes, shmVolume)
 		volumeMounts = append(volumeMounts, shmVolumeMount)
 
@@ -853,11 +848,11 @@ func configureModelWeightsVolumes(streamingModelPath, localModelWeightsPath stri
 	// PVC on NVMe or an emptyDir — is attached by the caller). Streaming reads from
 	// az:// and explicit hostpaths load from their own mount, so neither needs it.
 	if streamingModelPath == "" && localModelWeightsPath == "" {
-		volumeMounts = append(volumeMounts, utils.DefaultModelWeightsVolumeMount)
+		volumeMounts = append(volumeMounts, manifests.DefaultModelWeightsVolumeMount)
 	}
 
 	if localModelWeightsPath != "" {
-		vol, mount := utils.HostPathVolume("model-weights-hostpath", localModelWeightsPath)
+		vol, mount := hostPathVolume("model-weights-hostpath", localModelWeightsPath)
 		volumes = append(volumes, vol)
 		volumeMounts = append(volumeMounts, mount)
 	}
@@ -1117,7 +1112,7 @@ func SetAdapterPuller(ctx *builder.WorkspaceGeneratorContext, spec *corev1.PodSp
 
 	// Handle image-based adapters (existing flow: EmptyDir + puller init containers)
 	if len(imageAdapters) > 0 {
-		adapterVolume, adapterVolumeMount := utils.ConfigAdapterVolume(nil)
+		adapterVolume, adapterVolumeMount := configAdapterVolume(nil)
 		spec.Volumes = append(spec.Volumes, adapterVolume)
 		spec.Containers[mainIdx].VolumeMounts = append(spec.Containers[mainIdx].VolumeMounts, adapterVolumeMount)
 
@@ -1133,7 +1128,7 @@ func SetAdapterPuller(ctx *builder.WorkspaceGeneratorContext, spec *corev1.PodSp
 	for _, adapter := range volumeAdapters {
 		sourceName := adapter.Source.Name
 		volumeName := fmt.Sprintf("adapter-volume-%s", sourceName)
-		mountPath := fmt.Sprintf("%s/%s", utils.DefaultAdapterVolumePath, sourceName)
+		mountPath := fmt.Sprintf("%s/%s", defaultAdapterVolumePath, sourceName)
 
 		volume := corev1.Volume{
 			Name:         volumeName,
@@ -1223,7 +1218,7 @@ func SetDistributedInferenceProbe(ctx *builder.WorkspaceGeneratorContext, spec *
 }
 
 func SetDefaultModelWeightsVolume(ctx *builder.WorkspaceGeneratorContext, spec *corev1.PodSpec) error {
-	spec.Volumes = append(spec.Volumes, utils.DefaultModelWeightsVolume)
+	spec.Volumes = append(spec.Volumes, manifests.DefaultModelWeightsVolume)
 	return nil
 }
 

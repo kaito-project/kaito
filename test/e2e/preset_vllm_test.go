@@ -43,7 +43,7 @@ import (
 	kaitov1alpha1 "github.com/kaito-project/kaito/api/v1alpha1"
 	kaitov1beta1 "github.com/kaito-project/kaito/api/v1beta1"
 	workspacecontroller "github.com/kaito-project/kaito/internal/controller/workspace"
-	kaitoutils "github.com/kaito-project/kaito/pkg/utils"
+	"github.com/kaito-project/kaito/internal/manifests"
 	"github.com/kaito-project/kaito/pkg/utils/consts"
 	"github.com/kaito-project/kaito/test/e2e/utils"
 )
@@ -130,7 +130,7 @@ var _ = Describe("Workspace Preset on vllm runtime", func() {
 			// "model" field into the X-Gateway-Model-Name header, so both the
 			// HTTPRoute header match and the request payload must use this name.
 			modelName := inferenceSetObj.Name
-			inferencePoolName := kaitoutils.InferencePoolName(inferenceSetObj.Name)
+			inferencePoolName := manifests.InferencePoolName(inferenceSetObj.Name)
 
 			// findWorkspacePod locates a running pod belonging to a child Workspace
 			// created by the InferenceSet, using the correct label selector.
@@ -953,7 +953,7 @@ func getMultiRoleInferenceChildInferenceSets(mriObj *kaitov1alpha1.MultiRoleInfe
 // validateMultiRoleInferenceGWIEResources validates the MRI-owned InferencePool
 // Flux resources (OCIRepository + HelmRelease) are ready.
 func validateMultiRoleInferenceGWIEResources(mriObj *kaitov1alpha1.MultiRoleInference) {
-	poolName := kaitoutils.InferencePoolName(mriObj.Name)
+	poolName := manifests.InferencePoolName(mriObj.Name)
 
 	By("Checking MRI-owned Flux OCIRepository is Ready", func() {
 		Eventually(func() bool {
@@ -1715,7 +1715,7 @@ func validateGatewayAPIInferenceExtensionResources(iObj *kaitov1beta1.InferenceS
 			ociRepository := &sourcev1.OCIRepository{}
 			err := utils.TestingCluster.KubeClient.Get(ctx, client.ObjectKey{
 				Namespace: iObj.Namespace,
-				Name:      kaitoutils.InferencePoolName(iObj.Name),
+				Name:      manifests.InferencePoolName(iObj.Name),
 			}, ociRepository, &client.GetOptions{})
 			if err != nil {
 				return false
@@ -1734,7 +1734,7 @@ func validateGatewayAPIInferenceExtensionResources(iObj *kaitov1beta1.InferenceS
 			helmRelease := &helmv2.HelmRelease{}
 			err := utils.TestingCluster.KubeClient.Get(ctx, client.ObjectKey{
 				Namespace: iObj.Namespace,
-				Name:      kaitoutils.InferencePoolName(iObj.Name),
+				Name:      manifests.InferencePoolName(iObj.Name),
 			}, helmRelease, &client.GetOptions{})
 			if err != nil {
 				return false
@@ -1921,7 +1921,7 @@ func validateInferenceSetBenchmarkCompleted(inferenceSetObj *kaitov1beta1.Infere
 // validateMultiRoleInferenceEPPReady validates that the EPP deployment is running
 // with the disagg-profile-handler scheduling profile.
 func validateMultiRoleInferenceEPPReady(mriObj *kaitov1alpha1.MultiRoleInference) {
-	eppDeploymentName := kaitoutils.InferencePoolName(mriObj.Name) + "-epp"
+	eppDeploymentName := manifests.InferencePoolName(mriObj.Name) + "-epp"
 
 	By("Validating EPP deployment is available with disagg-profile-handler", func() {
 		coreClient, err := utils.GetK8sClientset()
@@ -2039,7 +2039,7 @@ func validateMultiRoleInferenceEPPReady(mriObj *kaitov1alpha1.MultiRoleInference
 // pod logs confirm the scorer was loaded. This ensures the default
 // EndpointPickerConfig wires up KV cache-aware routing end-to-end.
 func validateMultiRoleInferenceEPPKVCacheScorer(mriObj *kaitov1alpha1.MultiRoleInference) {
-	poolName := kaitoutils.InferencePoolName(mriObj.Name)
+	poolName := manifests.InferencePoolName(mriObj.Name)
 	eppDeploymentName := poolName + "-epp"
 
 	By("Validating EPP plugins ConfigMap contains kv-cache-utilization-scorer", func() {
@@ -2220,7 +2220,7 @@ func isIstioCRDAvailable() bool {
 // validateMultiRoleInferenceDestinationRule creates and validates a DestinationRule
 // for the EPP service with mode: SIMPLE and insecureSkipVerify: true.
 func validateMultiRoleInferenceDestinationRule(mriObj *kaitov1alpha1.MultiRoleInference) {
-	eppServiceName := kaitoutils.InferencePoolName(mriObj.Name) + "-epp"
+	eppServiceName := manifests.InferencePoolName(mriObj.Name) + "-epp"
 
 	By("Creating DestinationRule for EPP service", func() {
 		dr := &unstructured.Unstructured{}
@@ -2305,7 +2305,7 @@ func validateMultiRoleInferenceDestinationRule(mriObj *kaitov1alpha1.MultiRoleIn
 // - Decode pod shows "KV Transfer metrics: Num successful transfers" > 0
 func validateMultiRoleInferencePDDisaggregation(mriObj *kaitov1alpha1.MultiRoleInference) {
 	modelName := getModelName(mriObj.Spec.Model.Name)
-	inferencePoolName := kaitoutils.InferencePoolName(mriObj.Name)
+	inferencePoolName := manifests.InferencePoolName(mriObj.Name)
 
 	By("Patching Gateway to allow routes from test namespace", func() {
 		// Capture the original Gateway listeners so we can restore the shared

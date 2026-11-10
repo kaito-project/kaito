@@ -31,7 +31,7 @@ import (
 type ReconcileResult struct {
 	// BlockDeployment is true when a Required-mode cache is not yet ready.
 	BlockDeployment bool
-	// RequeueNeeded is true when the cache is not yet ready and should be rechecked.
+	// RequeueNeeded is true while an active attachment should be periodically rechecked.
 	RequeueNeeded bool
 }
 
@@ -67,7 +67,6 @@ func ReconcileCache(ctx context.Context, kubeClient client.Client, ws *kaitov1be
 		return ReconcileResult{}
 	}
 
-	result := ReconcileResult{}
 	attachment, err := ResolveEffectiveAttachment(ctx, kubeClient, ws)
 	if err != nil {
 		klog.ErrorS(err, "Failed to resolve cache attachment", "workspace", klog.KObj(ws))
@@ -77,29 +76,48 @@ func ReconcileCache(ctx context.Context, kubeClient client.Client, ws *kaitov1be
 		return ReconcileResult{}
 	}
 
+	var ss *appsv1.StatefulSet
+	var workloadReadErr error
+	if kubeClient != nil {
+		fetched := &appsv1.StatefulSet{}
+		switch err := kubeClient.Get(ctx, client.ObjectKey{Name: ws.Name, Namespace: ws.Namespace}, fetched); {
+		case err == nil:
+			ss = fetched
+		case apierrors.IsNotFound(err):
+		default:
+			workloadReadErr = err
+		}
+	}
+
+	// Active attachments are periodically reconciled so provider readiness loss
+	// and recovery update both workload mutations and Workspace conditions.
+	result := ReconcileResult{RequeueNeeded: attachmentHasActiveConcern(attachment)}
+
 	// Check model weights cache readiness
 	if config := attachment.ModelWeights; config != nil && config.Mode != ModeDisabled {
-		ready, reason := checkProviderReady(ctx, CacheConcernModelWeights, config)
-		setCacheCondition(cacheStatus, ws.GetGeneration(),
-			kaitov1beta1.WorkspaceConditionTypeModelCacheReady, ready, reason)
+		applicable, known, deferGate := providerApplicability(config, CacheConcernModelWeights, ws, ss)
+		if !known || applicable {
+			ready, reason := checkProviderReady(ctx, CacheConcernModelWeights, config)
+			setCacheCondition(cacheStatus, ws.GetGeneration(),
+				kaitov1beta1.WorkspaceConditionTypeModelCacheReady, ready, reason)
 
-		// Required mode blocks deployment until the cache is ready — indefinitely.
-		if !ready && config.Mode == ModeRequired {
-			result.BlockDeployment = true
-			result.RequeueNeeded = true
+			if !ready && config.Mode == ModeRequired && !deferGate {
+				result.BlockDeployment = true
+			}
 		}
 	}
 
 	// Check KV cache readiness
 	if config := attachment.KVCache; config != nil && config.Mode != ModeDisabled {
-		ready, reason := checkProviderReady(ctx, CacheConcernKVCache, config)
-		setCacheCondition(cacheStatus, ws.GetGeneration(),
-			kaitov1beta1.WorkspaceConditionTypeKVCacheReady, ready, reason)
+		applicable, known, deferGate := providerApplicability(config, CacheConcernKVCache, ws, ss)
+		if !known || applicable {
+			ready, reason := checkProviderReady(ctx, CacheConcernKVCache, config)
+			setCacheCondition(cacheStatus, ws.GetGeneration(),
+				kaitov1beta1.WorkspaceConditionTypeKVCacheReady, ready, reason)
 
-		// Required mode blocks deployment until the cache is ready — indefinitely.
-		if !ready && config.Mode == ModeRequired {
-			result.BlockDeployment = true
-			result.RequeueNeeded = true
+			if !ready && config.Mode == ModeRequired && !deferGate {
+				result.BlockDeployment = true
+			}
 		}
 	}
 
@@ -111,25 +129,43 @@ func ReconcileCache(ctx context.Context, kubeClient client.Client, ws *kaitov1be
 	// not-yet-injected. Infrastructure failures remain False and retain their
 	// more specific reasons.
 	if kubeClient != nil {
-		var ss *appsv1.StatefulSet
-		fetched := &appsv1.StatefulSet{}
-		switch err := kubeClient.Get(ctx, client.ObjectKey{Name: ws.Name, Namespace: ws.Namespace}, fetched); {
-		case err == nil:
-			ss = fetched
-		case apierrors.IsNotFound(err):
-			ss = nil
-		default:
+		if workloadReadErr != nil {
 			klog.V(2).InfoS("Failed to fetch StatefulSet for cache injection verification",
-				"workspace", ws.Name, "error", err)
+				"workspace", ws.Name, "error", workloadReadErr)
 			markCacheVerificationFailed(cacheStatus, ws.GetGeneration(),
-				fmt.Sprintf("failed to verify cache injection: %v", err))
-			result.RequeueNeeded = true
+				fmt.Sprintf("failed to verify cache injection: %v", workloadReadErr))
 			return result
 		}
 		verifyCacheInjection(ctx, ws, attachment, ss, cacheStatus)
 	}
 
 	return result
+}
+
+func attachmentHasActiveConcern(attachment *Attachment) bool {
+	return attachment != nil &&
+		((attachment.ModelWeights != nil && attachment.ModelWeights.Mode != ModeDisabled) ||
+			(attachment.KVCache != nil && attachment.KVCache.Mode != ModeDisabled))
+}
+
+// providerApplicability reports whether applicability is known for the current
+// workload. Readiness gating is always deferred for applicability-aware
+// providers because an existing workload may differ from the newly rendered
+// desired workload. Mutation collection evaluates the desired workload before
+// checking provider availability.
+func providerApplicability(config *ConcernConfig, concern CacheConcern, ws *kaitov1beta1.Workspace,
+	ss *appsv1.StatefulSet) (applicable, known, deferGate bool) {
+	p, err := Get(config.Provider)
+	if err != nil {
+		return true, true, false
+	}
+	if _, ok := p.(PodApplicabilityChecker); !ok {
+		return true, true, false
+	}
+	if ss == nil {
+		return false, false, true
+	}
+	return providerAppliesTo(p, concern, ws, ss), true, true
 }
 
 // verifyCacheInjection re-evaluates cache conditions against the *rendered*
@@ -251,15 +287,15 @@ func concernInjected(ctx context.Context, ws *kaitov1beta1.Workspace,
 				}
 			}
 
-			mountNames := make(map[string]struct{}, len(container.VolumeMounts))
+			mountsByPath := make(map[string]string, len(container.VolumeMounts))
 			for _, mount := range container.VolumeMounts {
-				mountNames[mount.Name] = struct{}{}
+				mountsByPath[mount.MountPath] = mount.Name
 			}
 			for _, expected := range m.VolumeMounts {
-				if _, ok := mountNames[expected.Name]; !ok {
+				if actualName, ok := mountsByPath[expected.MountPath]; !ok || actualName != expected.Name {
 					return false, fmt.Sprintf(
-						"expected cache volume mount %q not present on inference container %q",
-						expected.Name, container.Name)
+						"expected cache volume mount %q at %q not present on inference container %q",
+						expected.Name, expected.MountPath, container.Name)
 				}
 			}
 		}

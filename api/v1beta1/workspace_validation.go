@@ -192,6 +192,15 @@ func (w *Workspace) validateAnnotations() (errs *apis.FieldError) {
 			))
 		}
 	}
+	// persist-compile-cache is a boolean opt-in; accept only "true" or "false".
+	if v, ok := annotations[AnnotationPersistCompileCache]; ok {
+		if v != "true" && v != "false" {
+			errs = errs.Also(apis.ErrInvalidValue(
+				fmt.Sprintf("%q must be \"true\" or \"false\"", v),
+				fmt.Sprintf("metadata.annotations[%s]", AnnotationPersistCompileCache),
+			))
+		}
+	}
 	return errs
 }
 

@@ -93,6 +93,14 @@ const (
 	// node lacks it.
 	cudaToolkitHostVolumeName = "cuda-toolkit-hostpath"
 
+	// compileCacheHostVolumeName is the name of the hostPath volume that holds
+	// vLLM's compile cache when kaito.sh/persist-compile-cache is enabled.
+	compileCacheHostVolumeName = "vllm-compile-cache-hostpath"
+
+	// compileCacheMountPath is where the compile cache is mounted in the main
+	// container and the value of VLLM_CACHE_ROOT.
+	compileCacheMountPath = "/workspace/vllm-cache"
+
 	// defaultCudaHomePath is the default location to install CUDA toolkit and used as
 	// CUDA_HOME.
 	defaultCudaHomePath = "/opt/kaito/cuda/129"
@@ -799,6 +807,8 @@ func GenerateInferencePodSpec(gpuConfig *sku.GPUConfig, numNodes int, streamingM
 		}
 
 		mainContainerEnv := buildMainContainerEnv(runtimeName, inferenceParam, gpuConfig, cudaHome, localModelWeightsPath)
+		volumes, volumeMounts, mainContainerEnv = configureCompileCacheVolume(
+			ctx.Workspace, runtimeName, volumes, volumeMounts, mainContainerEnv)
 
 		ports := append([]corev1.ContainerPort(nil), containerPorts...)
 		if runtimeName == pkgmodel.RuntimeNameVLLM && !isCPUInference {
@@ -894,6 +904,37 @@ func configureCUDAToolkitVolume(model pkgmodel.Model, isCPUInference bool,
 		ReadOnly:  true,
 	})
 	return volumes, volumeMounts, cudaHome
+}
+
+// configureCompileCacheVolume mounts the node compile cache directory (see
+// v1beta1.GetCompileCachePath) as vLLM's cache root, so a recreated pod on the
+// same node skips recompiling. It is read-write because vLLM writes entries on
+// a miss, and a no-op for other runtimes or when the annotation is off.
+func configureCompileCacheVolume(ws *v1beta1.Workspace, runtimeName pkgmodel.RuntimeName,
+	volumes []corev1.Volume, volumeMounts []corev1.VolumeMount, env []corev1.EnvVar,
+) ([]corev1.Volume, []corev1.VolumeMount, []corev1.EnvVar) {
+	hostPath := v1beta1.GetCompileCachePath(ws)
+	if runtimeName != pkgmodel.RuntimeNameVLLM || hostPath == "" {
+		return volumes, volumeMounts, env
+	}
+
+	hostPathType := corev1.HostPathDirectoryOrCreate
+	volumes = append(volumes, corev1.Volume{
+		Name: compileCacheHostVolumeName,
+		VolumeSource: corev1.VolumeSource{HostPath: &corev1.HostPathVolumeSource{
+			Path: hostPath,
+			Type: &hostPathType,
+		}},
+	})
+	volumeMounts = append(volumeMounts, corev1.VolumeMount{
+		Name:      compileCacheHostVolumeName,
+		MountPath: compileCacheMountPath,
+	})
+	env = append(env, corev1.EnvVar{
+		Name:  consts.VLLMCacheRootEnvName,
+		Value: compileCacheMountPath,
+	})
+	return volumes, volumeMounts, env
 }
 
 // buildMainContainerEnv builds the env vars for the main inference container.

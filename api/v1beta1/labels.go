@@ -113,6 +113,15 @@ const (
 	// weights live, one subdirectory per preset (see GetLocalWeightsPath). Used
 	// when kaito.sh/use-local-weights is enabled.
 	LocalWeightsHostPathPrefix = "/opt/kaito/models"
+
+	// AnnotationPersistCompileCache keeps vLLM's compile cache in a node
+	// directory, so a pod recreated on the same node reuses it instead of
+	// recompiling. Set it to "true" to enable. See GetCompileCachePath.
+	AnnotationPersistCompileCache = KAITOPrefix + "persist-compile-cache"
+
+	// CompileCacheHostPathPrefix is the node directory under which vLLM compile
+	// caches live, one subdirectory per namespace (see GetCompileCachePath).
+	CompileCacheHostPathPrefix = "/opt/kaito/vllm-cache"
 )
 
 // Valid values for AnnotationPerformanceMode.
@@ -202,6 +211,27 @@ func GetLocalWeightsPath(ws *Workspace) string {
 		return ""
 	}
 	return path.Join(LocalWeightsHostPathPrefix, segment)
+}
+
+// PersistCompileCache reports whether the workspace opts into keeping vLLM's
+// compile cache on the node (kaito.sh/persist-compile-cache: "true").
+func PersistCompileCache(ws *Workspace) bool {
+	if ws == nil {
+		return false
+	}
+	return ws.Annotations[AnnotationPersistCompileCache] == "true"
+}
+
+// GetCompileCachePath returns the node directory for the workspace's vLLM
+// compile cache, e.g. /opt/kaito/vllm-cache/default, or "" when
+// kaito.sh/persist-compile-cache is off. It is scoped by namespace so compiled
+// artifacts are never shared across namespaces; vLLM hashes the model and
+// engine config into its own keys, so models in one namespace don't collide.
+func GetCompileCachePath(ws *Workspace) string {
+	if !PersistCompileCache(ws) || ws.Namespace == "" {
+		return ""
+	}
+	return path.Join(CompileCacheHostPathPrefix, ws.Namespace)
 }
 
 // sanitizePresetName maps a preset model id to a single path segment: lowercased

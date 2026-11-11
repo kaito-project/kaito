@@ -68,9 +68,11 @@ func GetResource(ctx context.Context, name, namespace string, kubeClient client.
 	return err
 }
 
-func CheckResourceStatus(obj client.Object, kubeClient client.Client, timeoutDuration time.Duration) error {
-	// Use Context for timeout
-	ctx, cancel := context.WithTimeout(context.Background(), timeoutDuration)
+// CheckResourceStatus polls obj until it is ready, fails, or timeoutDuration elapses.
+// The timeout is derived from ctx, so polling also stops as soon as ctx is
+// cancelled, e.g. when the controller manager is shutting down.
+func CheckResourceStatus(ctx context.Context, obj client.Object, kubeClient client.Client, timeoutDuration time.Duration) error {
+	ctx, cancel := context.WithTimeout(ctx, timeoutDuration)
 	defer cancel()
 
 	ticker := time.NewTicker(1 * time.Second)

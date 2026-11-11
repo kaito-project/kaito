@@ -30,7 +30,6 @@ import (
 	"github.com/kaito-project/kaito/internal/manifests"
 	"github.com/kaito-project/kaito/internal/rag"
 	"github.com/kaito-project/kaito/pkg/sku"
-	"github.com/kaito-project/kaito/pkg/utils/consts"
 )
 
 const (
@@ -74,8 +73,8 @@ var (
 		},
 		{
 			Effect:   corev1.TaintEffectNoSchedule,
-			Value:    consts.GPUString,
-			Key:      consts.SKUString,
+			Value:    v1beta1.SKUGPU,
+			Key:      v1beta1.LabelSKU,
 			Operator: corev1.TolerationOpEqual,
 		},
 	}

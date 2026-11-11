@@ -28,7 +28,7 @@ import (
 	"github.com/kaito-project/kaito/internal/k8s/nodes"
 	"github.com/kaito-project/kaito/internal/nodeprovision"
 	"github.com/kaito-project/kaito/internal/nodeprovision/resource"
-	"github.com/kaito-project/kaito/pkg/utils/consts"
+	"github.com/kaito-project/kaito/pkg/consts"
 )
 
 // AzureGPUProvisioner wraps the Azure gpu-provisioner

@@ -28,8 +28,8 @@ import (
 	kaitov1beta1 "github.com/kaito-project/kaito/api/v1beta1"
 	"github.com/kaito-project/kaito/internal/k8s/nodes"
 	"github.com/kaito-project/kaito/internal/testutil"
+	"github.com/kaito-project/kaito/pkg/consts"
 	"github.com/kaito-project/kaito/pkg/featuregates"
-	"github.com/kaito-project/kaito/pkg/utils/consts"
 )
 
 func init() {
@@ -222,10 +222,10 @@ func TestNodeEstimator_EstimateNodeCount(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			// Ensure NAP is enabled (default behavior) for these tests
-			originalValue := featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning]
-			featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning] = false
+			originalValue := featuregates.FeatureGates[featuregates.FeatureFlagDisableNodeAutoProvisioning]
+			featuregates.FeatureGates[featuregates.FeatureFlagDisableNodeAutoProvisioning] = false
 			defer func() {
-				featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning] = originalValue
+				featuregates.FeatureGates[featuregates.FeatureFlagDisableNodeAutoProvisioning] = originalValue
 			}()
 
 			req, reqErr := RequestFromWorkspace(ctx, tt.workspace, nil)
@@ -415,10 +415,10 @@ func TestNodeEstimator_EstimateNodeCount_BYO(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			// Save original feature gate value and enable BYO mode
-			originalValue := featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning]
-			featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning] = true
+			originalValue := featuregates.FeatureGates[featuregates.FeatureFlagDisableNodeAutoProvisioning]
+			featuregates.FeatureGates[featuregates.FeatureFlagDisableNodeAutoProvisioning] = true
 			defer func() {
-				featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning] = originalValue
+				featuregates.FeatureGates[featuregates.FeatureFlagDisableNodeAutoProvisioning] = originalValue
 			}()
 
 			// Create a mock client for BYO scenarios
@@ -497,13 +497,13 @@ func TestNodeEstimator_EstimateNodeCount_MIG(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			// MIG is only active behind the enableMIG gate and is BYO-only.
-			origMIG := featuregates.FeatureGates[consts.FeatureFlagEnableMIG]
-			origNAP := featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning]
-			featuregates.FeatureGates[consts.FeatureFlagEnableMIG] = true
-			featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning] = true
+			origMIG := featuregates.FeatureGates[featuregates.FeatureFlagEnableMIG]
+			origNAP := featuregates.FeatureGates[featuregates.FeatureFlagDisableNodeAutoProvisioning]
+			featuregates.FeatureGates[featuregates.FeatureFlagEnableMIG] = true
+			featuregates.FeatureGates[featuregates.FeatureFlagDisableNodeAutoProvisioning] = true
 			defer func() {
-				featuregates.FeatureGates[consts.FeatureFlagEnableMIG] = origMIG
-				featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning] = origNAP
+				featuregates.FeatureGates[featuregates.FeatureFlagEnableMIG] = origMIG
+				featuregates.FeatureGates[featuregates.FeatureFlagDisableNodeAutoProvisioning] = origNAP
 			}()
 
 			workspace := &kaitov1beta1.Workspace{
@@ -550,13 +550,13 @@ func TestNodeEstimator_EstimateNodeCount_MIG_ContextSize(t *testing.T) {
 	ctx := context.Background()
 	calculator := &NodeEstimator{}
 
-	origMIG := featuregates.FeatureGates[consts.FeatureFlagEnableMIG]
-	origNAP := featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning]
-	featuregates.FeatureGates[consts.FeatureFlagEnableMIG] = true
-	featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning] = true
+	origMIG := featuregates.FeatureGates[featuregates.FeatureFlagEnableMIG]
+	origNAP := featuregates.FeatureGates[featuregates.FeatureFlagDisableNodeAutoProvisioning]
+	featuregates.FeatureGates[featuregates.FeatureFlagEnableMIG] = true
+	featuregates.FeatureGates[featuregates.FeatureFlagDisableNodeAutoProvisioning] = true
 	defer func() {
-		featuregates.FeatureGates[consts.FeatureFlagEnableMIG] = origMIG
-		featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning] = origNAP
+		featuregates.FeatureGates[featuregates.FeatureFlagEnableMIG] = origMIG
+		featuregates.FeatureGates[featuregates.FeatureFlagDisableNodeAutoProvisioning] = origNAP
 	}()
 
 	workspace := &kaitov1beta1.Workspace{
@@ -611,10 +611,10 @@ func runRealCatalogModelCases(t *testing.T, cases []realCatalogModelCase) {
 
 	for _, tt := range cases {
 		t.Run(tt.name, func(t *testing.T) {
-			originalValue := featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning]
-			featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning] = false
+			originalValue := featuregates.FeatureGates[featuregates.FeatureFlagDisableNodeAutoProvisioning]
+			featuregates.FeatureGates[featuregates.FeatureFlagDisableNodeAutoProvisioning] = false
 			defer func() {
-				featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning] = originalValue
+				featuregates.FeatureGates[featuregates.FeatureFlagDisableNodeAutoProvisioning] = originalValue
 			}()
 
 			workspace := &kaitov1beta1.Workspace{

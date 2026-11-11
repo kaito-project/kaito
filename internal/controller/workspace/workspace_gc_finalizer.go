@@ -24,7 +24,6 @@ import (
 
 	kaitov1beta1 "github.com/kaito-project/kaito/api/v1beta1"
 	"github.com/kaito-project/kaito/internal/k8s/resources"
-	"github.com/kaito-project/kaito/pkg/utils/consts"
 )
 
 // garbageCollectWorkspace remove finalizer associated with workspace object.
@@ -39,7 +38,7 @@ func (c *WorkspaceReconciler) garbageCollectWorkspace(ctx context.Context, wObj 
 	}
 
 	updateErr := resources.UpdateWithRetry(ctx, c.Client, client.ObjectKeyFromObject(wObj), func(ws *kaitov1beta1.Workspace) error {
-		controllerutil.RemoveFinalizer(ws, consts.WorkspaceFinalizer)
+		controllerutil.RemoveFinalizer(ws, workspaceFinalizer)
 		return nil
 	})
 	if updateErr != nil {

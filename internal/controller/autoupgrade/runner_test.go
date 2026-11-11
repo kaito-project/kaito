@@ -35,7 +35,6 @@ import (
 	"github.com/kaito-project/kaito/internal/inferenceset"
 	"github.com/kaito-project/kaito/pkg/catalog"
 	pkgmodel "github.com/kaito-project/kaito/pkg/model"
-	"github.com/kaito-project/kaito/pkg/utils/consts"
 )
 
 // testScheme returns a scheme with all types needed for fake client tests.
@@ -85,7 +84,7 @@ func makeWorkspace(name, namespace, inferenceSetName string, state kaitov1beta1.
 	if labels == nil {
 		labels = map[string]string{}
 	}
-	labels[consts.WorkspaceCreatedByInferenceSetLabel] = inferenceSetName
+	labels[kaitov1beta1.WorkspaceCreatedByInferenceSetLabel] = inferenceSetName
 	return &kaitov1beta1.Workspace{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      name,
@@ -838,7 +837,7 @@ func TestReconcileSurge_CreatesWorkspaceWhenDrifted(t *testing.T) {
 		}
 	}
 	require.NotNil(t, newWs, "a new workspace should have been created")
-	assert.Equal(t, isName, newWs.Labels[consts.WorkspaceCreatedByInferenceSetLabel])
+	assert.Equal(t, isName, newWs.Labels[kaitov1beta1.WorkspaceCreatedByInferenceSetLabel])
 
 	// Blue must still exist (no downtime / not deleted by the runner).
 	stillThere := &kaitov1beta1.Workspace{}

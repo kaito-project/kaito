@@ -30,6 +30,9 @@ const (
 	LabelKeyNvidia    = "accelerator"
 	LabelValueNvidia  = "nvidia"
 	CapacityNvidiaGPU = "nvidia.com/gpu"
+
+	// labelGPUProvisionerCustom marks nodes created by the Azure GPU provisioner.
+	labelGPUProvisionerCustom = "kaito.sh/machine-type"
 )
 
 // GetNode get kubernetes node object with a provided name

@@ -30,7 +30,6 @@ import (
 	kaitov1beta1 "github.com/kaito-project/kaito/api/v1beta1"
 	"github.com/kaito-project/kaito/internal/testutil"
 	"github.com/kaito-project/kaito/pkg/featuregates"
-	"github.com/kaito-project/kaito/pkg/utils/consts"
 )
 
 func TestGarbageCollectRAGEngine(t *testing.T) {
@@ -50,7 +49,7 @@ func TestGarbageCollectRAGEngine(t *testing.T) {
 			},
 			ragengine: func() *kaitov1beta1.RAGEngine {
 				ragengine := testutil.MockRAGEngineDistributedModel.DeepCopy()
-				ragengine.Finalizers = []string{consts.RAGEngineFinalizer}
+				ragengine.Finalizers = []string{ragEngineFinalizer}
 				return ragengine
 			}(),
 			expectedResult: ctrl.Result{},
@@ -70,7 +69,7 @@ func TestGarbageCollectRAGEngine(t *testing.T) {
 			},
 			ragengine: func() *kaitov1beta1.RAGEngine {
 				ragengine := testutil.MockRAGEngineDistributedModel.DeepCopy()
-				ragengine.Finalizers = []string{consts.RAGEngineFinalizer}
+				ragengine.Finalizers = []string{ragEngineFinalizer}
 				return ragengine
 			}(),
 			expectedResult: ctrl.Result{},
@@ -114,7 +113,7 @@ func TestGarbageCollectRAGEngine(t *testing.T) {
 			},
 			ragengine: func() *kaitov1beta1.RAGEngine {
 				ragengine := testutil.MockRAGEngineDistributedModel.DeepCopy()
-				ragengine.Finalizers = []string{consts.RAGEngineFinalizer}
+				ragengine.Finalizers = []string{ragEngineFinalizer}
 				return ragengine
 			}(),
 			expectedResult: ctrl.Result{},
@@ -161,7 +160,7 @@ func TestGarbageCollectRAGEngine(t *testing.T) {
 			},
 			ragengine: func() *kaitov1beta1.RAGEngine {
 				ragengine := testutil.MockRAGEngineDistributedModel.DeepCopy()
-				ragengine.Finalizers = []string{consts.RAGEngineFinalizer}
+				ragengine.Finalizers = []string{ragEngineFinalizer}
 				return ragengine
 			}(),
 			expectedResult: ctrl.Result{},
@@ -178,7 +177,7 @@ func TestGarbageCollectRAGEngine(t *testing.T) {
 			},
 			ragengine: func() *kaitov1beta1.RAGEngine {
 				ragengine := testutil.MockRAGEngineDistributedModel.DeepCopy()
-				ragengine.Finalizers = []string{consts.RAGEngineFinalizer}
+				ragengine.Finalizers = []string{ragEngineFinalizer}
 				return ragengine
 			}(),
 			expectedResult: ctrl.Result{},
@@ -215,7 +214,7 @@ func TestGarbageCollectRAGEngine(t *testing.T) {
 			},
 			ragengine: func() *kaitov1beta1.RAGEngine {
 				ragengine := testutil.MockRAGEngineDistributedModel.DeepCopy()
-				ragengine.Finalizers = []string{consts.RAGEngineFinalizer}
+				ragengine.Finalizers = []string{ragEngineFinalizer}
 				return ragengine
 			}(),
 			expectedResult: ctrl.Result{},
@@ -235,7 +234,7 @@ func TestGarbageCollectRAGEngine(t *testing.T) {
 			},
 			ragengine: func() *kaitov1beta1.RAGEngine {
 				ragengine := testutil.MockRAGEngineDistributedModel.DeepCopy()
-				ragengine.Finalizers = []string{consts.RAGEngineFinalizer}
+				ragengine.Finalizers = []string{ragEngineFinalizer}
 				return ragengine
 			}(),
 			expectedResult: ctrl.Result{},
@@ -327,7 +326,7 @@ func TestGarbageCollectRAGEngine(t *testing.T) {
 			},
 			ragengine: func() *kaitov1beta1.RAGEngine {
 				ragengine := testutil.MockRAGEngineDistributedModel.DeepCopy()
-				ragengine.Finalizers = []string{consts.RAGEngineFinalizer}
+				ragengine.Finalizers = []string{ragEngineFinalizer}
 				return ragengine
 			}(),
 			expectedResult: ctrl.Result{},
@@ -345,7 +344,7 @@ func TestGarbageCollectRAGEngine(t *testing.T) {
 			},
 			ragengine: func() *kaitov1beta1.RAGEngine {
 				ragengine := testutil.MockRAGEngineWithDeleteOldCR.DeepCopy()
-				ragengine.Finalizers = []string{consts.RAGEngineFinalizer}
+				ragengine.Finalizers = []string{ragEngineFinalizer}
 				return ragengine
 			}(),
 			expectedResult: ctrl.Result{},
@@ -363,7 +362,7 @@ func TestGarbageCollectRAGEngine(t *testing.T) {
 			},
 			ragengine: func() *kaitov1beta1.RAGEngine {
 				ragengine := testutil.MockRAGEngineWithNoInferenceService.DeepCopy()
-				ragengine.Finalizers = []string{consts.RAGEngineFinalizer}
+				ragengine.Finalizers = []string{ragEngineFinalizer}
 				return ragengine
 			}(),
 			expectedResult: ctrl.Result{},
@@ -382,9 +381,9 @@ func TestGarbageCollectRAGEngine(t *testing.T) {
 			tc.callMocks(mockClient)
 
 			// Set the feature gate for this test case
-			featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning] = tc.disableNodeAutoProvisioning
+			featuregates.FeatureGates[featuregates.FeatureFlagDisableNodeAutoProvisioning] = tc.disableNodeAutoProvisioning
 			defer func() {
-				featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning] = false
+				featuregates.FeatureGates[featuregates.FeatureFlagDisableNodeAutoProvisioning] = false
 			}()
 
 			reconciler := &RAGEngineReconciler{

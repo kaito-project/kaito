@@ -31,7 +31,7 @@ func TestSelectModelStreamer(t *testing.T) {
 			Name:      "ws1",
 			Namespace: "default",
 			Annotations: map[string]string{
-				modelstreaming.AnnotationStaticModelMirror: "true",
+				v1beta1.AnnotationStaticModelMirror: "true",
 			},
 		},
 	}
@@ -46,9 +46,9 @@ func TestSelectModelStreamer(t *testing.T) {
 			Name:      "ws-sas-not-static",
 			Namespace: "default",
 			Annotations: map[string]string{
-				modelstreaming.AnnotationStreamDatarefsURL:      "https://x/models/m/versions/1",
-				modelstreaming.AnnotationStreamIdentityClientID: "11111111-2222-3333-4444-555555555555",
-				modelstreaming.AnnotationStreamSourceType:       modelstreaming.SourceTypeBYO,
+				v1beta1.AnnotationStreamDatarefsURL:      "https://x/models/m/versions/1",
+				v1beta1.AnnotationStreamIdentityClientID: "11111111-2222-3333-4444-555555555555",
+				v1beta1.AnnotationStreamSourceType:       v1beta1.StreamSourceTypeBYO,
 			},
 		},
 	}

@@ -17,13 +17,11 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-
-	"github.com/kaito-project/kaito/pkg/utils/consts"
 )
 
 func TestGetReleaseNamespace(t *testing.T) {
 	t.Run("reads from env var", func(t *testing.T) {
-		t.Setenv(consts.DefaultReleaseNamespaceEnvVar, "my-namespace")
+		t.Setenv(DefaultReleaseNamespaceEnvVar, "my-namespace")
 		ns, err := GetReleaseNamespace()
 		assert.NoError(t, err)
 		assert.Equal(t, "my-namespace", ns)

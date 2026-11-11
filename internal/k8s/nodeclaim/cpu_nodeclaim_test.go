@@ -20,7 +20,7 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
 	kaitov1beta1 "github.com/kaito-project/kaito/api/v1beta1"
-	"github.com/kaito-project/kaito/pkg/utils/consts"
+	"github.com/kaito-project/kaito/pkg/consts"
 )
 
 func TestGenerateNodeClaimManifestWithOptions_CPUWorkspaceUsesCPUTaint(t *testing.T) {
@@ -42,10 +42,10 @@ func TestGenerateNodeClaimManifestWithOptions_CPUWorkspaceUsesCPUTaint(t *testin
 	if len(nc.Spec.Taints) != 1 {
 		t.Fatalf("expected one CPU taint for cpu workspace, got %v", nc.Spec.Taints)
 	}
-	if nc.Spec.Taints[0].Key != consts.SKUString || nc.Spec.Taints[0].Value != consts.CPUString || nc.Spec.Taints[0].Effect != corev1.TaintEffectNoSchedule {
+	if nc.Spec.Taints[0].Key != kaitov1beta1.LabelSKU || nc.Spec.Taints[0].Value != kaitov1beta1.SKUCPU || nc.Spec.Taints[0].Effect != corev1.TaintEffectNoSchedule {
 		t.Fatalf("expected cpu sku taint, got %v", nc.Spec.Taints)
 	}
-	if got := nc.Labels[consts.SKUString]; got != consts.CPUString {
+	if got := nc.Labels[kaitov1beta1.LabelSKU]; got != kaitov1beta1.SKUCPU {
 		t.Fatalf("expected cpu sku label, got %q", got)
 	}
 }
@@ -61,7 +61,7 @@ func TestAWSNodeClaimPreservesGPURequirement(t *testing.T) {
 	if nc == nil {
 		t.Fatal("expected AWS GPU NodeClaim")
 	}
-	if len(nc.Spec.Taints) != 1 || nc.Spec.Taints[0].Value != consts.GPUString {
+	if len(nc.Spec.Taints) != 1 || nc.Spec.Taints[0].Value != kaitov1beta1.SKUGPU {
 		t.Fatalf("expected GPU taint, got %v", nc.Spec.Taints)
 	}
 	for _, req := range nc.Spec.Requirements {

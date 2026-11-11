@@ -30,7 +30,14 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
 	"github.com/kaito-project/kaito/pkg/k8sclient"
-	"github.com/kaito-project/kaito/pkg/utils/consts"
+)
+
+const (
+	// ConditionReady is the condition type for a ready condition.
+	ConditionReady = "Ready"
+
+	// MaxRevisionHistoryLimit is the number of ControllerRevisions kept per object.
+	MaxRevisionHistoryLimit = 10
 )
 
 func CreateResource(ctx context.Context, resource client.Object, kubeClient client.Client) error {
@@ -121,14 +128,14 @@ func CheckResourceStatus(obj client.Object, kubeClient client.Client, timeoutDur
 				}
 			case *helmv2.HelmRelease:
 				for _, condition := range k8sResource.Status.Conditions {
-					if condition.Type == consts.ConditionReady && condition.Status == metav1.ConditionTrue {
+					if condition.Type == ConditionReady && condition.Status == metav1.ConditionTrue {
 						klog.InfoS("helmrelease status is ready", "helmrelease", k8sResource.Name)
 						return nil
 					}
 				}
 			case *sourcev1.OCIRepository:
 				for _, condition := range k8sResource.Status.Conditions {
-					if condition.Type == consts.ConditionReady && condition.Status == metav1.ConditionTrue {
+					if condition.Type == ConditionReady && condition.Status == metav1.ConditionTrue {
 						klog.InfoS("ocirepository status is ready", "ocirepository", k8sResource.Name)
 						return nil
 					}

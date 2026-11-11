@@ -25,7 +25,6 @@ import (
 
 	kaitov1beta1 "github.com/kaito-project/kaito/api/v1beta1"
 	"github.com/kaito-project/kaito/internal/k8s/expectations"
-	"github.com/kaito-project/kaito/pkg/utils/consts"
 )
 
 type workspaceEventHandler struct {
@@ -37,7 +36,7 @@ type workspaceEventHandler struct {
 var _ handler.TypedEventHandler[client.Object, reconcile.Request] = (*workspaceEventHandler)(nil)
 
 func getControllerKeyForWorkspace(ws *kaitov1beta1.Workspace) *client.ObjectKey {
-	name, ok := ws.Labels[consts.WorkspaceCreatedByInferenceSetLabel]
+	name, ok := ws.Labels[kaitov1beta1.WorkspaceCreatedByInferenceSetLabel]
 	if !ok {
 		return nil
 	}

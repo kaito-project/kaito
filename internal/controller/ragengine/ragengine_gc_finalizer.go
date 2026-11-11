@@ -24,7 +24,6 @@ import (
 	kaitov1beta1 "github.com/kaito-project/kaito/api/v1beta1"
 	"github.com/kaito-project/kaito/internal/k8s/nodeclaim"
 	"github.com/kaito-project/kaito/pkg/featuregates"
-	"github.com/kaito-project/kaito/pkg/utils/consts"
 )
 
 // garbageCollectRAGEngine remove finalizer associated with ragengine object.
@@ -33,7 +32,7 @@ func (c *RAGEngineReconciler) garbageCollectRAGEngine(ctx context.Context, ragEn
 
 	// Only clean up NodeClaims when node auto-provisioning is enabled,
 	// since NodeClaim CRDs may not be installed when it's disabled.
-	if ragEngineObj.Spec.Compute != nil && !featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning] {
+	if ragEngineObj.Spec.Compute != nil && !featuregates.FeatureGates[featuregates.FeatureFlagDisableNodeAutoProvisioning] {
 		// Check if there are any nodeClaims associated with this ragengine.
 		ncList, err := nodeclaim.ListNodeClaim(ctx, ragEngineObj, c.Client)
 		if err != nil {
@@ -51,7 +50,7 @@ func (c *RAGEngineReconciler) garbageCollectRAGEngine(ctx context.Context, ragEn
 		}
 	}
 
-	if controllerutil.RemoveFinalizer(ragEngineObj, consts.RAGEngineFinalizer) {
+	if controllerutil.RemoveFinalizer(ragEngineObj, ragEngineFinalizer) {
 		if updateErr := c.Update(ctx, ragEngineObj, &client.UpdateOptions{}); updateErr != nil {
 			klog.ErrorS(updateErr, "failed to remove the finalizer from the ragengine",
 				"ragengine", klog.KObj(ragEngineObj))

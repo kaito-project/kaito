@@ -18,7 +18,7 @@ import (
 
 	"k8s.io/apimachinery/pkg/api/resource"
 
-	kaitoconsts "github.com/kaito-project/kaito/pkg/utils/consts"
+	kaitoconsts "github.com/kaito-project/kaito/pkg/consts"
 )
 
 const (
@@ -48,9 +48,6 @@ const (
 
 	// Labels
 	LabelModelMirrorName = "kaito.sh/model-mirror-name"
-
-	// Downloader image
-	DownloaderImage = kaitoconsts.PythonHelperImage
 
 	// huggingface-hub version
 	HuggingFaceHubVersion = "2.3.0"

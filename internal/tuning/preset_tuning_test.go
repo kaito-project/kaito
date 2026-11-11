@@ -29,8 +29,8 @@ import (
 	"github.com/kaito-project/kaito/internal/image"
 	"github.com/kaito-project/kaito/internal/manifests"
 	"github.com/kaito-project/kaito/internal/manifests/builder"
+	"github.com/kaito-project/kaito/pkg/consts"
 	pkgmodel "github.com/kaito-project/kaito/pkg/model"
-	"github.com/kaito-project/kaito/pkg/utils/consts"
 )
 
 func normalize(s string) string {
@@ -662,7 +662,7 @@ func TestDefaultTolerations(t *testing.T) {
 			actual := defaultTolerations()
 			hasSpot := false
 			for _, toleration := range actual {
-				if toleration.Key == consts.SpotInstanceKey && toleration.Value == consts.SpotInstanceValue {
+				if toleration.Key == manifests.SpotInstanceKey && toleration.Value == manifests.SpotInstanceValue {
 					hasSpot = true
 					break
 				}

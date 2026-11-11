@@ -42,7 +42,7 @@ func sasCfg() *StreamingConfig {
 				Env: []corev1.EnvVar{
 					{Name: "STREAM_DATAREFS_URL", Value: "https://example.com/models/m/versions/1"},
 					{Name: "STREAM_IDENTITY_CLIENT_ID", Value: "11111111-2222-3333-4444-555555555555"},
-					{Name: "STREAM_SOURCE_TYPE", Value: SourceTypeBYO},
+					{Name: "STREAM_SOURCE_TYPE", Value: v1beta1.StreamSourceTypeBYO},
 					{Name: SASEnvFileEnvVar, Value: SASSharedMountPath + "/" + SASEnvFileName},
 				},
 				VolumeMounts: []corev1.VolumeMount{

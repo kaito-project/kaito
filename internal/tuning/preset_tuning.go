@@ -37,7 +37,6 @@ import (
 	"github.com/kaito-project/kaito/pkg/catalog"
 	pkgmodel "github.com/kaito-project/kaito/pkg/model"
 	"github.com/kaito-project/kaito/pkg/sku"
-	"github.com/kaito-project/kaito/pkg/utils/consts"
 )
 
 const (
@@ -50,7 +49,7 @@ var (
 	dataDownloaderScript string
 
 	containerPorts = []corev1.ContainerPort{{
-		ContainerPort: consts.PortInferenceServer,
+		ContainerPort: manifests.PortInferenceServer,
 	}}
 
 	// Come up with valid liveness and readiness probes for fine-tuning
@@ -63,21 +62,21 @@ func defaultTolerations() []corev1.Toleration {
 		{
 			Effect:   corev1.TaintEffectNoSchedule,
 			Operator: corev1.TolerationOpEqual,
-			Key:      consts.GPUString,
+			Key:      "gpu",
 		},
 		{
 			Effect: corev1.TaintEffectNoSchedule,
-			Value:  consts.GPUString,
-			Key:    consts.SKUString,
+			Value:  kaitov1beta1.SKUGPU,
+			Key:    kaitov1beta1.LabelSKU,
 		},
 	}
 
 	if sku.IsAzureCloudProvider() {
 		tolerations = append(tolerations, corev1.Toleration{
 			Effect:   corev1.TaintEffectNoSchedule,
-			Key:      consts.SpotInstanceKey,
+			Key:      manifests.SpotInstanceKey,
 			Operator: corev1.TolerationOpEqual,
-			Value:    consts.SpotInstanceValue,
+			Value:    manifests.SpotInstanceValue,
 		})
 	}
 

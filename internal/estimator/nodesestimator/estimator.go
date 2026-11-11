@@ -27,7 +27,6 @@ import (
 	"github.com/kaito-project/kaito/pkg/estimator"
 	pkgmodel "github.com/kaito-project/kaito/pkg/model"
 	"github.com/kaito-project/kaito/pkg/sku"
-	"github.com/kaito-project/kaito/pkg/utils/consts"
 )
 
 const (
@@ -155,13 +154,13 @@ func ComputeNodeCountForGPUConfig(m pkgmodel.Model, gpuConfig *sku.GPUConfig, ma
 		// case the weight-scaled term folds into the (1 + OverheadWeightFactor)
 		// divisor below, keeping the solve non-circular.
 		baseOverheadGiBForGPU := estimator.ResolveBaseOverheadGiB(gpuConfig.GPUModel)
-		baseOverhead := baseOverheadGiBForGPU * float64(consts.GiBToBytes)
+		baseOverhead := baseOverheadGiBForGPU * float64(sku.GiB)
 		kvCache := float64(maxModelLen*inferParams.BytesPerToken) / float64(gpuConfig.GPUCount)
 		fixedReserve := baseOverhead + kvCache
 
 		if availGPUMem <= fixedReserve {
 			return 0, fmt.Errorf("GPU memory %.0f bytes is too small, needs at least %.1f GB overhead (base: %.1fGB + KV Cache: %.1f GB)",
-				gpuMemPerGPU, fixedReserve/float64(consts.GiBToBytes), baseOverheadGiBForGPU, kvCache/float64(consts.GiBToBytes))
+				gpuMemPerGPU, fixedReserve/float64(sku.GiB), baseOverheadGiBForGPU, kvCache/float64(sku.GiB))
 		}
 
 		// Per-GPU memory available for model weights. The weight-scaled overhead
@@ -184,13 +183,13 @@ func ComputeNodeCountForGPUConfig(m pkgmodel.Model, gpuConfig *sku.GPUConfig, ma
 		// instead of scaling to multiple GPUs/nodes.
 		if gpuConfig.IsMIG && nodeCountPerReplica > 1 {
 			overhead := fixedReserve + estimator.OverheadWeightFactor*modelSize
-			sliceGiB := gpuMemPerGPU / float64(consts.GiBToBytes)
+			sliceGiB := gpuMemPerGPU / float64(sku.GiB)
 			return 0, fmt.Errorf("model needs %.1fGB (weights %.1fGB + overhead %.1fGB) but MIG profile %s only provides %.0fGB (%.1fGB available after vLLM gpu-memory-utilization)",
-				(modelSize+overhead)/float64(consts.GiBToBytes),
-				modelSize/float64(consts.GiBToBytes),
-				overhead/float64(consts.GiBToBytes),
+				(modelSize+overhead)/float64(sku.GiB),
+				modelSize/float64(sku.GiB),
+				overhead/float64(sku.GiB),
 				migProfile,
-				sliceGiB, availGPUMem/float64(consts.GiBToBytes))
+				sliceGiB, availGPUMem/float64(sku.GiB))
 		}
 
 		if nodeCountPerReplica > 1 && !m.SupportDistributedInference() {

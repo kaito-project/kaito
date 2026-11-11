@@ -26,8 +26,8 @@ import (
 	"knative.dev/pkg/apis"
 
 	"github.com/kaito-project/kaito/api/internal/validation"
+	"github.com/kaito-project/kaito/pkg/consts"
 	"github.com/kaito-project/kaito/pkg/sku"
-	"github.com/kaito-project/kaito/pkg/utils/consts"
 )
 
 func (w *RAGEngine) SupportedVerbs() []admissionregistrationv1.OperationType {

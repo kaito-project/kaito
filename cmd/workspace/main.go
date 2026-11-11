@@ -64,7 +64,6 @@ import (
 	"github.com/kaito-project/kaito/pkg/k8sclient"
 	mmconsts "github.com/kaito-project/kaito/pkg/modelmirror/consts"
 	"github.com/kaito-project/kaito/pkg/sku"
-	"github.com/kaito-project/kaito/pkg/utils/consts"
 )
 
 const (
@@ -180,32 +179,32 @@ func main() {
 	sku.DefaultSKUHandler = skuHandler
 
 	// ModelStreaming requires ModelMirror
-	if featuregates.FeatureGates[consts.FeatureFlagModelStreaming] && !featuregates.FeatureGates[consts.FeatureFlagModelMirror] {
+	if featuregates.FeatureGates[featuregates.FeatureFlagModelStreaming] && !featuregates.FeatureGates[featuregates.FeatureFlagModelMirror] {
 		klog.ErrorS(fmt.Errorf("ModelStreaming feature gate requires ModelMirror to be enabled"),
 			"set --feature-gates=ModelMirror=true,ModelStreaming=true")
 		exitWithErrorFunc()
 	}
 
 	// Expose the resolved provisioner type for downstream scheduling logic.
-	consts.ActiveNodeProvisioner = nodeProvisionerType
+	featuregates.NodeProvisioner = nodeProvisionerType
 
 	// Sync feature gate internal state based on --node-provisioner for downstream consumers.
 	switch nodeProvisionerType {
-	case consts.NodeProvisionerBYO:
-		featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning] = true
-	case consts.NodeProvisionerKarpenter:
-		featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning] = false
-	case consts.NodeProvisionerAzureGPU:
-		featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning] = false
+	case featuregates.NodeProvisionerBYO:
+		featuregates.FeatureGates[featuregates.FeatureFlagDisableNodeAutoProvisioning] = true
+	case featuregates.NodeProvisionerKarpenter:
+		featuregates.FeatureGates[featuregates.FeatureFlagDisableNodeAutoProvisioning] = false
+	case featuregates.NodeProvisionerAzureGPU:
+		featuregates.FeatureGates[featuregates.FeatureFlagDisableNodeAutoProvisioning] = false
 	default:
 		klog.ErrorS(fmt.Errorf("unsupported node provisioner type %q", nodeProvisionerType), "unable to set --node-provisioner")
 		exitWithErrorFunc()
 	}
 
 	if defaultNodeImageFamily == "" {
-		defaultNodeImageFamily = consts.NodeImageFamilyUbuntu
+		defaultNodeImageFamily = kaitov1beta1.NodeImageFamilyUbuntu
 	} else {
-		normalizedNodeImageFamily, valid := consts.NormalizeSupportedNodeImageFamily(defaultNodeImageFamily)
+		normalizedNodeImageFamily, valid := kaitov1beta1.NormalizeSupportedNodeImageFamily(defaultNodeImageFamily)
 		if !valid {
 			klog.ErrorS(fmt.Errorf("unsupported node image family %q", defaultNodeImageFamily), "unable to set `default-node-image-family` flag")
 			exitWithErrorFunc()
@@ -283,7 +282,7 @@ func main() {
 		NodeClassVersion:       karpenterNodeClassVersion,
 		NodeClassResourceName:  karpenterNodeClassResourceName,
 	}
-	if nodeProvisionerType == consts.NodeProvisionerKarpenter {
+	if nodeProvisionerType == featuregates.NodeProvisionerKarpenter {
 		nodeClasses, nodeClassNames, ncErr := nodeprovisionmanager.ParseNodeClasses(karpenterNodeClasses)
 		if ncErr != nil {
 			klog.ErrorS(ncErr, "invalid NodeClass configuration")
@@ -302,7 +301,7 @@ func main() {
 	}
 
 	// Set streaming defaults once at startup (read by the modelstreaming package via StreamingDefaults).
-	if featuregates.FeatureGates[consts.FeatureFlagModelStreaming] {
+	if featuregates.FeatureGates[featuregates.FeatureFlagModelStreaming] {
 		streamer, streamerErr := registry.GetModelStreamer(os.Getenv("CLOUD_PROVIDER"))
 		if streamerErr != nil {
 			klog.ErrorS(streamerErr, "unable to resolve model streamer")
@@ -327,7 +326,7 @@ func main() {
 	}
 
 	// Cache controller — monitors provider readiness.
-	if featuregates.FeatureGates[consts.FeatureFlagDistributedCache] {
+	if featuregates.FeatureGates[featuregates.FeatureFlagDistributedCache] {
 		cacheController := cache.NewController(kClient, mgr.GetEventRecorderFor("KAITO-Cache-controller"))
 		if err = cacheController.SetupWithManager(mgr); err != nil {
 			klog.ErrorS(err, "unable to create controller", "controller", "Cache")
@@ -335,7 +334,7 @@ func main() {
 		}
 	}
 
-	if featuregates.FeatureGates[consts.FeatureFlagEnableInferenceSetController] {
+	if featuregates.FeatureGates[featuregates.FeatureFlagEnableInferenceSetController] {
 		inferenceSetReconciler := inferenceset.NewInferenceSetReconciler(
 			kClient,
 			mgr.GetScheme(),
@@ -348,7 +347,7 @@ func main() {
 			exitWithErrorFunc()
 		}
 
-		if consts.IsKarpenterProvisioner() {
+		if featuregates.IsKarpenterProvisioner() {
 			driftReconciler := drift.NewDriftReconciler(
 				kClient,
 				mgr.GetScheme(),
@@ -362,7 +361,7 @@ func main() {
 		}
 
 		// Register AutoUpgradeRunner for automatic base image upgrades.
-		if featuregates.FeatureGates[consts.FeatureFlagEnableBaseImageAutoUpgrade] {
+		if featuregates.FeatureGates[featuregates.FeatureFlagEnableBaseImageAutoUpgrade] {
 			if err = mgr.Add(&autoupgrade.AutoUpgradeRunner{
 				Client:   kClient,
 				Interval: autoupgrade.DefaultInterval,
@@ -374,13 +373,13 @@ func main() {
 	}
 
 	// MultiRoleInference controller — requires enableMultiRoleInferenceController.
-	if featuregates.FeatureGates[consts.FeatureFlagEnableMultiRoleInferenceController] {
+	if featuregates.FeatureGates[featuregates.FeatureFlagEnableMultiRoleInferenceController] {
 		mriReconciler := multiroleinference.NewMultiRoleInferenceReconciler(
 			kClient,
 			mgr.GetScheme(),
 			log.Log.WithName("controllers").WithName("MultiRoleInference"),
 			mgr.GetEventRecorderFor("KAITO-MultiRoleInference-controller"),
-			featuregates.FeatureGates[consts.FeatureFlagGatewayAPIInferenceExtension],
+			featuregates.FeatureGates[featuregates.FeatureFlagGatewayAPIInferenceExtension],
 		)
 		if err = mriReconciler.SetupWithManager(mgr); err != nil {
 			klog.ErrorS(err, "unable to create controller", "controller", "MultiRoleInference")
@@ -389,7 +388,7 @@ func main() {
 	}
 
 	// ModelMirror controller — requires ModelMirror feature gate.
-	if featuregates.FeatureGates[consts.FeatureFlagModelMirror] {
+	if featuregates.FeatureGates[featuregates.FeatureFlagModelMirror] {
 		mmReconciler := modelmirrorcontroller.NewModelMirrorReconciler(
 			kClient,
 			mgr.GetAPIReader(),

@@ -28,7 +28,6 @@ import (
 
 	kaitov1beta1 "github.com/kaito-project/kaito/api/v1beta1"
 	"github.com/kaito-project/kaito/pkg/featuregates"
-	"github.com/kaito-project/kaito/pkg/utils/consts"
 )
 
 type statefulSetGetErrorClient struct {
@@ -45,8 +44,8 @@ func (c *statefulSetGetErrorClient) Get(ctx context.Context, key client.ObjectKe
 }
 
 func TestReconcileCache_NilCache(t *testing.T) {
-	featuregates.FeatureGates[consts.FeatureFlagDistributedCache] = true
-	defer func() { featuregates.FeatureGates[consts.FeatureFlagDistributedCache] = false }()
+	featuregates.FeatureGates[featuregates.FeatureFlagDistributedCache] = true
+	defer func() { featuregates.FeatureGates[featuregates.FeatureFlagDistributedCache] = false }()
 
 	ws := &kaitov1beta1.Workspace{}
 	status := &kaitov1beta1.WorkspaceStatus{}
@@ -141,8 +140,8 @@ func TestReconcileCache_RemovesConditionForAbsentConcern(t *testing.T) {
 }
 
 func TestReconcileCache_NoopProvider_Opportunistic(t *testing.T) {
-	featuregates.FeatureGates[consts.FeatureFlagDistributedCache] = true
-	defer func() { featuregates.FeatureGates[consts.FeatureFlagDistributedCache] = false }()
+	featuregates.FeatureGates[featuregates.FeatureFlagDistributedCache] = true
+	defer func() { featuregates.FeatureGates[featuregates.FeatureFlagDistributedCache] = false }()
 
 	// Ensure noop is registered
 	Register(&noopTestProvider{})
@@ -175,8 +174,8 @@ func TestReconcileCache_NoopProvider_Opportunistic(t *testing.T) {
 
 func TestReconcileCache_PreservesTransitionTimeWhenFinalStatusIsUnchanged(t *testing.T) {
 	isolateProviderRegistry(t)
-	featuregates.FeatureGates[consts.FeatureFlagDistributedCache] = true
-	defer func() { featuregates.FeatureGates[consts.FeatureFlagDistributedCache] = false }()
+	featuregates.FeatureGates[featuregates.FeatureFlagDistributedCache] = true
+	defer func() { featuregates.FeatureGates[featuregates.FeatureFlagDistributedCache] = false }()
 
 	Register(&concernTestProvider{name: "inject-test"})
 	ws := modelCacheWorkspace()
@@ -217,8 +216,8 @@ func TestReconcileCache_PreservesTransitionTimeWhenFinalStatusIsUnchanged(t *tes
 }
 
 func TestReconcileCache_UnregisteredProvider_Required(t *testing.T) {
-	featuregates.FeatureGates[consts.FeatureFlagDistributedCache] = true
-	defer func() { featuregates.FeatureGates[consts.FeatureFlagDistributedCache] = false }()
+	featuregates.FeatureGates[featuregates.FeatureFlagDistributedCache] = true
+	defer func() { featuregates.FeatureGates[featuregates.FeatureFlagDistributedCache] = false }()
 
 	ws := &kaitov1beta1.Workspace{
 		ObjectMeta: metav1.ObjectMeta{CreationTimestamp: metav1.Now()},
@@ -238,8 +237,8 @@ func TestReconcileCache_UnregisteredProvider_Required(t *testing.T) {
 }
 
 func TestReconcileCache_UnregisteredProvider_Opportunistic(t *testing.T) {
-	featuregates.FeatureGates[consts.FeatureFlagDistributedCache] = true
-	defer func() { featuregates.FeatureGates[consts.FeatureFlagDistributedCache] = false }()
+	featuregates.FeatureGates[featuregates.FeatureFlagDistributedCache] = true
+	defer func() { featuregates.FeatureGates[featuregates.FeatureFlagDistributedCache] = false }()
 
 	ws := &kaitov1beta1.Workspace{
 		ObjectMeta: metav1.ObjectMeta{CreationTimestamp: metav1.Now()},
@@ -257,8 +256,8 @@ func TestReconcileCache_UnregisteredProvider_Opportunistic(t *testing.T) {
 
 func TestReconcileCache_RequiredBlocksIndefinitely(t *testing.T) {
 	isolateProviderRegistry(t)
-	featuregates.FeatureGates[consts.FeatureFlagDistributedCache] = true
-	defer func() { featuregates.FeatureGates[consts.FeatureFlagDistributedCache] = false }()
+	featuregates.FeatureGates[featuregates.FeatureFlagDistributedCache] = true
+	defer func() { featuregates.FeatureGates[featuregates.FeatureFlagDistributedCache] = false }()
 
 	Register(&statefulTestProvider{name: "unavailable-test", available: false})
 
@@ -292,8 +291,8 @@ func TestReconcileCache_RequiredBlocksIndefinitely(t *testing.T) {
 
 func TestReconcileCache_KVCacheRequiredUnregisteredProviderBlocks(t *testing.T) {
 	isolateProviderRegistry(t)
-	featuregates.FeatureGates[consts.FeatureFlagDistributedCache] = true
-	defer func() { featuregates.FeatureGates[consts.FeatureFlagDistributedCache] = false }()
+	featuregates.FeatureGates[featuregates.FeatureFlagDistributedCache] = true
+	defer func() { featuregates.FeatureGates[featuregates.FeatureFlagDistributedCache] = false }()
 
 	ws := &kaitov1beta1.Workspace{
 		ObjectMeta: metav1.ObjectMeta{CreationTimestamp: metav1.Now()},
@@ -314,8 +313,8 @@ func TestReconcileCache_KVCacheRequiredUnregisteredProviderBlocks(t *testing.T) 
 
 func TestReconcileCache_BothConcernsOneFailsStillBlocks(t *testing.T) {
 	isolateProviderRegistry(t)
-	featuregates.FeatureGates[consts.FeatureFlagDistributedCache] = true
-	defer func() { featuregates.FeatureGates[consts.FeatureFlagDistributedCache] = false }()
+	featuregates.FeatureGates[featuregates.FeatureFlagDistributedCache] = true
+	defer func() { featuregates.FeatureGates[featuregates.FeatureFlagDistributedCache] = false }()
 
 	Register(&noopTestProvider{})
 
@@ -429,8 +428,8 @@ func modelCacheAttachment(provider ProviderName) *Attachment {
 
 func TestVerifyCacheInjection_NilStatefulSet_Downgrades(t *testing.T) {
 	isolateProviderRegistry(t)
-	featuregates.FeatureGates[consts.FeatureFlagDistributedCache] = true
-	defer func() { featuregates.FeatureGates[consts.FeatureFlagDistributedCache] = false }()
+	featuregates.FeatureGates[featuregates.FeatureFlagDistributedCache] = true
+	defer func() { featuregates.FeatureGates[featuregates.FeatureFlagDistributedCache] = false }()
 
 	Register(&concernTestProvider{name: "inject-test"})
 	ws := modelCacheWorkspace()
@@ -453,8 +452,8 @@ func TestVerifyCacheInjection_NilStatefulSet_Downgrades(t *testing.T) {
 
 func TestVerifyCacheInjection_InjectedLabelPresent_StaysReady(t *testing.T) {
 	isolateProviderRegistry(t)
-	featuregates.FeatureGates[consts.FeatureFlagDistributedCache] = true
-	defer func() { featuregates.FeatureGates[consts.FeatureFlagDistributedCache] = false }()
+	featuregates.FeatureGates[featuregates.FeatureFlagDistributedCache] = true
+	defer func() { featuregates.FeatureGates[featuregates.FeatureFlagDistributedCache] = false }()
 
 	Register(&concernTestProvider{name: "inject-test"})
 	ws := modelCacheWorkspace()
@@ -505,8 +504,8 @@ func TestVerifyCacheInjection_ReusesRenderedModelIdentity(t *testing.T) {
 
 func TestVerifyCacheInjection_LabelMissing_Downgrades(t *testing.T) {
 	isolateProviderRegistry(t)
-	featuregates.FeatureGates[consts.FeatureFlagDistributedCache] = true
-	defer func() { featuregates.FeatureGates[consts.FeatureFlagDistributedCache] = false }()
+	featuregates.FeatureGates[featuregates.FeatureFlagDistributedCache] = true
+	defer func() { featuregates.FeatureGates[featuregates.FeatureFlagDistributedCache] = false }()
 
 	Register(&concernTestProvider{name: "inject-test"})
 	ws := modelCacheWorkspace()
@@ -556,8 +555,8 @@ func TestVerifyCacheInjection_EmptyLabelMissing_Downgrades(t *testing.T) {
 
 func TestVerifyCacheInjection_ProviderNotApplicable_Downgrades(t *testing.T) {
 	isolateProviderRegistry(t)
-	featuregates.FeatureGates[consts.FeatureFlagDistributedCache] = true
-	defer func() { featuregates.FeatureGates[consts.FeatureFlagDistributedCache] = false }()
+	featuregates.FeatureGates[featuregates.FeatureFlagDistributedCache] = true
+	defer func() { featuregates.FeatureGates[featuregates.FeatureFlagDistributedCache] = false }()
 
 	// streamerScopedProvider only applies when the workload loads via runai_streamer.
 	Register(&streamerScopedProvider{concernTestProvider{name: "scoped-test"}})
@@ -583,8 +582,8 @@ func TestVerifyCacheInjection_ProviderNotApplicable_Downgrades(t *testing.T) {
 
 func TestVerifyCacheInjection_EmptyMutations_Downgrades(t *testing.T) {
 	isolateProviderRegistry(t)
-	featuregates.FeatureGates[consts.FeatureFlagDistributedCache] = true
-	defer func() { featuregates.FeatureGates[consts.FeatureFlagDistributedCache] = false }()
+	featuregates.FeatureGates[featuregates.FeatureFlagDistributedCache] = true
+	defer func() { featuregates.FeatureGates[featuregates.FeatureFlagDistributedCache] = false }()
 
 	// noopTestProvider is ready but injects nothing.
 	Register(&noopTestProvider{})
@@ -606,8 +605,8 @@ func TestVerifyCacheInjection_EmptyMutations_Downgrades(t *testing.T) {
 
 func TestVerifyCacheInjection_KVEnvMissing_Downgrades(t *testing.T) {
 	isolateProviderRegistry(t)
-	featuregates.FeatureGates[consts.FeatureFlagDistributedCache] = true
-	defer func() { featuregates.FeatureGates[consts.FeatureFlagDistributedCache] = false }()
+	featuregates.FeatureGates[featuregates.FeatureFlagDistributedCache] = true
+	defer func() { featuregates.FeatureGates[featuregates.FeatureFlagDistributedCache] = false }()
 
 	// concernTestProvider expects KV_ENV, but the rendered container is missing it.
 	Register(&concernTestProvider{name: "kv-test"})
@@ -634,8 +633,8 @@ func TestVerifyCacheInjection_KVEnvMissing_Downgrades(t *testing.T) {
 
 func TestVerifyCacheInjection_KVEnvPresent_StaysReady(t *testing.T) {
 	isolateProviderRegistry(t)
-	featuregates.FeatureGates[consts.FeatureFlagDistributedCache] = true
-	defer func() { featuregates.FeatureGates[consts.FeatureFlagDistributedCache] = false }()
+	featuregates.FeatureGates[featuregates.FeatureFlagDistributedCache] = true
+	defer func() { featuregates.FeatureGates[featuregates.FeatureFlagDistributedCache] = false }()
 
 	Register(&concernTestProvider{name: "kv-test"})
 	ws := modelCacheWorkspace()
@@ -720,8 +719,8 @@ func TestVerifyCacheInjection_VolumeAndMountPresence(t *testing.T) {
 
 func TestVerifyCacheInjection_AlreadyFalse_NotClobbered(t *testing.T) {
 	isolateProviderRegistry(t)
-	featuregates.FeatureGates[consts.FeatureFlagDistributedCache] = true
-	defer func() { featuregates.FeatureGates[consts.FeatureFlagDistributedCache] = false }()
+	featuregates.FeatureGates[featuregates.FeatureFlagDistributedCache] = true
+	defer func() { featuregates.FeatureGates[featuregates.FeatureFlagDistributedCache] = false }()
 
 	Register(&concernTestProvider{name: "inject-test"})
 	ws := modelCacheWorkspace()

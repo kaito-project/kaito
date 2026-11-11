@@ -53,13 +53,17 @@ import (
 	"github.com/kaito-project/kaito/internal/k8s/resources"
 	"github.com/kaito-project/kaito/internal/rag"
 	"github.com/kaito-project/kaito/pkg/sku"
-	"github.com/kaito-project/kaito/pkg/utils/consts"
 )
 
 const (
 	RAGEngineHashAnnotation = "ragengine.kaito.io/hash"
 	RAGEngineNameLabel      = "ragengine.kaito.io/name"
 	revisionHashSuffix      = 5
+
+	// ragEngineFinalizer makes sure the ragengine controller handles garbage collection.
+	ragEngineFinalizer = "ragengine.finalizer.kaito.sh"
+
+	nodePluginInstallTimeout = 60 * time.Second
 )
 
 type RAGEngineReconciler struct {
@@ -111,9 +115,9 @@ func (c *RAGEngineReconciler) Reconcile(ctx context.Context, req reconcile.Reque
 }
 
 func (c *RAGEngineReconciler) ensureFinalizer(ctx context.Context, ragEngineObj *kaitov1beta1.RAGEngine) error {
-	if !controllerutil.ContainsFinalizer(ragEngineObj, consts.RAGEngineFinalizer) {
+	if !controllerutil.ContainsFinalizer(ragEngineObj, ragEngineFinalizer) {
 		patch := client.MergeFrom(ragEngineObj.DeepCopy())
-		controllerutil.AddFinalizer(ragEngineObj, consts.RAGEngineFinalizer)
+		controllerutil.AddFinalizer(ragEngineObj, ragEngineFinalizer)
 		if err := c.Client.Patch(ctx, ragEngineObj, patch); err != nil {
 			klog.ErrorS(err, "failed to ensure the finalizer to the ragengine", "ragengine", klog.KObj(ragEngineObj))
 			return err
@@ -333,7 +337,7 @@ func (c *RAGEngineReconciler) syncControllerRevision(ctx context.Context, ragEng
 				annotations[kaitov1beta1.RAGEngineRevisionAnnotation] = strconv.FormatInt(revisionNum, 10)
 			}
 
-			if len(revisions.Items) > consts.MaxRevisionHistoryLimit {
+			if len(revisions.Items) > resources.MaxRevisionHistoryLimit {
 				if err := c.Delete(ctx, &revisions.Items[0]); err != nil {
 					return fmt.Errorf("failed to delete old revision: %w", err)
 				}
@@ -539,7 +543,7 @@ func (c *RAGEngineReconciler) CreateNodeClaim(ctx context.Context, ragEngineObj 
 // ensureNodePlugins ensures node plugins are installed.
 func (c *RAGEngineReconciler) ensureNodePlugins(ctx context.Context, ragEngineObj *kaitov1beta1.RAGEngine, nodeObj *corev1.Node) error {
 	timeClock := clock.RealClock{}
-	tick := timeClock.NewTicker(consts.NodePluginInstallTimeout)
+	tick := timeClock.NewTicker(nodePluginInstallTimeout)
 	defer tick.Stop()
 
 	for {

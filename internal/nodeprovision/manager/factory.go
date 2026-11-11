@@ -29,7 +29,7 @@ import (
 	gpuprovisioner "github.com/kaito-project/kaito/internal/nodeprovision/gpu-provisioner"
 	karpenterprov "github.com/kaito-project/kaito/internal/nodeprovision/karpenter"
 	"github.com/kaito-project/kaito/internal/nodeprovision/resource"
-	"github.com/kaito-project/kaito/pkg/utils/consts"
+	"github.com/kaito-project/kaito/pkg/featuregates"
 )
 
 // ProvisionerConfig holds all parameters needed to create a NodeProvisioner.
@@ -51,7 +51,7 @@ type ProvisionerConfig struct {
 // returning the entries and their names, both sorted by name.
 func ParseNodeClasses(raw string) ([]karpenterprov.NodeClassSpec, []string, error) {
 	if raw == "" {
-		return nil, nil, fmt.Errorf("--karpenter-node-classes is required when node-provisioner=%s", consts.NodeProvisionerKarpenter)
+		return nil, nil, fmt.Errorf("--karpenter-node-classes is required when node-provisioner=%s", featuregates.NodeProvisionerKarpenter)
 	}
 
 	var entries []karpenterprov.NodeClassSpec
@@ -99,7 +99,7 @@ func ParseNodeClasses(raw string) ([]karpenterprov.NodeClassSpec, []string, erro
 //   - azure-gpu-provisioner (default): AzureGPUProvisioner (creates/deletes NodeClaims).
 func NewNodeProvisioner(cfg ProvisionerConfig) nodeprovision.NodeProvisioner {
 	switch cfg.ProvisionerType {
-	case consts.NodeProvisionerKarpenter:
+	case featuregates.NodeProvisionerKarpenter:
 		ncCfg := karpenterprov.NodeClassConfig{
 			Group:          cfg.NodeClassGroup,
 			Kind:           cfg.NodeClassKind,
@@ -109,9 +109,9 @@ func NewNodeProvisioner(cfg ProvisionerConfig) nodeprovision.NodeProvisioner {
 			NodeClassNames: cfg.NodeClassNames,
 		}
 		return karpenterprov.NewKarpenterProvisioner(cfg.DirectClient, ncCfg)
-	case consts.NodeProvisionerBYO:
+	case featuregates.NodeProvisionerBYO:
 		return byoprovisioner.NewBYOProvisioner(cfg.KClient)
-	default: // consts.NodeProvisionerAzureGPU
+	default: // featuregates.NodeProvisionerAzureGPU
 		exp := expectations.NewControllerExpectations()
 		ncm := resource.NewNodeClaimManager(cfg.KClient, cfg.Recorder, exp)
 		ncm.SetDefaultNodeImageFamily(cfg.DefaultNodeImageFamily)

@@ -25,7 +25,6 @@ import (
 	"github.com/kaito-project/kaito/pkg/estimator"
 	"github.com/kaito-project/kaito/pkg/featuregates"
 	pkgmodel "github.com/kaito-project/kaito/pkg/model"
-	"github.com/kaito-project/kaito/pkg/utils/consts"
 )
 
 // RequestFromWorkspace builds a NodeEstimateRequest from a Workspace object.
@@ -38,7 +37,7 @@ func RequestFromWorkspace(ctx context.Context, w *kaitov1beta1.Workspace, kubeCl
 		ResourceProfile: estimator.ResourceProfile{
 			InstanceType:                w.Resource.InstanceType,
 			LabelSelector:               w.Resource.LabelSelector,
-			DisableNodeAutoProvisioning: featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning],
+			DisableNodeAutoProvisioning: featuregates.FeatureGates[featuregates.FeatureFlagDisableNodeAutoProvisioning],
 		},
 	}
 	//nolint:staticcheck //SA1019: deprecate Resource.Count field

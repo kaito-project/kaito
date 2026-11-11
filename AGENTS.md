@@ -31,7 +31,7 @@ Target top-level directories are split by deployable unit, then by domain. Only 
 | Directory | Contents |
 | --- | --- |
 | `api/` | Public CRD types with their defaulting and validation. |
-| `pkg/` | Small public Go libraries that other repositories import: `sku`, `model`, `catalog`, `estimator`, `accelerator`, and the `apis` error type they return. New packages here need maintainer agreement. |
+| `pkg/` | Small public Go libraries that other repositories import: `sku`, `model`, `catalog`, `estimator`, `accelerator`, `consts` (only shared values with no single owning package, such as condition reasons and cloud names; other constants live beside their owner), and the `apis` error type they return. New packages here need maintainer agreement. |
 | `cmd/` | Go `main` packages (`workspace`, `ragengine`, and tools such as `preset-generator`) and wiring used only by them. |
 | `internal/` | All other Go code: controllers in `controller/<kind>/`, admission wiring in `webhook/<kind>/`, and the domain libraries they use (workload builders, accelerator drivers, node provisioning, Kubernetes helpers) in named packages beside them. |
 | `runtime/` | Python code that runs in pods: a uv workspace with one lockfile and one `src/`-layout package per runtime (inference, tuning, RAG), each with its tests and, if it ships images, its Dockerfiles (under `images/<platform>/`, such as `cuda` and `cpu`, when it ships one image per platform). Dockerfiles install the package instead of copying files. |

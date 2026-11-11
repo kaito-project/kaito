@@ -180,7 +180,7 @@ func RAGSetEnv(ragEngineObj *kaitov1beta1.RAGEngine) []corev1.EnvVar {
 		if ragEngineObj.Spec.Embedding.Local.ModelID != "" {
 			modelID := ragEngineObj.Spec.Embedding.Local.ModelID
 			modelIDEnv := corev1.EnvVar{
-				Name:  "MODEL_ID",
+				Name:  "LOCAL_EMBEDDING_MODEL_ID",
 				Value: modelID,
 			}
 			envs = append(envs, modelIDEnv)
@@ -195,10 +195,26 @@ func RAGSetEnv(ragEngineObj *kaitov1beta1.RAGEngine) []corev1.EnvVar {
 		}
 	} else if ragEngineObj.Spec.Embedding.Remote != nil {
 		embeddingType = "remote"
-		// TODO: Model ID Env
+		envs = append(envs, corev1.EnvVar{
+			Name:  "REMOTE_EMBEDDING_URL",
+			Value: ragEngineObj.Spec.Embedding.Remote.URL,
+		})
+		if ragEngineObj.Spec.Embedding.Remote.AccessSecret != "" {
+			envs = append(envs, corev1.EnvVar{
+				Name: "REMOTE_EMBEDDING_ACCESS_SECRET",
+				ValueFrom: &corev1.EnvVarSource{
+					SecretKeyRef: &corev1.SecretKeySelector{
+						LocalObjectReference: corev1.LocalObjectReference{
+							Name: ragEngineObj.Spec.Embedding.Remote.AccessSecret,
+						},
+						Key: "REMOTE_EMBEDDING_ACCESS_SECRET",
+					},
+				},
+			})
+		}
 	}
 	embeddingTypeEnv := corev1.EnvVar{
-		Name:  "EMBEDDING_TYPE",
+		Name:  "EMBEDDING_SOURCE_TYPE",
 		Value: embeddingType,
 	}
 	envs = append(envs, embeddingTypeEnv)

@@ -15,6 +15,7 @@ import json
 from typing import Any
 
 import requests
+from pydantic import Field, PrivateAttr
 
 from ragengine.metrics.helpers import record_embedding_metrics
 
@@ -22,6 +23,9 @@ from .base import BaseEmbeddingModel
 
 
 class RemoteEmbeddingModel(BaseEmbeddingModel):
+    model_url: str = Field(description="URL of the remote embedding endpoint.")
+    _api_key: str = PrivateAttr()
+
     def __init__(self, model_url: str, api_key: str, /, **data: Any):
         """
         Initialize the RemoteEmbeddingModel.
@@ -30,15 +34,14 @@ class RemoteEmbeddingModel(BaseEmbeddingModel):
             model_url (str): The URL of the embedding model API endpoint.
             api_key (str): The API key for accessing the API.
         """
-        super().__init__(**data)
-        self.model_url = model_url
-        self.api_key = api_key
+        super().__init__(model_url=model_url, **data)
+        self._api_key = api_key
 
     @record_embedding_metrics
     def _get_text_embedding(self, text: str):
         """Returns the text embedding for a given input string."""
         headers = {
-            "Authorization": f"Bearer {self.api_key}",
+            "Authorization": f"Bearer {self._api_key}",
             "Content-Type": "application/json",
         }
         payload = {"inputs": text}

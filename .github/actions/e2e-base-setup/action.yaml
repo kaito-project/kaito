@@ -381,6 +381,15 @@ runs:
         AZURE_RESOURCE_GROUP: ${{ env.CLUSTER_NAME }}
         AZURE_CLUSTER_NAME: ${{ env.CLUSTER_NAME }}
 
+    - name: Install DACS as a separate Helm release
+      shell: bash
+      run: |
+        helm show crds oci://mcr.microsoft.com/dacs/helmchart/dacs --version 0.1.0 | kubectl apply -f -
+        kubectl wait --for=condition=Established --timeout=120s crd/caches.storage.azure.com
+        helm upgrade --install dacs oci://mcr.microsoft.com/dacs/helmchart/dacs \
+          --version 0.1.0 --namespace kube-system \
+          --set cacheServerPrereq.enabled=false --wait --timeout 5m
+
     - name: Install KAITO Workspace helm chart
       if: ${{ inputs.skip_helm_install == 'false' }}
       shell: bash

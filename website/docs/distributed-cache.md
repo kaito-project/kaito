@@ -4,7 +4,10 @@ title: Distributed Cache
 
 This document explains how to enable distributed caching for model weights and KV cache in KAITO using a pluggable cache provider.
 
-KAITO ships the cache **framework** and a built-in `noop` reference provider only — no functional cache backend is bundled. To integrate a real cache, implement the `cache.Provider` interface in a Go package and register it with the framework (see [Implementing a provider](#implementing-a-provider)).
+KAITO ships the cache **framework**, a DACS provider and a `noop` reference provider.
+The DACS controller is installed separately, not bundled in the workspace Helm
+chart. Additional providers implement the `cache.Provider` interface (see
+[Implementing a provider](#implementing-a-provider)).
 
 ## Overview
 
@@ -22,9 +25,29 @@ Each concern is independently configurable with its own provider and mode.
 
 ## Installation
 
-### 1. Link in and configure a provider
+### 1. Install the cache backend
 
-The built-in `noop` provider performs no caching. To enable real caching, build KAITO with a provider package linked in (see [Implementing a provider](#implementing-a-provider)) and add its configuration under `cache.providers.<name>` per the provider's documentation. The provider registers itself with the framework at startup; its `Name()` is the value you reference from the Workspace spec.
+For DACS, install its pinned chart as a separate release before installing KAITO:
+
+```bash
+helm show crds oci://mcr.microsoft.com/dacs/helmchart/dacs --version 0.1.0 |
+  kubectl apply -f -
+kubectl wait --for=condition=Established --timeout=120s crd/caches.storage.azure.com
+helm upgrade --install dacs oci://mcr.microsoft.com/dacs/helmchart/dacs \
+  --version 0.1.0 --namespace kube-system --create-namespace \
+  --set cacheServerPrereq.enabled=true --wait --timeout 15m
+```
+
+Provision dedicated NVMe cache nodes labeled `dacs.azure.com/processing-unit=cpu`
+first. Disk preparation can format unused NVMe devices. KAITO's local CSI
+DaemonSet excludes these labeled nodes; do not relabel nodes with existing
+storage. The DACS prerequisite and KAITO Cache selectors must stay aligned.
+If DACS is already managed by the cluster, reuse that installation instead of
+installing another controller. For prepared storage, disable
+`cacheServerPrereq.enabled` in the DACS release.
+
+The `cache.providers.dacs.enabled` workspace value controls provider configuration,
+not backend installation. Other providers still need to be linked into KAITO.
 
 ### 2. Configure KAITO
 
@@ -39,10 +62,7 @@ cache:
     dacs:
       enabled: true
       discoveryEndpoint: ""  # Auto-discovered from Cache CR status if empty
-      blobEndpoint: "https://<your-account>.blob.core.windows.net"  # For prewarm Jobs
-      blobContainer: "kaito-models"
-      blobPrefix: "kaito-models"
-      prewarmImage: ""  # Set if using prewarm Jobs
+      clientImage: "mcr.microsoft.com/dacs/runai-dacs-client:v0.1.0"
 ```
 
 Install or upgrade KAITO:

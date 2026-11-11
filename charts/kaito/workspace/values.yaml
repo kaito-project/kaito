@@ -99,13 +99,10 @@ nvidiaDevicePlugin:
 spotInstance:
   enabled: false
 
-# Local CSI driver for ephemeral model storage. This is the default model
-# storage path and is mutually exclusive with the DACS distributed cache:
-# when cache.providers.dacs.enabled is true, DACS provides the model storage
-# path instead, so set useLocalCSIDriver to false to avoid installing both.
-# When DACS is disabled (the default) the local CSI driver is used.
+# Local CSI stores downloaded model weights on inference nodes.
+# DACS uses separate, explicitly labeled cache nodes; both can be installed.
 localCSIDriver:
-  useLocalCSIDriver: false
+  useLocalCSIDriver: true
 webhook:
   port: 9443
 # Knative logging configuration
@@ -192,6 +189,15 @@ local-csi-driver:
   daemonset:
     podSelector:
       app: csi-local-node
+    # Keep local CSI off the nodes whose NVMe disks are owned by DACS.
+    nodeAffinity:
+      requiredDuringSchedulingIgnoredDuringExecution:
+        nodeSelectorTerms:
+          - matchExpressions:
+              - key: dacs.azure.com/processing-unit
+                operator: NotIn
+                values:
+                  - cpu
   cleanup:
     enabled: true
     # LVM logical volume garbage collection configuration driven by PV annotation mismatches.
@@ -228,13 +234,9 @@ productionstack:
 
 # Distributed cache provider configuration.
 # Only active when featureGates.distributedCache is true.
-# The DACS CSI driver + mutating webhook must be pre-installed in the cluster.
-# KAITO adds pod labels to trigger webhook-based cache library injection.
-#
-# Enabling dacs installs the bundled dacs subchart (see Chart.yaml, gated on
-# cache.providers.dacs.enabled) and switches the model storage path from the
-# local CSI driver to DACS. DACS and the local CSI driver are mutually exclusive,
-# so when enabling dacs also set localCSIDriver.useLocalCSIDriver to false.
+# Install the DACS controller and disk prerequisites as a separate Helm release.
+# Model-weight caching requires Run:ai streaming and a workspace cache attachment;
+# enabling the provider alone does not change the model-loading path.
 cache:
   providers:
     dacs:
@@ -246,13 +248,13 @@ cache:
       # so the inference/base image using the cache MUST be glibc >= 2.35
       # (Ubuntu 22.04+), otherwise the library fails to load at runtime.
       clientImage: "mcr.microsoft.com/dacs/runai-dacs-client:v0.1.0"
-      # KAITO renders this Cache resource; the DACS chart installs its controller.
+      # KAITO renders this Cache resource; install the DACS CRD/controller first.
       cache:
         enabled: true
         name: cache-sample
         namespace: kube-system
         spec:
-          nodeSelectorKey: nexus.azure.com/processing-unit
+          nodeSelectorKey: dacs.azure.com/processing-unit
           nodeSelectorValue: cpu
           scaling:
             dynamic:
@@ -264,6 +266,3 @@ cache:
           storage:
             hostPath:
               nodeCacheFolderPath: /var/lib/ssd/cacheserver
-dacs:
-  manager:
-    namespace: kube-system

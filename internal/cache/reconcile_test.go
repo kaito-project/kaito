@@ -253,6 +253,68 @@ func TestReconcileCache_UnregisteredProvider_Opportunistic(t *testing.T) {
 	if result.BlockDeployment {
 		t.Error("should not block in Opportunistic mode even if provider missing")
 	}
+	if !result.RequeueNeeded {
+		t.Error("active cache attachment should requeue for provider recovery")
+	}
+}
+
+type applicabilityStatefulProvider struct {
+	*statefulTestProvider
+	applies bool
+}
+
+func (p *applicabilityStatefulProvider) AppliesTo(_ CacheConcern, _ *kaitov1beta1.Workspace, _ *appsv1.StatefulSet) bool {
+	return p.applies
+}
+
+func TestReconcileCache_DefersRequiredGateUntilApplicabilityIsKnown(t *testing.T) {
+	isolateProviderRegistry(t)
+	provider := &applicabilityStatefulProvider{
+		statefulTestProvider: &statefulTestProvider{name: "scoped-test", available: false},
+		applies:              false,
+	}
+	Register(provider)
+
+	ws := modelCacheWorkspace()
+	kubeClient := attachTestConfig(t, ws, &Attachment{
+		ModelWeights: &ConcernConfig{Provider: "scoped-test", Mode: ModeRequired},
+	})
+	if err := appsv1.AddToScheme(kubeClient.Scheme()); err != nil {
+		t.Fatalf("add apps API to test scheme: %v", err)
+	}
+	status := &kaitov1beta1.WorkspaceStatus{}
+
+	result := ReconcileCache(context.Background(), kubeClient, ws, status)
+	if result.BlockDeployment {
+		t.Fatal("missing workload should defer the gate until rendered applicability is known")
+	}
+	if !result.RequeueNeeded {
+		t.Fatal("active attachment should requeue while applicability is unresolved")
+	}
+
+	ss := &appsv1.StatefulSet{ObjectMeta: metav1.ObjectMeta{Name: ws.Name, Namespace: ws.Namespace}}
+	if err := kubeClient.Create(context.Background(), ss); err != nil {
+		t.Fatalf("create StatefulSet: %v", err)
+	}
+	result = ReconcileCache(context.Background(), kubeClient, ws, status)
+	if result.BlockDeployment {
+		t.Fatal("non-applicable required provider should not block deployment")
+	}
+	if condition := meta.FindStatusCondition(status.Conditions,
+		string(kaitov1beta1.WorkspaceConditionTypeModelCacheReady)); condition != nil {
+		t.Fatalf("non-applicable concern should not retain a readiness condition: %#v", condition)
+	}
+
+	provider.applies = true
+	result = ReconcileCache(context.Background(), kubeClient, ws, status)
+	if result.BlockDeployment {
+		t.Fatal("applicability-aware provider must defer gating to the rendered desired workload")
+	}
+	if _, err := collectMutations(context.Background(), ws,
+		&Attachment{ModelWeights: &ConcernConfig{Provider: "scoped-test", Mode: ModeRequired}},
+		"", "", ss); err == nil {
+		t.Fatal("rendered applicable workload should block mutation collection while provider is unavailable")
+	}
 }
 
 func TestReconcileCache_RequiredBlocksIndefinitely(t *testing.T) {
@@ -675,7 +737,7 @@ func TestVerifyCacheInjection_VolumeAndMountPresence(t *testing.T) {
 		{
 			name:      "volume and mount present",
 			volumes:   []corev1.Volume{{Name: "cache-client"}},
-			mounts:    []corev1.VolumeMount{{Name: "cache-client", MountPath: "/custom-cache"}},
+			mounts:    []corev1.VolumeMount{{Name: "cache-client", MountPath: "/cache"}},
 			wantReady: true,
 		},
 	}

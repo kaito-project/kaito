@@ -446,6 +446,7 @@ func TestReconcileExistingWorkspaceMetadata(t *testing.T) {
 		iObj.Spec.Template.Annotations = map[string]string{
 			v1beta1.AnnotationEnableSpeculativeDecoding: "true",
 			v1beta1.AnnotationCapacityType:              consts.KarpenterCapacityTypeSpot,
+			cache.ConfigAnnotation:                      "new-cache",
 		}
 
 		desired := inferencesetpkg.NewWorkspaceForInferenceSet(iObj)
@@ -463,6 +464,7 @@ func TestReconcileExistingWorkspaceMetadata(t *testing.T) {
 			"workspace.kaito.io/revision":               "3",
 			"kaito.sh/upgrade-start-time":               "ts",
 			"example.com/stale":                         "keep-me",
+			cache.ConfigAnnotation:                      "old-cache",
 		}
 
 		updated := reconcileExistingWorkspaceMetadata(ws, desired)
@@ -474,6 +476,7 @@ func TestReconcileExistingWorkspaceMetadata(t *testing.T) {
 		assert.Equal(t, "true", ws.Annotations[v1beta1.AnnotationEnableSpeculativeDecoding])
 		assert.Equal(t, string(model.RuntimeNameVLLM), ws.Annotations[v1beta1.AnnotationWorkspaceRuntime])
 		assert.Equal(t, consts.KarpenterCapacityTypeSpot, ws.Annotations[v1beta1.AnnotationCapacityType])
+		assert.Equal(t, "new-cache", ws.Annotations[cache.ConfigAnnotation])
 		assert.Equal(t, "hash", ws.Annotations["workspace.kaito.io/hash"])
 		assert.Equal(t, "3", ws.Annotations["workspace.kaito.io/revision"])
 		assert.Equal(t, "ts", ws.Annotations["kaito.sh/upgrade-start-time"])
@@ -494,6 +497,32 @@ func TestReconcileExistingWorkspaceMetadata(t *testing.T) {
 		updated := reconcileExistingWorkspaceMetadata(ws, desired)
 		assert.True(t, updated)
 		assert.NotContains(t, ws.Annotations, v1beta1.AnnotationEnableSpeculativeDecoding)
+		assert.Equal(t, "hash", ws.Annotations["workspace.kaito.io/hash"])
+	})
+
+	t.Run("adds cache annotation when newly configured", func(t *testing.T) {
+		iObj := testutil.MockInferenceSetWithPresetVLLM.DeepCopy()
+		iObj.Spec.Template.Annotations = map[string]string{cache.ConfigAnnotation: "cache-config"}
+		desired := inferencesetpkg.NewWorkspaceForInferenceSet(iObj)
+		ws := testutil.MockWorkspaceWithPresetVLLM.DeepCopy()
+		ws.Annotations = map[string]string{"workspace.kaito.io/hash": "hash"}
+
+		assert.True(t, reconcileExistingWorkspaceMetadata(ws, desired))
+		assert.Equal(t, "cache-config", ws.Annotations[cache.ConfigAnnotation])
+		assert.Equal(t, "hash", ws.Annotations["workspace.kaito.io/hash"])
+	})
+
+	t.Run("removes cache annotation when no longer desired", func(t *testing.T) {
+		iObj := testutil.MockInferenceSetWithPresetVLLM.DeepCopy()
+		desired := inferencesetpkg.NewWorkspaceForInferenceSet(iObj)
+		ws := testutil.MockWorkspaceWithPresetVLLM.DeepCopy()
+		ws.Annotations = map[string]string{
+			cache.ConfigAnnotation:    "cache-config",
+			"workspace.kaito.io/hash": "hash",
+		}
+
+		assert.True(t, reconcileExistingWorkspaceMetadata(ws, desired))
+		assert.NotContains(t, ws.Annotations, cache.ConfigAnnotation)
 		assert.Equal(t, "hash", ws.Annotations["workspace.kaito.io/hash"])
 	})
 }

@@ -12,4 +12,4 @@ dependencies:
   repository: oci://mcr.microsoft.com/aks/kaito/helm
   version: 0.5.2
 digest: sha256:2d4a447091a8dd6d59b8b5b57983908d990f86923c0319e4eb53b2add7103351
-generated: "2026-10-23T23:38:45.373965286Z"
+generated: "2026-11-11T15:03:38.948663574Z"

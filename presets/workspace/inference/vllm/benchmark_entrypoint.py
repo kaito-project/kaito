@@ -419,6 +419,8 @@ def _resolve_processor() -> str:
               (``config.json`` present directly under weights).
     Case 3 — DAR / HF cache: use ``scan_cache_dir`` to read the repo_id from
               HF cache metadata without parsing cache paths or blob names.
+              With several cached model repos, only the one vLLM serves
+              (per ``/v1/models``) is used.
     Case 4 — Nothing found: return ``""`` and let guidellm auto-detect from
               ``/v1/models`` (may fail for unknown models).
     """
@@ -481,20 +483,54 @@ def _resolve_processor_from_vllm() -> str:
 
 
 def _resolve_processor_from_hf_cache(cache_dir: Path) -> str:
-    """Resolve the first cached HF repo id from a cache directory."""
+    """Resolve the cached HF repo id of the served model from a cache directory.
+
+    A cache with a single model repo is unambiguous. With several (an adapter,
+    a second model, a tokenizer pulled for another run), pick the one whose id
+    matches a base model ``root`` reported by vLLM; in DAR that is the repo id
+    passed as ``--model``. If none matches uniquely, return ``""`` so guidellm
+    auto-detects instead of benchmarking with an unrelated tokenizer.
+    """
     if not cache_dir.exists():
         return ""
     try:
         cache_info = scan_cache_dir(cache_dir=str(cache_dir))
-        repos = sorted(cache_info.repos, key=lambda r: r.repo_id)
-        if repos:
-            # repo_id is the HuggingFace model identifier (e.g. "microsoft/Phi-3-mini-4k-instruct"),
-            # not a local path. guidellm/vLLM accept it as the --processor value and resolve the
-            # tokenizer from the HF Hub (or local cache if HF_HUB_OFFLINE is set).
-            return repos[0].repo_id
     except Exception:
-        pass
+        return ""
+    # repo_id is the HuggingFace model identifier (e.g. "microsoft/Phi-3-mini-4k-instruct"),
+    # not a local path. guidellm/vLLM accept it as the --processor value and resolve the
+    # tokenizer from the HF Hub (or local cache if HF_HUB_OFFLINE is set).
+    repos = sorted(r.repo_id for r in cache_info.repos if r.repo_type == "model")
+    if len(repos) <= 1:
+        return repos[0] if repos else ""
+
+    served = _served_base_model_roots()
+    matches = [repo for repo in repos if repo.lower() in served]
+    if len(matches) == 1:
+        return matches[0]
+    _log(
+        f"hf_cache_miss dir={cache_dir} reason=ambiguous "
+        f"repos={len(repos)} matches={len(matches)}"
+    )
     return ""
+
+
+def _served_base_model_roots() -> set[str]:
+    """Return the lower-cased ``root`` of each base model vLLM serves."""
+    try:
+        with urllib.request.urlopen(f"{VLLM_BASE_URL}/v1/models", timeout=5) as resp:
+            models = json.loads(resp.read()).get("data") or []
+    except Exception as exc:
+        _log(f"hf_cache_miss reason=models_api_error: {exc}")
+        return set()
+    roots = set()
+    for model in models:
+        root = model.get("root")
+        # LoRA adapters carry a parent; only base models own the tokenizer.
+        if model.get("parent") or not isinstance(root, str):
+            continue
+        roots.add(root.lower())
+    return roots
 
 
 def _predownload_processor(processor: str) -> str:

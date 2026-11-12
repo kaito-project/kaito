@@ -125,6 +125,76 @@ def test_resolve_processor_unpublished_falls_back(resolved_file, monkeypatch):
     assert log.call_args.args[0].startswith("resolved_tokenizer_miss reason=unreadable")
 
 
+# ── _resolve_processor_from_hf_cache ──────────────────────────────────────────
+
+
+def _make_hf_cache(root: Path, *repo_ids: str, repo_type: str = "model") -> Path:
+    """Lay out a minimal HF hub cache that scan_cache_dir accepts."""
+    for repo_id in repo_ids:
+        repo_dir = root / f"{repo_type}s--{repo_id.replace('/', '--')}"
+        snapshot = repo_dir / "snapshots" / "0123abcd"
+        snapshot.mkdir(parents=True)
+        (snapshot / "tokenizer_config.json").write_text("{}")
+        (repo_dir / "refs").mkdir()
+        (repo_dir / "refs" / "main").write_text("0123abcd")
+    return root
+
+
+def _models_response(*models: dict):
+    return _make_urlopen_response(200, json.dumps({"data": list(models)}).encode())
+
+
+def test_hf_cache_single_repo_needs_no_models_api(tmp_path):
+    cache = _make_hf_cache(tmp_path, "microsoft/Phi-4-mini-instruct")
+    with patch("urllib.request.urlopen") as urlopen:
+        assert (
+            bm._resolve_processor_from_hf_cache(cache)
+            == "microsoft/Phi-4-mini-instruct"
+        )
+    urlopen.assert_not_called()
+
+
+def test_hf_cache_multiple_repos_picks_served_model(tmp_path):
+    # "EleutherAI/..." sorts first, so picking repos[0] would be wrong here.
+    cache = _make_hf_cache(tmp_path, "EleutherAI/pythia-70m", "meta-llama/Llama-3.1-8B")
+    resp = _models_response(
+        {"id": "llama-3.1-8b", "root": "meta-llama/Llama-3.1-8B", "parent": None},
+    )
+    with patch("urllib.request.urlopen", return_value=resp):
+        assert bm._resolve_processor_from_hf_cache(cache) == "meta-llama/Llama-3.1-8B"
+
+
+def test_hf_cache_ignores_lora_adapters(tmp_path):
+    cache = _make_hf_cache(tmp_path, "EleutherAI/pythia-70m", "meta-llama/Llama-3.1-8B")
+    resp = _models_response(
+        {"id": "llama-3.1-8b", "root": "meta-llama/Llama-3.1-8B", "parent": None},
+        {"id": "my-adapter", "root": "EleutherAI/pythia-70m", "parent": "llama-3.1-8b"},
+    )
+    with patch("urllib.request.urlopen", return_value=resp):
+        assert bm._resolve_processor_from_hf_cache(cache) == "meta-llama/Llama-3.1-8B"
+
+
+def test_hf_cache_multiple_repos_without_models_api_does_not_guess(tmp_path):
+    cache = _make_hf_cache(tmp_path, "EleutherAI/pythia-70m", "meta-llama/Llama-3.1-8B")
+    with (
+        patch("urllib.request.urlopen", side_effect=OSError("refused")),
+        patch.object(bm, "_log") as log,
+    ):
+        assert bm._resolve_processor_from_hf_cache(cache) == ""
+    assert any("hf_cache_miss" in c.args[0] for c in log.call_args_list)
+
+
+def test_hf_cache_skips_dataset_repos(tmp_path):
+    cache = _make_hf_cache(tmp_path, "microsoft/Phi-4-mini-instruct")
+    _make_hf_cache(tmp_path, "allenai/c4", repo_type="dataset")
+    with patch("urllib.request.urlopen") as urlopen:
+        assert (
+            bm._resolve_processor_from_hf_cache(cache)
+            == "microsoft/Phi-4-mini-instruct"
+        )
+    urlopen.assert_not_called()
+
+
 # ── _log ──────────────────────────────────────────────────────────────────────
 
 

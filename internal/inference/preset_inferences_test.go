@@ -47,11 +47,12 @@ import (
 	"github.com/kaito-project/kaito/internal/manifests"
 	"github.com/kaito-project/kaito/internal/manifests/builder"
 	"github.com/kaito-project/kaito/internal/testutil"
+	"github.com/kaito-project/kaito/pkg/accelerator/nvidia"
 	"github.com/kaito-project/kaito/pkg/catalog"
+	"github.com/kaito-project/kaito/pkg/consts"
 	"github.com/kaito-project/kaito/pkg/featuregates"
 	pkgmodel "github.com/kaito-project/kaito/pkg/model"
 	"github.com/kaito-project/kaito/pkg/sku"
-	"github.com/kaito-project/kaito/pkg/utils/consts"
 )
 
 func getCPUVLLMImageName() string {
@@ -64,19 +65,19 @@ var ValidStrength string = "0.5"
 // flashInferSamplerEnvVar is injected into every vLLM inference container to
 // disable vLLM's FlashInfer sampler (KAITO does not support FlashInfer).
 var flashInferSamplerEnvVar = corev1.EnvVar{
-	Name:  consts.VLLMUseFlashInferSamplerEnvName,
+	Name:  vllmUseFlashInferSamplerEnvName,
 	Value: "0",
 }
 
 // deepGEMMEnvVar is injected into every vLLM inference container to disable
 // vLLM's DeepGEMM FP8 kernels (the native backend is absent from the base image).
 var deepGEMMEnvVar = corev1.EnvVar{
-	Name:  consts.VLLMUseDeepGEMMEnvName,
+	Name:  vllmUseDeepGEMMEnvName,
 	Value: "0",
 }
 
 var wsl2PinMemoryEnvVar = corev1.EnvVar{
-	Name:  consts.VLLMWSL2EnablePinMemoryEnvName,
+	Name:  vllmWSL2EnablePinMemoryEnvName,
 	Value: "1",
 }
 
@@ -550,9 +551,9 @@ func TestApplyPresetCacheMutations_CacheGatedOnStreaming(t *testing.T) {
 	provider := &guardCacheProvider{name: "cache-guard-preset"}
 	cache.Register(provider)
 
-	origGate := featuregates.FeatureGates[consts.FeatureFlagDistributedCache]
-	featuregates.FeatureGates[consts.FeatureFlagDistributedCache] = true
-	defer func() { featuregates.FeatureGates[consts.FeatureFlagDistributedCache] = origGate }()
+	origGate := featuregates.FeatureGates[featuregates.FeatureFlagDistributedCache]
+	featuregates.FeatureGates[featuregates.FeatureFlagDistributedCache] = true
+	defer func() { featuregates.FeatureGates[featuregates.FeatureFlagDistributedCache] = origGate }()
 
 	// Sanity: the guard provider really would inject if invoked, so that the
 	// negative assertion below is meaningful rather than trivially true.
@@ -673,9 +674,9 @@ func TestApplyPresetCacheMutations_CacheFeatureGate(t *testing.T) {
 		{name: "gate disabled - skipped", gateEnabled: false, expectLabel: false},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
-			origGate := featuregates.FeatureGates[consts.FeatureFlagDistributedCache]
-			featuregates.FeatureGates[consts.FeatureFlagDistributedCache] = tc.gateEnabled
-			defer func() { featuregates.FeatureGates[consts.FeatureFlagDistributedCache] = origGate }()
+			origGate := featuregates.FeatureGates[featuregates.FeatureFlagDistributedCache]
+			featuregates.FeatureGates[featuregates.FeatureFlagDistributedCache] = tc.gateEnabled
+			defer func() { featuregates.FeatureGates[featuregates.FeatureFlagDistributedCache] = origGate }()
 
 			mockClient := testutil.NewClient()
 			mockClient.On("Get", mock.IsType(context.TODO()), mock.Anything, mock.IsType(&corev1.ConfigMap{}), mock.Anything).Return(nil)
@@ -808,7 +809,7 @@ func TestGetDistributedInferenceProbe(t *testing.T) {
 			periodSeconds:       10,
 			timeoutSeconds:      1,
 			failureThreshold:    1,
-			vllmPort:            consts.PortDecodeVLLM,
+			vllmPort:            portDecodeVLLM,
 			expectedProbe: &corev1.Probe{
 				ProbeHandler: corev1.ProbeHandler{
 					Exec: &corev1.ExecAction{
@@ -991,10 +992,10 @@ func TestGetGPUConfig(t *testing.T) {
 						// TODO: add nvidia.com labels for GPU product, count, and memory
 						Labels: map[string]string{
 							// TODO: use the variable names for nvidia.com labels instead of the string literals.
-							consts.NvidiaGPUProduct: "NVIDIA-A10-24Q",
-							consts.NvidiaGPUCount:   "2",
-							consts.NvidiaGPUMemory:  "24512", // in MiB
-							"test-label-key":        "test-label-value",
+							nvidia.LabelGPUProduct: "NVIDIA-A10-24Q",
+							nvidia.LabelGPUCount:   "2",
+							nvidia.LabelGPUMemory:  "24512", // in MiB
+							"test-label-key":       "test-label-value",
 						},
 					},
 					Status: corev1.NodeStatus{
@@ -1061,10 +1062,10 @@ func TestGetGPUConfig(t *testing.T) {
 
 	for k, tc := range testcases {
 		t.Run(k, func(t *testing.T) {
-			originalFeatureGate := featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning]
-			featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning] = tc.disableNodeAutoProvisioning
+			originalFeatureGate := featuregates.FeatureGates[featuregates.FeatureFlagDisableNodeAutoProvisioning]
+			featuregates.FeatureGates[featuregates.FeatureFlagDisableNodeAutoProvisioning] = tc.disableNodeAutoProvisioning
 			defer func() {
-				featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning] = originalFeatureGate
+				featuregates.FeatureGates[featuregates.FeatureFlagDisableNodeAutoProvisioning] = originalFeatureGate
 			}()
 
 			t.Setenv("CLOUD_PROVIDER", consts.AzureCloudName)
@@ -1508,13 +1509,13 @@ func TestDefaultTolerations(t *testing.T) {
 			hasGPU := false
 			hasCPU := false
 			for _, toleration := range actual {
-				if toleration.Key == consts.SpotInstanceKey && toleration.Value == consts.SpotInstanceValue {
+				if toleration.Key == manifests.SpotInstanceKey && toleration.Value == manifests.SpotInstanceValue {
 					hasSpot = true
 				}
-				if toleration.Key == nodes.CapacityNvidiaGPU || (toleration.Key == consts.SKUString && toleration.Value == consts.GPUString) {
+				if toleration.Key == nodes.CapacityNvidiaGPU || (toleration.Key == v1beta1.LabelSKU && toleration.Value == v1beta1.SKUGPU) {
 					hasGPU = true
 				}
-				if toleration.Key == consts.SKUString && toleration.Value == consts.CPUString {
+				if toleration.Key == v1beta1.LabelSKU && toleration.Value == v1beta1.SKUCPU {
 					hasCPU = true
 				}
 			}
@@ -1534,7 +1535,7 @@ func TestDefaultTolerations(t *testing.T) {
 
 func TestApplyCPUDedicatedPlacement(t *testing.T) {
 	cpuWS := &v1beta1.Workspace{ObjectMeta: metav1.ObjectMeta{Name: "ws-a", Namespace: "ns-a"}}
-	cpuWS.Labels = map[string]string{consts.WorkspaceCreatedByInferenceSetLabel: "iset-a"}
+	cpuWS.Labels = map[string]string{v1beta1.WorkspaceCreatedByInferenceSetLabel: "iset-a"}
 	cpuWS.Inference = &v1beta1.InferenceSpec{Preset: &v1beta1.PresetSpec{PresetMeta: v1beta1.PresetMeta{Name: "test-model"}}}
 	cpuWS.Resource = v1beta1.ResourceSpec{InstanceType: "Standard_D16s_v6"}
 
@@ -1802,7 +1803,7 @@ func TestApplyInferenceRoleEnv(t *testing.T) {
 			found := false
 			foundNIXL := false
 			for _, e := range spec.Containers[0].Env {
-				if e.Name == consts.InferenceRoleEnvName {
+				if e.Name == inferenceRoleEnvName {
 					found = true
 					if e.Value != tc.expectedValue {
 						t.Errorf("expected value %q, got %q", tc.expectedValue, e.Value)
@@ -1857,9 +1858,9 @@ func TestInjectRoutingSidecar(t *testing.T) {
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
 			// Enable vLLM feature gate for runtime detection
-			originalVLLM := featuregates.FeatureGates[consts.FeatureFlagVLLM]
-			featuregates.FeatureGates[consts.FeatureFlagVLLM] = true
-			defer func() { featuregates.FeatureGates[consts.FeatureFlagVLLM] = originalVLLM }()
+			originalVLLM := featuregates.FeatureGates[featuregates.FeatureFlagVLLM]
+			featuregates.FeatureGates[featuregates.FeatureFlagVLLM] = true
+			defer func() { featuregates.FeatureGates[featuregates.FeatureFlagVLLM] = originalVLLM }()
 
 			workspace := &v1beta1.Workspace{}
 			workspace.Labels = tc.labels
@@ -1870,12 +1871,12 @@ func TestInjectRoutingSidecar(t *testing.T) {
 						Name:    "vllm",
 						Command: []string{"/bin/sh", "-c", "python3 /workspace/vllm/inference_api.py"},
 						Ports: []corev1.ContainerPort{
-							{ContainerPort: int32(consts.PortInferenceServer), Name: "http", Protocol: corev1.ProtocolTCP},
+							{ContainerPort: int32(manifests.PortInferenceServer), Name: "http", Protocol: corev1.ProtocolTCP},
 						},
 						ReadinessProbe: &corev1.Probe{
 							ProbeHandler: corev1.ProbeHandler{
 								HTTPGet: &corev1.HTTPGetAction{
-									Port: intstr.FromInt32(int32(consts.PortInferenceServer)),
+									Port: intstr.FromInt32(int32(manifests.PortInferenceServer)),
 									Path: "/health",
 								},
 							},
@@ -1883,7 +1884,7 @@ func TestInjectRoutingSidecar(t *testing.T) {
 						LivenessProbe: &corev1.Probe{
 							ProbeHandler: corev1.ProbeHandler{
 								HTTPGet: &corev1.HTTPGetAction{
-									Port: intstr.FromInt32(int32(consts.PortInferenceServer)),
+									Port: intstr.FromInt32(int32(manifests.PortInferenceServer)),
 									Path: "/health",
 								},
 							},
@@ -1927,16 +1928,16 @@ func TestInjectRoutingSidecar(t *testing.T) {
 				if sidecar == nil {
 					t.Fatal("sidecar not found")
 				}
-				expectedImage := fmt.Sprintf("%s:%s", consts.RoutingSidecarImage, consts.RoutingSidecarTag)
+				expectedImage := fmt.Sprintf("%s:%s", routingSidecarImage, routingSidecarTag)
 				if sidecar.Image != expectedImage {
 					t.Errorf("expected image %q, got %q", expectedImage, sidecar.Image)
 				}
-				if len(sidecar.Ports) != 1 || sidecar.Ports[0].ContainerPort != consts.PortInferenceServer {
-					t.Errorf("expected sidecar port %d, got %v", consts.PortInferenceServer, sidecar.Ports)
+				if len(sidecar.Ports) != 1 || sidecar.Ports[0].ContainerPort != manifests.PortInferenceServer {
+					t.Errorf("expected sidecar port %d, got %v", manifests.PortInferenceServer, sidecar.Ports)
 				}
 				expectedArgs := []string{
-					fmt.Sprintf("--port=%d", consts.PortInferenceServer),
-					fmt.Sprintf("--vllm-port=%d", consts.PortDecodeVLLM),
+					fmt.Sprintf("--port=%d", manifests.PortInferenceServer),
+					fmt.Sprintf("--vllm-port=%d", portDecodeVLLM),
 					"--secure-proxy=false",
 				}
 				if len(sidecar.Args) != len(expectedArgs) {
@@ -1961,12 +1962,12 @@ func TestInjectRoutingSidecar(t *testing.T) {
 				main := spec.Containers[0]
 				hasDecodePort := false
 				for _, p := range main.Ports {
-					if p.ContainerPort == consts.PortDecodeVLLM {
+					if p.ContainerPort == portDecodeVLLM {
 						hasDecodePort = true
 					}
 				}
 				if !hasDecodePort {
-					t.Errorf("main container should have containerPort %d", consts.PortDecodeVLLM)
+					t.Errorf("main container should have containerPort %d", portDecodeVLLM)
 				}
 			}
 		})
@@ -2540,9 +2541,9 @@ func TestGeneratePresetInferenceCUDAToolkitProvisioner(t *testing.T) {
 
 func TestPresetInferenceRuntimeImages(t *testing.T) {
 	testutil.RegisterTestModel()
-	oldVLLM := featuregates.FeatureGates[consts.FeatureFlagVLLM]
+	oldVLLM := featuregates.FeatureGates[featuregates.FeatureFlagVLLM]
 	t.Cleanup(func() {
-		featuregates.FeatureGates[consts.FeatureFlagVLLM] = oldVLLM
+		featuregates.FeatureGates[featuregates.FeatureFlagVLLM] = oldVLLM
 	})
 	for _, tc := range []struct {
 		name, instanceType, runtime     string
@@ -2562,7 +2563,7 @@ func TestPresetInferenceRuntimeImages(t *testing.T) {
 		{"gpu default without vllm unchanged", "Standard_NC6s_v3", "", false, false, false},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
-			featuregates.FeatureGates[consts.FeatureFlagVLLM] = tc.vllmEnabled
+			featuregates.FeatureGates[featuregates.FeatureFlagVLLM] = tc.vllmEnabled
 			ws := testutil.MockWorkspaceWithPresetVLLM.DeepCopy()
 			ws.Resource.InstanceType = tc.instanceType
 			ws.Annotations = map[string]string{v1beta1.AnnotationWorkspaceRuntime: tc.runtime}
@@ -2613,11 +2614,11 @@ func assertNoLMCacheSidecar(t *testing.T, spec *corev1.PodSpec) {
 
 func TestGeneratePresetInference_VLLMCPUSkipsLMCache(t *testing.T) {
 	testutil.RegisterTestModel()
-	oldVLLM := featuregates.FeatureGates[consts.FeatureFlagVLLM]
+	oldVLLM := featuregates.FeatureGates[featuregates.FeatureFlagVLLM]
 	t.Cleanup(func() {
-		featuregates.FeatureGates[consts.FeatureFlagVLLM] = oldVLLM
+		featuregates.FeatureGates[featuregates.FeatureFlagVLLM] = oldVLLM
 	})
-	featuregates.FeatureGates[consts.FeatureFlagVLLM] = true
+	featuregates.FeatureGates[featuregates.FeatureFlagVLLM] = true
 	for _, runtimeName := range []string{"", "vllm"} {
 		t.Run("runtime="+runtimeName, func(t *testing.T) {
 			ws := testutil.MockWorkspaceWithPresetVLLM.DeepCopy()
@@ -2698,11 +2699,11 @@ func TestGeneratePresetInference_CapturedTarget(t *testing.T) {
 	testutil.RegisterTestModel()
 	t.Setenv("CLOUD_PROVIDER", consts.AzureCloudName)
 	t.Setenv("PRESET_REGISTRY_NAME", "test-registry")
-	oldNAP, oldVLLM := featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning], featuregates.FeatureGates[consts.FeatureFlagVLLM]
+	oldNAP, oldVLLM := featuregates.FeatureGates[featuregates.FeatureFlagDisableNodeAutoProvisioning], featuregates.FeatureGates[featuregates.FeatureFlagVLLM]
 	t.Cleanup(func() {
-		featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning], featuregates.FeatureGates[consts.FeatureFlagVLLM] = oldNAP, oldVLLM
+		featuregates.FeatureGates[featuregates.FeatureFlagDisableNodeAutoProvisioning], featuregates.FeatureGates[featuregates.FeatureFlagVLLM] = oldNAP, oldVLLM
 	})
-	featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning], featuregates.FeatureGates[consts.FeatureFlagVLLM] = true, true
+	featuregates.FeatureGates[featuregates.FeatureFlagDisableNodeAutoProvisioning], featuregates.FeatureGates[featuregates.FeatureFlagVLLM] = true, true
 	for _, cpu := range []bool{true, false} {
 		t.Run(fmt.Sprintf("CPU=%t", cpu), func(t *testing.T) {
 			scheme := runtime.NewScheme()
@@ -2710,9 +2711,9 @@ func TestGeneratePresetInference_CapturedTarget(t *testing.T) {
 			node := corev1.Node{ObjectMeta: metav1.ObjectMeta{Name: "target", Labels: map[string]string{"pool": "inference", corev1.LabelArchStable: "amd64"}}, Status: corev1.NodeStatus{Conditions: []corev1.NodeCondition{{Type: corev1.NodeReady, Status: corev1.ConditionTrue}}}}
 			if !cpu {
 				node.Labels[corev1.LabelInstanceTypeStable] = "Standard_NC6s_v3"
-				node.Labels[consts.NvidiaGPUProduct] = "NVIDIA-V100"
-				node.Labels[consts.NvidiaGPUCount] = "1"
-				node.Labels[consts.NvidiaGPUMemory] = "16384"
+				node.Labels[nvidia.LabelGPUProduct] = "NVIDIA-V100"
+				node.Labels[nvidia.LabelGPUCount] = "1"
+				node.Labels[nvidia.LabelGPUMemory] = "16384"
 			}
 			inventoryAvailable := true
 			reads := 0
@@ -2747,7 +2748,7 @@ func TestGeneratePresetInference_CapturedTarget(t *testing.T) {
 			require.NoError(t, GenerateInferencePodSpec(config, 1, "", "", "", &lmCacheResolvedConfig{})(gctx, spec))
 			require.Equal(t, readsAtCapture, reads, "pod generation must reuse the captured target")
 			require.Equal(t, getPresetInferenceImageName(pkgmodel.RuntimeNameVLLM, cpu), spec.Containers[0].Image)
-			_, hasGPU := spec.Containers[0].Resources.Limits[corev1.ResourceName(consts.NvidiaGPU)]
+			_, hasGPU := spec.Containers[0].Resources.Limits[corev1.ResourceName("nvidia.com/gpu")]
 			require.Equal(t, !cpu, hasGPU)
 			require.NotNil(t, spec.Containers[0].ReadinessProbe.HTTPGet)
 			require.Equal(t, defaultTolerationsForTarget(cpu), spec.Tolerations)
@@ -2784,7 +2785,7 @@ func TestGeneratePresetInference_CapturedTarget(t *testing.T) {
 func TestCPUNodeExclusivityAcrossParentsAndNamespaces(t *testing.T) {
 	for _, parent := range []string{"", "parent-a", "parent-b"} {
 		for _, namespace := range []string{"first", "second"} {
-			ws := &v1beta1.Workspace{ObjectMeta: metav1.ObjectMeta{Namespace: namespace, Labels: map[string]string{consts.WorkspaceCreatedByInferenceSetLabel: parent}}}
+			ws := &v1beta1.Workspace{ObjectMeta: metav1.ObjectMeta{Namespace: namespace, Labels: map[string]string{v1beta1.WorkspaceCreatedByInferenceSetLabel: parent}}}
 			pod := &corev1.PodTemplateSpec{}
 			applyCPUDedicatedPlacement(ws, &pod.Spec, true)
 			require.Len(t, pod.Spec.Affinity.PodAntiAffinity.RequiredDuringSchedulingIgnoredDuringExecution, 1)
@@ -2796,7 +2797,7 @@ func TestCPUNodeExclusivityAcrossParentsAndNamespaces(t *testing.T) {
 			require.True(t, nsSelector.Matches(labels.Set{"kubernetes.io/metadata.name": "other-namespace"}))
 			selector, err := metav1.LabelSelectorAsSelector(term.LabelSelector)
 			require.NoError(t, err)
-			require.True(t, selector.Matches(labels.Set{cpuInferenceWorkloadLabel: "true", consts.WorkspaceCreatedByInferenceSetLabel: "different-parent"}))
+			require.True(t, selector.Matches(labels.Set{cpuInferenceWorkloadLabel: "true", v1beta1.WorkspaceCreatedByInferenceSetLabel: "different-parent"}))
 			require.False(t, selector.Matches(labels.Set{cpuInferenceWorkloadLabel: "false"}))
 		}
 	}

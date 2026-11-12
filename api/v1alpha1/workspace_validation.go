@@ -31,10 +31,10 @@ import (
 
 	"github.com/kaito-project/kaito/api/internal/speculativedecoding"
 	kaitov1beta1 "github.com/kaito-project/kaito/api/v1beta1"
+	"github.com/kaito-project/kaito/pkg/consts"
 	"github.com/kaito-project/kaito/pkg/k8sclient"
 	"github.com/kaito-project/kaito/pkg/model"
 	"github.com/kaito-project/kaito/pkg/sku"
-	"github.com/kaito-project/kaito/pkg/utils/consts"
 )
 
 const (
@@ -180,7 +180,7 @@ func (w *Workspace) validateNodeImageFamilyAnnotation() (errs *apis.FieldError) 
 		return nil
 	}
 
-	if _, valid := consts.NormalizeSupportedNodeImageFamily(nodeImageFamily); !valid {
+	if _, valid := kaitov1beta1.NormalizeSupportedNodeImageFamily(nodeImageFamily); !valid {
 		return apis.ErrInvalidValue(
 			fmt.Sprintf("unsupported node image family %q, supported values are azurelinux, ubuntu", nodeImageFamily),
 			fmt.Sprintf("metadata.annotations[%q]", AnnotationNodeImageFamily),

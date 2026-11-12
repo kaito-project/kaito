@@ -17,32 +17,16 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/kaito-project/kaito/pkg/utils/consts"
-)
-
-// SAS-authenticated blob streaming annotation keys and source-type values.
-//
-// These are aliases of the canonical definitions in pkg/utils/consts, which holds them in a
-// leaf package so that API validation can reference the same keys without importing this
-// package (which depends on the API types). They are re-exported here because this is where
-// the streaming path reads them.
-const (
-	AnnotationStreamDatarefsURL      = consts.AnnotationStreamDatarefsURL
-	AnnotationStreamIdentityClientID = consts.AnnotationStreamIdentityClientID
-	AnnotationStreamSourceType       = consts.AnnotationStreamSourceType
-	AnnotationStaticModelMirror      = consts.AnnotationStaticModelMirror
-
-	SourceTypePublic = consts.SourceTypePublic
-	SourceTypeBYO    = consts.SourceTypeBYO
+	"github.com/kaito-project/kaito/api/v1beta1"
 )
 
 // coreSASBlobStreamingAnnotationKeys is the set of annotations REQUIRED to activate the SAS
 // blob streaming path. The blob URI, storage account, and model streaming URI are derived at runtime
 // by the init container.
 var coreSASBlobStreamingAnnotationKeys = []string{
-	AnnotationStreamDatarefsURL,
-	AnnotationStreamIdentityClientID,
-	AnnotationStreamSourceType,
+	v1beta1.AnnotationStreamDatarefsURL,
+	v1beta1.AnnotationStreamIdentityClientID,
+	v1beta1.AnnotationStreamSourceType,
 }
 
 // ValidateStaticModelMirrorAnnotations enforces the static-mirror contract: when the static flag
@@ -60,16 +44,16 @@ func ValidateStaticModelMirrorAnnotations(annotations map[string]string) error {
 	}
 	if len(missing) > 0 {
 		return fmt.Errorf("%s=true requires all core SAS streaming annotations; missing: %s",
-			AnnotationStaticModelMirror, strings.Join(missing, ", "))
+			v1beta1.AnnotationStaticModelMirror, strings.Join(missing, ", "))
 	}
-	if ft := annotations[AnnotationStreamSourceType]; ft != SourceTypePublic && ft != SourceTypeBYO {
+	if ft := annotations[v1beta1.AnnotationStreamSourceType]; ft != v1beta1.StreamSourceTypePublic && ft != v1beta1.StreamSourceTypeBYO {
 		return fmt.Errorf("%s must be %q or %q, got %q",
-			AnnotationStreamSourceType, SourceTypePublic, SourceTypeBYO, ft)
+			v1beta1.AnnotationStreamSourceType, v1beta1.StreamSourceTypePublic, v1beta1.StreamSourceTypeBYO, ft)
 	}
 	return nil
 }
 
 // StaticModelMirrorEnabled reports whether the workspace opts into a static model mirror.
 func StaticModelMirrorEnabled(annotations map[string]string) bool {
-	return annotations[AnnotationStaticModelMirror] == "true"
+	return annotations[v1beta1.AnnotationStaticModelMirror] == "true"
 }

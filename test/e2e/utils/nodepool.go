@@ -26,7 +26,12 @@ import (
 
 	kaitov1beta1 "github.com/kaito-project/kaito/api/v1beta1"
 	"github.com/kaito-project/kaito/internal/nodeprovision/karpenter"
-	"github.com/kaito-project/kaito/pkg/utils/consts"
+)
+
+// AKSNodeClass names installed by the e2e cluster setup.
+const (
+	AKSNodeClassUbuntuName     = "image-family-ubuntu"
+	AKSNodeClassAzureLinuxName = "image-family-azure-linux"
 )
 
 // ValidateWorkspaceTargetNodeCount verifies workspace.status.targetNodeCount
@@ -65,13 +70,13 @@ func ValidateNodePoolShape(ctx context.Context, workspaceObj *kaitov1beta1.Works
 		gomega.Expect(np.Name).To(gomega.Equal(nodePoolName), "NodePool name mismatch")
 
 		gomega.Expect(np.Labels).To(gomega.HaveKeyWithValue(
-			consts.KarpenterLabelManagedBy, consts.KarpenterManagedByValue),
+			kaitov1beta1.LabelKarpenterManagedBy, kaitov1beta1.KarpenterManagedByKAITO),
 			"NodePool should have managed-by label")
 		gomega.Expect(np.Labels).To(gomega.HaveKeyWithValue(
-			consts.KarpenterWorkspaceNameKey, workspaceObj.Name),
+			kaitov1beta1.LabelKarpenterWorkspaceName, workspaceObj.Name),
 			"NodePool should have workspace-name label")
 		gomega.Expect(np.Labels).To(gomega.HaveKeyWithValue(
-			consts.KarpenterWorkspaceNamespaceKey, workspaceObj.Namespace),
+			kaitov1beta1.LabelKarpenterWorkspaceNamespace, workspaceObj.Namespace),
 			"NodePool should have workspace-namespace label")
 
 		// --- Replicas ---
@@ -82,10 +87,10 @@ func ValidateNodePoolShape(ctx context.Context, workspaceObj *kaitov1beta1.Works
 		// --- Template Labels ---
 		templateLabels := np.Spec.Template.Labels
 		gomega.Expect(templateLabels).To(gomega.HaveKeyWithValue(
-			consts.KarpenterWorkspaceNameKey, workspaceObj.Name),
+			kaitov1beta1.LabelKarpenterWorkspaceName, workspaceObj.Name),
 			"Template should have workspace-name label")
 		gomega.Expect(templateLabels).To(gomega.HaveKeyWithValue(
-			consts.KarpenterWorkspaceNamespaceKey, workspaceObj.Namespace),
+			kaitov1beta1.LabelKarpenterWorkspaceNamespace, workspaceObj.Namespace),
 			"Template should have workspace-namespace label")
 
 		if workspaceObj.Resource.LabelSelector != nil {
@@ -100,7 +105,7 @@ func ValidateNodePoolShape(ctx context.Context, workspaceObj *kaitov1beta1.Works
 		gomega.Expect(ref).NotTo(gomega.BeNil(), "NodeClassRef should be set")
 		gomega.Expect(ref.Group).To(gomega.Equal("karpenter.azure.com"), "NodeClassRef group mismatch")
 		gomega.Expect(ref.Kind).To(gomega.Equal("AKSNodeClass"), "NodeClassRef kind mismatch")
-		gomega.Expect(ref.Name).To(gomega.Equal(consts.AKSNodeClassUbuntuName),
+		gomega.Expect(ref.Name).To(gomega.Equal(AKSNodeClassUbuntuName),
 			"NodeClassRef name should be default ubuntu")
 
 		// --- Requirements ---
@@ -111,18 +116,18 @@ func ValidateNodePoolShape(ctx context.Context, workspaceObj *kaitov1beta1.Works
 		gomega.Expect(reqs[0].Operator).To(gomega.Equal(corev1.NodeSelectorOpIn))
 		gomega.Expect(reqs[0].Values).To(gomega.ConsistOf(instanceType))
 
-		gomega.Expect(reqs[1].Key).To(gomega.Equal(consts.KarpenterCapacityTypeLabel))
+		gomega.Expect(reqs[1].Key).To(gomega.Equal(karpenterv1.CapacityTypeLabelKey))
 		gomega.Expect(reqs[1].Operator).To(gomega.Equal(corev1.NodeSelectorOpIn))
-		gomega.Expect(reqs[1].Values).To(gomega.ConsistOf(consts.KarpenterCapacityTypeOnDemand))
+		gomega.Expect(reqs[1].Values).To(gomega.ConsistOf(karpenterv1.CapacityTypeOnDemand))
 
-		gomega.Expect(reqs[2].Key).To(gomega.Equal(consts.AzurePlacementScopeLabel))
+		gomega.Expect(reqs[2].Key).To(gomega.Equal("karpenter.azure.com/placement-scope"))
 		gomega.Expect(reqs[2].Operator).To(gomega.Equal(corev1.NodeSelectorOpIn))
-		gomega.Expect(reqs[2].Values).To(gomega.ConsistOf(consts.AzurePlacementRegional))
+		gomega.Expect(reqs[2].Values).To(gomega.ConsistOf("regional"))
 
 		// --- Taints ---
 		gomega.Expect(np.Spec.Template.Spec.Taints).To(gomega.HaveLen(1), "Should have 1 taint")
-		gomega.Expect(np.Spec.Template.Spec.Taints[0].Key).To(gomega.Equal(consts.SKUString))
-		gomega.Expect(np.Spec.Template.Spec.Taints[0].Value).To(gomega.Equal(consts.GPUString))
+		gomega.Expect(np.Spec.Template.Spec.Taints[0].Key).To(gomega.Equal(kaitov1beta1.LabelSKU))
+		gomega.Expect(np.Spec.Template.Spec.Taints[0].Value).To(gomega.Equal(kaitov1beta1.SKUGPU))
 		gomega.Expect(np.Spec.Template.Spec.Taints[0].Effect).To(gomega.Equal(corev1.TaintEffectNoSchedule))
 
 		// --- Disruption ---
@@ -160,18 +165,18 @@ func ValidateInferenceSetNodePoolShape(ctx context.Context, workspaceObj *kaitov
 		// --- Metadata labels ---
 		gomega.Expect(np.Name).To(gomega.Equal(nodePoolName))
 		gomega.Expect(np.Labels).To(gomega.HaveKeyWithValue(
-			consts.KarpenterLabelManagedBy, consts.KarpenterManagedByValue))
+			kaitov1beta1.LabelKarpenterManagedBy, kaitov1beta1.KarpenterManagedByKAITO))
 		gomega.Expect(np.Labels).To(gomega.HaveKeyWithValue(
-			consts.KarpenterWorkspaceNameKey, workspaceObj.Name))
+			kaitov1beta1.LabelKarpenterWorkspaceName, workspaceObj.Name))
 		gomega.Expect(np.Labels).To(gomega.HaveKeyWithValue(
-			consts.KarpenterWorkspaceNamespaceKey, workspaceObj.Namespace))
+			kaitov1beta1.LabelKarpenterWorkspaceNamespace, workspaceObj.Namespace))
 
 		// InferenceSet labels on NodePool metadata
 		gomega.Expect(np.Labels).To(gomega.HaveKeyWithValue(
-			consts.KarpenterInferenceSetKey, inferenceSetName),
+			kaitov1beta1.LabelKarpenterInferenceSet, inferenceSetName),
 			"NodePool should have InferenceSet label")
 		gomega.Expect(np.Labels).To(gomega.HaveKeyWithValue(
-			consts.KarpenterInferenceSetNamespaceKey, workspaceObj.Namespace),
+			kaitov1beta1.LabelKarpenterInferenceSetNamespace, workspaceObj.Namespace),
 			"NodePool should have InferenceSet namespace label")
 
 		// --- Replicas ---
@@ -181,14 +186,14 @@ func ValidateInferenceSetNodePoolShape(ctx context.Context, workspaceObj *kaitov
 		// --- Template labels ---
 		templateLabels := np.Spec.Template.Labels
 		gomega.Expect(templateLabels).To(gomega.HaveKeyWithValue(
-			consts.KarpenterWorkspaceNameKey, workspaceObj.Name))
+			kaitov1beta1.LabelKarpenterWorkspaceName, workspaceObj.Name))
 		gomega.Expect(templateLabels).To(gomega.HaveKeyWithValue(
-			consts.KarpenterWorkspaceNamespaceKey, workspaceObj.Namespace))
+			kaitov1beta1.LabelKarpenterWorkspaceNamespace, workspaceObj.Namespace))
 		gomega.Expect(templateLabels).To(gomega.HaveKeyWithValue(
-			consts.KarpenterInferenceSetKey, inferenceSetName),
+			kaitov1beta1.LabelKarpenterInferenceSet, inferenceSetName),
 			"Template should have InferenceSet label")
 		gomega.Expect(templateLabels).To(gomega.HaveKeyWithValue(
-			consts.KarpenterInferenceSetNamespaceKey, workspaceObj.Namespace),
+			kaitov1beta1.LabelKarpenterInferenceSetNamespace, workspaceObj.Namespace),
 			"Template should have InferenceSet namespace label")
 
 		if workspaceObj.Resource.LabelSelector != nil {
@@ -202,7 +207,7 @@ func ValidateInferenceSetNodePoolShape(ctx context.Context, workspaceObj *kaitov
 		gomega.Expect(ref).NotTo(gomega.BeNil())
 		gomega.Expect(ref.Group).To(gomega.Equal("karpenter.azure.com"))
 		gomega.Expect(ref.Kind).To(gomega.Equal("AKSNodeClass"))
-		gomega.Expect(ref.Name).To(gomega.Equal(consts.AKSNodeClassUbuntuName))
+		gomega.Expect(ref.Name).To(gomega.Equal(AKSNodeClassUbuntuName))
 
 		// --- Requirements ---
 		reqs := np.Spec.Template.Spec.Requirements
@@ -210,17 +215,17 @@ func ValidateInferenceSetNodePoolShape(ctx context.Context, workspaceObj *kaitov
 		gomega.Expect(reqs[0].Key).To(gomega.Equal(corev1.LabelInstanceTypeStable))
 		gomega.Expect(reqs[0].Operator).To(gomega.Equal(corev1.NodeSelectorOpIn))
 		gomega.Expect(reqs[0].Values).To(gomega.ConsistOf(instanceType))
-		gomega.Expect(reqs[1].Key).To(gomega.Equal(consts.KarpenterCapacityTypeLabel))
+		gomega.Expect(reqs[1].Key).To(gomega.Equal(karpenterv1.CapacityTypeLabelKey))
 		gomega.Expect(reqs[1].Operator).To(gomega.Equal(corev1.NodeSelectorOpIn))
-		gomega.Expect(reqs[1].Values).To(gomega.ConsistOf(consts.KarpenterCapacityTypeOnDemand))
-		gomega.Expect(reqs[2].Key).To(gomega.Equal(consts.AzurePlacementScopeLabel))
+		gomega.Expect(reqs[1].Values).To(gomega.ConsistOf(karpenterv1.CapacityTypeOnDemand))
+		gomega.Expect(reqs[2].Key).To(gomega.Equal("karpenter.azure.com/placement-scope"))
 		gomega.Expect(reqs[2].Operator).To(gomega.Equal(corev1.NodeSelectorOpIn))
-		gomega.Expect(reqs[2].Values).To(gomega.ConsistOf(consts.AzurePlacementRegional))
+		gomega.Expect(reqs[2].Values).To(gomega.ConsistOf("regional"))
 
 		// --- Taints ---
 		gomega.Expect(np.Spec.Template.Spec.Taints).To(gomega.HaveLen(1))
-		gomega.Expect(np.Spec.Template.Spec.Taints[0].Key).To(gomega.Equal(consts.SKUString))
-		gomega.Expect(np.Spec.Template.Spec.Taints[0].Value).To(gomega.Equal(consts.GPUString))
+		gomega.Expect(np.Spec.Template.Spec.Taints[0].Key).To(gomega.Equal(kaitov1beta1.LabelSKU))
+		gomega.Expect(np.Spec.Template.Spec.Taints[0].Value).To(gomega.Equal(kaitov1beta1.SKUGPU))
 		gomega.Expect(np.Spec.Template.Spec.Taints[0].Effect).To(gomega.Equal(corev1.TaintEffectNoSchedule))
 
 		// --- Disruption — InferenceSet uses budget "0" ---
@@ -256,10 +261,10 @@ func ValidateNodeLabels(ctx context.Context, workspaceObj *kaitov1beta1.Workspac
 				fmt.Sprintf("Node %s should exist", nodeName))
 
 			gomega.Expect(node.Labels).To(gomega.HaveKeyWithValue(
-				consts.KarpenterWorkspaceNameKey, workspaceObj.Name),
+				kaitov1beta1.LabelKarpenterWorkspaceName, workspaceObj.Name),
 				fmt.Sprintf("Node %s should have workspace-name label", nodeName))
 			gomega.Expect(node.Labels).To(gomega.HaveKeyWithValue(
-				consts.KarpenterWorkspaceNamespaceKey, workspaceObj.Namespace),
+				kaitov1beta1.LabelKarpenterWorkspaceNamespace, workspaceObj.Namespace),
 				fmt.Sprintf("Node %s should have workspace-namespace label", nodeName))
 
 			if workspaceObj.Resource.LabelSelector != nil {

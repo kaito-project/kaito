@@ -51,7 +51,6 @@ import (
 	"github.com/kaito-project/kaito/pkg/featuregates"
 	pkgmodel "github.com/kaito-project/kaito/pkg/model"
 	"github.com/kaito-project/kaito/pkg/sku"
-	"github.com/kaito-project/kaito/pkg/utils/consts"
 )
 
 // SpecDecoDecision tracks which branch the speculative decoding injection took.
@@ -96,13 +95,48 @@ const (
 	// defaultCudaHomePath is the default location to install CUDA toolkit and used as
 	// CUDA_HOME.
 	defaultCudaHomePath = "/opt/kaito/cuda/129"
+
+	localNVMeStorageClass = "kaito-local-nvme-disk"
+
+	// Routing sidecar for P/D disaggregation on decode workspaces.
+	// The sidecar listens on port 5000 (manifests.PortInferenceServer) so the Service
+	// can target port 5000 uniformly across prefill and decode pods.
+	// vLLM on decode pods is moved to port 5001 (portDecodeVLLM).
+	// See: https://github.com/llm-d/llm-d-routing-sidecar
+	routingSidecarImage = "mcr.microsoft.com/oss/v2/llm-d/llm-d-routing-sidecar"
+	routingSidecarTag   = "v0.8.0"
+
+	// portDecodeVLLM is the port vLLM listens on in decode pods.
+	// The routing sidecar occupies port 5000 (manifests.PortInferenceServer), so vLLM
+	// is moved to 5001. The sidecar forwards traffic to this port.
+	portDecodeVLLM = int32(5001)
+
+	// inferenceRoleEnvName is the environment variable name used to pass the
+	// inference role (prefill/decode) to the model container in P/D disaggregated serving.
+	inferenceRoleEnvName = "KAITO_INFERENCE_ROLE"
+
+	// vllmUseFlashInferSamplerEnvName toggles vLLM's FlashInfer-based sampler.
+	// KAITO does not support FlashInfer, so it is set to "0" to keep vLLM on the
+	// Torch-native sampling path and avoid runtime JIT kernel compilation, which
+	// requires a CUDA toolchain (nvcc) that the base image does not ship.
+	vllmUseFlashInferSamplerEnvName = "VLLM_USE_FLASHINFER_SAMPLER"
+
+	// vllmUseDeepGEMMEnvName toggles vLLM's DeepGEMM FP8 kernels. vLLM 0.22.1
+	// defaults this on and reports DeepGEMM as available (it finds the vendored
+	// wrapper module), but the native FP8 GEMM backend is not present in the base
+	// image, so the FP8 warmup hard-fails with "DeepGEMM backend is not available".
+	// Set to "0" to keep FP8 models on their non-DeepGEMM kernel path.
+	vllmUseDeepGEMMEnvName = "VLLM_USE_DEEP_GEMM"
+
+	// vllmWSL2EnablePinMemoryEnvName enables pinned memory when vLLM detects WSL2.
+	vllmWSL2EnablePinMemoryEnvName = "VLLM_WSL2_ENABLE_PIN_MEMORY"
 )
 
 var (
 	containerPorts = []corev1.ContainerPort{
 		{
 			Name:          "http",
-			ContainerPort: int32(consts.PortInferenceServer),
+			ContainerPort: int32(manifests.PortInferenceServer),
 		},
 	}
 
@@ -111,7 +145,7 @@ var (
 	// this endpoint, so advertising it there would be misleading.
 	vllmKVEventsContainerPort = corev1.ContainerPort{
 		Name:          "kv-events",
-		ContainerPort: int32(consts.PortKVCacheEvents),
+		ContainerPort: int32(manifests.PortKVCacheEvents),
 	}
 
 	// defaultLivenessProbe has no initial delay because the startup probe ensures
@@ -119,7 +153,7 @@ var (
 	defaultLivenessProbe = &corev1.Probe{
 		ProbeHandler: corev1.ProbeHandler{
 			HTTPGet: &corev1.HTTPGetAction{
-				Port: intstr.FromInt32(consts.PortInferenceServer),
+				Port: intstr.FromInt32(manifests.PortInferenceServer),
 				Path: ProbePath,
 			},
 		},
@@ -131,7 +165,7 @@ var (
 	defaultReadinessProbe = &corev1.Probe{
 		ProbeHandler: corev1.ProbeHandler{
 			HTTPGet: &corev1.HTTPGetAction{
-				Port: intstr.FromInt32(consts.PortInferenceServer),
+				Port: intstr.FromInt32(manifests.PortInferenceServer),
 				Path: ProbePath,
 			},
 		},
@@ -145,8 +179,8 @@ func defaultTolerationsForTarget(isCPUInference bool) []corev1.Toleration {
 	if isCPUInference {
 		tolerations = append(tolerations, corev1.Toleration{
 			Effect:   corev1.TaintEffectNoSchedule,
-			Value:    consts.CPUString,
-			Key:      consts.SKUString,
+			Value:    v1beta1.SKUCPU,
+			Key:      v1beta1.LabelSKU,
 			Operator: corev1.TolerationOpEqual,
 		})
 	} else {
@@ -158,8 +192,8 @@ func defaultTolerationsForTarget(isCPUInference bool) []corev1.Toleration {
 			},
 			corev1.Toleration{
 				Effect:   corev1.TaintEffectNoSchedule,
-				Value:    consts.GPUString,
-				Key:      consts.SKUString,
+				Value:    v1beta1.SKUGPU,
+				Key:      v1beta1.LabelSKU,
 				Operator: corev1.TolerationOpEqual,
 			},
 		)
@@ -168,9 +202,9 @@ func defaultTolerationsForTarget(isCPUInference bool) []corev1.Toleration {
 	if sku.IsAzureCloudProvider() {
 		tolerations = append(tolerations, corev1.Toleration{
 			Effect:   corev1.TaintEffectNoSchedule,
-			Key:      consts.SpotInstanceKey,
+			Key:      manifests.SpotInstanceKey,
 			Operator: corev1.TolerationOpEqual,
-			Value:    consts.SpotInstanceValue,
+			Value:    manifests.SpotInstanceValue,
 		})
 	}
 
@@ -211,7 +245,7 @@ func GenerateModelWeightsCacheVolume(ctx context.Context, workspaceObj *v1beta1.
 		},
 		Spec: corev1.PersistentVolumeClaimSpec{
 			AccessModes:      []corev1.PersistentVolumeAccessMode{corev1.ReadWriteOnce},
-			StorageClassName: &consts.LocalNVMeStorageClass,
+			StorageClassName: ptr.To(localNVMeStorageClass),
 			Resources: corev1.VolumeResourceRequirements{
 				Requests: corev1.ResourceList{
 					// place model files in this volume
@@ -365,13 +399,13 @@ func getGPUConfig(ctx *builder.WorkspaceGeneratorContext) (*sku.GPUConfig, error
 	partition := ctx.Workspace.Resource.Partition
 
 	// Partition path: build GPU config from the partition spec (MIG mode).
-	if featuregates.FeatureGates[consts.FeatureFlagEnableMIG] && partition != nil &&
+	if featuregates.FeatureGates[featuregates.FeatureFlagEnableMIG] && partition != nil &&
 		partition.Mode == v1beta1.PartitionModeMIG {
 		return sku.MIGGPUConfig(partition.Profile)
 	}
 
 	// NAP is enabled - try to get GPU config from known SKU
-	if !featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning] {
+	if !featuregates.FeatureGates[featuregates.FeatureFlagDisableNodeAutoProvisioning] {
 		return sku.GetGPUConfigBySKU(ctx.Workspace.Resource.InstanceType)
 	}
 
@@ -392,7 +426,7 @@ func getGPUConfig(ctx *builder.WorkspaceGeneratorContext) (*sku.GPUConfig, error
 	// Accelerator partition: rescale the node's config down to Count whole GPUs so
 	// resource requests, vLLM parallelism, and node sizing reflect the partition
 	// rather than the full node.
-	if featuregates.FeatureGates[consts.FeatureFlagEnableAccelerator] && partition != nil &&
+	if featuregates.FeatureGates[featuregates.FeatureFlagEnableAccelerator] && partition != nil &&
 		partition.Mode == v1beta1.PartitionModeAccelerator {
 		return sku.ScaleGPUConfigToCount(gpuConfig, *partition.Count)
 	}
@@ -419,7 +453,7 @@ func checkIfNVMeAvailable(ctx context.Context, gpuConfig *sku.GPUConfig, kubeCli
 
 	// Check if the required NVMe storage class exists
 	storageClass := &storagev1.StorageClass{}
-	err := kubeClient.Get(ctx, client.ObjectKey{Name: consts.LocalNVMeStorageClass}, storageClass)
+	err := kubeClient.Get(ctx, client.ObjectKey{Name: localNVMeStorageClass}, storageClass)
 	if err != nil {
 		if client.IgnoreNotFound(err) == nil {
 			return false
@@ -431,7 +465,7 @@ func checkIfNVMeAvailable(ctx context.Context, gpuConfig *sku.GPUConfig, kubeCli
 
 // getDistributedInferenceProbe returns a container probe configuration for the distributed inference workload.
 func getDistributedInferenceProbe(probeType probeType, wObj *v1beta1.Workspace, initialDelaySeconds, periodSeconds, timeoutSeconds, failureThreshold int32, vllmPort ...int32) *corev1.Probe {
-	port := consts.PortInferenceServer
+	port := manifests.PortInferenceServer
 	if len(vllmPort) > 0 && vllmPort[0] > 0 {
 		port = vllmPort[0]
 	}
@@ -468,7 +502,7 @@ func getDistributedInferenceProbe(probeType probeType, wObj *v1beta1.Workspace, 
 
 func buildStartupProbe(timeout time.Duration, port ...int32) *corev1.Probe {
 	const periodSeconds = 10
-	probePort := consts.PortInferenceServer
+	probePort := manifests.PortInferenceServer
 	if len(port) > 0 && port[0] > 0 {
 		probePort = port[0]
 	}
@@ -749,7 +783,7 @@ func GenerateInferencePodSpec(gpuConfig *sku.GPUConfig, numNodes int, streamingM
 		isSidecarNeeded := needsRoutingSidecar(ctx.Workspace)
 		var vllmPort int32
 		if isSidecarNeeded {
-			vllmPort = consts.PortDecodeVLLM
+			vllmPort = portDecodeVLLM
 		}
 
 		// Hybrid Mamba/Gated-DeltaNet models need max-num-seqs capped to the Mamba
@@ -909,7 +943,7 @@ func buildMainContainerEnv(runtimeName pkgmodel.RuntimeName, inferenceParam *pkg
 	// runtime (the base image ships no CUDA toolchain/nvcc).
 	if runtimeName == pkgmodel.RuntimeNameVLLM {
 		env = append(env, corev1.EnvVar{
-			Name:  consts.VLLMUseFlashInferSamplerEnvName,
+			Name:  vllmUseFlashInferSamplerEnvName,
 			Value: "0",
 		})
 		// Disable vLLM's DeepGEMM FP8 kernels by default. vLLM 0.22.1 enables them
@@ -923,12 +957,12 @@ func buildMainContainerEnv(runtimeName pkgmodel.RuntimeName, inferenceParam *pkg
 			deepGEMMValue = "1"
 		}
 		env = append(env, corev1.EnvVar{
-			Name:  consts.VLLMUseDeepGEMMEnvName,
+			Name:  vllmUseDeepGEMMEnvName,
 			Value: deepGEMMValue,
 		})
 		// vLLM scans the pod hostname for "microsoft" and can falsely detect WSL2.
 		env = append(env, corev1.EnvVar{
-			Name:  consts.VLLMWSL2EnablePinMemoryEnvName,
+			Name:  vllmWSL2EnablePinMemoryEnvName,
 			Value: "1",
 		})
 		for _, arch := range inferenceParam.Architectures {
@@ -966,7 +1000,7 @@ func buildMainContainerEnv(runtimeName pkgmodel.RuntimeName, inferenceParam *pkg
 	// than discovering the mismatch as an out-of-memory failure during load.
 	if digest, ok := pkgmodel.CustomModelDigest(inferenceParam.Metadata.Name); ok {
 		env = append(env, corev1.EnvVar{
-			Name:  consts.ModelConfigSHA256EnvName,
+			Name:  modelstreaming.ModelConfigSHA256EnvName,
 			Value: digest,
 		})
 	}
@@ -1190,7 +1224,7 @@ func SetDistributedInferenceProbe(ctx *builder.WorkspaceGeneratorContext, spec *
 	// Determine vLLM port: decode pods use PortDecodeVLLM, others use default.
 	var vllmPort int32
 	if needsRoutingSidecar(ctx.Workspace) {
-		vllmPort = consts.PortDecodeVLLM
+		vllmPort = portDecodeVLLM
 	}
 
 	// 60 seconds initial delay for liveness probe to allow workers to join the cluster
@@ -1318,7 +1352,7 @@ func applyInferenceRoleEnv(labels map[string]string, containerName string, spec 
 	for i := range spec.Containers {
 		if spec.Containers[i].Name == containerName {
 			spec.Containers[i].Env = append(spec.Containers[i].Env, corev1.EnvVar{
-				Name:  consts.InferenceRoleEnvName,
+				Name:  inferenceRoleEnvName,
 				Value: role,
 			})
 			// VLLM_NIXL_SIDE_CHANNEL_HOST is required for NIXL KV transfer
@@ -1348,22 +1382,22 @@ func injectRoutingSidecar(spec *corev1.PodSpec) {
 
 	// Rewrite the main vLLM container port declaration from 5000 to 5001.
 	for i := range spec.Containers[0].Ports {
-		if spec.Containers[0].Ports[i].ContainerPort == consts.PortInferenceServer {
-			spec.Containers[0].Ports[i].ContainerPort = consts.PortDecodeVLLM
+		if spec.Containers[0].Ports[i].ContainerPort == manifests.PortInferenceServer {
+			spec.Containers[0].Ports[i].ContainerPort = portDecodeVLLM
 		}
 	}
 
 	// Append the routing sidecar that listens on 5000 and proxies to vLLM on 5001.
 	spec.Containers = append(spec.Containers, corev1.Container{
 		Name:  "llm-d-routing-sidecar",
-		Image: fmt.Sprintf("%s:%s", consts.RoutingSidecarImage, consts.RoutingSidecarTag),
+		Image: fmt.Sprintf("%s:%s", routingSidecarImage, routingSidecarTag),
 		Args: []string{
-			fmt.Sprintf("--port=%d", consts.PortInferenceServer),
-			fmt.Sprintf("--vllm-port=%d", consts.PortDecodeVLLM),
+			fmt.Sprintf("--port=%d", manifests.PortInferenceServer),
+			fmt.Sprintf("--vllm-port=%d", portDecodeVLLM),
 			"--secure-proxy=false",
 		},
 		Ports: []corev1.ContainerPort{
-			{ContainerPort: consts.PortInferenceServer, Name: "sidecar", Protocol: corev1.ProtocolTCP},
+			{ContainerPort: manifests.PortInferenceServer, Name: "sidecar", Protocol: corev1.ProtocolTCP},
 		},
 		Env: []corev1.EnvVar{
 			{

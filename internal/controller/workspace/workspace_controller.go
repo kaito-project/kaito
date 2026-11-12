@@ -68,17 +68,20 @@ import (
 	byoprovisioner "github.com/kaito-project/kaito/internal/nodeprovision/byo-provisioner"
 	"github.com/kaito-project/kaito/internal/tuning"
 	"github.com/kaito-project/kaito/pkg/catalog"
+	"github.com/kaito-project/kaito/pkg/consts"
 	"github.com/kaito-project/kaito/pkg/estimator"
 	"github.com/kaito-project/kaito/pkg/featuregates"
 	pkgmodel "github.com/kaito-project/kaito/pkg/model"
 	mmconsts "github.com/kaito-project/kaito/pkg/modelmirror/consts"
-	"github.com/kaito-project/kaito/pkg/utils/consts"
 )
 
 const (
 	WorkspaceHashAnnotation = "workspace.kaito.io/hash"
 	WorkspaceNameLabel      = "workspace.kaito.io/name"
 	revisionHashSuffix      = 5
+
+	// workspaceFinalizer makes sure the workspace controller handles garbage collection.
+	workspaceFinalizer = "workspace.finalizer.kaito.sh"
 )
 
 type WorkspaceReconciler struct {
@@ -155,7 +158,7 @@ func (c *WorkspaceReconciler) Reconcile(ctx context.Context, req reconcile.Reque
 
 	// BYO auto-selection requires a healthy GPU node to identify the effective SKU.
 	// Return an error before workload creation so reconciliation retries with backoff.
-	if featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning] && workspaceObj.Resource.AutoSelectsSKU() {
+	if featuregates.FeatureGates[featuregates.FeatureFlagDisableNodeAutoProvisioning] && workspaceObj.Resource.AutoSelectsSKU() {
 		it, selErr := byoprovisioner.SelectInstanceType(ctx, c.Client, workspaceObj)
 		if selErr != nil {
 			return reconcile.Result{}, selErr
@@ -174,9 +177,9 @@ func (c *WorkspaceReconciler) Reconcile(ctx context.Context, req reconcile.Reque
 }
 
 func (c *WorkspaceReconciler) ensureFinalizer(ctx context.Context, workspaceObj *kaitov1beta1.Workspace) error {
-	if !controllerutil.ContainsFinalizer(workspaceObj, consts.WorkspaceFinalizer) {
+	if !controllerutil.ContainsFinalizer(workspaceObj, workspaceFinalizer) {
 		patch := client.MergeFrom(workspaceObj.DeepCopy())
-		controllerutil.AddFinalizer(workspaceObj, consts.WorkspaceFinalizer)
+		controllerutil.AddFinalizer(workspaceObj, workspaceFinalizer)
 		if err := c.Client.Patch(ctx, workspaceObj, patch); err != nil {
 			klog.ErrorS(err, "failed to ensure the finalizer to the workspace", "workspace", klog.KObj(workspaceObj))
 			return err
@@ -476,7 +479,7 @@ func (c *WorkspaceReconciler) addOrUpdateWorkspace(ctx context.Context, wObj *ka
 	// until the cache is ready. Gated on the distributed-cache feature flag so
 	// the cache library itself stays feature-gate agnostic.
 	cacheRequeueNeeded := false
-	if featuregates.FeatureGates[consts.FeatureFlagDistributedCache] {
+	if featuregates.FeatureGates[featuregates.FeatureFlagDistributedCache] {
 		cacheResult := cache.ReconcileCache(ctx, c.Client, wObj, &wObj.Status)
 		if cacheResult.BlockDeployment {
 			klog.V(2).InfoS("Cache not ready, blocking deployment", "workspace", klog.KObj(wObj))
@@ -574,7 +577,7 @@ func (c *WorkspaceReconciler) syncControllerRevision(ctx context.Context, wObj *
 				annotations[kaitov1beta1.WorkspaceRevisionAnnotation] = strconv.FormatInt(revisionNum, 10)
 			}
 
-			if len(revisions.Items) > consts.MaxRevisionHistoryLimit {
+			if len(revisions.Items) > resources.MaxRevisionHistoryLimit {
 				if err := c.Delete(ctx, &revisions.Items[0]); err != nil {
 					return fmt.Errorf("failed to delete old revision: %w", err)
 				}
@@ -774,7 +777,7 @@ func (c *WorkspaceReconciler) applyInference(ctx context.Context, wObj *kaitov1b
 		}
 	}
 
-	if featuregates.FeatureGates[consts.FeatureFlagDistributedCache] && cache.HasAttachment(wObj) {
+	if featuregates.FeatureGates[featuregates.FeatureFlagDistributedCache] && cache.HasAttachment(wObj) {
 		if err := cache.ApplyPresetCacheMutations(ctx, wObj, c.Client, model, desiredStatefulSet); err != nil {
 			return err
 		}
@@ -934,7 +937,7 @@ func (c *WorkspaceReconciler) syncWorkspaceStatus(ctx context.Context, key types
 		// downgrades *CacheReady when the cache was not injected into the pod.
 		// Gated on the distributed-cache feature flag so the cache library stays
 		// feature-gate agnostic.
-		if featuregates.FeatureGates[consts.FeatureFlagDistributedCache] {
+		if featuregates.FeatureGates[featuregates.FeatureFlagDistributedCache] {
 			cache.ReconcileCache(ctx, c.Client, wObj, status)
 		}
 
@@ -1833,7 +1836,7 @@ func (c *WorkspaceReconciler) SetupWithManager(mgr ctrl.Manager) error {
 		Owns(&batchv1.Job{})
 
 	// Only watch NodeClaim resources if node auto-provisioning is enabled
-	if !featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning] {
+	if !featuregates.FeatureGates[featuregates.FeatureFlagDisableNodeAutoProvisioning] {
 		bldr = bldr.Watches(&karpenterv1.NodeClaim{},
 			&nodeClaimEventHandler{
 				logger:         c.klogger,
@@ -1845,13 +1848,13 @@ func (c *WorkspaceReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	}
 
 	// Watch ModelMirror CRs to immediately reconcile workspaces when downloads complete.
-	if featuregates.FeatureGates[consts.FeatureFlagModelStreaming] {
+	if featuregates.FeatureGates[featuregates.FeatureFlagModelStreaming] {
 		bldr = bldr.Watches(&kaitov1alpha1.ModelMirror{},
 			enqueueWorkspacesForModelMirror(c.Client),
 		)
 	}
 
-	if featuregates.FeatureGates[consts.FeatureFlagDistributedCache] {
+	if featuregates.FeatureGates[featuregates.FeatureFlagDistributedCache] {
 		bldr = bldr.Watches(&corev1.ConfigMap{},
 			handler.EnqueueRequestsFromMapFunc(func(ctx context.Context, obj client.Object) []reconcile.Request {
 				return cacheConfigMapRequests(ctx, c.Client, obj)

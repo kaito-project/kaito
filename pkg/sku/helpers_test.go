@@ -21,7 +21,8 @@ import (
 	"k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
-	"github.com/kaito-project/kaito/pkg/utils/consts"
+	"github.com/kaito-project/kaito/pkg/accelerator/nvidia"
+	"github.com/kaito-project/kaito/pkg/consts"
 )
 
 func TestGetSKUHandler(t *testing.T) {
@@ -302,9 +303,9 @@ func TestGetGPUConfigFromNode(t *testing.T) {
 				Name: "unknown-sku-node",
 				Labels: map[string]string{
 					corev1.LabelInstanceTypeStable: "custom-gpu-node",
-					consts.NvidiaGPUProduct:        "Custom-GPU",
-					consts.NvidiaGPUCount:          "2",
-					consts.NvidiaGPUMemory:         "24576",
+					nvidia.LabelGPUProduct:         "Custom-GPU",
+					nvidia.LabelGPUCount:           "2",
+					nvidia.LabelGPUMemory:          "24576",
 				},
 			},
 		}
@@ -323,11 +324,11 @@ func TestGetGPUConfigFromNode(t *testing.T) {
 				Name: "pending-mig-node",
 				Labels: map[string]string{
 					corev1.LabelInstanceTypeStable: "Standard_NC24ads_A100_v4",
-					consts.NvidiaGPUProduct:        "NVIDIA-A100-SXM4-80GB",
-					consts.NvidiaGPUCount:          "1",
-					consts.NvidiaGPUMemory:         "81920",
-					consts.NvidiaMIGConfig:         "all-1g.10gb",
-					consts.NvidiaMIGConfigState:    "pending",
+					nvidia.LabelGPUProduct:         "NVIDIA-A100-SXM4-80GB",
+					nvidia.LabelGPUCount:           "1",
+					nvidia.LabelGPUMemory:          "81920",
+					nvidia.LabelMIGConfig:          "all-1g.10gb",
+					nvidia.LabelMIGConfigState:     "pending",
 				},
 			},
 		}
@@ -344,11 +345,11 @@ func TestGetGPUConfigFromNode(t *testing.T) {
 				Name: "mig-node",
 				Labels: map[string]string{
 					corev1.LabelInstanceTypeStable: "Standard_NC24ads_A100_v4",
-					consts.NvidiaGPUProduct:        "NVIDIA-A100-SXM4-80GB-MIG-1g.10gb",
-					consts.NvidiaGPUCount:          "1",
-					consts.NvidiaGPUMemory:         "10240",
-					consts.NvidiaMIGConfig:         "all-1g.10gb",
-					consts.NvidiaMIGConfigState:    "success",
+					nvidia.LabelGPUProduct:         "NVIDIA-A100-SXM4-80GB-MIG-1g.10gb",
+					nvidia.LabelGPUCount:           "1",
+					nvidia.LabelGPUMemory:          "10240",
+					nvidia.LabelMIGConfig:          "all-1g.10gb",
+					nvidia.LabelMIGConfigState:     "success",
 				},
 			},
 		}
@@ -364,7 +365,7 @@ func TestGetGPUConfigFromNode(t *testing.T) {
 }
 
 func TestScaleGPUConfigToCount(t *testing.T) {
-	perGPU := int64(80) * consts.GiBToBytes
+	perGPU := int64(80) * GiB
 	nodeCfg := &GPUConfig{
 		GPUCount: 8,
 		GPUModel: "NVIDIA-A100",

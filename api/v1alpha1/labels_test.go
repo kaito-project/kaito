@@ -20,7 +20,6 @@ import (
 
 	"github.com/kaito-project/kaito/pkg/featuregates"
 	"github.com/kaito-project/kaito/pkg/model"
-	"github.com/kaito-project/kaito/pkg/utils/consts"
 )
 
 func TestGetWorkspaceRuntimeName(t *testing.T) {
@@ -79,7 +78,7 @@ func TestGetWorkspaceRuntimeName(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			// Set feature gate
 			featuregates.FeatureGates = map[string]bool{
-				consts.FeatureFlagVLLM: tt.featureEnabled,
+				featuregates.FeatureFlagVLLM: tt.featureEnabled,
 			}
 
 			if tt.shouldPanic {
@@ -154,7 +153,7 @@ func TestGetInferenceSetRuntimeName(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			// Set feature gate
 			featuregates.FeatureGates = map[string]bool{
-				consts.FeatureFlagVLLM: tt.featureEnabled,
+				featuregates.FeatureFlagVLLM: tt.featureEnabled,
 			}
 
 			if tt.shouldPanic {

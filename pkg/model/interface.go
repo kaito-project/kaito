@@ -26,7 +26,6 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
 	"github.com/kaito-project/kaito/pkg/sku"
-	"github.com/kaito-project/kaito/pkg/utils/consts"
 )
 
 type Model interface {
@@ -442,10 +441,11 @@ func (p *PresetParam) buildVLLMInferenceCommand(rc RuntimeContext) []string {
 	// 2. Standalone InferenceSet workspaces: use the InferenceSet name.
 	// 3. Fallback: use VLLM.ModelName if available.
 	//
-	// Note: string literal used to avoid import cycle with api/v1alpha1 package.
-	// Matches v1alpha1.LabelMultiRoleInferenceParent.
+	// Note: string literals used to avoid import cycles with the api packages.
+	// They match v1alpha1.LabelMultiRoleInferenceParent and
+	// v1beta1.WorkspaceCreatedByInferenceSetLabel.
 	_, isMRI := rc.WorkspaceMetadata.Labels["multiroleinference.kaito.sh/created-by"]
-	isName := rc.WorkspaceMetadata.Labels[consts.WorkspaceCreatedByInferenceSetLabel]
+	isName := rc.WorkspaceMetadata.Labels["inferenceset.kaito.sh/created-by"]
 
 	switch {
 	case isMRI && p.VLLM.ModelName != "":
@@ -478,7 +478,7 @@ func (p *PresetParam) buildVLLMInferenceCommand(rc RuntimeContext) []string {
 
 	// Enable KV cache events by default so in-cluster subscribers can consume
 	// BlockStored / BlockRemoved / AllBlocksCleared events over ZMQ on the port
-	// defined by consts.PortKVCacheEvents. Passed from the operator side (rather
+	// defined by internal/manifests.PortKVCacheEvents. Passed from the operator side (rather
 	// than baked into the preset image) so we don't need an image rebuild to
 	// toggle it and users can still override via --kaito-config-file. JSON is
 	// single-quoted so the value survives shell interpolation in shellCmd.

@@ -25,7 +25,7 @@ import (
 
 	"github.com/kaito-project/kaito/api/internal/speculativedecoding"
 	kaitov1beta1 "github.com/kaito-project/kaito/api/v1beta1"
-	"github.com/kaito-project/kaito/pkg/utils/consts"
+	"github.com/kaito-project/kaito/pkg/featuregates"
 )
 
 // MaxMultiRoleInferenceNameLength caps new MultiRoleInference names so the
@@ -105,22 +105,22 @@ func (m *MultiRoleInference) validateUpdate(old *MultiRoleInference) (errs *apis
 }
 
 func (m *MultiRoleInference) validateCapacityTypeAnnotation() *apis.FieldError {
-	if !consts.IsKarpenterProvisioner() {
+	if !featuregates.IsKarpenterProvisioner() {
 		return nil
 	}
 	capacityType := m.GetAnnotations()[kaitov1beta1.AnnotationCapacityType]
-	if consts.IsSupportedKarpenterCapacityType(capacityType) {
+	if kaitov1beta1.IsSupportedKarpenterCapacityType(capacityType) {
 		return nil
 	}
 	return apis.ErrInvalidValue(
 		fmt.Sprintf("%q is not a supported capacity type; choose one of: %s, %s",
-			capacityType, consts.KarpenterCapacityTypeOnDemand, consts.KarpenterCapacityTypeSpot),
+			capacityType, kaitov1beta1.CapacityTypeOnDemand, kaitov1beta1.CapacityTypeSpot),
 		fmt.Sprintf("metadata.annotations[%s]", kaitov1beta1.AnnotationCapacityType),
 	)
 }
 
 func (m *MultiRoleInference) validateCapacityTypeAnnotationUpdate(old *MultiRoleInference) *apis.FieldError {
-	if !consts.IsKarpenterProvisioner() {
+	if !featuregates.IsKarpenterProvisioner() {
 		return nil
 	}
 	oldValue := old.GetAnnotations()[kaitov1beta1.AnnotationCapacityType]
@@ -128,7 +128,7 @@ func (m *MultiRoleInference) validateCapacityTypeAnnotationUpdate(old *MultiRole
 	if oldValue == newValue {
 		return nil
 	}
-	if !consts.IsSupportedKarpenterCapacityType(oldValue) {
+	if !kaitov1beta1.IsSupportedKarpenterCapacityType(oldValue) {
 		return m.validateCapacityTypeAnnotation()
 	}
 	return apis.ErrGeneric(
@@ -172,13 +172,13 @@ func (m *MultiRoleInference) validateRoles() (errs *apis.FieldError) {
 		}
 
 		// Validate instanceType based on active node provisioner.
-		switch consts.ActiveNodeProvisioner {
-		case consts.NodeProvisionerBYO:
+		switch featuregates.NodeProvisioner {
+		case featuregates.NodeProvisionerBYO:
 			if role.InstanceType != "" {
 				errs = errs.Also(apis.ErrInvalidValue(role.InstanceType, field+".instanceType",
 					"instanceType must be empty when nodeProvisioner is byo"))
 			}
-		case consts.NodeProvisionerKarpenter, consts.NodeProvisionerAzureGPU:
+		case featuregates.NodeProvisionerKarpenter, featuregates.NodeProvisionerAzureGPU:
 			if role.InstanceType == "" {
 				errs = errs.Also(apis.ErrMissingField(field + ".instanceType"))
 			}

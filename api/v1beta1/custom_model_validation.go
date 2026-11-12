@@ -22,7 +22,6 @@ import (
 	"github.com/kaito-project/kaito/pkg/featuregates"
 	"github.com/kaito-project/kaito/pkg/model"
 	mmconsts "github.com/kaito-project/kaito/pkg/modelmirror/consts"
-	"github.com/kaito-project/kaito/pkg/utils/consts"
 )
 
 // validateCustomPreset checks the inputs that only apply to a bring-your-own
@@ -65,10 +64,10 @@ func (w *Workspace) validateCustomModelStreaming() *apis.FieldError {
 		return nil
 	}
 
-	if !featuregates.FeatureGates[consts.FeatureFlagModelStreaming] {
+	if !featuregates.FeatureGates[featuregates.FeatureFlagModelStreaming] {
 		return apis.ErrGeneric(fmt.Sprintf(
 			"preset %q requires the %s feature gate to be enabled",
-			model.PresetNameCustom, consts.FeatureFlagModelStreaming), "inference.preset.name")
+			model.PresetNameCustom, featuregates.FeatureFlagModelStreaming), "inference.preset.name")
 	}
 
 	annotations := w.GetAnnotations()
@@ -82,10 +81,10 @@ func (w *Workspace) validateCustomModelStreaming() *apis.FieldError {
 	// The source type itself is validated by the streaming configuration, but a
 	// custom model has no HuggingFace identity to fall back on, so the
 	// operator-owned source flavour is required rather than merely expected.
-	if annotations[consts.AnnotationStreamSourceType] != consts.SourceTypeBYO {
+	if annotations[AnnotationStreamSourceType] != StreamSourceTypeBYO {
 		return apis.ErrInvalidValue(fmt.Sprintf(
 			"preset %q requires annotation %s=%q: the model bundle must come from a versioned, operator-owned source",
-			model.PresetNameCustom, consts.AnnotationStreamSourceType, consts.SourceTypeBYO), consts.AnnotationStreamSourceType)
+			model.PresetNameCustom, AnnotationStreamSourceType, StreamSourceTypeBYO), AnnotationStreamSourceType)
 	}
 
 	return nil

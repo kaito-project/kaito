@@ -22,7 +22,6 @@ import (
 	"github.com/kaito-project/kaito/pkg/estimator"
 	pkgmodel "github.com/kaito-project/kaito/pkg/model"
 	"github.com/kaito-project/kaito/pkg/sku"
-	"github.com/kaito-project/kaito/pkg/utils/consts"
 )
 
 const (
@@ -54,7 +53,7 @@ const (
 func vLLMDefaultMaxNumSeqs(gpuConfig *sku.GPUConfig) int {
 	memPerGPU := gpuConfig.GPUMem.Value() / int64(gpuConfig.GPUCount)
 	isA100 := strings.Contains(strings.ToLower(gpuConfig.GPUModel), "a100")
-	if memPerGPU >= int64(largeGPUMemThresholdGiB*consts.GiBToBytes) && !isA100 {
+	if memPerGPU >= int64(largeGPUMemThresholdGiB*sku.GiB) && !isA100 {
 		return largeGPUDefaultMaxNumSeqs
 	}
 	return defaultMaxNumSeqs
@@ -136,7 +135,7 @@ func (c *MaxNumSeqsEstimator) Estimate(req MaxNumSeqsEstimateRequest) (int, bool
 	gpuMemPerGPU := float64(gpuConfig.GPUMem.Value() / int64(tp))
 	availGPUMem := gpuMemPerGPU * estimator.ResolveGPUMemoryUtilization(gpuConfig.GPUModel)
 	weightsPerGPU := float64(weights.Value()) * estimator.WeightExpansionFactor / float64(tp)
-	baseOverhead := estimator.ResolveBaseOverheadGiB(gpuConfig.GPUModel) * float64(consts.GiBToBytes)
+	baseOverhead := estimator.ResolveBaseOverheadGiB(gpuConfig.GPUModel) * float64(sku.GiB)
 
 	// Memory vLLM has left for the unified KV cache / Mamba state pool after
 	// weights and fixed runtime overhead.

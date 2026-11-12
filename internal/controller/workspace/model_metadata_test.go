@@ -25,7 +25,6 @@ import (
 
 	kaitov1beta1 "github.com/kaito-project/kaito/api/v1beta1"
 	"github.com/kaito-project/kaito/pkg/featuregates"
-	"github.com/kaito-project/kaito/pkg/utils/consts"
 )
 
 type modelMetadataHTTPClientFunc func(*http.Request) (*http.Response, error)
@@ -65,9 +64,9 @@ func TestParseModelMetadata(t *testing.T) {
 }
 
 func TestCollectActualMaxModelLen(t *testing.T) {
-	originalVLLMFlag := featuregates.FeatureGates[consts.FeatureFlagVLLM]
-	featuregates.FeatureGates[consts.FeatureFlagVLLM] = true
-	t.Cleanup(func() { featuregates.FeatureGates[consts.FeatureFlagVLLM] = originalVLLMFlag })
+	originalVLLMFlag := featuregates.FeatureGates[featuregates.FeatureFlagVLLM]
+	featuregates.FeatureGates[featuregates.FeatureFlagVLLM] = true
+	t.Cleanup(func() { featuregates.FeatureGates[featuregates.FeatureFlagVLLM] = originalVLLMFlag })
 
 	var requestedURL string
 	reconciler := &WorkspaceReconciler{

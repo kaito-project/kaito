@@ -16,9 +16,10 @@ package k8sclient
 import (
 	"fmt"
 	"os"
-
-	"github.com/kaito-project/kaito/pkg/utils/consts"
 )
+
+// DefaultReleaseNamespaceEnvVar names the environment variable that holds KAITO's release namespace.
+const DefaultReleaseNamespaceEnvVar = "RELEASE_NAMESPACE"
 
 // GetReleaseNamespace returns the namespace KAITO runs in, from the service
 // account namespace file or the release namespace environment variable.
@@ -32,8 +33,8 @@ func GetReleaseNamespace() (string, error) {
 	}
 
 	// Fallback: Read the namespace from an environment variable
-	if namespace, exists := os.LookupEnv(consts.DefaultReleaseNamespaceEnvVar); exists {
+	if namespace, exists := os.LookupEnv(DefaultReleaseNamespaceEnvVar); exists {
 		return namespace, nil
 	}
-	return "", fmt.Errorf("failed to determine release namespace from file %s and env var %s", namespaceFilePath, consts.DefaultReleaseNamespaceEnvVar)
+	return "", fmt.Errorf("failed to determine release namespace from file %s and env var %s", namespaceFilePath, DefaultReleaseNamespaceEnvVar)
 }

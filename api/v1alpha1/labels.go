@@ -16,7 +16,6 @@ package v1alpha1
 import (
 	"github.com/kaito-project/kaito/pkg/featuregates"
 	"github.com/kaito-project/kaito/pkg/model"
-	"github.com/kaito-project/kaito/pkg/utils/consts"
 )
 
 const (
@@ -88,7 +87,7 @@ const (
 // Workspace can share the exact same effective-runtime computation used at
 // runtime (including the FeatureFlagVLLM gate).
 func EffectiveInferenceRuntime(annotations map[string]string) model.RuntimeName {
-	if !featuregates.FeatureGates[consts.FeatureFlagVLLM] {
+	if !featuregates.FeatureGates[featuregates.FeatureFlagVLLM] {
 		return model.RuntimeNameHuggingfaceTransformers
 	}
 	runtime := model.RuntimeNameVLLM
@@ -107,7 +106,7 @@ func GetWorkspaceRuntimeName(ws *Workspace) model.RuntimeName {
 		panic("workspace is nil")
 	}
 
-	if !featuregates.FeatureGates[consts.FeatureFlagVLLM] {
+	if !featuregates.FeatureGates[featuregates.FeatureFlagVLLM] {
 		return model.RuntimeNameHuggingfaceTransformers
 	}
 
@@ -128,7 +127,7 @@ func GetInferenceSetRuntimeName(iObj *InferenceSet) model.RuntimeName {
 		panic("inferenceset is nil")
 	}
 
-	if !featuregates.FeatureGates[consts.FeatureFlagVLLM] {
+	if !featuregates.FeatureGates[featuregates.FeatureFlagVLLM] {
 		return model.RuntimeNameHuggingfaceTransformers
 	}
 

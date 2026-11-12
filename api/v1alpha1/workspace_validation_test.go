@@ -25,9 +25,9 @@ import (
 	"knative.dev/pkg/apis"
 	"sigs.k8s.io/controller-runtime/pkg/client/fake"
 
+	"github.com/kaito-project/kaito/pkg/consts"
 	"github.com/kaito-project/kaito/pkg/k8sclient"
 	"github.com/kaito-project/kaito/pkg/model"
-	"github.com/kaito-project/kaito/pkg/utils/consts"
 )
 
 const DefaultReleaseNamespace = "kaito-workspace"
@@ -567,7 +567,7 @@ func TestInferenceSpecValidateCreate(t *testing.T) {
 
 	// Set environment variables
 	t.Setenv("CLOUD_PROVIDER", consts.AzureCloudName)
-	t.Setenv(consts.DefaultReleaseNamespaceEnvVar, DefaultReleaseNamespace)
+	t.Setenv(k8sclient.DefaultReleaseNamespaceEnvVar, DefaultReleaseNamespace)
 
 	// Create fake client with default ConfigMap
 	scheme := runtime.NewScheme()
@@ -1179,7 +1179,7 @@ func TestWorkspaceValidateName(t *testing.T) {
 
 	// Set environment variables
 	t.Setenv("CLOUD_PROVIDER", consts.AzureCloudName)
-	t.Setenv(consts.DefaultReleaseNamespaceEnvVar, DefaultReleaseNamespace)
+	t.Setenv(k8sclient.DefaultReleaseNamespaceEnvVar, DefaultReleaseNamespace)
 
 	// Create fake client with default ConfigMap
 	scheme := runtime.NewScheme()
@@ -1349,7 +1349,7 @@ func TestWorkspaceValidateUpdate(t *testing.T) {
 func TestTuningSpecValidateCreate(t *testing.T) {
 	RegisterValidationTestModels()
 	// Set ReleaseNamespace Env
-	t.Setenv(consts.DefaultReleaseNamespaceEnvVar, DefaultReleaseNamespace)
+	t.Setenv(k8sclient.DefaultReleaseNamespaceEnvVar, DefaultReleaseNamespace)
 
 	// Create fake client with default ConfigMap
 	scheme := runtime.NewScheme()
@@ -1855,7 +1855,7 @@ func TestInferenceConfigMapValidation(t *testing.T) {
 
 	// Set environment variables
 	t.Setenv("CLOUD_PROVIDER", consts.AzureCloudName)
-	t.Setenv(consts.DefaultReleaseNamespaceEnvVar, DefaultReleaseNamespace)
+	t.Setenv(k8sclient.DefaultReleaseNamespaceEnvVar, DefaultReleaseNamespace)
 
 	// Create fake client with test ConfigMaps
 	scheme := runtime.NewScheme()

@@ -28,7 +28,6 @@ import (
 	kaitov1beta1 "github.com/kaito-project/kaito/api/v1beta1"
 	"github.com/kaito-project/kaito/internal/inferenceset"
 	"github.com/kaito-project/kaito/pkg/featuregates"
-	"github.com/kaito-project/kaito/pkg/utils/consts"
 )
 
 // Wire the InferenceSet admission webhook to validate the child Workspace it
@@ -44,13 +43,13 @@ func NewControllerWebhooks() []knativeinjection.ControllerConstructor {
 		NewWorkspaceCRDValidationWebhook,
 	}
 
-	if featuregates.FeatureGates[consts.FeatureFlagEnableInferenceSetController] {
+	if featuregates.FeatureGates[featuregates.FeatureFlagEnableInferenceSetController] {
 		constructor = append(constructor, NewInferenceSetCRDValidationWebhook)
 	}
-	if featuregates.FeatureGates[consts.FeatureFlagEnableMultiRoleInferenceController] {
+	if featuregates.FeatureGates[featuregates.FeatureFlagEnableMultiRoleInferenceController] {
 		constructor = append(constructor, NewMultiRoleInferenceCRDValidationWebhook)
 	}
-	if featuregates.FeatureGates[consts.FeatureFlagModelMirror] {
+	if featuregates.FeatureGates[featuregates.FeatureFlagModelMirror] {
 		constructor = append(constructor, NewModelMirrorCRDValidationWebhook)
 	}
 

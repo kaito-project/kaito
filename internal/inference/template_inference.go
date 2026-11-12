@@ -24,7 +24,6 @@ import (
 	"github.com/kaito-project/kaito/internal/manifests"
 	"github.com/kaito-project/kaito/internal/nodeprovision"
 	"github.com/kaito-project/kaito/pkg/featuregates"
-	"github.com/kaito-project/kaito/pkg/utils/consts"
 )
 
 func CreateTemplateInference(ctx context.Context, workspaceObj *kaitov1beta1.Workspace, kubeClient client.Client, provisioner nodeprovision.NodeProvisioner) (client.Object, error) {
@@ -37,7 +36,7 @@ func CreateTemplateInference(ctx context.Context, workspaceObj *kaitov1beta1.Wor
 	}
 
 	// Apply cache mutations for template-based workspaces.
-	if featuregates.FeatureGates[consts.FeatureFlagDistributedCache] && cache.HasAttachment(workspaceObj) {
+	if featuregates.FeatureGates[featuregates.FeatureFlagDistributedCache] && cache.HasAttachment(workspaceObj) {
 		if cacheErr := cache.ApplyTemplateCacheMutations(ctx, workspaceObj, kubeClient, ssObj); cacheErr != nil {
 			return nil, cacheErr
 		}

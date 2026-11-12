@@ -27,7 +27,6 @@ import (
 	kaitov1alpha1 "github.com/kaito-project/kaito/api/v1alpha1"
 	kaitov1beta1 "github.com/kaito-project/kaito/api/v1beta1"
 	"github.com/kaito-project/kaito/pkg/featuregates"
-	"github.com/kaito-project/kaito/pkg/utils/consts"
 )
 
 func TestDefaultTelemetryResource(t *testing.T) {
@@ -95,16 +94,16 @@ func TestNewControllerWebhooks(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			// Save original feature gate state
-			originalIS := featuregates.FeatureGates[consts.FeatureFlagEnableInferenceSetController]
-			originalMRI := featuregates.FeatureGates[consts.FeatureFlagEnableMultiRoleInferenceController]
+			originalIS := featuregates.FeatureGates[featuregates.FeatureFlagEnableInferenceSetController]
+			originalMRI := featuregates.FeatureGates[featuregates.FeatureFlagEnableMultiRoleInferenceController]
 			defer func() {
-				featuregates.FeatureGates[consts.FeatureFlagEnableInferenceSetController] = originalIS
-				featuregates.FeatureGates[consts.FeatureFlagEnableMultiRoleInferenceController] = originalMRI
+				featuregates.FeatureGates[featuregates.FeatureFlagEnableInferenceSetController] = originalIS
+				featuregates.FeatureGates[featuregates.FeatureFlagEnableMultiRoleInferenceController] = originalMRI
 			}()
 
 			// Set feature gates for test
-			featuregates.FeatureGates[consts.FeatureFlagEnableInferenceSetController] = tt.enableInferenceSet
-			featuregates.FeatureGates[consts.FeatureFlagEnableMultiRoleInferenceController] = tt.enableMRI
+			featuregates.FeatureGates[featuregates.FeatureFlagEnableInferenceSetController] = tt.enableInferenceSet
+			featuregates.FeatureGates[featuregates.FeatureFlagEnableMultiRoleInferenceController] = tt.enableMRI
 
 			// Call the function
 			constructors := NewControllerWebhooks()

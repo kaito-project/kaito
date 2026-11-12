@@ -22,13 +22,12 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/predicate"
 
 	kaitov1beta1 "github.com/kaito-project/kaito/api/v1beta1"
-	"github.com/kaito-project/kaito/pkg/utils/consts"
 )
 
 var (
 	inferenceSetSelector, _ = metav1.LabelSelectorAsSelector(&metav1.LabelSelector{
 		MatchExpressions: []metav1.LabelSelectorRequirement{
-			{Key: consts.WorkspaceCreatedByInferenceSetLabel, Operator: metav1.LabelSelectorOpExists},
+			{Key: kaitov1beta1.WorkspaceCreatedByInferenceSetLabel, Operator: metav1.LabelSelectorOpExists},
 		},
 	})
 

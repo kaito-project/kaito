@@ -23,7 +23,6 @@ import (
 	"github.com/kaito-project/kaito/api/v1beta1"
 	"github.com/kaito-project/kaito/pkg/featuregates"
 	mmconsts "github.com/kaito-project/kaito/pkg/modelmirror/consts"
-	"github.com/kaito-project/kaito/pkg/utils/consts"
 )
 
 func TestModelStreamingEnabled(t *testing.T) {
@@ -44,15 +43,15 @@ func TestModelStreamingEnabled(t *testing.T) {
 	}
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
-			origStream := featuregates.FeatureGates[consts.FeatureFlagModelStreaming]
-			featuregates.FeatureGates[consts.FeatureFlagModelStreaming] = tc.featureGateOn
+			origStream := featuregates.FeatureGates[featuregates.FeatureFlagModelStreaming]
+			featuregates.FeatureGates[featuregates.FeatureFlagModelStreaming] = tc.featureGateOn
 			// GetWorkspaceRuntimeName returns transformers when the vLLM gate is OFF,
 			// so this test must force the vLLM gate ON to exercise the runtime annotation.
-			origVLLM := featuregates.FeatureGates[consts.FeatureFlagVLLM]
-			featuregates.FeatureGates[consts.FeatureFlagVLLM] = true
+			origVLLM := featuregates.FeatureGates[featuregates.FeatureFlagVLLM]
+			featuregates.FeatureGates[featuregates.FeatureFlagVLLM] = true
 			t.Cleanup(func() {
-				featuregates.FeatureGates[consts.FeatureFlagModelStreaming] = origStream
-				featuregates.FeatureGates[consts.FeatureFlagVLLM] = origVLLM
+				featuregates.FeatureGates[featuregates.FeatureFlagModelStreaming] = origStream
+				featuregates.FeatureGates[featuregates.FeatureFlagVLLM] = origVLLM
 			})
 
 			anns := tc.annotations

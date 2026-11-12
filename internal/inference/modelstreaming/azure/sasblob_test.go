@@ -26,9 +26,9 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client/fake"
 
 	"github.com/kaito-project/kaito/api/v1beta1"
+	"github.com/kaito-project/kaito/internal/image"
 	"github.com/kaito-project/kaito/internal/inference/modelstreaming"
 	"github.com/kaito-project/kaito/internal/manifests/builder"
-	"github.com/kaito-project/kaito/pkg/utils/consts"
 )
 
 func wsWithStreamAnnotations() *v1beta1.Workspace {
@@ -37,9 +37,9 @@ func wsWithStreamAnnotations() *v1beta1.Workspace {
 			Name:      "ws1",
 			Namespace: "default",
 			Annotations: map[string]string{
-				modelstreaming.AnnotationStreamDatarefsURL:      "https://x.services.ai.azure.com/api/projects/p/models/m/versions/1?api-version=2025-11-15-preview",
-				modelstreaming.AnnotationStreamIdentityClientID: "11111111-2222-3333-4444-555555555555",
-				modelstreaming.AnnotationStreamSourceType:       modelstreaming.SourceTypeBYO,
+				v1beta1.AnnotationStreamDatarefsURL:      "https://x.services.ai.azure.com/api/projects/p/models/m/versions/1?api-version=2025-11-15-preview",
+				v1beta1.AnnotationStreamIdentityClientID: "11111111-2222-3333-4444-555555555555",
+				v1beta1.AnnotationStreamSourceType:       v1beta1.StreamSourceTypeBYO,
 			},
 		},
 	}
@@ -74,9 +74,9 @@ func TestSASBlobProvider_GetStreamingConfig(t *testing.T) {
 		envByName[e.Name] = e.Value
 	}
 	// Only the three required inputs (+ env-file path) are passed; blob-derived values are gone.
-	assert.Equal(t, ws.Annotations[modelstreaming.AnnotationStreamDatarefsURL], envByName["STREAM_DATAREFS_URL"])
+	assert.Equal(t, ws.Annotations[v1beta1.AnnotationStreamDatarefsURL], envByName["STREAM_DATAREFS_URL"])
 	assert.Equal(t, "11111111-2222-3333-4444-555555555555", envByName["STREAM_IDENTITY_CLIENT_ID"])
-	assert.Equal(t, modelstreaming.SourceTypeBYO, envByName["STREAM_SOURCE_TYPE"])
+	assert.Equal(t, v1beta1.StreamSourceTypeBYO, envByName["STREAM_SOURCE_TYPE"])
 	assert.NotContains(t, envByName, "STREAM_BLOB_URI")
 	assert.NotContains(t, envByName, "STREAM_ASSET_ID")
 	assert.NotContains(t, envByName, "STREAM_TOKEN_AUDIENCE")
@@ -87,7 +87,7 @@ func TestSASBlobProvider_GetStreamingConfig(t *testing.T) {
 	assert.Equal(t, "fetch-sas", ic.Name)
 	assert.Equal(t, "mcr.microsoft.com/azurelinux/base/python:3.12", ic.Image)
 	assert.Equal(t, []string{"/bin/sh", "-c", initShellCommand}, ic.Command)
-	assert.True(t, strings.HasPrefix(initShellCommand, consts.PipBootstrapCommand+" && "), "pip must be pinned before other installs")
+	assert.True(t, strings.HasPrefix(initShellCommand, image.PipBootstrapCommand+" && "), "pip must be pinned before other installs")
 	// init container mounts both the shared volume and the script ConfigMap.
 	assert.Len(t, ic.VolumeMounts, 2)
 	mountByName := map[string]string{}

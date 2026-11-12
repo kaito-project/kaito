@@ -23,7 +23,6 @@ import (
 	karpenterv1 "sigs.k8s.io/karpenter/pkg/apis/v1"
 
 	kaitov1beta1 "github.com/kaito-project/kaito/api/v1beta1"
-	"github.com/kaito-project/kaito/pkg/utils/consts"
 )
 
 // --- NodePoolName tests ---
@@ -156,7 +155,7 @@ func TestIsInferenceSetWorkspace_True(t *testing.T) {
 	ws := &kaitov1beta1.Workspace{
 		ObjectMeta: metav1.ObjectMeta{
 			Labels: map[string]string{
-				consts.WorkspaceCreatedByInferenceSetLabel: "my-infset",
+				kaitov1beta1.WorkspaceCreatedByInferenceSetLabel: "my-infset",
 			},
 		},
 	}
@@ -179,16 +178,16 @@ func TestResolveCapacityType(t *testing.T) {
 		want        string
 		wantErr     bool
 	}{
-		{name: "absent defaults to on-demand", want: consts.KarpenterCapacityTypeOnDemand},
+		{name: "absent defaults to on-demand", want: karpenterv1.CapacityTypeOnDemand},
 		{
 			name:        "empty defaults to on-demand",
 			annotations: map[string]string{kaitov1beta1.AnnotationCapacityType: ""},
-			want:        consts.KarpenterCapacityTypeOnDemand,
+			want:        karpenterv1.CapacityTypeOnDemand,
 		},
 		{
 			name:        "spot opt-in",
-			annotations: map[string]string{kaitov1beta1.AnnotationCapacityType: consts.KarpenterCapacityTypeSpot},
-			want:        consts.KarpenterCapacityTypeSpot,
+			annotations: map[string]string{kaitov1beta1.AnnotationCapacityType: kaitov1beta1.CapacityTypeSpot},
+			want:        karpenterv1.CapacityTypeSpot,
 		},
 		{
 			name:        "invalid value",
@@ -238,20 +237,20 @@ func newTestWorkspace(ns, name, instanceType string, targetNodeCount int32, labe
 
 func TestGenerateNodePool_Standalone(t *testing.T) {
 	ws := newTestWorkspace("default", "llama-serve", "Standard_NC24ads_A100_v4", 2, nil, nil)
-	np := generateNodePool(ws, testConfig, testConfig.DefaultName, consts.KarpenterCapacityTypeOnDemand)
+	np := generateNodePool(ws, testConfig, testConfig.DefaultName, karpenterv1.CapacityTypeOnDemand)
 
 	// Name
 	assert.Equal(t, "default-llama-serve", np.Name)
 
 	// Labels
-	assert.Equal(t, consts.KarpenterManagedByValue, np.Labels[consts.KarpenterLabelManagedBy])
+	assert.Equal(t, kaitov1beta1.KarpenterManagedByKAITO, np.Labels[kaitov1beta1.LabelKarpenterManagedBy])
 
 	// Template labels
-	assert.Equal(t, "llama-serve", np.Spec.Template.Labels[consts.KarpenterWorkspaceNameKey])
-	assert.Equal(t, "default", np.Spec.Template.Labels[consts.KarpenterWorkspaceNamespaceKey])
+	assert.Equal(t, "llama-serve", np.Spec.Template.Labels[kaitov1beta1.LabelKarpenterWorkspaceName])
+	assert.Equal(t, "default", np.Spec.Template.Labels[kaitov1beta1.LabelKarpenterWorkspaceNamespace])
 
 	// Standalone workspaces should NOT have InferenceSet labels
-	_, hasInfSetLabel := np.Spec.Template.Labels[consts.KarpenterInferenceSetKey]
+	_, hasInfSetLabel := np.Spec.Template.Labels[kaitov1beta1.LabelKarpenterInferenceSet]
 	assert.Assert(t, !hasInfSetLabel, "standalone workspace should not have InferenceSet label")
 
 	// NodeClassRef — uses config values
@@ -267,19 +266,19 @@ func TestGenerateNodePool_Standalone(t *testing.T) {
 	assert.Equal(t, corev1.NodeSelectorOpIn, req.Operator)
 	assert.Equal(t, "Standard_NC24ads_A100_v4", req.Values[0])
 	capacityReq := np.Spec.Template.Spec.Requirements[1]
-	assert.Equal(t, consts.KarpenterCapacityTypeLabel, capacityReq.Key)
+	assert.Equal(t, karpenterv1.CapacityTypeLabelKey, capacityReq.Key)
 	assert.Equal(t, corev1.NodeSelectorOpIn, capacityReq.Operator)
-	assert.Equal(t, consts.KarpenterCapacityTypeOnDemand, capacityReq.Values[0])
+	assert.Equal(t, karpenterv1.CapacityTypeOnDemand, capacityReq.Values[0])
 	placementReq := np.Spec.Template.Spec.Requirements[2]
-	assert.Equal(t, consts.AzurePlacementScopeLabel, placementReq.Key)
+	assert.Equal(t, azurePlacementScopeLabel, placementReq.Key)
 	assert.Equal(t, corev1.NodeSelectorOpIn, placementReq.Operator)
-	assert.Equal(t, consts.AzurePlacementRegional, placementReq.Values[0])
+	assert.Equal(t, azurePlacementRegional, placementReq.Values[0])
 
 	// Taints
 	assert.Equal(t, 1, len(np.Spec.Template.Spec.Taints))
 	taint := np.Spec.Template.Spec.Taints[0]
-	assert.Equal(t, consts.SKUString, taint.Key)
-	assert.Equal(t, consts.GPUString, taint.Value)
+	assert.Equal(t, kaitov1beta1.LabelSKU, taint.Key)
+	assert.Equal(t, kaitov1beta1.SKUGPU, taint.Value)
 	assert.Equal(t, corev1.TaintEffectNoSchedule, taint.Effect)
 
 	// Disruption — standalone gets budget "1"
@@ -297,10 +296,10 @@ func TestGenerateNodePool_Standalone(t *testing.T) {
 
 func TestGenerateNodePool_InferenceSet(t *testing.T) {
 	labels := map[string]string{
-		consts.WorkspaceCreatedByInferenceSetLabel: "my-infset",
+		kaitov1beta1.WorkspaceCreatedByInferenceSetLabel: "my-infset",
 	}
 	ws := newTestWorkspace("prod", "llama-infset-0", "Standard_NC24ads_A100_v4", 1, labels, nil)
-	np := generateNodePool(ws, testConfig, testConfig.DefaultName, consts.KarpenterCapacityTypeOnDemand)
+	np := generateNodePool(ws, testConfig, testConfig.DefaultName, karpenterv1.CapacityTypeOnDemand)
 
 	// InferenceSet workspace gets budget "0"
 	assert.Equal(t, "0", np.Spec.Disruption.Budgets[0].Nodes)
@@ -309,8 +308,8 @@ func TestGenerateNodePool_InferenceSet(t *testing.T) {
 	assert.Equal(t, testConfig.DefaultName, np.Spec.Template.Spec.NodeClassRef.Name)
 
 	// InferenceSet labels on template for drift controller mapping
-	assert.Equal(t, "my-infset", np.Spec.Template.Labels[consts.KarpenterInferenceSetKey])
-	assert.Equal(t, "prod", np.Spec.Template.Labels[consts.KarpenterInferenceSetNamespaceKey])
+	assert.Equal(t, "my-infset", np.Spec.Template.Labels[kaitov1beta1.LabelKarpenterInferenceSet])
+	assert.Equal(t, "prod", np.Spec.Template.Labels[kaitov1beta1.LabelKarpenterInferenceSetNamespace])
 }
 
 func TestGenerateNodePool_CPUWorkspaceOmitsGPUTaint(t *testing.T) {
@@ -322,11 +321,11 @@ func TestGenerateNodePool_CPUWorkspaceOmitsGPUTaint(t *testing.T) {
 		Status:     kaitov1beta1.WorkspaceStatus{TargetNodeCount: 1},
 	}
 
-	np := generateNodePool(ws, testConfig, testConfig.DefaultName, consts.KarpenterCapacityTypeOnDemand)
+	np := generateNodePool(ws, testConfig, testConfig.DefaultName, karpenterv1.CapacityTypeOnDemand)
 	assert.Equal(t, 1, len(np.Spec.Template.Spec.Taints))
-	assert.Equal(t, consts.SKUString, np.Spec.Template.Spec.Taints[0].Key)
-	assert.Equal(t, consts.CPUString, np.Spec.Template.Spec.Taints[0].Value)
-	assert.Equal(t, consts.CPUString, np.Spec.Template.Labels[consts.SKUString])
+	assert.Equal(t, kaitov1beta1.LabelSKU, np.Spec.Template.Spec.Taints[0].Key)
+	assert.Equal(t, kaitov1beta1.SKUCPU, np.Spec.Template.Spec.Taints[0].Value)
+	assert.Equal(t, kaitov1beta1.SKUCPU, np.Spec.Template.Labels[kaitov1beta1.LabelSKU])
 }
 
 func TestGenerateNodePool_WithAnnotation(t *testing.T) {
@@ -336,7 +335,7 @@ func TestGenerateNodePool_WithAnnotation(t *testing.T) {
 	})
 	nodeClassName, err := resolveNodeClassName(ws, testConfig)
 	assert.NilError(t, err)
-	np := generateNodePool(ws, testConfig, nodeClassName, consts.KarpenterCapacityTypeOnDemand)
+	np := generateNodePool(ws, testConfig, nodeClassName, karpenterv1.CapacityTypeOnDemand)
 	assert.Equal(t, "image-family-azure-linux", np.Spec.Template.Spec.NodeClassRef.Name)
 }
 
@@ -347,7 +346,7 @@ func TestGenerateNodePool_CustomCloudConfig(t *testing.T) {
 		DefaultName: "default-ec2",
 	}
 	ws := newTestWorkspace("default", "ws1", "m5.xlarge", 1, nil, nil)
-	np := generateNodePool(ws, cfg, cfg.DefaultName, consts.KarpenterCapacityTypeSpot)
+	np := generateNodePool(ws, cfg, cfg.DefaultName, karpenterv1.CapacityTypeSpot)
 
 	ref := np.Spec.Template.Spec.NodeClassRef
 	assert.Equal(t, "karpenter.k8s.aws", ref.Group)
@@ -357,6 +356,6 @@ func TestGenerateNodePool_CustomCloudConfig(t *testing.T) {
 	// Non-Azure providers should have portable instance and capacity requirements only.
 	assert.Equal(t, 2, len(np.Spec.Template.Spec.Requirements))
 	assert.Equal(t, corev1.LabelInstanceTypeStable, np.Spec.Template.Spec.Requirements[0].Key)
-	assert.Equal(t, consts.KarpenterCapacityTypeLabel, np.Spec.Template.Spec.Requirements[1].Key)
-	assert.Equal(t, consts.KarpenterCapacityTypeSpot, np.Spec.Template.Spec.Requirements[1].Values[0])
+	assert.Equal(t, karpenterv1.CapacityTypeLabelKey, np.Spec.Template.Spec.Requirements[1].Key)
+	assert.Equal(t, karpenterv1.CapacityTypeSpot, np.Spec.Template.Spec.Requirements[1].Values[0])
 }

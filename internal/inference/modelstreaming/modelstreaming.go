@@ -28,7 +28,6 @@ import (
 	"github.com/kaito-project/kaito/pkg/featuregates"
 	pkgmodel "github.com/kaito-project/kaito/pkg/model"
 	mmconsts "github.com/kaito-project/kaito/pkg/modelmirror/consts"
-	"github.com/kaito-project/kaito/pkg/utils/consts"
 )
 
 // Shared SAS-fetch wiring, referenced by both SetStreamingConfig (which wires the main
@@ -63,6 +62,10 @@ const (
 	// SASModelURIEnvVar is the env var (written to the SAS env file by the init container and
 	// sourced by the wrapper) carrying the derived model streaming URI for vLLM --model.
 	SASModelURIEnvVar = "STREAM_MODEL_URI"
+	// ModelConfigSHA256EnvName carries the SHA-256 of the model configuration a
+	// bring-your-own deployment was sized and configured from, so the serving
+	// container can verify that the streamed bundle is that same model.
+	ModelConfigSHA256EnvName = "KAITO_MODEL_CONFIG_SHA256"
 	// sasTokenExportWrapper is the transparent entrypoint wrapper baked into the base image.
 	// It sources the SAS env file (STREAM_ENV_FILE) then exec's the original command.
 	sasTokenExportWrapper = "/workspace/vllm/export_sas_token_for_streaming.sh"
@@ -79,7 +82,7 @@ var StreamingDefaults = struct {
 // ModelStreamingEnabled returns true if the ModelStreaming feature gate is on
 // AND the workspace does not have the opt-out annotation.
 func ModelStreamingEnabled(ws *v1beta1.Workspace) bool {
-	if !featuregates.FeatureGates[consts.FeatureFlagModelStreaming] {
+	if !featuregates.FeatureGates[featuregates.FeatureFlagModelStreaming] {
 		return false
 	}
 	if ann := ws.Annotations[mmconsts.AnnotationModelStreaming]; ann == "disabled" {

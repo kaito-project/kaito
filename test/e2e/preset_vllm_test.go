@@ -43,8 +43,8 @@ import (
 	kaitov1alpha1 "github.com/kaito-project/kaito/api/v1alpha1"
 	kaitov1beta1 "github.com/kaito-project/kaito/api/v1beta1"
 	workspacecontroller "github.com/kaito-project/kaito/internal/controller/workspace"
+	"github.com/kaito-project/kaito/internal/k8s/resources"
 	"github.com/kaito-project/kaito/internal/manifests"
-	"github.com/kaito-project/kaito/pkg/utils/consts"
 	"github.com/kaito-project/kaito/test/e2e/utils"
 )
 
@@ -140,7 +140,7 @@ var _ = Describe("Workspace Preset on vllm runtime", func() {
 				Eventually(func() bool {
 					err := utils.TestingCluster.KubeClient.List(ctx, wsList,
 						client.InNamespace(inferenceSetObj.Namespace),
-						client.MatchingLabels{consts.WorkspaceCreatedByInferenceSetLabel: inferenceSetObj.Name})
+						client.MatchingLabels{kaitov1beta1.WorkspaceCreatedByInferenceSetLabel: inferenceSetObj.Name})
 					if err != nil || len(wsList.Items) == 0 {
 						return false
 					}
@@ -966,7 +966,7 @@ func validateMultiRoleInferenceGWIEResources(mriObj *kaitov1alpha1.MultiRoleInfe
 				return false
 			}
 			for _, cond := range ociRepository.Status.Conditions {
-				if cond.Type == consts.ConditionReady && cond.Status == metav1.ConditionTrue {
+				if cond.Type == resources.ConditionReady && cond.Status == metav1.ConditionTrue {
 					return true
 				}
 			}
@@ -986,7 +986,7 @@ func validateMultiRoleInferenceGWIEResources(mriObj *kaitov1alpha1.MultiRoleInfe
 				return false
 			}
 			for _, cond := range helmRelease.Status.Conditions {
-				if cond.Type == consts.ConditionReady && cond.Status == metav1.ConditionTrue {
+				if cond.Type == resources.ConditionReady && cond.Status == metav1.ConditionTrue {
 					return true
 				}
 			}
@@ -1067,10 +1067,10 @@ func validateMultiRoleInferenceChatCompletions(mriObj *kaitov1alpha1.MultiRoleIn
 // FeatureFlagEnableMultiRoleInferenceController, so by construction any MRI
 // workspace must satisfy all of the following:
 //
-//  1. StatefulSet pod spec has containerPort/kv-events=consts.PortKVCacheEvents.
+//  1. StatefulSet pod spec has containerPort/kv-events=manifests.PortKVCacheEvents.
 //  2. StatefulSet pod command contains --kv-events-config='{"enable_kv_cache_events":true}'.
 //  3. The child Workspace ClusterIP Service exposes a Service port named
-//     kv-events on consts.PortKVCacheEvents.
+//     kv-events on manifests.PortKVCacheEvents.
 //  4. vLLM logs contain the ZMQ publisher startup line, proving the process
 //     actually opened the socket (not just that the flag was passed).
 func validateMultiRoleInferenceKVEvents(mriObj *kaitov1alpha1.MultiRoleInference) {
@@ -1079,7 +1079,7 @@ func validateMultiRoleInferenceKVEvents(mriObj *kaitov1alpha1.MultiRoleInference
 		Expect(err).NotTo(HaveOccurred(), "Failed to create core client")
 
 		kvEventsFlag := `--kv-events-config='{"enable_kv_cache_events":true}'`
-		kvEventsPort := int32(consts.PortKVCacheEvents)
+		kvEventsPort := int32(manifests.PortKVCacheEvents)
 
 		// Look up all child Workspaces (prefill + decode) via the MRI parent label.
 		var childWorkspaces []kaitov1beta1.Workspace
@@ -1278,7 +1278,7 @@ func validateInferenceSetSpeculativeDecodingNGramInjected(inferenceSetObj *kaito
 			pods := &corev1.PodList{}
 			if err := utils.TestingCluster.KubeClient.List(ctx, pods,
 				client.InNamespace(inferenceSetObj.Namespace),
-				client.MatchingLabels{consts.WorkspaceCreatedByInferenceSetLabel: inferenceSetObj.Name},
+				client.MatchingLabels{kaitov1beta1.WorkspaceCreatedByInferenceSetLabel: inferenceSetObj.Name},
 			); err != nil {
 				return fmt.Errorf("list pods: %w", err)
 			}
@@ -1314,7 +1314,7 @@ func validateInferenceSetSpeculativeDecodingMTPInjected(inferenceSetObj *kaitov1
 			pods := &corev1.PodList{}
 			if err := utils.TestingCluster.KubeClient.List(ctx, pods,
 				client.InNamespace(inferenceSetObj.Namespace),
-				client.MatchingLabels{consts.WorkspaceCreatedByInferenceSetLabel: inferenceSetObj.Name},
+				client.MatchingLabels{kaitov1beta1.WorkspaceCreatedByInferenceSetLabel: inferenceSetObj.Name},
 			); err != nil {
 				return fmt.Errorf("list pods: %w", err)
 			}
@@ -1354,7 +1354,7 @@ func getFirstInferenceSetChildWorkspace(inferenceSetObj *kaitov1beta1.InferenceS
 			wsList := &kaitov1beta1.WorkspaceList{}
 			if err := utils.TestingCluster.KubeClient.List(ctx, wsList,
 				client.InNamespace(inferenceSetObj.Namespace),
-				client.MatchingLabels{consts.WorkspaceCreatedByInferenceSetLabel: inferenceSetObj.Name},
+				client.MatchingLabels{kaitov1beta1.WorkspaceCreatedByInferenceSetLabel: inferenceSetObj.Name},
 			); err != nil {
 				return false
 			}
@@ -1685,7 +1685,7 @@ func validateInferenceSetNodePools(inferenceSetObj *kaitov1beta1.InferenceSet, n
 	err := utils.TestingCluster.KubeClient.List(ctx, workspaceList,
 		client.InNamespace(inferenceSetObj.Namespace),
 		client.MatchingLabels{
-			consts.WorkspaceCreatedByInferenceSetLabel: inferenceSetObj.Name,
+			kaitov1beta1.WorkspaceCreatedByInferenceSetLabel: inferenceSetObj.Name,
 		})
 	Expect(err).NotTo(HaveOccurred())
 	Expect(workspaceList.Items).To(HaveLen(numOfReplicas),
@@ -1721,7 +1721,7 @@ func validateGatewayAPIInferenceExtensionResources(iObj *kaitov1beta1.InferenceS
 				return false
 			}
 			for _, cond := range ociRepository.Status.Conditions {
-				if cond.Type == consts.ConditionReady && cond.Status == metav1.ConditionTrue {
+				if cond.Type == resources.ConditionReady && cond.Status == metav1.ConditionTrue {
 					return true
 				}
 			}
@@ -1740,7 +1740,7 @@ func validateGatewayAPIInferenceExtensionResources(iObj *kaitov1beta1.InferenceS
 				return false
 			}
 			for _, cond := range helmRelease.Status.Conditions {
-				if cond.Type == consts.ConditionReady && cond.Status == metav1.ConditionTrue {
+				if cond.Type == resources.ConditionReady && cond.Status == metav1.ConditionTrue {
 					return true
 				}
 			}
@@ -1874,7 +1874,7 @@ func validateInferenceSetBenchmarkCompleted(inferenceSetObj *kaitov1beta1.Infere
 		Eventually(func() bool {
 			err := utils.TestingCluster.KubeClient.List(ctx, wsList,
 				client.InNamespace(inferenceSetObj.Namespace),
-				client.MatchingLabels{consts.WorkspaceCreatedByInferenceSetLabel: inferenceSetObj.Name},
+				client.MatchingLabels{kaitov1beta1.WorkspaceCreatedByInferenceSetLabel: inferenceSetObj.Name},
 			)
 			if err != nil {
 				return false
@@ -1906,7 +1906,7 @@ func validateInferenceSetBenchmarkCompleted(inferenceSetObj *kaitov1beta1.Infere
 		wsList := &kaitov1beta1.WorkspaceList{}
 		if err := utils.TestingCluster.KubeClient.List(ctx, wsList,
 			client.InNamespace(inferenceSetObj.Namespace),
-			client.MatchingLabels{consts.WorkspaceCreatedByInferenceSetLabel: inferenceSetObj.Name},
+			client.MatchingLabels{kaitov1beta1.WorkspaceCreatedByInferenceSetLabel: inferenceSetObj.Name},
 		); err != nil {
 			GinkgoWriter.Printf("WARNING: could not list child workspaces: %v\n", err)
 			return

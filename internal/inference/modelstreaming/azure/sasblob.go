@@ -25,10 +25,10 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
 	"github.com/kaito-project/kaito/api/v1beta1"
+	"github.com/kaito-project/kaito/internal/image"
 	"github.com/kaito-project/kaito/internal/inference/modelstreaming"
 	"github.com/kaito-project/kaito/internal/manifests/builder"
 	pkgmodel "github.com/kaito-project/kaito/pkg/model"
-	"github.com/kaito-project/kaito/pkg/utils/consts"
 )
 
 // fetchSASScript is the SAS-minting script, delivered to the init container via a per-workspace
@@ -40,7 +40,7 @@ var fetchSASScript string
 const (
 	// sasInitImage is the Python image the SAS-fetch init container runs on. It carries no
 	// cloud SDKs; azure-identity is pip-installed at container start (see initShellCommand).
-	sasInitImage = consts.PythonHelperImage
+	sasInitImage = image.PythonHelperImage
 	// azureIdentityVersion is the azure-identity version pip-installed at runtime by the init
 	// container. Kept in sync with the pin previously in the base image requirements.txt.
 	azureIdentityVersion = "1.19.0"
@@ -51,7 +51,7 @@ const (
 
 // initShellCommand pins pip, pip-installs azure-identity and rfc8785, and runs fetch_sas.py,
 // which is mounted from a per-workspace ConfigMap at SASScriptMountPath.
-const initShellCommand = consts.PipBootstrapCommand + " && pip install --no-cache-dir -q azure-identity==" + azureIdentityVersion +
+const initShellCommand = image.PipBootstrapCommand + " && pip install --no-cache-dir -q azure-identity==" + azureIdentityVersion +
 	" rfc8785==" + rfc8785Version +
 	" && python3 " + modelstreaming.SASScriptMountPath + "/" + modelstreaming.SASScriptFileName
 
@@ -80,15 +80,15 @@ func (s *SASBlobProvider) GetStreamingConfig(ctx *builder.WorkspaceGeneratorCont
 		Image:   sasInitImage,
 		Command: []string{"/bin/sh", "-c", initShellCommand},
 		Env: []corev1.EnvVar{
-			{Name: "STREAM_DATAREFS_URL", Value: ann[modelstreaming.AnnotationStreamDatarefsURL]},
-			{Name: "STREAM_IDENTITY_CLIENT_ID", Value: ann[modelstreaming.AnnotationStreamIdentityClientID]},
-			{Name: "STREAM_SOURCE_TYPE", Value: ann[modelstreaming.AnnotationStreamSourceType]},
+			{Name: "STREAM_DATAREFS_URL", Value: ann[v1beta1.AnnotationStreamDatarefsURL]},
+			{Name: "STREAM_IDENTITY_CLIENT_ID", Value: ann[v1beta1.AnnotationStreamIdentityClientID]},
+			{Name: "STREAM_SOURCE_TYPE", Value: ann[v1beta1.AnnotationStreamSourceType]},
 			{Name: modelstreaming.SASEnvFileEnvVar, Value: envFilePath},
 			// For a bring-your-own model, the operator sized and configured the
 			// deployment from a config.json the serving pod never sees. Passing
 			// its digest lets this container confirm the bundle it is about to
 			// stream is that same model, before any capacity is consumed loading it.
-			{Name: consts.ModelConfigSHA256EnvName, Value: expectedModelConfigDigest(ctx)},
+			{Name: modelstreaming.ModelConfigSHA256EnvName, Value: expectedModelConfigDigest(ctx)},
 		},
 		VolumeMounts: []corev1.VolumeMount{
 			{Name: modelstreaming.SASSharedVolumeName, MountPath: modelstreaming.SASSharedMountPath},

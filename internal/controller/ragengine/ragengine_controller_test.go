@@ -41,9 +41,10 @@ import (
 	karpenterv1 "sigs.k8s.io/karpenter/pkg/apis/v1"
 
 	"github.com/kaito-project/kaito/api/v1beta1"
+	"github.com/kaito-project/kaito/internal/k8s/resources"
 	"github.com/kaito-project/kaito/internal/testutil"
 	"github.com/kaito-project/kaito/pkg/apis"
-	"github.com/kaito-project/kaito/pkg/utils/consts"
+	"github.com/kaito-project/kaito/pkg/consts"
 )
 
 func TestApplyRAGEngineResource(t *testing.T) {
@@ -456,7 +457,7 @@ func TestUpdateControllerRevision1(t *testing.T) {
 				revisions := &appsv1.ControllerRevisionList{}
 				jsonData, _ := json.Marshal(testutil.MockRAGEngineWithUpdatedDeployment)
 
-				for i := 0; i <= consts.MaxRevisionHistoryLimit; i++ {
+				for i := 0; i <= resources.MaxRevisionHistoryLimit; i++ {
 					revision := &appsv1.ControllerRevision{
 						ObjectMeta: v1.ObjectMeta{
 							Name: fmt.Sprintf("revision-%d", i),
@@ -1126,7 +1127,7 @@ func TestReconcile(t *testing.T) {
 			callMocks: func(c *testutil.MockClient) {
 				ragengine := testutil.MockRAGEngineDistributedModel.DeepCopy()
 				ragengine.DeletionTimestamp = &v1.Time{Time: time.Now()}
-				ragengine.Finalizers = []string{consts.RAGEngineFinalizer}
+				ragengine.Finalizers = []string{ragEngineFinalizer}
 
 				c.On("Get", mock.IsType(context.Background()), mock.Anything, mock.IsType(&v1beta1.RAGEngine{}), mock.Anything).
 					Run(func(args mock.Arguments) {
@@ -1192,7 +1193,7 @@ func TestEnsureFinalizer(t *testing.T) {
 			},
 			ragengine: &v1beta1.RAGEngine{
 				ObjectMeta: v1.ObjectMeta{
-					Finalizers: []string{consts.RAGEngineFinalizer},
+					Finalizers: []string{ragEngineFinalizer},
 				},
 			},
 			expectedError:      nil,
@@ -1295,7 +1296,7 @@ func TestDeleteRAGEngine(t *testing.T) {
 			}
 			ctx := context.Background()
 			ragengine := testutil.MockRAGEngine.DeepCopy()
-			ragengine.Finalizers = []string{consts.RAGEngineFinalizer}
+			ragengine.Finalizers = []string{ragEngineFinalizer}
 
 			result, err := reconciler.deleteRAGEngine(ctx, ragengine)
 

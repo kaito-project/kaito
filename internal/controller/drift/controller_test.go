@@ -33,7 +33,6 @@ import (
 
 	kaitov1beta1 "github.com/kaito-project/kaito/api/v1beta1"
 	"github.com/kaito-project/kaito/internal/testutil"
-	"github.com/kaito-project/kaito/pkg/utils/consts"
 )
 
 // --- Test helpers ---
@@ -76,11 +75,11 @@ func newNodePoolWithDriftBudget(name, nodes, wsName, wsNamespace, infSetName, in
 		ObjectMeta: metav1.ObjectMeta{
 			Name: name,
 			Labels: map[string]string{
-				consts.KarpenterLabelManagedBy:           consts.KarpenterManagedByValue,
-				consts.KarpenterWorkspaceNameKey:         wsName,
-				consts.KarpenterWorkspaceNamespaceKey:    wsNamespace,
-				consts.KarpenterInferenceSetKey:          infSetName,
-				consts.KarpenterInferenceSetNamespaceKey: infSetNamespace,
+				kaitov1beta1.LabelKarpenterManagedBy:             kaitov1beta1.KarpenterManagedByKAITO,
+				kaitov1beta1.LabelKarpenterWorkspaceName:         wsName,
+				kaitov1beta1.LabelKarpenterWorkspaceNamespace:    wsNamespace,
+				kaitov1beta1.LabelKarpenterInferenceSet:          infSetName,
+				kaitov1beta1.LabelKarpenterInferenceSetNamespace: infSetNamespace,
 			},
 		},
 		Spec: karpenterv1.NodePoolSpec{
@@ -111,7 +110,7 @@ func newWorkspaceForInferenceSet(ns, name, infSetName string) *kaitov1beta1.Work
 			Name:      name,
 			Namespace: ns,
 			Labels: map[string]string{
-				consts.WorkspaceCreatedByInferenceSetLabel: infSetName,
+				kaitov1beta1.WorkspaceCreatedByInferenceSetLabel: infSetName,
 			},
 		},
 	}
@@ -122,9 +121,9 @@ func newNodeClaimWithDriftCondition(name, nodePoolName, infSetName, infSetNamesp
 		ObjectMeta: metav1.ObjectMeta{
 			Name: name,
 			Labels: map[string]string{
-				karpenterv1.NodePoolLabelKey:             nodePoolName,
-				consts.KarpenterInferenceSetKey:          infSetName,
-				consts.KarpenterInferenceSetNamespaceKey: infSetNamespace,
+				karpenterv1.NodePoolLabelKey:                     nodePoolName,
+				kaitov1beta1.LabelKarpenterInferenceSet:          infSetName,
+				kaitov1beta1.LabelKarpenterInferenceSetNamespace: infSetNamespace,
 			},
 		},
 	}
@@ -168,8 +167,8 @@ func TestInferenceSetNodeClaimPredicate_WithLabel(t *testing.T) {
 	nc := &karpenterv1.NodeClaim{
 		ObjectMeta: metav1.ObjectMeta{
 			Labels: map[string]string{
-				consts.KarpenterInferenceSetKey:          "my-infset",
-				consts.KarpenterInferenceSetNamespaceKey: "default",
+				kaitov1beta1.LabelKarpenterInferenceSet:          "my-infset",
+				kaitov1beta1.LabelKarpenterInferenceSetNamespace: "default",
 			},
 		},
 	}
@@ -193,8 +192,8 @@ func TestMapNodeClaimToInferenceSet_WithLabels(t *testing.T) {
 	nc := &karpenterv1.NodeClaim{
 		ObjectMeta: metav1.ObjectMeta{
 			Labels: map[string]string{
-				consts.KarpenterInferenceSetKey:          "my-infset",
-				consts.KarpenterInferenceSetNamespaceKey: "prod",
+				kaitov1beta1.LabelKarpenterInferenceSet:          "my-infset",
+				kaitov1beta1.LabelKarpenterInferenceSetNamespace: "prod",
 			},
 		},
 	}
@@ -220,7 +219,7 @@ func TestMapNodeClaimToInferenceSet_PartialLabels(t *testing.T) {
 	nc := &karpenterv1.NodeClaim{
 		ObjectMeta: metav1.ObjectMeta{
 			Labels: map[string]string{
-				consts.KarpenterInferenceSetKey: "my-infset",
+				kaitov1beta1.LabelKarpenterInferenceSet: "my-infset",
 			},
 		},
 	}
@@ -237,7 +236,7 @@ func TestMapWorkspaceToInferenceSet_WithLabel(t *testing.T) {
 			Name:      "ws-0",
 			Namespace: "default",
 			Labels: map[string]string{
-				consts.WorkspaceCreatedByInferenceSetLabel: "my-infset",
+				kaitov1beta1.WorkspaceCreatedByInferenceSetLabel: "my-infset",
 			},
 		},
 	}
@@ -265,7 +264,7 @@ func TestInferenceSetWorkspacePredicate_WithLabel(t *testing.T) {
 	ws := &kaitov1beta1.Workspace{
 		ObjectMeta: metav1.ObjectMeta{
 			Labels: map[string]string{
-				consts.WorkspaceCreatedByInferenceSetLabel: "my-infset",
+				kaitov1beta1.WorkspaceCreatedByInferenceSetLabel: "my-infset",
 			},
 		},
 	}

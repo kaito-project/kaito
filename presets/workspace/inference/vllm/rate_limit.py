@@ -35,16 +35,39 @@ kaito_ratelimit_rejected_total = Counter(
 )
 
 # Only inference endpoints are guarded — control-plane paths (/health,
-# /metrics, /v1/models, …) must never 429.
-GUARDED_PREFIXES = (
-    "/v1/completions",
-    "/v1/chat/completions",
-    "/v1/embeddings",
-    "/tokenize",
-    "/pooling",
-    "/score",
-    "/rerank",
-    "/v1/rerank",
+# /metrics, /v1/models, …) must never 429. Paths are matched exactly rather
+# than by prefix so that sub-resources such as GET /v1/responses/{id} and
+# POST /v1/responses/{id}/cancel stay reachable while the server is
+# overloaded.
+GUARDED_PATHS = frozenset(
+    (
+        # Text generation
+        "/v1/completions",
+        "/v1/chat/completions",
+        "/v1/chat/completions/batch",
+        "/v1/responses",
+        "/v1/messages",
+        "/cohere/v2/chat",
+        "/inference/v1/generate",
+        "/generative_scoring",
+        # Speech-to-text
+        "/v1/audio/transcriptions",
+        "/v1/audio/translations",
+        # Pooling: embeddings, classification, scoring and reranking
+        "/v1/embeddings",
+        "/v2/embed",
+        "/pooling",
+        "/classify",
+        "/score",
+        "/v1/score",
+        "/rerank",
+        "/v1/rerank",
+        "/v2/rerank",
+        # SageMaker-compatible entrypoint dispatching to any of the above
+        "/invocations",
+        # Tokenization
+        "/tokenize",
+    )
 )
 
 # Set by configure() before vLLM installs the middleware. None = no-op.
@@ -85,7 +108,7 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
         threshold = _max_num_seqs
         if threshold is None:
             return await call_next(request)
-        if not any(request.url.path.startswith(p) for p in GUARDED_PREFIXES):
+        if request.url.path not in GUARDED_PATHS:
             return await call_next(request)
 
         # The Prometheus gauge lags admits: under a burst, N concurrent

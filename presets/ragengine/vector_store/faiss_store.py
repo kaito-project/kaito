@@ -23,6 +23,9 @@ from .base import BaseVectorStore
 
 
 class FaissVectorStoreHandler(BaseVectorStore):
+    # IndexFlatL2 returns squared L2 distances.
+    _vector_scores_are_distances: bool = True
+
     def __init__(self, embed_model: BaseEmbeddingModel):
         super().__init__(embed_model, use_rwlock=True)
         self.dimension = self.embed_model.get_embedding_dimension()

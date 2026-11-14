@@ -16,16 +16,46 @@
 Unit tests for the retrieve method.
 """
 
+import math
 import os
+import re
+import zlib
 from tempfile import TemporaryDirectory
 from unittest.mock import patch
 
 import pytest
+from llama_index.core import VectorStoreIndex
+from llama_index.core.schema import TextNode
 
 from ragengine.config import LOCAL_EMBEDDING_MODEL_ID
+from ragengine.embedding.base import BaseEmbeddingModel
 from ragengine.embedding.huggingface_local_embedding import LocalHuggingFaceEmbedding
 from ragengine.models import Document
 from ragengine.vector_store.faiss_store import FaissVectorStoreHandler
+from ragengine.vector_store.retriever.hybrid_retriever import HybridRetriever
+
+RANKING_DOCS = [
+    "The cat sat on the mat.",
+    "A kitten is resting on a rug.",
+    "Quarterly revenue grew by twelve percent.",
+]
+
+
+class BagOfWordsEmbedding(BaseEmbeddingModel):
+    """Deterministic embedding: normalized word counts hashed into buckets."""
+
+    def get_embedding_dimension(self) -> int:
+        return 64
+
+    def _get_text_embedding(self, text: str) -> list[float]:
+        vector = [0.0] * self.get_embedding_dimension()
+        for word in re.findall(r"\w+", text.lower()):
+            vector[zlib.crc32(word.encode()) % len(vector)] += 1.0
+        norm = math.sqrt(sum(v * v for v in vector)) or 1.0
+        return [v / norm for v in vector]
+
+    def _get_query_embedding(self, query: str) -> list[float]:
+        return self._get_text_embedding(query)
 
 
 @pytest.fixture(scope="session")
@@ -143,3 +173,63 @@ async def test_retrieve_result_structure(vector_store_with_docs):
         assert "text" in first_result
         assert "score" in first_result
         assert "metadata" in first_result
+
+
+@pytest.mark.asyncio
+async def test_retrieve_ranks_exact_match_first_with_faiss():
+    """FAISS returns L2 distances; the closest match must still rank first."""
+    with TemporaryDirectory() as temp_dir:
+        os.environ["PERSIST_DIR"] = temp_dir
+        store = FaissVectorStoreHandler(BagOfWordsEmbedding())
+        await store.index_documents(
+            "rank_index", [Document(text=text) for text in RANKING_DOCS]
+        )
+
+        result = await store.retrieve(
+            index_name="rank_index", query=RANKING_DOCS[2], max_node_count=3
+        )
+
+    scores = [r["score"] for r in result["results"]]
+    assert result["results"][0]["text"] == RANKING_DOCS[2]
+    assert scores[0] > scores[1]
+
+
+@pytest.mark.asyncio
+async def test_hybrid_retriever_keeps_similarity_scores():
+    """Stores that return similarities are fused without conversion."""
+    index = VectorStoreIndex(
+        nodes=[TextNode(text=text) for text in RANKING_DOCS],
+        embed_model=BagOfWordsEmbedding(),
+    )
+
+    results = await HybridRetriever(index, max_results=3).aretrieve(RANKING_DOCS[2])
+
+    assert results[0].node.get_content() == RANKING_DOCS[2]
+
+
+@pytest.mark.asyncio
+async def test_retrieve_without_bm25_scores_faiss_as_similarities():
+    """Vector-only results use the same higher-is-better scores as fused ones."""
+    with TemporaryDirectory() as temp_dir:
+        os.environ["PERSIST_DIR"] = temp_dir
+        store = FaissVectorStoreHandler(BagOfWordsEmbedding())
+        await store.index_documents(
+            "rank_index", [Document(text=text) for text in RANKING_DOCS]
+        )
+
+        with patch.object(HybridRetriever, "_build_bm25_retriever", return_value=None):
+            result = await store.retrieve(
+                index_name="rank_index", query=RANKING_DOCS[2], max_node_count=3
+            )
+            sync_results = HybridRetriever(
+                store.index_map["rank_index"],
+                max_results=3,
+                vector_scores_are_distances=True,
+            ).retrieve(RANKING_DOCS[2])
+
+    scores = [r["score"] for r in result["results"]]
+    assert result["results"][0]["text"] == RANKING_DOCS[2]
+    assert scores[0] == pytest.approx(1.0)
+    assert scores == sorted(scores, reverse=True)
+    assert sync_results[0].node.get_content() == RANKING_DOCS[2]
+    assert sync_results[0].score == pytest.approx(1.0)

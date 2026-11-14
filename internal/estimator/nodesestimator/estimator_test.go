@@ -670,11 +670,13 @@ func TestNodeEstimator_EstimateNodeCount_RealCatalogModels_H100(t *testing.T) {
 	const (
 		h100_1GPU = "Standard_NC40ads_H100_v5"
 		h100_2GPU = "Standard_NC80adis_H100_v5"
+		h100_8GPU = "Standard_ND96isr_H100_v5"
 	)
 	runRealCatalogModelCases(t, []realCatalogModelCase{
 		{"gpt-oss-120b/1xH100", "openai/gpt-oss-120b", h100_1GPU, 1},                          // 60.77Gi
 		{"DeepSeek-V4-Flash-0731/1xH100", "deepseek-ai/DeepSeek-V4-Flash-0731", h100_1GPU, 2}, // 155.43Gi
 		{"DeepSeek-V4-Flash-0731/2xH100", "deepseek-ai/DeepSeek-V4-Flash-0731", h100_2GPU, 1}, // 155.43Gi
+		{"DeepSeek-V4-Flash-0731/8xH100", "deepseek-ai/DeepSeek-V4-Flash-0731", h100_8GPU, 1}, // 155.43Gi
 		{"Qwen3.8-27B/1xH100", "Qwen/Qwen3.8-27B", h100_1GPU, 1},                              // 51.75Gi
 		{"gemma-4-31B-it/1xH100", "google/gemma-4-31B-it", h100_1GPU, 1},                      // 58.25Gi
 	})

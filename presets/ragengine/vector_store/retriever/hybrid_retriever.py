@@ -16,8 +16,9 @@
 Uses weighted score fusion:
   finalScore = vector_weight * vectorScore + text_weight * textScore
 
-where textScore is derived from BM25 rank via: 1 / (1 + rank). If the vector
-store returns distances, vectorScore is 1 / (1 + distance).
+where textScore is derived from BM25 rank via: 1 / (1 + rank), for keyword
+hits with a positive BM25 score. If the vector store returns squared L2
+distances of unit vectors, vectorScore is the cosine similarity 1 - distance / 2.
 Default weights: vector=0.7, text=0.3 (normalized to sum to 1.0).
 """
 
@@ -143,6 +144,12 @@ class HybridRetriever(BaseRetriever):
         # Collect vector scores by node_id
         vector_scores = {n.node.node_id: self._vector_score(n) for n in vector_nodes}
 
+        # BM25 returns its top_k even when no keyword matches; hits with a zero
+        # score carry no keyword signal, so they get no rank credit.
+        keyword_nodes = [
+            n for n in keyword_nodes if n.score is not None and n.score > 0
+        ]
+
         # BM25 results: convert position rank to score = 1/(1+rank)
         keyword_ranks = {n.node.node_id: idx for idx, n in enumerate(keyword_nodes)}
 
@@ -172,16 +179,17 @@ class HybridRetriever(BaseRetriever):
         if node.score is None:
             return 0.0
         if self._vector_scores_are_distances:
-            # Map distance (0 = exact match) to a similarity in (0, 1]
-            return 1.0 / (1.0 + node.score)
+            # Squared L2 distance between unit vectors is 2 - 2 * cosine, so this
+            # is the cosine similarity that similarity-scored stores return.
+            return 1.0 - node.score / 2.0
         return node.score
 
     def _vector_only(self, vector_nodes: list[NodeWithScore]) -> list[NodeWithScore]:
-        """Vector results without BM25, scored like fused results."""
-        nodes = vector_nodes[: self._max_results]
-        if not self._vector_scores_are_distances:
-            return nodes
-        return [NodeWithScore(node=n.node, score=self._vector_score(n)) for n in nodes]
+        """Top vector results, scored as similarities (higher is better)."""
+        return [
+            NodeWithScore(node=n.node, score=self._vector_score(n))
+            for n in vector_nodes[: self._max_results]
+        ]
 
     def _retrieve(self, query_bundle: QueryBundle) -> list[NodeWithScore]:
         """Synchronous hybrid retrieval (falls back to vector-only if BM25 unavailable)."""

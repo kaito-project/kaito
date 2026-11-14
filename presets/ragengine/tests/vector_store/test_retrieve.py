@@ -58,6 +58,14 @@ class BagOfWordsEmbedding(BaseEmbeddingModel):
         return self._get_text_embedding(query)
 
 
+class SynonymEmbedding(BagOfWordsEmbedding):
+    """Bag of words that reads "feline" as "kitten", so a query can match a
+    document by meaning without sharing a keyword with it."""
+
+    def _get_text_embedding(self, text: str) -> list[float]:
+        return super()._get_text_embedding(text.lower().replace("feline", "kitten"))
+
+
 @pytest.fixture(scope="session")
 def init_embed_manager():
     return LocalHuggingFaceEmbedding(LOCAL_EMBEDDING_MODEL_ID)
@@ -178,18 +186,20 @@ async def test_retrieve_result_structure(vector_store_with_docs):
 @pytest.mark.asyncio
 async def test_retrieve_ranks_exact_match_first_with_faiss():
     """FAISS returns L2 distances; the closest match must still rank first."""
-    with TemporaryDirectory() as temp_dir:
-        os.environ["PERSIST_DIR"] = temp_dir
-        store = FaissVectorStoreHandler(BagOfWordsEmbedding())
-        await store.index_documents(
-            "rank_index", [Document(text=text) for text in RANKING_DOCS]
-        )
+    store = FaissVectorStoreHandler(BagOfWordsEmbedding())
+    await store.index_documents(
+        "rank_index", [Document(text=text) for text in RANKING_DOCS]
+    )
 
+    with patch.object(
+        HybridRetriever, "_fuse", autospec=True, side_effect=HybridRetriever._fuse
+    ) as fuse:
         result = await store.retrieve(
             index_name="rank_index", query=RANKING_DOCS[2], max_node_count=3
         )
 
     scores = [r["score"] for r in result["results"]]
+    fuse.assert_called_once()
     assert result["results"][0]["text"] == RANKING_DOCS[2]
     assert scores[0] > scores[1]
 
@@ -209,27 +219,77 @@ async def test_hybrid_retriever_keeps_similarity_scores():
 
 @pytest.mark.asyncio
 async def test_retrieve_without_bm25_scores_faiss_as_similarities():
-    """Vector-only results use the same higher-is-better scores as fused ones."""
-    with TemporaryDirectory() as temp_dir:
-        os.environ["PERSIST_DIR"] = temp_dir
-        store = FaissVectorStoreHandler(BagOfWordsEmbedding())
-        await store.index_documents(
-            "rank_index", [Document(text=text) for text in RANKING_DOCS]
+    """Without BM25, FAISS results are scored as cosine similarities."""
+    store = FaissVectorStoreHandler(BagOfWordsEmbedding())
+    await store.index_documents(
+        "rank_index", [Document(text=text) for text in RANKING_DOCS]
+    )
+
+    with patch.object(HybridRetriever, "_build_bm25_retriever", return_value=None):
+        result = await store.retrieve(
+            index_name="rank_index", query=RANKING_DOCS[2], max_node_count=3
         )
+        sync_results = HybridRetriever(
+            store.index_map["rank_index"],
+            max_results=3,
+            vector_scores_are_distances=True,
+        ).retrieve(RANKING_DOCS[2])
 
-        with patch.object(HybridRetriever, "_build_bm25_retriever", return_value=None):
-            result = await store.retrieve(
-                index_name="rank_index", query=RANKING_DOCS[2], max_node_count=3
-            )
-            sync_results = HybridRetriever(
-                store.index_map["rank_index"],
-                max_results=3,
-                vector_scores_are_distances=True,
-            ).retrieve(RANKING_DOCS[2])
-
+    # Expect the cosine similarity that similarity-scored stores report
+    # (FAISS computes in float32).
+    embed_model = BagOfWordsEmbedding()
+    query_vector = embed_model.get_query_embedding(RANKING_DOCS[2])
+    expected = {
+        text: embed_model.similarity(query_vector, embed_model.get_text_embedding(text))
+        for text in RANKING_DOCS
+    }
     scores = [r["score"] for r in result["results"]]
     assert result["results"][0]["text"] == RANKING_DOCS[2]
-    assert scores[0] == pytest.approx(1.0)
+    assert scores == [
+        pytest.approx(expected[r["text"]], abs=1e-6) for r in result["results"]
+    ]
     assert scores == sorted(scores, reverse=True)
     assert sync_results[0].node.get_content() == RANKING_DOCS[2]
     assert sync_results[0].score == pytest.approx(1.0)
+
+
+@pytest.mark.asyncio
+async def test_retrieve_ranks_by_vector_when_no_keyword_matches():
+    """BM25 hits without a matching keyword must not outrank the closest vector."""
+    store = FaissVectorStoreHandler(SynonymEmbedding())
+    await store.index_documents(
+        "rank_index", [Document(text=text) for text in RANKING_DOCS]
+    )
+
+    # The query from issue #2533 shares no keyword with any document.
+    result = await store.retrieve(
+        index_name="rank_index",
+        query="small feline napping on a carpet",
+        max_node_count=3,
+    )
+
+    assert [r["text"] for r in result["results"]] == [
+        RANKING_DOCS[1],
+        RANKING_DOCS[0],
+        RANKING_DOCS[2],
+    ]
+
+
+@pytest.mark.asyncio
+async def test_retrieve_keeps_similarity_scores_of_loaded_json_index():
+    """An index loaded from llama-index's JSON format is scored as similarities."""
+    embed_model = BagOfWordsEmbedding()
+    index = VectorStoreIndex(
+        nodes=[TextNode(text=text) for text in RANKING_DOCS],
+        embed_model=embed_model,
+    )
+    store = FaissVectorStoreHandler(embed_model)
+    with TemporaryDirectory() as path:
+        index.storage_context.persist(persist_dir=path)
+        await store.load("loaded_index", path, overwrite=False)
+
+    result = await store.retrieve(
+        index_name="loaded_index", query=RANKING_DOCS[2], max_node_count=3
+    )
+
+    assert result["results"][0]["text"] == RANKING_DOCS[2]

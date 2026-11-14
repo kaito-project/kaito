@@ -14,7 +14,7 @@
 
 import faiss
 from llama_index.core import StorageContext
-from llama_index.vector_stores.faiss import FaissMapVectorStore
+from llama_index.vector_stores.faiss import FaissMapVectorStore, FaissVectorStore
 
 from ragengine.embedding.base import BaseEmbeddingModel
 from ragengine.models import Document
@@ -23,12 +23,19 @@ from .base import BaseVectorStore
 
 
 class FaissVectorStoreHandler(BaseVectorStore):
-    # IndexFlatL2 returns squared L2 distances.
-    _vector_scores_are_distances: bool = True
-
     def __init__(self, embed_model: BaseEmbeddingModel):
         super().__init__(embed_model, use_rwlock=True)
         self.dimension = self.embed_model.get_embedding_dimension()
+
+    def _vector_scores_are_distances(self, index_name: str) -> bool:
+        # Indexes created here use IndexFlatL2, which returns squared L2
+        # distances. Indexes loaded from llama-index's JSON format use a
+        # SimpleVectorStore, which returns similarities.
+        vector_store = self.index_map[index_name].vector_store
+        return (
+            isinstance(vector_store, FaissVectorStore)
+            and vector_store.client.metric_type == faiss.METRIC_L2
+        )
 
     def _create_storage_context_for_load(
         self, index_name: str, path: str

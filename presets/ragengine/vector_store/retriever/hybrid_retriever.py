@@ -16,7 +16,8 @@
 Uses weighted score fusion:
   finalScore = vector_weight * vectorScore + text_weight * textScore
 
-where textScore is derived from BM25 rank via: 1 / (1 + rank).
+where textScore is derived from BM25 rank via: 1 / (1 + rank). If the vector
+store returns distances, vectorScore is 1 / (1 + distance).
 Default weights: vector=0.7, text=0.3 (normalized to sum to 1.0).
 """
 
@@ -78,6 +79,7 @@ class HybridRetriever(BaseRetriever):
         vector_weight: float = 0.7,
         text_weight: float = 0.3,
         metadata_filter: dict | None = None,
+        vector_scores_are_distances: bool = False,
     ) -> None:
         """
         Args:
@@ -87,6 +89,8 @@ class HybridRetriever(BaseRetriever):
             vector_weight: Weight for vector similarity scores.
             text_weight: Weight for BM25 keyword scores.
             metadata_filter: Optional {key: value} dict for metadata filtering.
+            vector_scores_are_distances: True if the vector store returns
+                distances (lower is better), such as FAISS L2.
         """
         total = vector_weight + text_weight
         self._vector_weight = vector_weight / total
@@ -98,6 +102,7 @@ class HybridRetriever(BaseRetriever):
         self._candidate_pool_size = int(max_results * self._candidate_multiplier)
         self._metadata_filter = metadata_filter
         self._llama_filters = _build_metadata_filters(metadata_filter)
+        self._vector_scores_are_distances = vector_scores_are_distances
 
         super().__init__()
 
@@ -136,10 +141,7 @@ class HybridRetriever(BaseRetriever):
     ) -> list[NodeWithScore]:
         """Fuse vector and keyword results using weighted scoring."""
         # Collect vector scores by node_id
-        vector_scores = {
-            n.node.node_id: (n.score if n.score is not None else 0.0)
-            for n in vector_nodes
-        }
+        vector_scores = {n.node.node_id: self._vector_score(n) for n in vector_nodes}
 
         # BM25 results: convert position rank to score = 1/(1+rank)
         keyword_ranks = {n.node.node_id: idx for idx, n in enumerate(keyword_nodes)}
@@ -165,6 +167,22 @@ class HybridRetriever(BaseRetriever):
         scored.sort(key=lambda x: x.score if x.score is not None else 0.0, reverse=True)
         return scored[: self._max_results]
 
+    def _vector_score(self, node: NodeWithScore) -> float:
+        """Vector score as a similarity (higher is better)."""
+        if node.score is None:
+            return 0.0
+        if self._vector_scores_are_distances:
+            # Map distance (0 = exact match) to a similarity in (0, 1]
+            return 1.0 / (1.0 + node.score)
+        return node.score
+
+    def _vector_only(self, vector_nodes: list[NodeWithScore]) -> list[NodeWithScore]:
+        """Vector results without BM25, scored like fused results."""
+        nodes = vector_nodes[: self._max_results]
+        if not self._vector_scores_are_distances:
+            return nodes
+        return [NodeWithScore(node=n.node, score=self._vector_score(n)) for n in nodes]
+
     def _retrieve(self, query_bundle: QueryBundle) -> list[NodeWithScore]:
         """Synchronous hybrid retrieval (falls back to vector-only if BM25 unavailable)."""
         pool_size = self._candidate_pool_size
@@ -180,7 +198,7 @@ class HybridRetriever(BaseRetriever):
         bm25_retriever = self._build_bm25_retriever(pool_size)
         if bm25_retriever is None:
             logger.info(f"Vector-only retrieve: {len(vector_nodes)} candidates")
-            return vector_nodes[: self._max_results]
+            return self._vector_only(vector_nodes)
 
         keyword_nodes = bm25_retriever.retrieve(query_bundle)
 
@@ -215,7 +233,7 @@ class HybridRetriever(BaseRetriever):
         bm25_retriever = self._build_bm25_retriever(pool_size)
         if bm25_retriever is None:
             logger.info(f"Vector-only retrieve (async): {len(vector_nodes)} candidates")
-            return vector_nodes[: self._max_results]
+            return self._vector_only(vector_nodes)
 
         keyword_nodes = await bm25_retriever.aretrieve(query_bundle)
 

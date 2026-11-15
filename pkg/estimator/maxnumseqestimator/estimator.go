@@ -129,7 +129,11 @@ func (c *MaxNumSeqsEstimator) Estimate(req MaxNumSeqsEstimateRequest) (int, bool
 
 	// Memory vLLM has left for the unified KV cache / Mamba state pool after
 	// weights and fixed runtime overhead.
-	availPool, ok := estimator.KVHeadroomBytesPerGPU(params, gpuConfig, 1)
+	availPool, ok, err := estimator.KVHeadroomBytesPerGPU(params, gpuConfig, 1)
+	if err != nil {
+		klog.ErrorS(err, "Failed to estimate max-num-seqs", "workspace", req.WorkspaceName)
+		return 0, false
+	}
 	if !ok || availPool <= 0 {
 		return 0, false
 	}

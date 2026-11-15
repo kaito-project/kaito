@@ -14,10 +14,14 @@
 package inference
 
 import (
+	"maps"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+
+	pkgmodel "github.com/kaito-project/kaito/pkg/model"
+	"github.com/kaito-project/kaito/pkg/sku"
 )
 
 func TestParseInferenceRuntimeConfig(t *testing.T) {
@@ -36,4 +40,76 @@ func TestParseInferenceRuntimeConfig(t *testing.T) {
 
 	_, err = parseInferenceRuntimeConfig("vllm: [")
 	assert.Error(t, err)
+}
+
+func TestAdaptiveVerificationSupported(t *testing.T) {
+	for _, tc := range []struct {
+		name             string
+		runParams        map[string]string
+		userConfig       map[string]any
+		pipelineParallel bool
+		wantSupported    bool
+		wantMode         string
+		wantError        string
+	}{
+		{name: "defaults", wantSupported: true},
+		{name: "node-derived pipeline parallelism", pipelineParallel: true},
+		{name: "preset pipeline parallelism", runParams: map[string]string{"pipeline-parallel-size": "2"}},
+		{name: "user pipeline parallelism", userConfig: map[string]any{"pipeline-parallel-size": 2}},
+		{name: "quoted pipeline size", userConfig: map[string]any{"pipeline-parallel-size": "2"}},
+		{name: "user pipeline size wins", pipelineParallel: true, userConfig: map[string]any{"pipeline-parallel-size": 1}, wantSupported: true},
+		{name: "eager preset", runParams: map[string]string{"enforce-eager": ""}},
+		{name: "eager user override", userConfig: map[string]any{"enforce-eager": true}},
+		{name: "user disables eager preset", runParams: map[string]string{"enforce-eager": ""}, userConfig: map[string]any{"enforce-eager": false}, wantSupported: true},
+		{name: "preset disables graphs", runParams: map[string]string{"compilation-config.cudagraph_mode": "NONE"}},
+		{name: "piecewise only", userConfig: map[string]any{"compilation-config.cudagraph_mode": "PIECEWISE"}, wantMode: "PIECEWISE"},
+		{name: "numeric no graphs", userConfig: map[string]any{"compilation-config.cudagraph_mode": 0}, wantMode: "NONE"},
+		{name: "numeric piecewise", userConfig: map[string]any{"compilation-config.cudagraph_mode": 1}, wantMode: "PIECEWISE"},
+		{name: "numeric full graphs", userConfig: map[string]any{"compilation-config.cudagraph_mode": 2}, wantMode: "FULL", wantSupported: true},
+		{name: "JSON graph mode", userConfig: map[string]any{"compilation-config": `{"cudagraph_mode":"NONE"}`}, wantMode: "NONE"},
+		{name: "JSON without graph override", userConfig: map[string]any{"compilation-config": `{"mode":3}`}, wantSupported: true},
+		{
+			name: "dotted graph mode wins",
+			userConfig: map[string]any{
+				"compilation-config":                `{"cudagraph_mode":"NONE"}`,
+				"compilation-config.cudagraph_mode": "FULL",
+			},
+			wantMode: "FULL", wantSupported: true,
+		},
+		{name: "invalid pipeline size", userConfig: map[string]any{"pipeline-parallel-size": 0}, wantError: "pipeline-parallel-size"},
+		{name: "fractional pipeline size", userConfig: map[string]any{"pipeline-parallel-size": 1.5}, wantError: "pipeline-parallel-size"},
+		{name: "invalid eager value", userConfig: map[string]any{"enforce-eager": "maybe"}, wantError: "enforce-eager"},
+		{name: "invalid graph mode", userConfig: map[string]any{"compilation-config.cudagraph_mode": "invalid"}, wantError: "cudagraph_mode"},
+		{name: "empty graph mode", userConfig: map[string]any{"compilation-config.cudagraph_mode": ""}, wantError: "cudagraph_mode"},
+		{name: "invalid JSON", userConfig: map[string]any{"compilation-config": "{"}, wantError: "compilation-config"},
+		{name: "non-object JSON", userConfig: map[string]any{"compilation-config": "null"}, wantError: "JSON object"},
+		{name: "non-string JSON", userConfig: map[string]any{"compilation-config": map[string]any{"cudagraph_mode": "NONE"}}, wantError: "JSON string"},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			params := &pkgmodel.PresetParam{RuntimeParam: pkgmodel.RuntimeParam{
+				VLLM: pkgmodel.VLLMParam{ModelRunParams: tc.runParams},
+			}}
+			before := params.DeepCopy()
+			beforeConfig := maps.Clone(tc.userConfig)
+			supported, mode, err := adaptiveVerificationSupported(params, tc.userConfig, tc.pipelineParallel, nil)
+			if tc.wantError != "" {
+				require.ErrorContains(t, err, tc.wantError)
+			} else {
+				require.NoError(t, err)
+				assert.Equal(t, tc.wantSupported, supported)
+				assert.Equal(t, tc.wantMode, mode)
+			}
+			assert.Equal(t, before, params)
+			assert.Equal(t, beforeConfig, tc.userConfig)
+		})
+	}
+
+	t.Run("GPU graph policy is resolved before injection", func(t *testing.T) {
+		params := &pkgmodel.PresetParam{RuntimeParam: pkgmodel.RuntimeParam{
+			VLLM: pkgmodel.VLLMParam{ModelName: "deepseek-v4-flash-0731"},
+		}}
+		supported, _, err := adaptiveVerificationSupported(params, nil, false, &sku.GPUConfig{GPUModel: "NVIDIA H100"})
+		require.NoError(t, err)
+		assert.False(t, supported)
+	})
 }

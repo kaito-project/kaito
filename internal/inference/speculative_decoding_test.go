@@ -226,17 +226,17 @@ func TestLoadUserSpeculativeConfig(t *testing.T) {
 		}
 	}
 
-	t.Run("no config returns false", func(t *testing.T) {
+	t.Run("no config returns no overrides", func(t *testing.T) {
 		got, err := loadUserSpeculativeConfig(context.Background(), nil, newWS(""))
 		if err != nil {
 			t.Fatalf("unexpected error: %v", err)
 		}
-		if got {
+		if len(got) != 0 {
 			t.Fatal("expected no override")
 		}
 	})
 
-	t.Run("config with speculative-config returns true", func(t *testing.T) {
+	t.Run("config includes speculative-config override", func(t *testing.T) {
 		mockClient := testutil.NewClient()
 		cm := &corev1.ConfigMap{
 			ObjectMeta: metav1.ObjectMeta{Name: "cfg", Namespace: "default"},
@@ -251,12 +251,12 @@ func TestLoadUserSpeculativeConfig(t *testing.T) {
 		if err != nil {
 			t.Fatalf("unexpected error: %v", err)
 		}
-		if !got {
+		if _, ok := got["speculative-config"]; !ok {
 			t.Fatal("expected override to be detected")
 		}
 	})
 
-	t.Run("config without speculative-config returns false", func(t *testing.T) {
+	t.Run("config omits speculative-config override", func(t *testing.T) {
 		mockClient := testutil.NewClient()
 		cm := &corev1.ConfigMap{
 			ObjectMeta: metav1.ObjectMeta{Name: "cfg", Namespace: "default"},
@@ -271,7 +271,7 @@ func TestLoadUserSpeculativeConfig(t *testing.T) {
 		if err != nil {
 			t.Fatalf("unexpected error: %v", err)
 		}
-		if got {
+		if _, ok := got["speculative-config"]; ok {
 			t.Fatal("expected no override")
 		}
 	})
@@ -413,7 +413,11 @@ func TestApplySpeculativeDecoding(t *testing.T) {
 	}
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
-			got, err := applySpeculativeDecoding(tc.ws, tc.runtime, tc.preset, tc.userOverride, tc.ws.Status.TargetNodeCount > 1, nil, 1)
+			var userConfig map[string]any
+			if tc.userOverride {
+				userConfig = map[string]any{"speculative-config": nil}
+			}
+			got, err := applySpeculativeDecoding(tc.ws, tc.runtime, tc.preset, userConfig, tc.ws.Status.TargetNodeCount > 1, nil, 1)
 			if err != nil {
 				t.Fatalf("unexpected error: %v", err)
 			}
@@ -477,7 +481,7 @@ func TestApplySpeculativeDecodingDSpark(t *testing.T) {
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
 			preset, shared := newPreset()
-			got, err := applySpeculativeDecoding(ws, pkgmodel.RuntimeNameVLLM, preset, false, tc.pipelineParallel, nil, 1)
+			got, err := applySpeculativeDecoding(ws, pkgmodel.RuntimeNameVLLM, preset, nil, tc.pipelineParallel, nil, 1)
 			if err != nil {
 				t.Fatalf("unexpected error: %v", err)
 			}
@@ -506,9 +510,25 @@ func TestApplySpeculativeDecodingDSpark(t *testing.T) {
 		})
 	}
 
+	t.Run("invalid effective settings return an error", func(t *testing.T) {
+		preset, _ := newPreset()
+		got, err := applySpeculativeDecoding(ws, pkgmodel.RuntimeNameVLLM, preset, map[string]any{"pipeline-parallel-size": 0}, false, nil, 1)
+		if err == nil || got != SpecDecoNotEvaluated {
+			t.Fatalf("decision = %v, error = %v; want an explicit error", got, err)
+		}
+		if _, injected := preset.VLLM.ModelRunParams["speculative-config"]; injected {
+			t.Fatal("speculative config was injected after invalid runtime settings")
+		}
+	})
+
 	t.Run("user speculative-config skips engine args", func(t *testing.T) {
 		preset, _ := newPreset()
-		got, err := applySpeculativeDecoding(ws, pkgmodel.RuntimeNameVLLM, preset, true, false, nil, 1)
+		userConfig := map[string]any{
+			"speculative-config":                `{"method":"dspark","enable_adaptive_verification":true}`,
+			"pipeline-parallel-size":            2,
+			"compilation-config.cudagraph_mode": "NONE",
+		}
+		got, err := applySpeculativeDecoding(ws, pkgmodel.RuntimeNameVLLM, preset, userConfig, false, nil, 1)
 		if err != nil {
 			t.Fatalf("unexpected error: %v", err)
 		}
@@ -569,7 +589,7 @@ func TestApplySpeculativeDecodingDSparkGPUMemoryGate(t *testing.T) {
 	}
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
-			got, err := applySpeculativeDecoding(ws, pkgmodel.RuntimeNameVLLM, tc.preset, false, tc.numNodes > 1, tc.gpuConfig, tc.numNodes)
+			got, err := applySpeculativeDecoding(ws, pkgmodel.RuntimeNameVLLM, tc.preset, nil, tc.numNodes > 1, tc.gpuConfig, tc.numNodes)
 			if err != nil {
 				t.Fatalf("unexpected error: %v", err)
 			}
@@ -589,7 +609,7 @@ func TestApplySpeculativeDecodingDSparkGPUMemoryGate(t *testing.T) {
 
 	t.Run("user speculative-config bypasses the gate", func(t *testing.T) {
 		p := preset(dspark, "155.43Gi", "")
-		got, err := applySpeculativeDecoding(ws, pkgmodel.RuntimeNameVLLM, p, true, false, nc80adis, 1)
+		got, err := applySpeculativeDecoding(ws, pkgmodel.RuntimeNameVLLM, p, map[string]any{"speculative-config": nil}, false, nc80adis, 1)
 		if err != nil || got != SpecDecoConfigMapOverride {
 			t.Fatalf("decision = %v, err = %v; want %v", got, err, SpecDecoConfigMapOverride)
 		}

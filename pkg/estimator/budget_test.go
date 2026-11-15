@@ -77,7 +77,8 @@ func TestKVHeadroomBytesPerGPU(t *testing.T) {
 	}
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
-			got, ok := KVHeadroomBytesPerGPU(tc.params, tc.gpuConfig, tc.numNodes)
+			got, ok, err := KVHeadroomBytesPerGPU(tc.params, tc.gpuConfig, tc.numNodes)
+			require.NoError(t, err)
 			require.True(t, ok)
 			assert.InDelta(t, tc.wantGiB, got/gib, 0.01)
 		})
@@ -94,8 +95,60 @@ func TestKVHeadroomBytesPerGPU(t *testing.T) {
 		"all weights in CPU": {params("10Gi", "10Gi"), nc80adis},
 	} {
 		t.Run(name, func(t *testing.T) {
-			_, ok := KVHeadroomBytesPerGPU(tc.params, tc.gpuConfig, 1)
+			_, ok, err := KVHeadroomBytesPerGPU(tc.params, tc.gpuConfig, 1)
+			require.NoError(t, err)
 			assert.False(t, ok)
 		})
+	}
+}
+
+func TestKVHeadroomBytesPerGPU_UtilizationOverride(t *testing.T) {
+	gpu := &sku.GPUConfig{GPUCount: 8, GPUMem: resource.MustParse("640Gi"), GPUModel: "NVIDIA H100"}
+	for _, tc := range []struct {
+		value   string
+		wantGiB float64
+	}{
+		{"0.70", 14.59},
+		{"0.72", 16.19},
+		{"0.92", 32.19},
+	} {
+		t.Run(tc.value, func(t *testing.T) {
+			p := params("475.26Gi", "183.1Gi")
+			p.VLLM.ModelRunParams = map[string]string{"gpu-memory-utilization": tc.value}
+			got, known, err := KVHeadroomBytesPerGPU(p, gpu, 1)
+			require.NoError(t, err)
+			require.True(t, known)
+			assert.InDelta(t, tc.wantGiB, got/float64(sku.GiB), 0.01)
+		})
+	}
+	p := params("475.26Gi", "183.1Gi")
+	p.VLLM.ModelRunParams = map[string]string{"gpu-memory-utilization": "NaN"}
+	_, known, err := KVHeadroomBytesPerGPU(p, gpu, 1)
+	require.ErrorContains(t, err, "gpu-memory-utilization")
+	assert.False(t, known)
+
+	for _, p := range []*pkgmodel.PresetParam{params("invalid", ""), params("10Gi", "invalid")} {
+		_, known, err := KVHeadroomBytesPerGPU(p, gpu, 1)
+		require.Error(t, err)
+		assert.False(t, known)
+	}
+}
+
+func TestResolveGPUMemoryUtilization(t *testing.T) {
+	for _, tc := range []struct {
+		gpu  string
+		want float64
+	}{
+		{"NVIDIA H100", 0.92},
+		{"NVIDIA A10", 0.82},
+	} {
+		got, err := ResolveGPUMemoryUtilization(tc.gpu, nil)
+		require.NoError(t, err)
+		assert.Equal(t, tc.want, got)
+		p := params("10Gi", "")
+		p.VLLM.ModelRunParams = map[string]string{"gpu-memory-utilization": "0.70"}
+		got, err = ResolveGPUMemoryUtilization(tc.gpu, p)
+		require.NoError(t, err)
+		assert.Equal(t, 0.70, got)
 	}
 }

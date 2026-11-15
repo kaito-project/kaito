@@ -15,7 +15,9 @@ package model
 
 import (
 	"fmt"
+	"math"
 	"net/url"
+	"strconv"
 	"strings"
 
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -24,6 +26,18 @@ import (
 const (
 	errInvalidModelVersionURL = "invalid model version URL: %s. Expected format: https://huggingface.co/<org>/<model>/commit/<revision>"
 )
+
+// ParseGPUMemoryUtilization validates vLLM's GPU memory budget fraction.
+func ParseGPUMemoryUtilization(value string) (float64, error) {
+	utilization, err := strconv.ParseFloat(strings.TrimSpace(value), 64)
+	if err != nil {
+		return 0, fmt.Errorf("invalid gpu-memory-utilization %q: %w", value, err)
+	}
+	if math.IsNaN(utilization) || utilization <= 0 || utilization > 1 {
+		return 0, fmt.Errorf("gpu-memory-utilization must be in (0, 1], got %q", value)
+	}
+	return utilization, nil
+}
 
 func buildCmdStr(baseCommand string, runParams ...map[string]string) string {
 	updatedBaseCommand := baseCommand

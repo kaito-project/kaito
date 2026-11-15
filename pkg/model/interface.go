@@ -258,9 +258,9 @@ type DSparkConfig struct {
 	// RejectionSampleMethod is vLLM's rejection_sample_method ("standard", "synthetic" or "block").
 	RejectionSampleMethod string `yaml:"rejectionSampleMethod,omitempty"`
 	// EnableAdaptiveVerification verifies only high-confidence draft slots.
-	// vLLM rejects it under pipeline parallelism
+	// vLLM requires full CUDA graphs and pipeline-parallel size one
 	// (https://github.com/vllm-project/vllm/blob/v0.30.0/vllm/config/vllm.py#L2934-L2943),
-	// so KAITO turns it off for multi-node deployments.
+	// so KAITO disables it when effective runtime settings are incompatible.
 	EnableAdaptiveVerification bool `yaml:"enableAdaptiveVerification,omitempty"`
 }
 

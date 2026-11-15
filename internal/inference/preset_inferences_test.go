@@ -2836,7 +2836,7 @@ func TestDeepSeekV41FlashDSparkCommandOnH100(t *testing.T) {
 				Annotations: map[string]string{v1beta1.AnnotationEnableSpeculativeDecoding: tc.annotation},
 			}}
 			params := m.GetInferenceParameters().DeepCopy()
-			if _, err := applySpeculativeDecoding(ws, pkgmodel.RuntimeNameVLLM, params, false, false, gpuConfig, 1); err != nil {
+			if _, err := applySpeculativeDecoding(ws, pkgmodel.RuntimeNameVLLM, params, nil, false, gpuConfig, 1); err != nil {
 				t.Fatalf("applySpeculativeDecoding: %v", err)
 			}
 			applyGeneratorRuntimeOverrides(params, gpuConfig)
@@ -2859,6 +2859,152 @@ func TestDeepSeekV41FlashDSparkCommandOnH100(t *testing.T) {
 					t.Errorf("command unexpectedly contains %s\n%s", flag, command)
 				}
 			}
+		})
+	}
+}
+
+func TestDeepSeekV41FlashDSparkEngramOffloadOverride(t *testing.T) {
+	for _, tc := range []struct {
+		name     string
+		offload  bool
+		decision SpecDecoDecision
+	}{
+		{"disabled", false, SpecDecoSkippedLowGPUMemory},
+		{"enabled", true, SpecDecoInjected},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			ws := &v1beta1.Workspace{
+				ObjectMeta: metav1.ObjectMeta{
+					Name: "dsv41", Namespace: "default",
+					Annotations: map[string]string{v1beta1.AnnotationEnableSpeculativeDecoding: "true"},
+				},
+				Inference: &v1beta1.InferenceSpec{Config: "engram-config"},
+			}
+			cm := &corev1.ConfigMap{
+				ObjectMeta: metav1.ObjectMeta{Name: ws.Inference.Config, Namespace: ws.Namespace},
+				Data: map[string]string{
+					pkgmodel.ConfigfileNameVLLM: fmt.Sprintf("vllm:\n  engram-config: '{\"cpu_offload\":%t}'\n", tc.offload),
+				},
+			}
+			kubeClient := fake.NewClientBuilder().WithObjects(cm).Build()
+			m, err := catalog.GetModelByName(t.Context(), "deepseek-ai/DeepSeek-V4.1-Flash-1017", ws.Inference.Config, "", ws.Namespace, kubeClient)
+			require.NoError(t, err)
+			params := m.GetInferenceParameters()
+			gpuConfig := &sku.GPUConfig{GPUCount: 8, GPUMem: resource.MustParse("640Gi"), GPUModel: "NVIDIA H100"}
+			decision, err := applySpeculativeDecoding(ws, pkgmodel.RuntimeNameVLLM, params, nil, false, gpuConfig, 1)
+			require.NoError(t, err)
+			assert.Equal(t, tc.decision, decision)
+			_, injected := params.VLLM.ModelRunParams["speculative-config"]
+			assert.Equal(t, tc.offload, injected)
+		})
+	}
+}
+
+func TestDeepSeekV41FlashDSparkRuntimeConfigOverrides(t *testing.T) {
+	for _, tc := range []struct {
+		name         string
+		config       string
+		wantAdaptive bool
+		wantMode     string
+	}{
+		{"default", "vllm: {}\n", true, "FULL_DECODE_ONLY"},
+		{"pipeline parallel override", "vllm:\n  pipeline-parallel-size: 2\n", false, "FULL_DECODE_ONLY"},
+		{"eager execution", "vllm:\n  enforce-eager: true\n", false, "FULL_DECODE_ONLY"},
+		{"no graphs", "vllm:\n  compilation-config.cudagraph_mode: NONE\n", false, "NONE"},
+		{"piecewise graphs", "vllm:\n  compilation-config.cudagraph_mode: PIECEWISE\n", false, "PIECEWISE"},
+		{"JSON graph config", "vllm:\n  compilation-config: '{\"cudagraph_mode\":\"NONE\"}'\n", false, "NONE"},
+		{"full graphs", "vllm:\n  compilation-config.cudagraph_mode: FULL\n", true, "FULL"},
+		{"full decode graphs", "vllm:\n  compilation-config.cudagraph_mode: FULL_DECODE_ONLY\n", true, "FULL_DECODE_ONLY"},
+		{"mixed full graphs", "vllm:\n  compilation-config.cudagraph_mode: FULL_AND_PIECEWISE\n", true, "FULL_AND_PIECEWISE"},
+		{"numeric JSON graph mode", "vllm:\n  compilation-config: '{\"cudagraph_mode\":0}'\n", false, "NONE"},
+		{"dotted graph mode wins", "vllm:\n  compilation-config: '{\"cudagraph_mode\":\"NONE\"}'\n  compilation-config.cudagraph_mode: FULL\n", true, "FULL"},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			ws := &v1beta1.Workspace{
+				ObjectMeta: metav1.ObjectMeta{
+					Name: "dsv41", Namespace: "default",
+					Annotations: map[string]string{v1beta1.AnnotationEnableSpeculativeDecoding: "true"},
+				},
+				Inference: &v1beta1.InferenceSpec{Config: "runtime-config"},
+			}
+			cm := &corev1.ConfigMap{
+				ObjectMeta: metav1.ObjectMeta{Name: ws.Inference.Config, Namespace: ws.Namespace},
+				Data:       map[string]string{pkgmodel.ConfigfileNameVLLM: tc.config},
+			}
+			kubeClient := fake.NewClientBuilder().WithObjects(cm).Build()
+			m, err := catalog.GetModelByName(t.Context(), "deepseek-ai/DeepSeek-V4.1-Flash-1017", ws.Inference.Config, "", ws.Namespace, kubeClient)
+			require.NoError(t, err)
+			userConfig, err := loadUserSpeculativeConfig(t.Context(), kubeClient, ws)
+			require.NoError(t, err)
+			params := m.GetInferenceParameters()
+			shared := params.SpeculativeDecoding
+			gpuConfig := &sku.GPUConfig{GPUCount: 8, GPUMem: resource.MustParse("640Gi"), GPUModel: "NVIDIA H100"}
+			decision, err := applySpeculativeDecoding(ws, pkgmodel.RuntimeNameVLLM, params, userConfig, false, gpuConfig, 1)
+			require.NoError(t, err)
+			assert.Equal(t, SpecDecoInjected, decision)
+			assert.Equal(t, tc.wantAdaptive, strings.Contains(params.VLLM.ModelRunParams["speculative-config"], `"enable_adaptive_verification":true`))
+			assert.True(t, shared.DSpark.EnableAdaptiveVerification, "the shared preset must not be mutated")
+			applyGeneratorRuntimeOverrides(params, gpuConfig)
+			assert.Equal(t, tc.wantMode, params.VLLM.ModelRunParams["compilation-config.cudagraph_mode"])
+			command := strings.Join(params.GetInferenceCommand(pkgmodel.RuntimeContext{
+				RuntimeName: pkgmodel.RuntimeNameVLLM,
+				GPUConfig:   gpuConfig,
+				SKUNumGPUs:  gpuConfig.GPUCount,
+				NumNodes:    1,
+				MaxModelLen: pkgmodel.MaxModelLenAuto,
+			}), " ")
+			assert.Contains(t, command, "--compilation-config.cudagraph_mode="+tc.wantMode)
+			var after corev1.ConfigMap
+			require.NoError(t, kubeClient.Get(t.Context(), client.ObjectKeyFromObject(cm), &after))
+			assert.Equal(t, cm.Data, after.Data, "the user's settings must not be rewritten")
+		})
+	}
+}
+
+func TestDeepSeekV41FlashDSparkGPUMemoryUtilizationOverride(t *testing.T) {
+	for _, tc := range []struct {
+		name       string
+		override   string
+		wantValue  string
+		wantDSpark bool
+	}{
+		{"default", "", "0.92", true},
+		{"below threshold", "0.70", "0.7", false},
+		{"quoted override", "'0.70'", "0.7", false},
+		{"above threshold", "0.72", "0.72", true},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			config := "vllm: {}\n"
+			if tc.override != "" {
+				config = fmt.Sprintf("vllm:\n  gpu-memory-utilization: %s\n", tc.override)
+			}
+			ws := &v1beta1.Workspace{
+				ObjectMeta: metav1.ObjectMeta{
+					Name: "dsv41", Namespace: "default",
+					Annotations: map[string]string{v1beta1.AnnotationEnableSpeculativeDecoding: "true"},
+				},
+				Inference: &v1beta1.InferenceSpec{Config: "memory-config"},
+			}
+			cm := &corev1.ConfigMap{
+				ObjectMeta: metav1.ObjectMeta{Name: ws.Inference.Config, Namespace: ws.Namespace},
+				Data:       map[string]string{pkgmodel.ConfigfileNameVLLM: config},
+			}
+			kubeClient := fake.NewClientBuilder().WithObjects(cm).Build()
+			m, err := catalog.GetModelByName(t.Context(), "deepseek-ai/DeepSeek-V4.1-Flash-1017", ws.Inference.Config, "", ws.Namespace, kubeClient)
+			require.NoError(t, err)
+			params := m.GetInferenceParameters()
+			gpuConfig := &sku.GPUConfig{GPUCount: 8, GPUMem: resource.MustParse("640Gi"), GPUModel: "NVIDIA H100"}
+			decision, err := applySpeculativeDecoding(ws, pkgmodel.RuntimeNameVLLM, params, nil, false, gpuConfig, 1)
+			require.NoError(t, err)
+			if tc.wantDSpark {
+				assert.Equal(t, SpecDecoInjected, decision)
+			} else {
+				assert.Equal(t, SpecDecoSkippedLowGPUMemory, decision)
+			}
+			_, injected := params.VLLM.ModelRunParams["speculative-config"]
+			assert.Equal(t, tc.wantDSpark, injected)
+			applyGeneratorRuntimeOverrides(params, gpuConfig)
+			assert.Equal(t, tc.wantValue, params.VLLM.ModelRunParams["gpu-memory-utilization"])
 		})
 	}
 }
@@ -2901,7 +3047,7 @@ func TestDeepSeekV4FlashDSparkCommandGatedByGPUMemory(t *testing.T) {
 				Annotations: map[string]string{v1beta1.AnnotationEnableSpeculativeDecoding: strconv.FormatBool(tc.enabled)},
 			}}
 			params := m.GetInferenceParameters().DeepCopy()
-			if _, err := applySpeculativeDecoding(ws, pkgmodel.RuntimeNameVLLM, params, false, false, tc.gpuConfig, 1); err != nil {
+			if _, err := applySpeculativeDecoding(ws, pkgmodel.RuntimeNameVLLM, params, nil, false, tc.gpuConfig, 1); err != nil {
 				t.Fatalf("applySpeculativeDecoding: %v", err)
 			}
 			applyGeneratorRuntimeOverrides(params, tc.gpuConfig)

@@ -22,6 +22,26 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
+func TestParseGPUMemoryUtilization(t *testing.T) {
+	for _, tc := range []struct {
+		value string
+		want  float64
+	}{
+		{"0.70", 0.7},
+		{" 0.7 ", 0.7},
+		{"7e-1", 0.7},
+		{"1", 1},
+	} {
+		got, err := ParseGPUMemoryUtilization(tc.value)
+		require.NoError(t, err)
+		assert.Equal(t, tc.want, got)
+	}
+	for _, value := range []string{"", "zero", "0", "-0.1", "1.01", "NaN", "+Inf", "-Inf"} {
+		_, err := ParseGPUMemoryUtilization(value)
+		require.ErrorContains(t, err, "gpu-memory-utilization", value)
+	}
+}
+
 func TestParseHuggingFaceModelVersion(t *testing.T) {
 	tests := []struct {
 		name             string

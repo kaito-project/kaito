@@ -23,7 +23,6 @@ import (
 
 	"github.com/distribution/reference"
 	"github.com/samber/lo"
-	"gopkg.in/yaml.v2"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	storagev1 "k8s.io/api/storage/v1"
@@ -764,16 +763,16 @@ func GenerateInferencePodSpec(gpuConfig *sku.GPUConfig, numNodes int, streamingM
 		runtimeName := v1beta1.GetWorkspaceRuntimeName(ctx.Workspace)
 
 		// --- Speculative decoding injection ---
-		userConfigHasSpeculativeOverride := false
+		var userConfig map[string]any
 		if runtimeName == pkgmodel.RuntimeNameVLLM &&
 			ctx.Workspace.Annotations[v1beta1.AnnotationEnableSpeculativeDecoding] == "true" {
-			override, err := loadUserSpeculativeConfig(ctx.Ctx, ctx.KubeClient, ctx.Workspace)
+			config, err := loadUserSpeculativeConfig(ctx.Ctx, ctx.KubeClient, ctx.Workspace)
 			if err != nil {
 				return fmt.Errorf("speculative decoding: %w", err)
 			}
-			userConfigHasSpeculativeOverride = override
+			userConfig = config
 		}
-		_, err := applySpeculativeDecoding(ctx.Workspace, runtimeName, inferenceParam, userConfigHasSpeculativeOverride,
+		_, err := applySpeculativeDecoding(ctx.Workspace, runtimeName, inferenceParam, userConfig,
 			shouldUseDistributedInference(ctx, numNodes), gpuConfig, numNodes)
 		if err != nil {
 			return fmt.Errorf("speculative decoding: %w", err)
@@ -1458,8 +1457,10 @@ func applyGeneratorRuntimeOverrides(params *pkgmodel.PresetParam, gpuConfig *sku
 	if params.VLLM.ModelRunParams == nil {
 		params.VLLM.ModelRunParams = make(map[string]string)
 	}
-	params.VLLM.ModelRunParams["gpu-memory-utilization"] =
-		hfgen.ResolveGPUMemoryUtilization(gpuConfig.GPUModel)
+	if _, configured := params.VLLM.ModelRunParams["gpu-memory-utilization"]; !configured {
+		params.VLLM.ModelRunParams["gpu-memory-utilization"] =
+			hfgen.ResolveGPUMemoryUtilization(gpuConfig.GPUModel)
+	}
 	if _, configured := params.VLLM.ModelRunParams["compilation-config.cudagraph_mode"]; !configured {
 		if mode, ok := hfgen.ResolveCUDAGraphMode(params.VLLM.ModelName, gpuConfig.GPUModel); ok {
 			params.VLLM.ModelRunParams["compilation-config.cudagraph_mode"] = mode
@@ -1510,41 +1511,30 @@ func defaultFallbackNGramConfig() *pkgmodel.SpeculativeDecodingConfig {
 	}
 }
 
-type rawInferenceConfig struct {
-	VLLM map[string]any `yaml:"vllm"`
-}
-
-// loadUserSpeculativeConfig returns true when the user-provided inference
-// ConfigMap already sets vllm.speculative-config. Callers should only invoke it
-// on the vLLM + annotation=true path so unrelated workloads do not gain a new
-// dependency on ConfigMap readability/parsing.
-func loadUserSpeculativeConfig(ctx context.Context, kubeClient client.Client, ws *v1beta1.Workspace) (bool, error) {
+// loadUserSpeculativeConfig reads overrides only on the opted-in vLLM path.
+func loadUserSpeculativeConfig(ctx context.Context, kubeClient client.Client, ws *v1beta1.Workspace) (map[string]any, error) {
 	if ws == nil || ws.Inference == nil || ws.Inference.Config == "" {
-		return false, nil
+		return nil, nil
 	}
 	if kubeClient == nil {
-		return false, fmt.Errorf("kube client is required to read inference config %q", ws.Inference.Config)
+		return nil, fmt.Errorf("kube client is required to read inference config %q", ws.Inference.Config)
 	}
 
 	var cm corev1.ConfigMap
 	if err := kubeClient.Get(ctx, client.ObjectKey{Name: ws.Inference.Config, Namespace: ws.Namespace}, &cm); err != nil {
-		return false, fmt.Errorf("get inference config ConfigMap %s/%s: %w", ws.Namespace, ws.Inference.Config, err)
+		return nil, fmt.Errorf("get inference config ConfigMap %s/%s: %w", ws.Namespace, ws.Inference.Config, err)
 	}
 
 	inferenceConfigYAML, ok := cm.Data[pkgmodel.ConfigfileNameVLLM]
 	if !ok {
-		return false, fmt.Errorf("ConfigMap %s/%s missing %q", ws.Namespace, ws.Inference.Config, pkgmodel.ConfigfileNameVLLM)
+		return nil, fmt.Errorf("ConfigMap %s/%s missing %q", ws.Namespace, ws.Inference.Config, pkgmodel.ConfigfileNameVLLM)
 	}
 
-	var cfg rawInferenceConfig
-	if err := yaml.Unmarshal([]byte(inferenceConfigYAML), &cfg); err != nil {
-		return false, fmt.Errorf("parse %s/%s %q: %w", ws.Namespace, ws.Inference.Config, pkgmodel.ConfigfileNameVLLM, err)
+	cfg, err := parseInferenceRuntimeConfig(inferenceConfigYAML)
+	if err != nil {
+		return nil, fmt.Errorf("parse %s/%s %q: %w", ws.Namespace, ws.Inference.Config, pkgmodel.ConfigfileNameVLLM, err)
 	}
-	if cfg.VLLM == nil {
-		return false, nil
-	}
-	_, ok = cfg.VLLM["speculative-config"]
-	return ok, nil
+	return cfg.VLLM, nil
 }
 
 // applySpeculativeDecoding evaluates the speculative-decoding annotation and,
@@ -1554,12 +1544,12 @@ func loadUserSpeculativeConfig(ctx context.Context, kubeClient client.Client, ws
 // parallelism; gpuConfig and numNodes describe the GPUs the weights shard
 // across. The decision is returned so callers (and tests) can assert the
 // reason without inspecting the ModelRunParams map.
-func applySpeculativeDecoding(ws *v1beta1.Workspace, runtimeName pkgmodel.RuntimeName, inferenceParam *pkgmodel.PresetParam, userConfigHasSpeculativeOverride, pipelineParallel bool, gpuConfig *sku.GPUConfig, numNodes int) (SpecDecoDecision, error) {
+func applySpeculativeDecoding(ws *v1beta1.Workspace, runtimeName pkgmodel.RuntimeName, inferenceParam *pkgmodel.PresetParam, userConfig map[string]any, pipelineParallel bool, gpuConfig *sku.GPUConfig, numNodes int) (SpecDecoDecision, error) {
 	if runtimeName != pkgmodel.RuntimeNameVLLM ||
 		ws.Annotations[v1beta1.AnnotationEnableSpeculativeDecoding] != "true" {
 		return SpecDecoSkip, nil
 	}
-	if userConfigHasSpeculativeOverride {
+	if _, overridden := userConfig["speculative-config"]; overridden {
 		return SpecDecoConfigMapOverride, nil
 	}
 
@@ -1567,20 +1557,43 @@ func applySpeculativeDecoding(ws *v1beta1.Workspace, runtimeName pkgmodel.Runtim
 	// dspark for DeepSeek-V4.1-Flash). Otherwise fall back to the universal
 	// ngram default so any preset the user opts into still gets a working
 	// speculative-config injection. mtp, ngram and dspark run under pipeline
-	// parallelism, but vLLM rejects dspark's adaptive verification there
+	// parallelism, but dspark's adaptive verification needs full CUDA graphs
+	// and a pipeline-parallel size of one
 	// (https://github.com/vllm-project/vllm/blob/v0.30.0/vllm/config/vllm.py#L2934-L2943),
-	// so it is turned off for multi-node workloads. If KAITO later wires a method
-	// that is not PP-safe, add an explicit guard here before injection.
+	// after resolving user overrides.
 	sdCfg := inferenceParam.SpeculativeDecoding
 	fallback := false
 	if sdCfg == nil {
 		sdCfg = defaultFallbackNGramConfig()
 		fallback = true
 	}
+	if sdCfg.DSpark != nil && sdCfg.DSpark.EnableAdaptiveVerification {
+		compatible, graphModeOverride, err := adaptiveVerificationSupported(inferenceParam, userConfig, pipelineParallel, gpuConfig)
+		if err != nil {
+			return SpecDecoNotEvaluated, err
+		}
+		if graphModeOverride != "" {
+			if inferenceParam.VLLM.ModelRunParams == nil {
+				inferenceParam.VLLM.ModelRunParams = make(map[string]string)
+			}
+			// Preserve JSON graph-mode overrides when vLLM merges dotted flags last.
+			inferenceParam.VLLM.ModelRunParams["compilation-config.cudagraph_mode"] = graphModeOverride
+		}
+		if !compatible {
+			cfg := *sdCfg
+			dspark := *sdCfg.DSpark
+			dspark.EnableAdaptiveVerification = false
+			cfg.DSpark = &dspark
+			sdCfg = &cfg
+		}
+	}
 	// DSpark's draft head needs memory beyond the weights. When the estimate is
 	// unavailable (unknown model size or GPU memory), keep the user's opt-in.
 	if sdCfg.DSpark != nil {
-		headroom, known := estimator.KVHeadroomBytesPerGPU(inferenceParam, gpuConfig, numNodes)
+		headroom, known, err := estimator.KVHeadroomBytesPerGPU(inferenceParam, gpuConfig, numNodes)
+		if err != nil {
+			return SpecDecoNotEvaluated, err
+		}
 		if known && headroom < minDSparkKVHeadroomGiB*float64(sku.GiB) {
 			klog.InfoS("Not injecting speculative decoding: too little GPU memory left after model weights",
 				"workspace", klog.KObj(ws), "method", sdCfg.Method,
@@ -1588,13 +1601,6 @@ func applySpeculativeDecoding(ws *v1beta1.Workspace, runtimeName pkgmodel.Runtim
 				"requiredGiBPerGPU", minDSparkKVHeadroomGiB)
 			return SpecDecoSkippedLowGPUMemory, nil
 		}
-	}
-	if pipelineParallel && sdCfg.DSpark != nil && sdCfg.DSpark.EnableAdaptiveVerification {
-		cfg := *sdCfg
-		dspark := *sdCfg.DSpark
-		dspark.EnableAdaptiveVerification = false
-		cfg.DSpark = &dspark
-		sdCfg = &cfg
 	}
 	blob, err := vllmFormat(sdCfg)
 	if err != nil {
@@ -1616,38 +1622,47 @@ func applySpeculativeDecoding(ws *v1beta1.Workspace, runtimeName pkgmodel.Runtim
 // vllmFormat converts a typed SpeculativeDecodingConfig into the JSON shape
 // vLLM expects for --speculative-config.
 func vllmFormat(sd *pkgmodel.SpeculativeDecodingConfig) (string, error) {
+	const (
+		methodKey                     = "method"
+		modelKey                      = "model"
+		numSpeculativeTokensKey       = "num_speculative_tokens"
+		promptLookupMaxKey            = "prompt_lookup_max"
+		draftSampleMethodKey          = "draft_sample_method"
+		rejectionSampleMethodKey      = "rejection_sample_method"
+		enableAdaptiveVerificationKey = "enable_adaptive_verification"
+	)
 	if sd == nil {
 		return "", fmt.Errorf("vllmFormat: SpeculativeDecodingConfig is nil")
 	}
-	m := map[string]any{"method": sd.Method}
+	m := map[string]any{methodKey: sd.Method}
 	switch sd.Method {
 	case "mtp":
 		if sd.MTP == nil {
 			return "", fmt.Errorf("method=mtp requires mtp config")
 		}
-		m["num_speculative_tokens"] = sd.MTP.NumSpeculativeTokens
+		m[numSpeculativeTokensKey] = sd.MTP.NumSpeculativeTokens
 		if sd.MTP.Model != "" {
-			m["model"] = sd.MTP.Model
+			m[modelKey] = sd.MTP.Model
 		}
 	case "ngram":
 		if sd.NGram == nil {
 			return "", fmt.Errorf("method=ngram requires ngram config")
 		}
-		m["num_speculative_tokens"] = sd.NGram.NumSpeculativeTokens
-		m["prompt_lookup_max"] = sd.NGram.PromptLookupMax
+		m[numSpeculativeTokensKey] = sd.NGram.NumSpeculativeTokens
+		m[promptLookupMaxKey] = sd.NGram.PromptLookupMax
 	case "dspark":
 		if sd.DSpark == nil {
 			return "", fmt.Errorf("method=dspark requires dspark config")
 		}
-		m["num_speculative_tokens"] = sd.DSpark.NumSpeculativeTokens
+		m[numSpeculativeTokensKey] = sd.DSpark.NumSpeculativeTokens
 		if sd.DSpark.DraftSampleMethod != "" {
-			m["draft_sample_method"] = sd.DSpark.DraftSampleMethod
+			m[draftSampleMethodKey] = sd.DSpark.DraftSampleMethod
 		}
 		if sd.DSpark.RejectionSampleMethod != "" {
-			m["rejection_sample_method"] = sd.DSpark.RejectionSampleMethod
+			m[rejectionSampleMethodKey] = sd.DSpark.RejectionSampleMethod
 		}
 		if sd.DSpark.EnableAdaptiveVerification {
-			m["enable_adaptive_verification"] = true
+			m[enableAdaptiveVerificationKey] = true
 		}
 	default:
 		return "", fmt.Errorf("unsupported speculative decoding method %q", sd.Method)

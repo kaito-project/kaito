@@ -83,19 +83,14 @@ jobs:
 
           kubectl create namespace ${{ env.KAITO_NAMESPACE }}
 
+          helm show crds oci://mcr.microsoft.com/dacs/helmchart/dacs --version 0.1.0 |
+            kubectl apply -f -
+          kubectl wait --for=condition=Established --timeout=120s crd/caches.storage.azure.com
+
           # Install via Helm
-          # CSI Local Node cannot be configured to not deploy and it crashes on kind on github runners for unknown reasons
-          # so we need to filter it out its components
-          helm template kaito-workspace ./charts/kaito/workspace --namespace ${{ env.KAITO_NAMESPACE }} --set nodeProvisioner="byo" --set featureGates.enableInferenceSetController="true" --set featureGates.gatewayAPIInferenceExtension="true" --include-crds --debug --wait | awk '
-            BEGIN { RS="---\n"; ORS="---\n"; csi=0 }
-            /kind: ServiceAccount/ && /name: csi-local-node/ { csi=1 }
-            /kind: StorageClass/ && /name: kaito-local-nvme-disk/ { csi=1 }
-            /kind: ClusterRole/ && /name: csi-local-node-role/ { csi=1 }
-            /kind: ClusterRoleBinding/ && /name: csi-local-node-binding/ { csi=1 }
-            /kind: DaemonSet/ && /name: csi-local-node/ { csi=1 }
-            !csi { print }
-            { csi=0 }
-          ' | kubectl apply --namespace ${{ env.KAITO_NAMESPACE }} -f -
+          # Kind has no local NVMe devices; omit the driver and its StorageClass.
+          helm template kaito-workspace ./charts/kaito/workspace --namespace ${{ env.KAITO_NAMESPACE }} --set nodeProvisioner="byo" --set localCSIDriver.useLocalCSIDriver=false --set featureGates.enableInferenceSetController="true" --set featureGates.gatewayAPIInferenceExtension="true" --include-crds --debug --wait |
+            kubectl apply --namespace ${{ env.KAITO_NAMESPACE }} -f -
 
           # Wait for controller to be ready
           kubectl wait --for=condition=available --timeout=300s deployment/kaito-workspace -n ${{ env.KAITO_NAMESPACE }}

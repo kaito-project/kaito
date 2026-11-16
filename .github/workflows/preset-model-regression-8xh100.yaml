@@ -414,7 +414,8 @@ jobs:
           # drops the nvidia.com/gpu.{product,count,memory} labels the webhook validates.
           # --take-ownership: the shared cluster may already carry a KAITO deployed by Tilt
           # (kubectl apply, so labelled managed-by=tilt), which Helm otherwise refuses to adopt.
-          HELM_INSTALL_EXTRA_ARGS: "--set nodeProvisioner=byo --set featureGates.disableNodeAutoProvisioning=true --set nvidiaDevicePlugin.enabled=false --set gpu-feature-discovery.nfd.enabled=false --set gpu-feature-discovery.gfd.enabled=false --take-ownership"
+          # This shared-cluster regression uses existing storage, not DACS or local-disk setup.
+          HELM_INSTALL_EXTRA_ARGS: "--set nodeProvisioner=byo --set featureGates.disableNodeAutoProvisioning=true --set nvidiaDevicePlugin.enabled=false --set gpu-feature-discovery.nfd.enabled=false --set gpu-feature-discovery.gfd.enabled=false --set localCSIDriver.useLocalCSIDriver=false --set cache.providers.dacs.enabled=false --take-ownership"
 
       - name: Wait for the validating webhook to be reachable
         run: |

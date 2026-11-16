@@ -28,11 +28,7 @@ import (
 	"github.com/kaito-project/kaito/internal/cachetest"
 )
 
-const (
-	discoveryPort           = 9065
-	uploadThreadsEnv        = "SI_cacheNumUploadThreadsPerProcess"
-	deferCachePopulationEnv = "SI_blobSiDeferCachePopulation"
-)
+const discoveryPort = 9065
 
 // init registers the DACS provider's conformance expectations so the
 // provider-agnostic conformance suite automatically discovers and verifies it
@@ -60,8 +56,6 @@ func init() {
 				"RUNAI_STREAMER_EXPERIMENTAL_AZURE_CACHE_LIB",
 				"CACHE_DISCOVERY_URL",
 				"CACHE_SERVER_PORT",
-				uploadThreadsEnv,
-				deferCachePopulationEnv,
 			},
 			RequiredVolumes:      []string{cachedacs.ClientVolumeName},
 			RequiredVolumeMounts: []string{cachedacs.ClientVolumeName},
@@ -89,14 +83,6 @@ func validateModelWeightsMutations(m *cache.PodMutations) []error {
 	wantPort := fmt.Sprintf("%d", discoveryPort)
 	if port, ok := envValue(m, "CACHE_SERVER_PORT"); !ok || port != wantPort {
 		errs = append(errs, fmt.Errorf("CACHE_SERVER_PORT = %q, want %q", port, wantPort))
-	}
-
-	if threads, ok := envValue(m, uploadThreadsEnv); !ok || threads != "4" {
-		errs = append(errs, fmt.Errorf("%s = %q, want %q", uploadThreadsEnv, threads, "4"))
-	}
-
-	if deferPopulation, ok := envValue(m, deferCachePopulationEnv); !ok || deferPopulation != "true" {
-		errs = append(errs, fmt.Errorf("%s = %q, want %q", deferCachePopulationEnv, deferPopulation, "true"))
 	}
 
 	return errs

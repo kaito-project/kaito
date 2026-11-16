@@ -201,9 +201,9 @@ func TestPodMutations_ModelWeightsStreamerEnvOverride(t *testing.T) {
 		t.Fatalf("unexpected error: %v", err)
 	}
 
-	// 8 fixed env vars (incl. the linked chunk-size pair) + 2 free-form entries.
-	if len(mutations.EnvVars) != 10 {
-		t.Fatalf("expected 10 env vars, got %d: %v", len(mutations.EnvVars), mutations.EnvVars)
+	// 6 fixed env vars (incl. the linked chunk-size pair) + 2 free-form entries.
+	if len(mutations.EnvVars) != 8 {
+		t.Fatalf("expected 8 env vars, got %d: %v", len(mutations.EnvVars), mutations.EnvVars)
 	}
 	envVars := envVarMap(mutations.EnvVars)
 	if envVars["CACHE_SERVER_CHUNK_BYTESIZE"] != "67108864" {
@@ -249,9 +249,9 @@ func TestPodMutations_ChunkSizePairOverride(t *testing.T) {
 				t.Fatalf("unexpected error: %v", err)
 			}
 
-			// Still 8 fixed env vars: the override upserts in place, not duplicates.
-			if len(mutations.EnvVars) != 8 {
-				t.Fatalf("expected 8 env vars, got %d: %v", len(mutations.EnvVars), mutations.EnvVars)
+			// Still 6 fixed env vars: the override upserts in place, not duplicates.
+			if len(mutations.EnvVars) != 6 {
+				t.Fatalf("expected 6 env vars, got %d: %v", len(mutations.EnvVars), mutations.EnvVars)
 			}
 			envVars := envVarMap(mutations.EnvVars)
 			if envVars["RUNAI_STREAMER_CHUNK_BYTESIZE"] != tt.want {
@@ -324,8 +324,8 @@ func TestPodMutations_ModelWeights(t *testing.T) {
 
 	// Should have DACS discovery env vars plus the linked chunk-size pair
 	// (no KAITO_MODEL_PATH).
-	if len(mutations.EnvVars) != 8 {
-		t.Fatalf("expected 8 env vars, got %d: %v", len(mutations.EnvVars), mutations.EnvVars)
+	if len(mutations.EnvVars) != 6 {
+		t.Fatalf("expected 6 env vars, got %d: %v", len(mutations.EnvVars), mutations.EnvVars)
 	}
 	envVars := envVarMap(mutations.EnvVars)
 	if envVars["RUNAI_STREAMER_CHUNK_BYTESIZE"] != "33554432" {
@@ -345,11 +345,13 @@ func TestPodMutations_ModelWeights(t *testing.T) {
 	if envVars["RUNAI_STREAMER_EXPERIMENTAL_AZURE_CACHE_LIB"] != wantClientLibPath {
 		t.Errorf("RUNAI_STREAMER_EXPERIMENTAL_AZURE_CACHE_LIB: got %q, want %q", envVars["RUNAI_STREAMER_EXPERIMENTAL_AZURE_CACHE_LIB"], wantClientLibPath)
 	}
-	if envVars[siUploadThreadsEnv] != "4" {
-		t.Errorf("%s: got %q, want 4", siUploadThreadsEnv, envVars[siUploadThreadsEnv])
-	}
-	if envVars[siDeferCachePopulationEnv] != "true" {
-		t.Errorf("%s: got %q, want true", siDeferCachePopulationEnv, envVars[siDeferCachePopulationEnv])
+	for _, name := range []string{
+		"SI_cacheNumUploadThreadsPerProcess",
+		"SI_blobSiDeferCachePopulation",
+	} {
+		if value, ok := envVars[name]; ok {
+			t.Errorf("%s should not be set by default, got %q", name, value)
+		}
 	}
 	// The webhook handles injection; KAITO only mounts the DACS client image.
 	if len(mutations.Volumes) != 1 {
@@ -404,8 +406,8 @@ func TestPodMutations_ModelWeightsCustomPrefix(t *testing.T) {
 		t.Fatalf("unexpected error: %v", err)
 	}
 
-	if len(mutations.EnvVars) != 8 {
-		t.Fatalf("expected 8 env vars, got %d", len(mutations.EnvVars))
+	if len(mutations.EnvVars) != 6 {
+		t.Fatalf("expected 6 env vars, got %d", len(mutations.EnvVars))
 	}
 }
 
@@ -424,8 +426,8 @@ func TestPodMutations_ModelWeightsNoModelName(t *testing.T) {
 	}
 
 	// Same env vars regardless of model name (no KAITO_MODEL_PATH).
-	if len(mutations.EnvVars) != 8 {
-		t.Errorf("expected 8 env vars, got %d", len(mutations.EnvVars))
+	if len(mutations.EnvVars) != 6 {
+		t.Errorf("expected 6 env vars, got %d", len(mutations.EnvVars))
 	}
 }
 

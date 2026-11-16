@@ -79,7 +79,7 @@ const (
 	// size on the streamer than the cache-server stores would defeat cache
 	// hits. RUNAI_STREAMER_CHUNK_BYTESIZE therefore defaults to the DACS default
 	// so the two stay aligned out of the box. Operators can still override it via
-	// DACS_ENV_RUNAI_STREAMER_CHUNK_BYTESIZE if the cache-server is retuned.
+	// DACS_ENV_RUNAI_STREAMER_CHUNK_BYTESIZE if the cache-server is reconfigured.
 	dacsDefaultChunkByteSize = 32 * 1024 * 1024 // 33554432
 
 	// runaiChunkEnv (run:ai streamer read chunk size) and siChunkEnv (DACS
@@ -90,12 +90,6 @@ const (
 	// override of either (via DACS_ENV_) is applied to both.
 	runaiChunkEnv = "RUNAI_STREAMER_CHUNK_BYTESIZE"
 	siChunkEnv    = "SI_streamingChunkSize"
-
-	// Storage Intercept applies these client-scoped environment variables over
-	// its config. Keep the tuned DACS values here rather than changing Tachyon's
-	// global defaults.
-	siUploadThreadsEnv        = "SI_cacheNumUploadThreadsPerProcess"
-	siDeferCachePopulationEnv = "SI_blobSiDeferCachePopulation"
 )
 
 var cacheGVR = schema.GroupVersionResource{
@@ -372,8 +366,6 @@ func (p *Provider) PodMutations(ctx context.Context, concern cache.CacheConcern,
 			{Name: "RUNAI_STREAMER_EXPERIMENTAL_AZURE_CACHE_LIB", Value: ClientLibPath},
 			{Name: "CACHE_DISCOVERY_URL", Value: discoveryEndpoint},
 			{Name: "CACHE_SERVER_PORT", Value: fmt.Sprintf("%d", defaultDiscoveryPort)},
-			{Name: siUploadThreadsEnv, Value: "4"},
-			{Name: siDeferCachePopulationEnv, Value: "true"},
 		}
 
 		// Overlay DACS_ENV_ passthrough vars: they override same-named fixed
@@ -386,10 +378,6 @@ func (p *Provider) PodMutations(ctx context.Context, concern cache.CacheConcern,
 		env = upsertEnv(env, map[string]string{runaiChunkEnv: chunkVal, siChunkEnv: chunkVal})
 		mutations.EnvVars = append(mutations.EnvVars, env...)
 
-		effectiveEnv := make(map[string]string, len(env))
-		for _, variable := range env {
-			effectiveEnv[variable.Name] = variable.Value
-		}
 		workspaceNamespace, workspaceName := "", ""
 		if workspace != nil {
 			workspaceNamespace = workspace.Namespace
@@ -400,9 +388,7 @@ func (p *Provider) PodMutations(ctx context.Context, concern cache.CacheConcern,
 			"workspaceName", workspaceName,
 			"clientImage", clientImage,
 			"discoveryEndpoint", discoveryEndpoint,
-			"streamingChunkSize", effectiveEnv[siChunkEnv],
-			"uploadThreads", effectiveEnv[siUploadThreadsEnv],
-			"deferCachePopulation", effectiveEnv[siDeferCachePopulationEnv])
+			"streamingChunkSize", chunkVal)
 
 	}
 

@@ -44,12 +44,12 @@ import (
 	// to ensure that exec-entrypoint and run can make use of them.
 	kaitov1alpha1 "github.com/kaito-project/kaito/api/v1alpha1"
 	kaitov1beta1 "github.com/kaito-project/kaito/api/v1beta1"
+	"github.com/kaito-project/kaito/internal/controller/ragengine"
+	karpenterutils "github.com/kaito-project/kaito/internal/k8s/karpenter"
+	"github.com/kaito-project/kaito/internal/version"
+	ragenginewebhook "github.com/kaito-project/kaito/internal/webhook/ragengine"
 	"github.com/kaito-project/kaito/pkg/k8sclient"
-	"github.com/kaito-project/kaito/pkg/ragengine/controllers"
-	"github.com/kaito-project/kaito/pkg/ragengine/webhooks"
 	"github.com/kaito-project/kaito/pkg/sku"
-	karpenterutils "github.com/kaito-project/kaito/pkg/utils/karpenter"
-	"github.com/kaito-project/kaito/pkg/version"
 )
 
 const (
@@ -158,7 +158,7 @@ func main() {
 	k8sclient.SetGlobalClient(mgr.GetClient())
 	kClient := k8sclient.GetGlobalClient()
 
-	ragengineReconciler := controllers.NewRAGEngineReconciler(
+	ragengineReconciler := ragengine.NewRAGEngineReconciler(
 		kClient,
 		mgr.GetScheme(),
 		log.Log.WithName("controllers").WithName("RAGEngine"),
@@ -194,7 +194,7 @@ func main() {
 		})
 		ctx = sharedmain.WithHealthProbesDisabled(ctx)
 		ctx = sharedmain.WithHADisabled(ctx)
-		go sharedmain.MainWithConfig(ctx, "webhook", ctrl.GetConfigOrDie(), webhooks.NewRAGEngineWebhooks()...)
+		go sharedmain.MainWithConfig(ctx, "webhook", ctrl.GetConfigOrDie(), ragenginewebhook.NewRAGEngineWebhooks()...)
 
 		// wait 2 seconds to allow reconciling webhookconfiguration and service endpoint.
 		time.Sleep(2 * time.Second)

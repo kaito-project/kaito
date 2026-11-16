@@ -18,7 +18,7 @@ import (
 
 	corev1 "k8s.io/api/core/v1"
 
-	"github.com/kaito-project/kaito/pkg/cache"
+	"github.com/kaito-project/kaito/internal/cache"
 )
 
 // AssertMutations validates raw pod mutations against an expectation.

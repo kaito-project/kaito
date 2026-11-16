@@ -20,9 +20,9 @@ import (
 
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
+	"github.com/kaito-project/kaito/pkg/consts"
 	"github.com/kaito-project/kaito/pkg/featuregates"
 	"github.com/kaito-project/kaito/pkg/sku"
-	"github.com/kaito-project/kaito/pkg/utils/consts"
 )
 
 // Azure CPU names may be versioned or unversioned. The p suffix denotes ARM;
@@ -58,7 +58,7 @@ func IsCPUInferenceWorkspace(ws *Workspace) bool {
 // fallback when automatic node provisioning is enabled.
 func InferenceSetNodeSelector(iObj *InferenceSet) *metav1.LabelSelector {
 	selector := iObj.Spec.Template.Resource.LabelSelector
-	if IsEmptyLabelSelector(selector) && !featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning] {
+	if IsEmptyLabelSelector(selector) && !featuregates.FeatureGates[featuregates.FeatureFlagDisableNodeAutoProvisioning] {
 		return iObj.Spec.Selector
 	}
 	return selector

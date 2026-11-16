@@ -9,7 +9,7 @@ name: Preset Model Regression Test (8xH100)
 # that label, and releases the nodes when it finishes.
 #
 # Model targets are generated from modelFileSize in
-# presets/workspace/models/model_catalog.yaml using the size policies and GPU pool
+# pkg/catalog/model_catalog.yaml using the size policies and GPU pool
 # infrastructure in .github/preset-regression-config.json. Nothing is fail-fast:
 # every model is torn down and the run continues, then the job prints its summary
 # plus per-failure diagnostics and exits non-zero if any model failed.
@@ -28,7 +28,7 @@ on:
       - ".github/scripts/preset-regression-tests/**"
       - ".github/preset-regression-config.json"
       - "benchmarks/gsm8k/**"
-      - "presets/workspace/models/model_catalog.yaml"
+      - "pkg/catalog/model_catalog.yaml"
   workflow_dispatch:
     inputs:
       cluster_name:
@@ -83,7 +83,7 @@ concurrency:
 
 env:
   GO_VERSION: "1.26.10"
-  MODEL_CATALOG_FILE: "presets/workspace/models/model_catalog.yaml"
+  MODEL_CATALOG_FILE: "pkg/catalog/model_catalog.yaml"
   REGRESSION_CONFIG_FILE: ".github/preset-regression-config.json"
   REGRESSION_PROFILE: "8xh100"
   # Models are placed by this label, so it is both the reservation lock and the
@@ -366,9 +366,9 @@ jobs:
           set -euo pipefail
           # The base tag is go:embed'ed into the controller binary, so this must
           # happen before the controller image is built.
-          yq -i '(.images[] | select(.name == "base") | .registry) = strenv(REGISTRY)' presets/workspace/models/base_images.yaml
-          yq -i '(.images[] | select(.name == "base") | .tag) = strenv(VERSION)' presets/workspace/models/base_images.yaml
-          cat presets/workspace/models/base_images.yaml
+          yq -i '(.images[] | select(.name == "base") | .registry) = strenv(REGISTRY)' pkg/catalog/base_images.yaml
+          yq -i '(.images[] | select(.name == "base") | .tag) = strenv(VERSION)' pkg/catalog/base_images.yaml
+          cat pkg/catalog/base_images.yaml
 
       - name: Build the workspace controller image
         run: |

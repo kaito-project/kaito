@@ -23,8 +23,8 @@ import (
 	"k8s.io/apimachinery/pkg/runtime"
 	ctrlclientfake "sigs.k8s.io/controller-runtime/pkg/client/fake"
 
+	"github.com/kaito-project/kaito/pkg/consts"
 	"github.com/kaito-project/kaito/pkg/k8sclient"
-	"github.com/kaito-project/kaito/pkg/utils/consts"
 )
 
 func TestRAGEngineValidateCreate(t *testing.T) {
@@ -398,7 +398,7 @@ func TestRAGEngineValidateGuardrails(t *testing.T) {
 			scheme := runtime.NewScheme()
 			_ = v1.AddToScheme(scheme)
 			k8sclient.Client = ctrlclientfake.NewClientBuilder().WithScheme(scheme).WithRuntimeObjects(tt.objects...).Build()
-			t.Setenv(consts.DefaultReleaseNamespaceEnvVar, "kaito-system")
+			t.Setenv(k8sclient.DefaultReleaseNamespaceEnvVar, "kaito-system")
 
 			err := tt.ragEngine.validateGuardrails(context.Background())
 			if tt.wantErr == "" {

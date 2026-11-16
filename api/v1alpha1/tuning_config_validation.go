@@ -18,6 +18,7 @@ import (
 	"fmt"
 	"path/filepath"
 	"reflect"
+	"slices"
 	"strings"
 
 	"gopkg.in/yaml.v2"
@@ -27,8 +28,8 @@ import (
 	"knative.dev/pkg/apis"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
+	"github.com/kaito-project/kaito/api/internal/validation"
 	"github.com/kaito-project/kaito/pkg/k8sclient"
-	"github.com/kaito-project/kaito/pkg/utils"
 )
 
 type Config struct {
@@ -129,7 +130,7 @@ func validateTrainingArgsViaConfigMap(cm *corev1.ConfigMap) *apis.FieldError {
 		trainingArgsRaw, trainingArgsExists := trainingArgs["TrainingArguments"]
 		if trainingArgsExists {
 			// If specified, ensure output dir is of type string
-			outputDirValue, found, err := utils.SearchRawExtension(trainingArgsRaw, "output_dir")
+			outputDirValue, found, err := validation.SearchRawExtension(trainingArgsRaw, "output_dir")
 			if err != nil {
 				return apis.ErrGeneric(fmt.Sprintf("Failed to parse 'output_dir' in ConfigMap '%s' in namespace '%s': %v", cm.Name, cm.Namespace, err), "output_dir")
 			}
@@ -166,11 +167,11 @@ func validateMethodViaConfigMap(cm *corev1.ConfigMap, methodLowerCase string) *a
 		quantConfigRaw, quantConfigExists := quantConfig["QuantizationConfig"]
 		if quantConfigExists {
 			// Dynamic field search for quantization settings within ModelConfig
-			loadIn4bit, _, err := utils.SearchRawExtension(quantConfigRaw, "load_in_4bit")
+			loadIn4bit, _, err := validation.SearchRawExtension(quantConfigRaw, "load_in_4bit")
 			if err != nil {
 				return apis.ErrInvalidValue(err.Error(), "load_in_4bit")
 			}
-			loadIn8bit, _, err := utils.SearchRawExtension(quantConfigRaw, "load_in_8bit")
+			loadIn8bit, _, err := validation.SearchRawExtension(quantConfigRaw, "load_in_8bit")
 			if err != nil {
 				return apis.ErrInvalidValue(err.Error(), "load_in_8bit")
 			}
@@ -256,7 +257,7 @@ func validateTuningConfigMapSchema(cm *corev1.ConfigMap) *apis.FieldError {
 		if !ok {
 			return apis.ErrInvalidValue("Section key must be a string", "training_config.yaml")
 		}
-		if !utils.Contains(recognizedSections, sectionStr) {
+		if !slices.Contains(recognizedSections, sectionStr) {
 			return apis.ErrInvalidValue(fmt.Sprintf("Unrecognized section: %s", sectionStr), "training_config.yaml")
 		}
 	}

@@ -19,18 +19,18 @@ import (
 
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
+	"github.com/kaito-project/kaito/pkg/consts"
 	"github.com/kaito-project/kaito/pkg/featuregates"
 	"github.com/kaito-project/kaito/pkg/model"
-	"github.com/kaito-project/kaito/pkg/utils/consts"
 )
 
 func TestValidateCreateWithInference_AllowsCPUNAPInstanceTypes(t *testing.T) {
 	RegisterValidationTestModels()
-	oldNAPGate := featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning]
+	oldNAPGate := featuregates.FeatureGates[featuregates.FeatureFlagDisableNodeAutoProvisioning]
 	defer func() {
-		featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning] = oldNAPGate
+		featuregates.FeatureGates[featuregates.FeatureFlagDisableNodeAutoProvisioning] = oldNAPGate
 	}()
-	featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning] = false
+	featuregates.FeatureGates[featuregates.FeatureFlagDisableNodeAutoProvisioning] = false
 
 	cpuInference := &InferenceSpec{Preset: &PresetSpec{PresetMeta: PresetMeta{Name: "test-validation"}}}
 
@@ -101,7 +101,7 @@ func TestValidateCreateWithInference_AllowsCPUNAPInstanceTypes(t *testing.T) {
 			Count:        pointerToInt(1),
 			LabelSelector: &metav1.LabelSelector{MatchLabels: map[string]string{
 				"kaito.sh/cpu-inference": "true",
-				consts.SKUString:         "pool-a",
+				LabelSKU:                 "pool-a",
 			}},
 		}
 		if err := resourceSpec.validateCreateWithInference(context.TODO(), cpuInference, false, model.RuntimeNameVLLM, ""); err == nil {
@@ -126,11 +126,11 @@ func TestValidateCreateWithInference_AllowsCPUNAPInstanceTypes(t *testing.T) {
 
 	t.Run("cpu byo path still rejects partitioned workloads", func(t *testing.T) {
 		t.Setenv("CLOUD_PROVIDER", consts.AzureCloudName)
-		oldDisableNAP := featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning]
+		oldDisableNAP := featuregates.FeatureGates[featuregates.FeatureFlagDisableNodeAutoProvisioning]
 		defer func() {
-			featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning] = oldDisableNAP
+			featuregates.FeatureGates[featuregates.FeatureFlagDisableNodeAutoProvisioning] = oldDisableNAP
 		}()
-		featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning] = true
+		featuregates.FeatureGates[featuregates.FeatureFlagDisableNodeAutoProvisioning] = true
 
 		resourceSpec := &ResourceSpec{
 			Count:     pointerToInt(1),

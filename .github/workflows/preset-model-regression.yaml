@@ -9,7 +9,7 @@ name: Preset Model Regression Test (H100/A100/A10)
 # diagnostics and exits non-zero if any model failed.
 #
 # Model targets are generated from modelFileSize in
-# presets/workspace/models/model_catalog.yaml using the size policies and GPU
+# pkg/catalog/model_catalog.yaml using the size policies and GPU
 # pool infrastructure in .github/preset-regression-config.json.
 #
 # Nothing is provisioned automatically: the per-pool job targets the protected
@@ -72,7 +72,7 @@ concurrency:
 
 env:
   GO_VERSION: "1.26.10"
-  MODEL_CATALOG_FILE: "presets/workspace/models/model_catalog.yaml"
+  MODEL_CATALOG_FILE: "pkg/catalog/model_catalog.yaml"
   REGRESSION_CONFIG_FILE: ".github/preset-regression-config.json"
   REGRESSION_PROFILE: "standard"
 
@@ -320,9 +320,9 @@ jobs:
           set -euo pipefail
           # The base tag is go:embed'ed into the controller binary, so this must
           # happen before the controller image is built.
-          yq -i '(.images[] | select(.name == "base") | .registry) = strenv(REGISTRY)' presets/workspace/models/base_images.yaml
-          yq -i '(.images[] | select(.name == "base") | .tag) = strenv(VERSION)' presets/workspace/models/base_images.yaml
-          cat presets/workspace/models/base_images.yaml
+          yq -i '(.images[] | select(.name == "base") | .registry) = strenv(REGISTRY)' pkg/catalog/base_images.yaml
+          yq -i '(.images[] | select(.name == "base") | .tag) = strenv(VERSION)' pkg/catalog/base_images.yaml
+          cat pkg/catalog/base_images.yaml
 
       - name: Build the workspace controller image
         run: |

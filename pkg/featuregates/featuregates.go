@@ -18,25 +18,41 @@ import (
 	"fmt"
 
 	cliflag "k8s.io/component-base/cli/flag"
+)
 
-	"github.com/kaito-project/kaito/pkg/utils/consts"
+// Feature gate names.
+const (
+	FeatureFlagVLLM                         = "vLLM"
+	FeatureFlagDisableNodeAutoProvisioning  = "disableNodeAutoProvisioning"
+	FeatureFlagGatewayAPIInferenceExtension = "gatewayAPIInferenceExtension"
+	FeatureFlagEnableInferenceSetController = "enableInferenceSetController"
+	FeatureFlagEnableMIG                    = "enableMIG"
+	FeatureFlagEnableAccelerator            = "enableAccelerator"
+
+	FeatureFlagEnableMultiRoleInferenceController = "enableMultiRoleInferenceController"
+	FeatureFlagModelMirror                        = "ModelMirror"
+	FeatureFlagModelStreaming                     = "ModelStreaming"
+	FeatureFlagEnableBaseImageAutoUpgrade         = "enableBaseImageAutoUpgrade"
+	FeatureFlagEnableEPPFlowControl               = "enableEPPFlowControl"
+
+	FeatureFlagDistributedCache = "distributedCache"
 )
 
 var (
 	// FeatureGates is a map that holds the feature gate names and their default values for KAITO.
 	FeatureGates = map[string]bool{
-		consts.FeatureFlagVLLM:                               true,
-		consts.FeatureFlagDisableNodeAutoProvisioning:        false,
-		consts.FeatureFlagGatewayAPIInferenceExtension:       false,
-		consts.FeatureFlagEnableInferenceSetController:       true,
-		consts.FeatureFlagEnableMIG:                          false,
-		consts.FeatureFlagEnableAccelerator:                  false,
-		consts.FeatureFlagEnableMultiRoleInferenceController: false,
-		consts.FeatureFlagModelMirror:                        false,
-		consts.FeatureFlagModelStreaming:                     false,
-		consts.FeatureFlagEnableBaseImageAutoUpgrade:         false,
-		consts.FeatureFlagEnableEPPFlowControl:               false,
-		consts.FeatureFlagDistributedCache:                   false,
+		FeatureFlagVLLM:                               true,
+		FeatureFlagDisableNodeAutoProvisioning:        false,
+		FeatureFlagGatewayAPIInferenceExtension:       false,
+		FeatureFlagEnableInferenceSetController:       true,
+		FeatureFlagEnableMIG:                          false,
+		FeatureFlagEnableAccelerator:                  false,
+		FeatureFlagEnableMultiRoleInferenceController: false,
+		FeatureFlagModelMirror:                        false,
+		FeatureFlagModelStreaming:                     false,
+		FeatureFlagEnableBaseImageAutoUpgrade:         false,
+		FeatureFlagEnableEPPFlowControl:               false,
+		FeatureFlagDistributedCache:                   false,
 		//	Add more feature gates here
 	}
 )

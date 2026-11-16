@@ -36,17 +36,15 @@ import (
 	"knative.dev/pkg/apis"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
+	"github.com/kaito-project/kaito/api/internal/speculativedecoding"
+	"github.com/kaito-project/kaito/pkg/accelerator/nvidia"
+	"github.com/kaito-project/kaito/pkg/catalog"
+	"github.com/kaito-project/kaito/pkg/consts"
 	"github.com/kaito-project/kaito/pkg/featuregates"
 	"github.com/kaito-project/kaito/pkg/k8sclient"
 	"github.com/kaito-project/kaito/pkg/model"
 	mmconsts "github.com/kaito-project/kaito/pkg/modelmirror/consts"
 	"github.com/kaito-project/kaito/pkg/sku"
-	"github.com/kaito-project/kaito/pkg/utils"
-	"github.com/kaito-project/kaito/pkg/utils/consts"
-	"github.com/kaito-project/kaito/pkg/utils/mig"
-	"github.com/kaito-project/kaito/pkg/utils/plugin"
-	"github.com/kaito-project/kaito/pkg/utils/speculativedecoding"
-	"github.com/kaito-project/kaito/presets/workspace/models"
 )
 
 const (
@@ -116,7 +114,7 @@ func (w *Workspace) ValidateUpdate(ctx context.Context, old *Workspace) (errs *a
 		errs = errs.Also(w.validateNodeClassNameAnnotation())
 	}
 	errs = errs.Also(w.validateCapacityTypeAnnotationUpdate(old))
-	if featuregates.FeatureGates[consts.FeatureFlagModelStreaming] {
+	if featuregates.FeatureGates[featuregates.FeatureFlagModelStreaming] {
 		errs = errs.Also(w.validateModelStreamingAnnotationImmutable(old))
 	}
 	if w.Inference != nil {
@@ -157,7 +155,7 @@ func (w *Workspace) ValidateCreate(ctx context.Context) (errs *apis.FieldError) 
 			w.validateInferenceConfig(ctx),
 			w.validateCustomModelStreaming(),
 		)
-		if featuregates.FeatureGates[consts.FeatureFlagModelStreaming] {
+		if featuregates.FeatureGates[featuregates.FeatureFlagModelStreaming] {
 			errs = errs.Also(w.validateStreamingCSIDriver(ctx))
 		}
 	}
@@ -266,7 +264,7 @@ func (w *Workspace) validateCreate() (errs *apis.FieldError) {
 		errs = errs.Also(apis.ErrGeneric("Either Inference or Tuning must be specified, but not both", ""))
 	}
 
-	if !featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning] {
+	if !featuregates.FeatureGates[featuregates.FeatureFlagDisableNodeAutoProvisioning] {
 		if w.Resource.InstanceType == "" {
 			errs = errs.Also(apis.ErrMissingField("instanceType is required when node auto-provisioning is enabled", "resource.instanceType"))
 		}
@@ -290,7 +288,7 @@ func (w *Workspace) validateNodeImageFamilyAnnotation() (errs *apis.FieldError) 
 		return nil
 	}
 
-	if _, valid := consts.NormalizeSupportedNodeImageFamily(nodeImageFamily); !valid {
+	if _, valid := NormalizeSupportedNodeImageFamily(nodeImageFamily); !valid {
 		return apis.ErrInvalidValue(
 			fmt.Sprintf("unsupported node image family %q, supported values are azurelinux, ubuntu", nodeImageFamily),
 			fmt.Sprintf("metadata.annotations[%q]", AnnotationNodeImageFamily),
@@ -308,12 +306,12 @@ func (w *Workspace) validateNodeClassNameAnnotation() *apis.FieldError {
 		return nil
 	}
 	// The annotation is inert unless karpenter is provisioning nodes.
-	if !consts.IsKarpenterProvisioner() {
+	if !featuregates.IsKarpenterProvisioner() {
 		return nil
 	}
 	field := fmt.Sprintf("metadata.annotations[%q]", AnnotationNodeClassName)
 
-	allowed := consts.AllowedNodeClassNames()
+	allowed := featuregates.AllowedNodeClassNames()
 	if !slices.Contains(allowed, name) {
 		return apis.ErrInvalidValue(
 			fmt.Sprintf("%q is not a KAITO-managed NodeClass, supported values are %v", name, allowed),
@@ -324,22 +322,22 @@ func (w *Workspace) validateNodeClassNameAnnotation() *apis.FieldError {
 }
 
 func (w *Workspace) validateCapacityTypeAnnotation() *apis.FieldError {
-	if !consts.IsKarpenterProvisioner() {
+	if !featuregates.IsKarpenterProvisioner() {
 		return nil
 	}
 	capacityType := w.GetAnnotations()[AnnotationCapacityType]
-	if consts.IsSupportedKarpenterCapacityType(capacityType) {
+	if IsSupportedKarpenterCapacityType(capacityType) {
 		return nil
 	}
 	return apis.ErrInvalidValue(
 		fmt.Sprintf("%q is not a supported capacity type; choose one of: %s, %s",
-			capacityType, consts.KarpenterCapacityTypeOnDemand, consts.KarpenterCapacityTypeSpot),
+			capacityType, CapacityTypeOnDemand, CapacityTypeSpot),
 		fmt.Sprintf("metadata.annotations[%s]", AnnotationCapacityType),
 	)
 }
 
 func (w *Workspace) validateCapacityTypeAnnotationUpdate(old *Workspace) *apis.FieldError {
-	if !consts.IsKarpenterProvisioner() {
+	if !featuregates.IsKarpenterProvisioner() {
 		return nil
 	}
 	oldValue := old.GetAnnotations()[AnnotationCapacityType]
@@ -347,7 +345,7 @@ func (w *Workspace) validateCapacityTypeAnnotationUpdate(old *Workspace) *apis.F
 	if oldValue == newValue {
 		return nil
 	}
-	if !consts.IsSupportedKarpenterCapacityType(oldValue) {
+	if !IsSupportedKarpenterCapacityType(oldValue) {
 		return w.validateCapacityTypeAnnotation()
 	}
 	return apis.ErrGeneric(
@@ -408,7 +406,7 @@ func (r *TuningSpec) validateCreate(ctx context.Context, workspaceNamespace stri
 	}
 	if r.Config == "" {
 		klog.InfoS("Tuning config not specified. Using default based on method.")
-		releaseNamespace, err := utils.GetReleaseNamespace()
+		releaseNamespace, err := k8sclient.GetReleaseNamespace()
 		if err != nil {
 			errs = errs.Also(apis.ErrGeneric(fmt.Sprintf("Failed to determine release namespace: %v", err), "namespace"))
 		}
@@ -439,7 +437,7 @@ func (r *TuningSpec) validateCreate(ctx context.Context, workspaceNamespace stri
 	// Currently require a preset to specified, in future we can consider defining a template
 	if r.Preset == nil {
 		errs = errs.Also(apis.ErrMissingField("Preset"))
-	} else if presetName := string(r.Preset.Name); !plugin.IsValidPreset(presetName) {
+	} else if presetName := string(r.Preset.Name); !model.IsValidPreset(presetName) {
 		errs = errs.Also(apis.ErrInvalidValue(fmt.Sprintf("Unsupported tuning preset name %s", presetName), "presetName"))
 	}
 	return errs
@@ -600,7 +598,7 @@ func (r *ResourceSpec) validateCreateWithInference(ctx context.Context, inferenc
 		presetName = strings.ToLower(string(inference.Preset.Name))
 		secretName = inference.Preset.PresetOptions.ModelAccessSecret
 		// Since inference.Preset exists, we must validate preset name.
-		if !plugin.IsValidPreset(presetName) {
+		if !model.IsValidPreset(presetName) {
 			// Return to skip the rest of checks, the Inference spec validation will return proper err msg.
 			return errs
 		}
@@ -638,7 +636,7 @@ func (r *ResourceSpec) validateCreateWithInference(ctx context.Context, inferenc
 		return errs
 	}
 
-	napDisabled := featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning]
+	napDisabled := featuregates.FeatureGates[featuregates.FeatureFlagDisableNodeAutoProvisioning]
 	isCPUInference := IsCPUInferenceTarget(inference, r.InstanceType)
 
 	// Defer GPU-memory sufficiency checks when BYO reconciliation selects the
@@ -772,10 +770,10 @@ func (r *ResourceSpec) validateCreateWithInference(ctx context.Context, inferenc
 			return errs.Also(apis.ErrGeneric("GPU partitioning is only supported with BYO nodes (disableNodeAutoProvisioning=true)", "partition"))
 		}
 		if isCPUInference {
-			if selectorSKU := SanitizedMatchLabels(r.LabelSelector)[consts.SKUString]; selectorSKU != "" && selectorSKU != consts.CPUString {
+			if selectorSKU := SanitizedMatchLabels(r.LabelSelector)[LabelSKU]; selectorSKU != "" && selectorSKU != SKUCPU {
 				errs = errs.Also(apis.ErrInvalidValue(
-					fmt.Sprintf("auto-provisioned basic CPU inference reserves labelSelector.matchLabels[%q]=%q; got %q", consts.SKUString, consts.CPUString, selectorSKU),
-					fmt.Sprintf("labelSelector.matchLabels[%s]", consts.SKUString),
+					fmt.Sprintf("auto-provisioned basic CPU inference reserves labelSelector.matchLabels[%q]=%q; got %q", LabelSKU, SKUCPU, selectorSKU),
+					fmt.Sprintf("labelSelector.matchLabels[%s]", LabelSKU),
 				))
 			}
 			if err := ValidateCPUInstanceTypeForNAP(instanceType); err != nil {
@@ -808,7 +806,7 @@ func (r *ResourceSpec) validateCreateWithInference(ctx context.Context, inferenc
 
 	if presetName != "" && skuConfig != nil {
 		if napDisabled || (runtime != model.RuntimeNameVLLM && !napDisabled) {
-			modelPreset, err := models.GetModelByName(context.TODO(), presetName, configMapName, secretName, wsNamespace, k8sclient.Client) // InferenceSpec has been validated so the name is valid.
+			modelPreset, err := catalog.GetModelByName(context.TODO(), presetName, configMapName, secretName, wsNamespace, k8sclient.Client) // InferenceSpec has been validated so the name is valid.
 			if err != nil {
 				errs = errs.Also(apis.ErrInvalidValue(fmt.Sprintf("failed to get model preset: %v", err), "preset"))
 				return errs
@@ -887,13 +885,13 @@ func (r *ResourceSpec) validatePartition() (errs *apis.FieldError) {
 // The BYO-node (NAP-disabled) requirement is enforced by the caller. Model-to-
 // partition fit is left to the lightweight webhook check and the node estimator.
 func (r *ResourceSpec) validateMIGPartition() (errs *apis.FieldError) {
-	if !featuregates.FeatureGates[consts.FeatureFlagEnableMIG] {
+	if !featuregates.FeatureGates[featuregates.FeatureFlagEnableMIG] {
 		return apis.ErrGeneric("MIG support is not enabled, set feature gate enableMIG=true", "partition")
 	}
 	if r.Partition.Count != nil {
 		return apis.ErrInvalidValue("count is only valid for accelerator mode", "partition.count")
 	}
-	if err := mig.ValidateMIGProfile(r.Partition.Profile); err != nil {
+	if err := nvidia.ValidateMIGProfile(r.Partition.Profile); err != nil {
 		return apis.ErrInvalidValue(err.Error(), "partition.profile")
 	}
 
@@ -906,7 +904,7 @@ func (r *ResourceSpec) validateMIGPartition() (errs *apis.FieldError) {
 // schema); Profile is not valid. The BYO-node (NAP-disabled) requirement is enforced
 // by the caller.
 func (r *ResourceSpec) validateAcceleratorPartition() (errs *apis.FieldError) {
-	if !featuregates.FeatureGates[consts.FeatureFlagEnableAccelerator] {
+	if !featuregates.FeatureGates[featuregates.FeatureFlagEnableAccelerator] {
 		return apis.ErrGeneric("accelerator partition support is not enabled, set feature gate enableAccelerator=true", "partition")
 	}
 	if r.Partition.Profile != "" {
@@ -926,11 +924,11 @@ func (r *ResourceSpec) validateAcceleratorPartition() (errs *apis.FieldError) {
 func (r *ResourceSpec) validateMIGModelFit(ctx context.Context, presetName, configMapName, secretName, wsNamespace string, bypassResourceChecks bool) (errs *apis.FieldError) {
 	// The profile is already validated by validateMIGPartition before this runs,
 	// so this failure is defensive and should not occur in practice.
-	migConfig, err := utils.GetMIGGPUConfig(r.Partition.Profile)
+	migConfig, err := sku.MIGGPUConfig(r.Partition.Profile)
 	if err != nil {
 		return apis.ErrInvalidValue(err.Error(), "partition.profile")
 	}
-	modelPreset, err := models.GetModelByName(ctx, presetName, configMapName, secretName, wsNamespace, k8sclient.Client)
+	modelPreset, err := catalog.GetModelByName(ctx, presetName, configMapName, secretName, wsNamespace, k8sclient.Client)
 	if err != nil {
 		return apis.ErrInvalidValue(fmt.Sprintf("failed to get model preset: %v", err), "preset")
 	}
@@ -997,7 +995,7 @@ func (r *ResourceSpec) validateUpdate(old *ResourceSpec) (errs *apis.FieldError)
 	}
 
 	// Check node auto-provisioning feature gate and validate instanceType accordingly
-	if featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning] {
+	if featuregates.FeatureGates[featuregates.FeatureFlagDisableNodeAutoProvisioning] {
 		// Keep instanceType immutable once set, while allowing it to be added and
 		// preserving the v0.7 upgrade path that clears it.
 		if old.InstanceType != "" && r.InstanceType != "" && old.InstanceType != r.InstanceType {
@@ -1043,13 +1041,13 @@ func (i *InferenceSpec) validateCreate(ctx context.Context, runtime model.Runtim
 	if i.Preset != nil {
 		presetName := string(i.Preset.Name)
 		// Validate preset name
-		if !plugin.IsValidPreset(presetName) {
+		if !model.IsValidPreset(presetName) {
 			// A name in the reserved "custom-" namespace is not merely unknown:
 			// it is an internal, content-addressed registry key, so point the
 			// user at the supported way to bring their own weights instead of a
 			// generic "unsupported" message.
-			if plugin.IsReservedCustomModelName(presetName) {
-				errs = errs.Also(apis.ErrInvalidValue(fmt.Sprintf("inference preset name %q is reserved; select preset %q and supply the model configuration through 'inference.config'", presetName, plugin.PresetNameCustom), "presetName"))
+			if model.IsReservedCustomModelName(presetName) {
+				errs = errs.Also(apis.ErrInvalidValue(fmt.Sprintf("inference preset name %q is reserved; select preset %q and supply the model configuration through 'inference.config'", presetName, model.PresetNameCustom), "presetName"))
 			} else {
 				errs = errs.Also(apis.ErrInvalidValue(fmt.Sprintf("Unsupported inference preset name %s", presetName), "presetName"))
 			}
@@ -1059,7 +1057,7 @@ func (i *InferenceSpec) validateCreate(ctx context.Context, runtime model.Runtim
 		if err := i.validateCustomPreset(); err != nil {
 			return errs.Also(err)
 		}
-		modelPreset, err := models.GetModelByName(ctx, string(i.Preset.Name), i.Config, i.Preset.PresetOptions.ModelAccessSecret, wsNamespace, k8sclient.Client)
+		modelPreset, err := catalog.GetModelByName(ctx, string(i.Preset.Name), i.Config, i.Preset.PresetOptions.ModelAccessSecret, wsNamespace, k8sclient.Client)
 		if err != nil {
 			errs = errs.Also(apis.ErrInvalidValue(fmt.Sprintf("failed to get model preset: %v", err), "preset"))
 			return errs
@@ -1112,9 +1110,9 @@ func (i *InferenceSpec) validateUpdate(old *InferenceSpec) (errs *apis.FieldErro
 	// repointing it would swap the weights underneath an already-sized
 	// deployment. Serving a different model means a new Workspace or
 	// InferenceSet and an explicit cutover.
-	if i.Preset != nil && plugin.IsCustomPreset(string(i.Preset.Name)) && i.Config != old.Config {
+	if i.Preset != nil && model.IsCustomPreset(string(i.Preset.Name)) && i.Config != old.Config {
 		errs = errs.Also(apis.ErrGeneric(
-			fmt.Sprintf("field is immutable for preset %q: serving a different model or different runtime settings requires a new Workspace or InferenceSet", plugin.PresetNameCustom),
+			fmt.Sprintf("field is immutable for preset %q: serving a different model or different runtime settings requires a new Workspace or InferenceSet", model.PresetNameCustom),
 			"config"))
 	}
 	// inference.template can be changed, but cannot be set/unset.
@@ -1162,7 +1160,7 @@ func (w *Workspace) validateModelStreamingAnnotationImmutable(old *Workspace) *a
 // validateStreamingCSIDriver validates that the required CSI driver for model streaming
 // is installed on the cluster. The CSI driver name is resolved from CLOUD_PROVIDER env
 // via consts.CSIDriverNameForCloud. To add a new cloud provider: add a constant and case
-// in pkg/utils/consts.
+// in pkg/consts.
 func (w *Workspace) validateStreamingCSIDriver(ctx context.Context) *apis.FieldError {
 	if w.Inference == nil || w.Inference.Preset == nil {
 		return nil

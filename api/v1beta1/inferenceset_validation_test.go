@@ -21,9 +21,9 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"knative.dev/pkg/apis"
 
+	"github.com/kaito-project/kaito/pkg/consts"
 	"github.com/kaito-project/kaito/pkg/featuregates"
 	"github.com/kaito-project/kaito/pkg/model"
-	"github.com/kaito-project/kaito/pkg/utils/consts"
 )
 
 func TestInferenceSetValidate(t *testing.T) {
@@ -240,9 +240,9 @@ func TestInferenceSetValidateSelector(t *testing.T) {
 }
 
 func TestInferenceSetBenchmarkApplicabilityRequiresDeclaredCPUType(t *testing.T) {
-	old := featuregates.FeatureGates[consts.FeatureFlagVLLM]
-	t.Cleanup(func() { featuregates.FeatureGates[consts.FeatureFlagVLLM] = old })
-	featuregates.FeatureGates[consts.FeatureFlagVLLM] = true
+	old := featuregates.FeatureGates[featuregates.FeatureFlagVLLM]
+	t.Cleanup(func() { featuregates.FeatureGates[featuregates.FeatureFlagVLLM] = old })
+	featuregates.FeatureGates[featuregates.FeatureFlagVLLM] = true
 	t.Setenv("CLOUD_PROVIDER", consts.AzureCloudName)
 	is := &InferenceSet{Spec: InferenceSetSpec{Template: InferenceSetTemplate{Inference: InferenceSpec{Preset: &PresetSpec{PresetMeta: PresetMeta{Name: "test-model"}}}}}}
 	assert.True(t, ShouldRunInferenceSetBenchmark(is), "label-only targets do not select CPU")

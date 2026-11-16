@@ -36,7 +36,6 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
 	kaitov1beta1 "github.com/kaito-project/kaito/api/v1beta1"
-	"github.com/kaito-project/kaito/pkg/utils/consts"
 	"github.com/kaito-project/kaito/test/e2e/utils"
 )
 
@@ -1048,7 +1047,7 @@ func cleanupResourcesForInferenceSet(inferenceSetObj *kaitov1beta1.InferenceSet)
 				err := utils.TestingCluster.KubeClient.List(ctx, workspaceList,
 					client.InNamespace(inferenceSetObj.Namespace),
 					client.MatchingLabels{
-						consts.WorkspaceCreatedByInferenceSetLabel: inferenceSetObj.Name,
+						kaitov1beta1.WorkspaceCreatedByInferenceSetLabel: inferenceSetObj.Name,
 					})
 				Expect(err).NotTo(HaveOccurred(), "Failed to list child workspaces")
 			}
@@ -1311,10 +1310,10 @@ var _ = Describe("Karpenter Bootstrap", func() {
 			Eventually(func() bool {
 				nc := &azurev1beta1.AKSNodeClass{}
 				err := utils.TestingCluster.KubeClient.Get(ctx, client.ObjectKey{
-					Name: consts.AKSNodeClassUbuntuName,
+					Name: utils.AKSNodeClassUbuntuName,
 				}, nc)
 				if err != nil {
-					GinkgoWriter.Printf("Error getting AKSNodeClass %s: %v\n", consts.AKSNodeClassUbuntuName, err)
+					GinkgoWriter.Printf("Error getting AKSNodeClass %s: %v\n", utils.AKSNodeClassUbuntuName, err)
 					return false
 				}
 				for _, cond := range nc.Status.Conditions {
@@ -1324,17 +1323,17 @@ var _ = Describe("Karpenter Bootstrap", func() {
 				}
 				return false
 			}, 5*time.Minute, utils.PollInterval).Should(BeTrue(),
-				"AKSNodeClass %s should be Ready", consts.AKSNodeClassUbuntuName)
+				"AKSNodeClass %s should be Ready", utils.AKSNodeClassUbuntuName)
 		})
 
 		By("Verifying AKSNodeClass image-family-azure-linux exists and is Ready", func() {
 			Eventually(func() bool {
 				nc := &azurev1beta1.AKSNodeClass{}
 				err := utils.TestingCluster.KubeClient.Get(ctx, client.ObjectKey{
-					Name: consts.AKSNodeClassAzureLinuxName,
+					Name: utils.AKSNodeClassAzureLinuxName,
 				}, nc)
 				if err != nil {
-					GinkgoWriter.Printf("Error getting AKSNodeClass %s: %v\n", consts.AKSNodeClassAzureLinuxName, err)
+					GinkgoWriter.Printf("Error getting AKSNodeClass %s: %v\n", utils.AKSNodeClassAzureLinuxName, err)
 					return false
 				}
 				for _, cond := range nc.Status.Conditions {
@@ -1344,7 +1343,7 @@ var _ = Describe("Karpenter Bootstrap", func() {
 				}
 				return false
 			}, 5*time.Minute, utils.PollInterval).Should(BeTrue(),
-				"AKSNodeClass %s should be Ready", consts.AKSNodeClassAzureLinuxName)
+				"AKSNodeClass %s should be Ready", utils.AKSNodeClassAzureLinuxName)
 		})
 	})
 
@@ -1364,13 +1363,13 @@ var _ = Describe("Karpenter Bootstrap", func() {
 		if workspaceObj.Annotations == nil {
 			workspaceObj.Annotations = make(map[string]string)
 		}
-		workspaceObj.Annotations[kaitov1beta1.AnnotationNodeClassName] = consts.AKSNodeClassAzureLinuxName
+		workspaceObj.Annotations[kaitov1beta1.AnnotationNodeClassName] = utils.AKSNodeClassAzureLinuxName
 
 		createAndValidateWorkspace(workspaceObj)
 		defer cleanupResources(workspaceObj)
 
 		By("Verifying NodePool references azure-linux NodeClass", func() {
-			utils.ValidateNodePoolNodeClassRef(ctx, workspaceObj, consts.AKSNodeClassAzureLinuxName)
+			utils.ValidateNodePoolNodeClassRef(ctx, workspaceObj, utils.AKSNodeClassAzureLinuxName)
 		})
 
 		validateResourceStatus(workspaceObj)

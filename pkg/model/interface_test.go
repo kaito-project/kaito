@@ -23,7 +23,6 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
 	"github.com/kaito-project/kaito/pkg/sku"
-	"github.com/kaito-project/kaito/pkg/utils/consts"
 )
 
 func TestPresetParamDeepCopy(t *testing.T) {
@@ -360,7 +359,7 @@ func TestGetInferenceCommandVLLMServedModelName(t *testing.T) {
 			name:          "InferenceSet workspace uses InferenceSet name",
 			vllmModelName: "default-model",
 			workspaceLabels: map[string]string{
-				consts.WorkspaceCreatedByInferenceSetLabel: "my-inferenceset",
+				"inferenceset.kaito.sh/created-by": "my-inferenceset",
 			},
 			expectedServed:    "served-model-name=my-inferenceset",
 			notExpectedServed: "served-model-name=default-model",
@@ -368,7 +367,7 @@ func TestGetInferenceCommandVLLMServedModelName(t *testing.T) {
 		{
 			name: "InferenceSet workspace overrides even when VLLM.ModelName is empty",
 			workspaceLabels: map[string]string{
-				consts.WorkspaceCreatedByInferenceSetLabel: "my-inferenceset",
+				"inferenceset.kaito.sh/created-by": "my-inferenceset",
 			},
 			expectedServed: "served-model-name=my-inferenceset",
 		},
@@ -376,8 +375,8 @@ func TestGetInferenceCommandVLLMServedModelName(t *testing.T) {
 			name:          "MRI workspace uses model name over InferenceSet name",
 			vllmModelName: "phi-4-mini-instruct",
 			workspaceLabels: map[string]string{
-				consts.WorkspaceCreatedByInferenceSetLabel: "phi-4-decode",
-				"multiroleinference.kaito.sh/created-by":   "phi-4",
+				"inferenceset.kaito.sh/created-by":       "phi-4-decode",
+				"multiroleinference.kaito.sh/created-by": "phi-4",
 			},
 			expectedServed:    "served-model-name=phi-4-mini-instruct",
 			notExpectedServed: "served-model-name=phi-4-decode",
@@ -386,7 +385,7 @@ func TestGetInferenceCommandVLLMServedModelName(t *testing.T) {
 			name:          "InferenceSet label with empty value falls back to VLLM.ModelName",
 			vllmModelName: "default-model",
 			workspaceLabels: map[string]string{
-				consts.WorkspaceCreatedByInferenceSetLabel: "",
+				"inferenceset.kaito.sh/created-by": "",
 			},
 			expectedServed: "served-model-name=default-model",
 		},

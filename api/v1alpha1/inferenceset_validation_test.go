@@ -24,7 +24,6 @@ import (
 
 	kaitov1beta1 "github.com/kaito-project/kaito/api/v1beta1"
 	"github.com/kaito-project/kaito/pkg/featuregates"
-	"github.com/kaito-project/kaito/pkg/utils/consts"
 )
 
 func TestInferenceSet_SupportedVerbs(t *testing.T) {
@@ -380,9 +379,9 @@ func TestInferenceSet_validateSpeculativeDecoding(t *testing.T) {
 	}
 
 	t.Run("vllm feature gate disabled - rejected", func(t *testing.T) {
-		orig := featuregates.FeatureGates[consts.FeatureFlagVLLM]
-		featuregates.FeatureGates[consts.FeatureFlagVLLM] = false
-		defer func() { featuregates.FeatureGates[consts.FeatureFlagVLLM] = orig }()
+		orig := featuregates.FeatureGates[featuregates.FeatureFlagVLLM]
+		featuregates.FeatureGates[featuregates.FeatureFlagVLLM] = false
+		defer func() { featuregates.FeatureGates[featuregates.FeatureFlagVLLM] = orig }()
 
 		tpl := presetTpl("deepseek-r1-0528")
 		tpl.Annotations = map[string]string{AnnotationEnableSpeculativeDecoding: "true"}
@@ -509,39 +508,39 @@ func TestInferenceSet_validateInstanceType(t *testing.T) {
 	}{
 		{
 			name:            "BYO mode with empty instanceType - valid",
-			nodeProvisioner: consts.NodeProvisionerBYO,
+			nodeProvisioner: featuregates.NodeProvisionerBYO,
 			instanceType:    "",
 			wantErr:         false,
 		},
 		{
 			name:            "BYO mode with instanceType set - invalid",
-			nodeProvisioner: consts.NodeProvisionerBYO,
+			nodeProvisioner: featuregates.NodeProvisionerBYO,
 			instanceType:    "Standard_NC6s_v3",
 			wantErr:         true,
 			errField:        "resource.instanceType",
 		},
 		{
 			name:            "Karpenter mode with instanceType set - valid",
-			nodeProvisioner: consts.NodeProvisionerKarpenter,
+			nodeProvisioner: featuregates.NodeProvisionerKarpenter,
 			instanceType:    "Standard_NC6s_v3",
 			wantErr:         false,
 		},
 		{
 			name:            "Karpenter mode with empty instanceType - invalid",
-			nodeProvisioner: consts.NodeProvisionerKarpenter,
+			nodeProvisioner: featuregates.NodeProvisionerKarpenter,
 			instanceType:    "",
 			wantErr:         true,
 			errField:        "resource.instanceType",
 		},
 		{
 			name:            "AzureGPU mode with instanceType set - valid",
-			nodeProvisioner: consts.NodeProvisionerAzureGPU,
+			nodeProvisioner: featuregates.NodeProvisionerAzureGPU,
 			instanceType:    "Standard_NC6s_v3",
 			wantErr:         false,
 		},
 		{
 			name:            "AzureGPU mode with empty instanceType - invalid",
-			nodeProvisioner: consts.NodeProvisionerAzureGPU,
+			nodeProvisioner: featuregates.NodeProvisionerAzureGPU,
 			instanceType:    "",
 			wantErr:         true,
 			errField:        "resource.instanceType",
@@ -563,9 +562,9 @@ func TestInferenceSet_validateInstanceType(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			// Save and restore global state
-			orig := consts.ActiveNodeProvisioner
-			consts.ActiveNodeProvisioner = tt.nodeProvisioner
-			defer func() { consts.ActiveNodeProvisioner = orig }()
+			orig := featuregates.NodeProvisioner
+			featuregates.NodeProvisioner = tt.nodeProvisioner
+			defer func() { featuregates.NodeProvisioner = orig }()
 
 			is := &InferenceSet{
 				Spec: InferenceSetSpec{

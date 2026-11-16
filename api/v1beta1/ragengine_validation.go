@@ -30,10 +30,10 @@ import (
 	"knative.dev/pkg/apis"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
+	"github.com/kaito-project/kaito/api/internal/validation"
+	"github.com/kaito-project/kaito/pkg/consts"
 	"github.com/kaito-project/kaito/pkg/k8sclient"
 	"github.com/kaito-project/kaito/pkg/sku"
-	"github.com/kaito-project/kaito/pkg/utils"
-	"github.com/kaito-project/kaito/pkg/utils/consts"
 )
 
 func (w *RAGEngine) SupportedVerbs() []admissionregistrationv1.OperationType {
@@ -141,7 +141,7 @@ func (w *RAGEngine) validateGuardrails(ctx context.Context) (errs *apis.FieldErr
 		usesDefaultPolicy = false
 		cmName = guardrails.ConfigMapRef.Name
 	} else {
-		releaseNamespace, err := utils.GetReleaseNamespace()
+		releaseNamespace, err := k8sclient.GetReleaseNamespace()
 		if err != nil {
 			return apis.ErrGeneric(
 				fmt.Sprintf("guardrails is enabled, but the default policy release namespace could not be determined: %v", err),
@@ -241,7 +241,7 @@ func (e *LocalEmbeddingSpec) validateCreate() (errs *apis.FieldError) {
 			errs = errs.Also(apis.ErrInvalidValue("Invalid image format, require full input image URL", "Image"))
 		} else {
 			// Executes if image is of correct format
-			err := utils.ExtractAndValidateRepoName(e.Image)
+			err := validation.ExtractAndValidateRepoName(e.Image)
 			if err != nil {
 				errs = errs.Also(apis.ErrInvalidValue(err.Error(), "Image"))
 			}

@@ -21,7 +21,6 @@ import (
 
 	"github.com/kaito-project/kaito/pkg/featuregates"
 	"github.com/kaito-project/kaito/pkg/model"
-	"github.com/kaito-project/kaito/pkg/utils/consts"
 )
 
 const (
@@ -78,6 +77,9 @@ const (
 	// InferenceSetRevisionAnnotation is the Annotations for revision number
 	InferenceSetRevisionAnnotation = "inferenceset.kaito.io/revision"
 
+	// WorkspaceCreatedByInferenceSetLabel is set on Workspaces created by an InferenceSet.
+	WorkspaceCreatedByInferenceSetLabel = "inferenceset.kaito.sh/created-by"
+
 	// LabelInferenceRole indicates the inference role of a workspace in P/D disaggregated serving.
 	// Propagated from InferenceSet.Spec.Template.Metadata.Labels onto child workspaces by the InferenceSet controller.
 	// Valid values: "prefill", "decode".
@@ -122,13 +124,87 @@ const (
 	PerformanceModeThroughput    = "throughput"
 )
 
+// Valid values for AnnotationCapacityType.
+const (
+	CapacityTypeOnDemand = "on-demand"
+	CapacityTypeSpot     = "spot"
+)
+
+// IsSupportedKarpenterCapacityType reports whether a Workspace annotation value
+// can be used as a Karpenter capacity-type requirement. Empty selects the default.
+func IsSupportedKarpenterCapacityType(value string) bool {
+	return value == "" || value == CapacityTypeOnDemand || value == CapacityTypeSpot
+}
+
+// Valid values for AnnotationNodeImageFamily.
+const (
+	NodeImageFamilyUbuntu     = "ubuntu"
+	NodeImageFamilyAzureLinux = "azurelinux"
+)
+
+// NormalizeSupportedNodeImageFamily returns the lower-cased, trimmed node image
+// family and whether it is supported.
+func NormalizeSupportedNodeImageFamily(value string) (string, bool) {
+	normalized := strings.ToLower(strings.TrimSpace(value))
+	switch normalized {
+	case NodeImageFamilyUbuntu, NodeImageFamilyAzureLinux:
+		return normalized, true
+	default:
+		return "", false
+	}
+}
+
+// LabelSKU is the node label and taint key KAITO uses to separate GPU and CPU nodes.
+const (
+	LabelSKU = "sku"
+	SKUGPU   = "gpu"
+	SKUCPU   = "cpu"
+)
+
+// Labels KAITO sets on the Karpenter NodePools it manages.
+const (
+	LabelKarpenterManagedBy             = "karpenter.kaito.sh/managed-by"
+	KarpenterManagedByKAITO             = "kaito"
+	LabelKarpenterWorkspaceName         = "karpenter.kaito.sh/workspace-name"
+	LabelKarpenterWorkspaceNamespace    = "karpenter.kaito.sh/workspace-namespace"
+	LabelKarpenterInferenceSet          = "karpenter.kaito.sh/inferenceset"
+	LabelKarpenterInferenceSetNamespace = "karpenter.kaito.sh/inferenceset-namespace"
+)
+
+// SAS-authenticated blob streaming annotations. When the static-model-mirror flag and the core
+// annotations are present on a Workspace (with model streaming enabled), KAITO streams weights
+// directly from a pre-existing external blob using a short-lived SAS token minted at pod start,
+// instead of mirroring the model to a PVC.
+//
+// These belong to the streaming path, not the mirror path: mirroring is independent of
+// streaming (it only copies weights to a PVC, skipping the download when no StorageClass
+// is set), so it has no knowledge of these keys.
+const (
+	AnnotationStreamDatarefsURL = "inference.kaito.sh/stream-datarefs-url" // POST target to mint a fresh SAS
+	// AnnotationStreamIdentityClientID is the workload identity client ID used to mint the SAS.
+	AnnotationStreamIdentityClientID = "inference.kaito.sh/stream-identity-client-id" // WI client id for token exchange
+	// AnnotationStreamSourceType selects the model source API flavor: "public" or "byo". It
+	// drives the model-resolve URL derivation and the token audience used to mint the SAS.
+	AnnotationStreamSourceType = "inference.kaito.sh/stream-source-type" // "public" | "byo"
+
+	// AnnotationStaticModelMirror, when set to "true", marks the workspace as using a STATIC
+	// model mirror: enabling this flag requires the core SAS annotations to be present.
+	AnnotationStaticModelMirror = "inference.kaito.sh/static-model-mirror" // "true" => Mode=Static
+)
+
+// Valid values for AnnotationStreamSourceType.
+const (
+	StreamSourceTypePublic = "public"
+	StreamSourceTypeBYO    = "byo"
+)
+
 // GetWorkspaceRuntimeName returns the runtime name of the workspace.
 func GetWorkspaceRuntimeName(ws *Workspace) model.RuntimeName {
 	if ws == nil {
 		panic("workspace is nil")
 	}
 
-	if !featuregates.FeatureGates[consts.FeatureFlagVLLM] {
+	if !featuregates.FeatureGates[featuregates.FeatureFlagVLLM] {
 		return model.RuntimeNameHuggingfaceTransformers
 	}
 
@@ -231,13 +307,13 @@ var reservedSelectorLabelKeys = map[string]struct{}{
 	LabelRAGEngineNamespace: {},
 
 	// Karpenter NodePool management labels.
-	consts.KarpenterWorkspaceNameKey:         {},
-	consts.KarpenterWorkspaceNamespaceKey:    {},
-	consts.KarpenterInferenceSetKey:          {},
-	consts.KarpenterInferenceSetNamespaceKey: {},
+	LabelKarpenterWorkspaceName:         {},
+	LabelKarpenterWorkspaceNamespace:    {},
+	LabelKarpenterInferenceSet:          {},
+	LabelKarpenterInferenceSetNamespace: {},
 
 	// Controller-owned workload isolation labels.
-	consts.WorkspaceCreatedByInferenceSetLabel: {},
+	WorkspaceCreatedByInferenceSetLabel: {},
 }
 
 // IsReservedSelectorLabel reports whether the given label key is reserved by
@@ -294,7 +370,7 @@ func GetInferenceSetRuntimeName(iObj *InferenceSet) model.RuntimeName {
 		panic("inferenceset is nil")
 	}
 
-	if !featuregates.FeatureGates[consts.FeatureFlagVLLM] {
+	if !featuregates.FeatureGates[featuregates.FeatureFlagVLLM] {
 		return model.RuntimeNameHuggingfaceTransformers
 	}
 

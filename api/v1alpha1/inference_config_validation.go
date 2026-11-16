@@ -27,8 +27,6 @@ import (
 	"github.com/kaito-project/kaito/pkg/k8sclient"
 	"github.com/kaito-project/kaito/pkg/model"
 	"github.com/kaito-project/kaito/pkg/sku"
-	"github.com/kaito-project/kaito/pkg/utils"
-	"github.com/kaito-project/kaito/pkg/utils/consts"
 )
 
 // InferenceConfig represents the structure of the inference configuration
@@ -52,7 +50,7 @@ func (w *Workspace) validateInferenceConfig(ctx context.Context) (errs *apis.Fie
 	if cmName == "" {
 		klog.Infof("Inference config not specified. Using default: %q", DefaultInferenceConfigTemplate)
 		cmName = DefaultInferenceConfigTemplate
-		cmNS, err = utils.GetReleaseNamespace()
+		cmNS, err = k8sclient.GetReleaseNamespace()
 		if err != nil {
 			errs = errs.Also(apis.ErrGeneric(fmt.Sprintf("Failed to determine release namespace: %v", err), "namespace"))
 			return errs
@@ -99,7 +97,7 @@ func (w *Workspace) validateInferenceConfig(ctx context.Context) (errs *apis.Fie
 		// Check if this is a multi-GPU instance with less than 20GiB per GPU
 		gpuMemPerGPU := skuConfig.GPUMem.Value() / int64(skuConfig.GPUCount)
 		// For multi-GPU instances with less than 20GiB per GPU, max-model-len is required
-		if skuConfig.GPUCount > 1 && gpuMemPerGPU < 20*consts.GiBToBytes {
+		if skuConfig.GPUCount > 1 && gpuMemPerGPU < 20*sku.GiB {
 			modelLenRequired = true
 		}
 	}

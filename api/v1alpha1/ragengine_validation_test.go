@@ -17,7 +17,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/kaito-project/kaito/pkg/utils/consts"
+	"github.com/kaito-project/kaito/pkg/consts"
 )
 
 func TestRAGEngineValidateCreate(t *testing.T) {

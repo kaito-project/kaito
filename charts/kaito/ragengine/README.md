@@ -7,7 +7,7 @@ KAITO RAGEngine provides Retrieval-Augmented Generation (RAG) capabilities for A
 ```bash
 helm repo add kaito https://kaito-project.github.io/kaito/charts/kaito
 helm repo update
-helm upgrade --install kaito/ragengine \
+helm upgrade --install kaito-ragengine kaito/ragengine \
   --namespace kaito-ragengine \
   --create-namespace \
   --take-ownership
@@ -88,14 +88,15 @@ With persistent storage configured, vector indexes are automatically saved durin
 | cloudProviderName            | string | `"azure"`                                    | Karpenter cloud provider name. Values can be "azure" or "aws" |
 | image.pullPolicy             | string | `"IfNotPresent"`                             | Image pull policy                                             |
 | image.repository             | string | `"mcr.microsoft.com/aks/kaito/ragengine"`    | RAGEngine controller image repository                         |
-| image.tag                    | string | `"0.0.1"`                                    | RAGEngine controller image tag                                |
+| image.tag                    | string | `"0.13.0"`                                   | RAGEngine controller image tag                                |
 | imagePullSecrets             | list   | `[]`                                         | Image pull secrets                                            |
+| logging.level                | string | `"error"`                                    | Log level for the RAGEngine controller and webhook            |
 | nodeSelector                 | object | `{}`                                         | Node selector for pod assignment                              |
 | podAnnotations               | object | `{}`                                         | Pod annotations                                               |
 | podSecurityContext.runAsNonRoot | bool | `true`                                       | Run container as non-root user                                |
-| presetRagRegistryName        | string | `"aimodelsregistrytest.azurecr.io"`          | Registry for preset RAG service images                        |
+| presetRagRegistryName        | string | `"mcr.microsoft.com/aks/kaito"`              | Registry for preset RAG service images                        |
 | presetRagImageName           | string | `"kaito-rag-service"`                        | Name of the preset RAG service image                          |
-| presetRagImageTag            | string | `"0.3.2"`                                    | Tag of the preset RAG service image                           |
+| presetRagImageTag            | string | `"0.13.0"`                                   | Tag of the preset RAG service image                           |
 | replicaCount                 | int    | `1`                                          | Number of replicas for the RAGEngine controller              |
 | resources.limits.cpu         | string | `"500m"`                                     | CPU resource limits                                           |
 | resources.limits.memory      | string | `"128Mi"`                                    | Memory resource limits                                        |

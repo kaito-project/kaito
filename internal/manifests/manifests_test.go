@@ -204,10 +204,6 @@ func TestGenerateInferencePoolHelmRelease(t *testing.T) {
 
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
-			// Explicitly set vLLM feature gate so decode-role tests are deterministic.
-			origVLLM := featuregates.FeatureGates[featuregates.FeatureFlagVLLM]
-			featuregates.FeatureGates[featuregates.FeatureFlagVLLM] = true
-			defer func() { featuregates.FeatureGates[featuregates.FeatureFlagVLLM] = origVLLM }()
 			origFlowControl := featuregates.FeatureGates[featuregates.FeatureFlagEnableEPPFlowControl]
 			featuregates.FeatureGates[featuregates.FeatureFlagEnableEPPFlowControl] = false
 			defer func() {
@@ -430,15 +426,6 @@ func TestGeneratePullerContainers(t *testing.T) {
 }
 
 func TestGenerateServiceManifest_KVEventsPort(t *testing.T) {
-	// Deterministically pin the vLLM feature gate for this test. Other packages'
-	// tests mutate featuregates.FeatureGates (sometimes flipping FeatureFlagVLLM
-	// to false or replacing the whole map) without restoring it, which would
-	// otherwise make kaitov1beta1.GetWorkspaceRuntimeName here flaky under
-	// parallel `go test` runs.
-	origVLLM := featuregates.FeatureGates[featuregates.FeatureFlagVLLM]
-	featuregates.FeatureGates[featuregates.FeatureFlagVLLM] = true
-	defer func() { featuregates.FeatureGates[featuregates.FeatureFlagVLLM] = origVLLM }()
-
 	newWS := func(runtime string) *kaitov1beta1.Workspace {
 		ws := &kaitov1beta1.Workspace{}
 		ws.Name = "ws"

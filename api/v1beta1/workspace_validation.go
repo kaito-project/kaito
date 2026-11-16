@@ -201,7 +201,7 @@ func (w *Workspace) validateCPUInferenceConstraints() (errs *apis.FieldError) {
 	}
 	runtimeAnnotation := w.Annotations[AnnotationWorkspaceRuntime]
 	if GetWorkspaceRuntimeName(w) != model.RuntimeNameVLLM || (runtimeAnnotation != "" && runtimeAnnotation != string(model.RuntimeNameVLLM)) {
-		errs = errs.Also(apis.ErrInvalidValue("CPU preset inference supports only vllm; enable the vllm feature gate and select the vllm runtime", "inference.preset"))
+		errs = errs.Also(apis.ErrInvalidValue("CPU preset inference supports only vllm; select the vllm runtime", "inference.preset"))
 	}
 	if w.Resource.Count != nil && *w.Resource.Count != 1 {
 		errs = errs.Also(apis.ErrInvalidValue("basic CPU inference only supports a single node per Workspace", "resource.count"))

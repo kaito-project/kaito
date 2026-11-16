@@ -19,7 +19,6 @@ import (
 
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
-	"github.com/kaito-project/kaito/pkg/featuregates"
 	"github.com/kaito-project/kaito/pkg/model"
 )
 
@@ -204,10 +203,6 @@ func GetWorkspaceRuntimeName(ws *Workspace) model.RuntimeName {
 		panic("workspace is nil")
 	}
 
-	if !featuregates.FeatureGates[featuregates.FeatureFlagVLLM] {
-		return model.RuntimeNameHuggingfaceTransformers
-	}
-
 	runtime := model.RuntimeNameVLLM
 	name := ws.Annotations[AnnotationWorkspaceRuntime]
 	switch name {
@@ -368,10 +363,6 @@ func SanitizedMatchLabels(selector *metav1.LabelSelector) map[string]string {
 func GetInferenceSetRuntimeName(iObj *InferenceSet) model.RuntimeName {
 	if iObj == nil {
 		panic("inferenceset is nil")
-	}
-
-	if !featuregates.FeatureGates[featuregates.FeatureFlagVLLM] {
-		return model.RuntimeNameHuggingfaceTransformers
 	}
 
 	runtime := model.RuntimeNameVLLM

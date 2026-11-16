@@ -45,6 +45,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/log/zap"
 	metricsserver "sigs.k8s.io/controller-runtime/pkg/metrics/server"
 
+	"github.com/kaito-project/kaito/api/env"
 	kaitov1alpha1 "github.com/kaito-project/kaito/api/v1alpha1"
 	kaitov1beta1 "github.com/kaito-project/kaito/api/v1beta1"
 	"github.com/kaito-project/kaito/internal/cache"
@@ -58,6 +59,7 @@ import (
 	"github.com/kaito-project/kaito/internal/inference/modelstreaming/registry"
 	karpenterutils "github.com/kaito-project/kaito/internal/k8s/karpenter"
 	nodeprovisionmanager "github.com/kaito-project/kaito/internal/nodeprovision/manager"
+	"github.com/kaito-project/kaito/internal/runtimeenv"
 	"github.com/kaito-project/kaito/internal/version"
 	workspacewebhook "github.com/kaito-project/kaito/internal/webhook/workspace"
 	"github.com/kaito-project/kaito/pkg/featuregates"
@@ -128,7 +130,7 @@ func main() {
 			"Enabling this will ensure there is only one active controller manager.")
 	flag.BoolVar(&enableWebhook, "webhook", true,
 		"Enable webhook for controller manager. Default is true.")
-	flag.StringVar(&featureGates, "feature-gates", "vLLM=true,disableNodeAutoProvisioning=false", "Enable Kaito feature gates. Default: vLLM=true,disableNodeAutoProvisioning=false.")
+	flag.StringVar(&featureGates, "feature-gates", "disableNodeAutoProvisioning=false", "Enable Kaito feature gates. Default: disableNodeAutoProvisioning=false.")
 	flag.StringVar(&defaultNodeImageFamily, "default-node-image-family", "", "Default node image family annotation for generated NodeClaims. Supported values: azurelinux, ubuntu. Empty means ubuntu. Unsupported values cause startup failure.")
 	flag.StringVar(&nodeProvisionerType, "node-provisioner", "azure-gpu-provisioner", "Node provisioner type. Supported values: azure-gpu-provisioner, karpenter, byo. Default: azure-gpu-provisioner.")
 	flag.StringVar(&karpenterNodeClassGroup, "karpenter-node-class-group", "karpenter.azure.com", "Karpenter NodeClass API group. Only used when node-provisioner=karpenter.")
@@ -216,6 +218,11 @@ func main() {
 
 	ctx := withShutdownSignal(context.Background())
 
+	// The client is set once the manager exists; runnables and webhooks read
+	// the Env only after start.
+	runtimeEnv := runtimeenv.New(skuHandler)
+	ctx = env.WithEnv(ctx, runtimeEnv)
+
 	cfg := ctrl.GetConfigOrDie()
 	cfg.UserAgent = workspaceController
 	setRestConfig(cfg, kubeClientQPS, kubeClientBurst)
@@ -228,6 +235,7 @@ func main() {
 		HealthProbeBindAddress: probeAddr,
 		LeaderElection:         enableLeaderElection,
 		LeaderElectionID:       "ef60f9b0.io",
+		BaseContext:            runtimeEnv.BaseContext,
 		// LeaderElectionReleaseOnCancel defines if the leader should step down voluntarily
 		// when the Manager ends. This requires the binary to immediately end when the
 		// Manager is stopped, otherwise, this setting is unsafe. Setting this significantly
@@ -250,6 +258,7 @@ func main() {
 
 	k8sclient.SetGlobalClient(mgr.GetClient())
 	kClient := k8sclient.GetGlobalClient()
+	runtimeEnv.Client = mgr.GetClient()
 
 	kubeClient, err := kubernetes.NewForConfig(cfg)
 	if err != nil {
@@ -426,7 +435,7 @@ func main() {
 		})
 		ctx = sharedmain.WithHealthProbesDisabled(ctx)
 		ctx = sharedmain.WithHADisabled(ctx)
-		go sharedmain.MainWithConfig(ctx, "webhook", ctrl.GetConfigOrDie(), workspacewebhook.NewControllerWebhooks()...)
+		go sharedmain.MainWithConfig(ctx, "webhook", ctrl.GetConfigOrDie(), workspacewebhook.NewControllerWebhooks(runtimeEnv)...)
 
 		// wait 2 seconds to allow reconciling webhookconfiguration and service endpoint.
 		time.Sleep(2 * time.Second)

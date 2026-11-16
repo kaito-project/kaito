@@ -18,18 +18,16 @@ import (
 
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
-	"github.com/kaito-project/kaito/pkg/featuregates"
 	"github.com/kaito-project/kaito/pkg/model"
 )
 
 func TestGetWorkspaceRuntimeName(t *testing.T) {
 	tests := []struct {
-		name           string
-		workspace      *Workspace
-		featureEnabled bool
-		annotation     string
-		expected       model.RuntimeName
-		shouldPanic    bool
+		name        string
+		workspace   *Workspace
+		annotation  string
+		expected    model.RuntimeName
+		shouldPanic bool
 	}{
 		{
 			name:        "nil workspace should panic",
@@ -37,19 +35,12 @@ func TestGetWorkspaceRuntimeName(t *testing.T) {
 			shouldPanic: true,
 		},
 		{
-			name:           "feature gate disabled returns HuggingfaceTransformers",
-			workspace:      &Workspace{},
-			featureEnabled: false,
-			expected:       model.RuntimeNameHuggingfaceTransformers,
+			name:      "no annotation returns VLLM",
+			workspace: &Workspace{ObjectMeta: metav1.ObjectMeta{Annotations: map[string]string{}}},
+			expected:  model.RuntimeNameVLLM,
 		},
 		{
-			name:           "feature gate enabled with no annotation returns VLLM",
-			workspace:      &Workspace{ObjectMeta: metav1.ObjectMeta{Annotations: map[string]string{}}},
-			featureEnabled: true,
-			expected:       model.RuntimeNameVLLM,
-		},
-		{
-			name: "feature gate enabled with HuggingfaceTransformers annotation",
+			name: "HuggingfaceTransformers annotation",
 			workspace: &Workspace{
 				ObjectMeta: metav1.ObjectMeta{
 					Annotations: map[string]string{
@@ -57,11 +48,10 @@ func TestGetWorkspaceRuntimeName(t *testing.T) {
 					},
 				},
 			},
-			featureEnabled: true,
-			expected:       model.RuntimeNameHuggingfaceTransformers,
+			expected: model.RuntimeNameHuggingfaceTransformers,
 		},
 		{
-			name: "feature gate enabled with VLLM annotation",
+			name: "VLLM annotation",
 			workspace: &Workspace{
 				ObjectMeta: metav1.ObjectMeta{
 					Annotations: map[string]string{
@@ -69,18 +59,12 @@ func TestGetWorkspaceRuntimeName(t *testing.T) {
 					},
 				},
 			},
-			featureEnabled: true,
-			expected:       model.RuntimeNameVLLM,
+			expected: model.RuntimeNameVLLM,
 		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			// Set feature gate
-			featuregates.FeatureGates = map[string]bool{
-				featuregates.FeatureFlagVLLM: tt.featureEnabled,
-			}
-
 			if tt.shouldPanic {
 				defer func() {
 					if r := recover(); r == nil {
@@ -99,12 +83,11 @@ func TestGetWorkspaceRuntimeName(t *testing.T) {
 
 func TestGetInferenceSetRuntimeName(t *testing.T) {
 	tests := []struct {
-		name           string
-		inferenceSet   *InferenceSet
-		featureEnabled bool
-		annotation     string
-		expected       model.RuntimeName
-		shouldPanic    bool
+		name         string
+		inferenceSet *InferenceSet
+		annotation   string
+		expected     model.RuntimeName
+		shouldPanic  bool
 	}{
 		{
 			name:         "nil inference set should panic",
@@ -112,19 +95,12 @@ func TestGetInferenceSetRuntimeName(t *testing.T) {
 			shouldPanic:  true,
 		},
 		{
-			name:           "feature gate disabled returns HuggingfaceTransformers",
-			inferenceSet:   &InferenceSet{},
-			featureEnabled: false,
-			expected:       model.RuntimeNameHuggingfaceTransformers,
+			name:         "no annotation returns VLLM",
+			inferenceSet: &InferenceSet{ObjectMeta: metav1.ObjectMeta{Annotations: map[string]string{}}},
+			expected:     model.RuntimeNameVLLM,
 		},
 		{
-			name:           "feature gate enabled with no annotation returns VLLM",
-			inferenceSet:   &InferenceSet{ObjectMeta: metav1.ObjectMeta{Annotations: map[string]string{}}},
-			featureEnabled: true,
-			expected:       model.RuntimeNameVLLM,
-		},
-		{
-			name: "feature gate enabled with HuggingfaceTransformers annotation",
+			name: "HuggingfaceTransformers annotation",
 			inferenceSet: &InferenceSet{
 				ObjectMeta: metav1.ObjectMeta{
 					Annotations: map[string]string{
@@ -132,11 +108,10 @@ func TestGetInferenceSetRuntimeName(t *testing.T) {
 					},
 				},
 			},
-			featureEnabled: true,
-			expected:       model.RuntimeNameHuggingfaceTransformers,
+			expected: model.RuntimeNameHuggingfaceTransformers,
 		},
 		{
-			name: "feature gate enabled with VLLM annotation",
+			name: "VLLM annotation",
 			inferenceSet: &InferenceSet{
 				ObjectMeta: metav1.ObjectMeta{
 					Annotations: map[string]string{
@@ -144,18 +119,12 @@ func TestGetInferenceSetRuntimeName(t *testing.T) {
 					},
 				},
 			},
-			featureEnabled: true,
-			expected:       model.RuntimeNameVLLM,
+			expected: model.RuntimeNameVLLM,
 		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			// Set feature gate
-			featuregates.FeatureGates = map[string]bool{
-				featuregates.FeatureFlagVLLM: tt.featureEnabled,
-			}
-
 			if tt.shouldPanic {
 				defer func() {
 					if r := recover(); r == nil {

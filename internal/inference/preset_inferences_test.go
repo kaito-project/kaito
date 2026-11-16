@@ -1857,11 +1857,6 @@ func TestInjectRoutingSidecar(t *testing.T) {
 
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
-			// Enable vLLM feature gate for runtime detection
-			originalVLLM := featuregates.FeatureGates[featuregates.FeatureFlagVLLM]
-			featuregates.FeatureGates[featuregates.FeatureFlagVLLM] = true
-			defer func() { featuregates.FeatureGates[featuregates.FeatureFlagVLLM] = originalVLLM }()
-
 			workspace := &v1beta1.Workspace{}
 			workspace.Labels = tc.labels
 
@@ -2541,29 +2536,20 @@ func TestGeneratePresetInferenceCUDAToolkitProvisioner(t *testing.T) {
 
 func TestPresetInferenceRuntimeImages(t *testing.T) {
 	testutil.RegisterTestModel()
-	oldVLLM := featuregates.FeatureGates[featuregates.FeatureFlagVLLM]
-	t.Cleanup(func() {
-		featuregates.FeatureGates[featuregates.FeatureFlagVLLM] = oldVLLM
-	})
 	for _, tc := range []struct {
-		name, instanceType, runtime     string
-		vllmEnabled, wantCPU, wantError bool
+		name, instanceType, runtime string
+		wantCPU, wantError          bool
 	}{
-		{"cpu vllm", "Standard_D8s_v5", "vllm", true, true, false},
-		{"cpu default runtime", "Standard_D8s_v5", "", true, true, false},
-		{"cpu transformers rejected", "Standard_D8s_v5", "transformers", true, false, true},
-		{"cpu transformers without vllm gate rejected", "Standard_D8s_v5", "transformers", false, false, true},
-		{"cpu requires vllm gate", "Standard_D8s_v5", "vllm", false, false, true},
-		{"cpu default requires vllm gate", "Standard_D8s_v5", "", false, false, true},
-		{"gpu transformers unchanged", "Standard_NC6s_v3", "transformers", true, false, false},
-		{"gpu vllm unchanged", "Standard_NC6s_v3", "vllm", true, false, false},
-		{"ARM does not select CPU image", "Standard_D16ps_v5", "vllm", true, false, false},
-		{"label-only does not select CPU image", "", "vllm", true, false, false},
-		{"unknown does not select CPU image", "unknown", "vllm", true, false, false},
-		{"gpu default without vllm unchanged", "Standard_NC6s_v3", "", false, false, false},
+		{"cpu vllm", "Standard_D8s_v5", "vllm", true, false},
+		{"cpu default runtime", "Standard_D8s_v5", "", true, false},
+		{"cpu transformers rejected", "Standard_D8s_v5", "transformers", false, true},
+		{"gpu transformers unchanged", "Standard_NC6s_v3", "transformers", false, false},
+		{"gpu vllm unchanged", "Standard_NC6s_v3", "vllm", false, false},
+		{"ARM does not select CPU image", "Standard_D16ps_v5", "vllm", false, false},
+		{"label-only does not select CPU image", "", "vllm", false, false},
+		{"unknown does not select CPU image", "unknown", "vllm", false, false},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
-			featuregates.FeatureGates[featuregates.FeatureFlagVLLM] = tc.vllmEnabled
 			ws := testutil.MockWorkspaceWithPresetVLLM.DeepCopy()
 			ws.Resource.InstanceType = tc.instanceType
 			ws.Annotations = map[string]string{v1beta1.AnnotationWorkspaceRuntime: tc.runtime}
@@ -2614,11 +2600,6 @@ func assertNoLMCacheSidecar(t *testing.T, spec *corev1.PodSpec) {
 
 func TestGeneratePresetInference_VLLMCPUSkipsLMCache(t *testing.T) {
 	testutil.RegisterTestModel()
-	oldVLLM := featuregates.FeatureGates[featuregates.FeatureFlagVLLM]
-	t.Cleanup(func() {
-		featuregates.FeatureGates[featuregates.FeatureFlagVLLM] = oldVLLM
-	})
-	featuregates.FeatureGates[featuregates.FeatureFlagVLLM] = true
 	for _, runtimeName := range []string{"", "vllm"} {
 		t.Run("runtime="+runtimeName, func(t *testing.T) {
 			ws := testutil.MockWorkspaceWithPresetVLLM.DeepCopy()
@@ -2699,11 +2680,11 @@ func TestGeneratePresetInference_CapturedTarget(t *testing.T) {
 	testutil.RegisterTestModel()
 	t.Setenv("CLOUD_PROVIDER", consts.AzureCloudName)
 	t.Setenv("PRESET_REGISTRY_NAME", "test-registry")
-	oldNAP, oldVLLM := featuregates.FeatureGates[featuregates.FeatureFlagDisableNodeAutoProvisioning], featuregates.FeatureGates[featuregates.FeatureFlagVLLM]
+	oldNAP := featuregates.FeatureGates[featuregates.FeatureFlagDisableNodeAutoProvisioning]
 	t.Cleanup(func() {
-		featuregates.FeatureGates[featuregates.FeatureFlagDisableNodeAutoProvisioning], featuregates.FeatureGates[featuregates.FeatureFlagVLLM] = oldNAP, oldVLLM
+		featuregates.FeatureGates[featuregates.FeatureFlagDisableNodeAutoProvisioning] = oldNAP
 	})
-	featuregates.FeatureGates[featuregates.FeatureFlagDisableNodeAutoProvisioning], featuregates.FeatureGates[featuregates.FeatureFlagVLLM] = true, true
+	featuregates.FeatureGates[featuregates.FeatureFlagDisableNodeAutoProvisioning] = true
 	for _, cpu := range []bool{true, false} {
 		t.Run(fmt.Sprintf("CPU=%t", cpu), func(t *testing.T) {
 			scheme := runtime.NewScheme()

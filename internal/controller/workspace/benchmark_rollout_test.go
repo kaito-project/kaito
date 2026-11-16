@@ -75,11 +75,9 @@ func TestBenchmarkResetOnSameRuntimeImageUpgrade(t *testing.T) {
 	t.Setenv("CLOUD_PROVIDER", consts.AzureCloudName)
 	t.Setenv("PRESET_REGISTRY_NAME", "mcr.microsoft.com/aks/kaito")
 	testutil.RegisterTestModel()
-	for _, gate := range []string{featuregates.FeatureFlagVLLM, featuregates.FeatureFlagDisableNodeAutoProvisioning} {
-		old := featuregates.FeatureGates[gate]
-		t.Cleanup(func() { featuregates.FeatureGates[gate] = old })
-		featuregates.FeatureGates[gate] = true
-	}
+	oldNAP := featuregates.FeatureGates[featuregates.FeatureFlagDisableNodeAutoProvisioning]
+	t.Cleanup(func() { featuregates.FeatureGates[featuregates.FeatureFlagDisableNodeAutoProvisioning] = oldNAP })
+	featuregates.FeatureGates[featuregates.FeatureFlagDisableNodeAutoProvisioning] = true
 	for _, tc := range []struct {
 		name       string
 		failUpdate bool

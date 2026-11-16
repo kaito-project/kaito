@@ -35,11 +35,8 @@ func TestCPUInferenceCreateAndUnchangedReconcile(t *testing.T) {
 	t.Setenv("CLOUD_PROVIDER", consts.AzureCloudName)
 	t.Setenv("PRESET_REGISTRY_NAME", "mcr.microsoft.com/aks/kaito")
 	testutil.RegisterTestModel()
-	for _, gate := range []string{featuregates.FeatureFlagVLLM, featuregates.FeatureFlagDisableNodeAutoProvisioning} {
-		old := featuregates.FeatureGates[gate]
-		t.Cleanup(func() { featuregates.FeatureGates[gate] = old })
-	}
-	featuregates.FeatureGates[featuregates.FeatureFlagVLLM] = true
+	oldNAP := featuregates.FeatureGates[featuregates.FeatureFlagDisableNodeAutoProvisioning]
+	t.Cleanup(func() { featuregates.FeatureGates[featuregates.FeatureFlagDisableNodeAutoProvisioning] = oldNAP })
 	featuregates.FeatureGates[featuregates.FeatureFlagDisableNodeAutoProvisioning] = false
 	for _, runtimeName := range []string{"vllm"} {
 		t.Run(runtimeName, func(t *testing.T) {
@@ -88,11 +85,8 @@ func TestInferenceMatchingRevisionPreservesReplicaDrift(t *testing.T) {
 	t.Setenv("CLOUD_PROVIDER", consts.AzureCloudName)
 	t.Setenv("PRESET_REGISTRY_NAME", "mcr.microsoft.com/aks/kaito")
 	testutil.RegisterTestModel()
-	for _, gate := range []string{featuregates.FeatureFlagVLLM, featuregates.FeatureFlagDisableNodeAutoProvisioning} {
-		old := featuregates.FeatureGates[gate]
-		t.Cleanup(func() { featuregates.FeatureGates[gate] = old })
-	}
-	featuregates.FeatureGates[featuregates.FeatureFlagVLLM] = true
+	oldNAP := featuregates.FeatureGates[featuregates.FeatureFlagDisableNodeAutoProvisioning]
+	t.Cleanup(func() { featuregates.FeatureGates[featuregates.FeatureFlagDisableNodeAutoProvisioning] = oldNAP })
 	featuregates.FeatureGates[featuregates.FeatureFlagDisableNodeAutoProvisioning] = false
 	for _, tc := range []struct {
 		name, instanceType string

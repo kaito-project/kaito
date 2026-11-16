@@ -24,6 +24,7 @@ import (
 	knativeresource "knative.dev/pkg/observability/resource"
 	"knative.dev/pkg/observability/semconv"
 
+	"github.com/kaito-project/kaito/api/env"
 	kaitov1alpha1 "github.com/kaito-project/kaito/api/v1alpha1"
 	kaitov1beta1 "github.com/kaito-project/kaito/api/v1beta1"
 	"github.com/kaito-project/kaito/pkg/featuregates"
@@ -106,7 +107,7 @@ func TestNewControllerWebhooks(t *testing.T) {
 			featuregates.FeatureGates[featuregates.FeatureFlagEnableMultiRoleInferenceController] = tt.enableMRI
 
 			// Call the function
-			constructors := NewControllerWebhooks()
+			constructors := NewControllerWebhooks(&env.Env{})
 
 			// Assert the expected number of constructors
 			assert.Equal(t, tt.expectedConstructorCount, len(constructors))

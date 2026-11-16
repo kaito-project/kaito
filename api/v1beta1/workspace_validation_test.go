@@ -3370,14 +3370,11 @@ func TestWorkspaceValidateStreamingCSIDriver(t *testing.T) {
 	RegisterValidationTestModels()
 	t.Setenv("CLOUD_PROVIDER", consts.AzureCloudName)
 
-	// Force gates: ModelStreaming on (so the check runs), vLLM on (so runtime resolves to vllm by default).
+	// Force ModelStreaming on so the check runs.
 	origStream := featuregates.FeatureGates[featuregates.FeatureFlagModelStreaming]
-	origVLLM := featuregates.FeatureGates[featuregates.FeatureFlagVLLM]
 	featuregates.FeatureGates[featuregates.FeatureFlagModelStreaming] = true
-	featuregates.FeatureGates[featuregates.FeatureFlagVLLM] = true
 	defer func() {
 		featuregates.FeatureGates[featuregates.FeatureFlagModelStreaming] = origStream
-		featuregates.FeatureGates[featuregates.FeatureFlagVLLM] = origVLLM
 	}()
 
 	// Fake client with NO CSIDriver object -> streaming (vllm) workspaces should be rejected,

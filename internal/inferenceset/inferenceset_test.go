@@ -1199,12 +1199,10 @@ func TestValidateWorkspaceForInferenceSet_Update(t *testing.T) {
 
 func TestValidateWorkspaceForInferenceSet_CreateAnnotations(t *testing.T) {
 	origNAP := featuregates.FeatureGates[featuregates.FeatureFlagDisableNodeAutoProvisioning]
-	origVLLM := featuregates.FeatureGates[featuregates.FeatureFlagVLLM]
 	origProvisioner := featuregates.NodeProvisioner
 	useFakeGlobalClient(t)
 	t.Cleanup(func() {
 		featuregates.FeatureGates[featuregates.FeatureFlagDisableNodeAutoProvisioning] = origNAP
-		featuregates.FeatureGates[featuregates.FeatureFlagVLLM] = origVLLM
 		featuregates.NodeProvisioner = origProvisioner
 	})
 
@@ -1225,36 +1223,34 @@ func TestValidateWorkspaceForInferenceSet_CreateAnnotations(t *testing.T) {
 	tests := []struct {
 		name        string
 		provisioner string
-		vllm        bool
 		is          *kaitov1beta1.InferenceSet
 		wantErr     string
 	}{
 		{
 			name:        "unsupported capacity type is rejected with Karpenter",
 			provisioner: featuregates.NodeProvisionerKarpenter,
-			vllm:        true,
 			is:          newIS(map[string]string{kaitov1beta1.AnnotationCapacityType: "reserved"}, podTemplate),
 			wantErr:     "\"reserved\" is not a supported capacity type",
 		},
 		{
 			name:        "invalid speculative-decoding value is rejected",
 			provisioner: featuregates.NodeProvisionerBYO,
-			vllm:        true,
 			is:          newIS(map[string]string{kaitov1beta1.AnnotationEnableSpeculativeDecoding: "yes"}, podTemplate),
 			wantErr:     specDecodingField,
 		},
 		{
 			name:        "speculative decoding without a preset is rejected",
 			provisioner: featuregates.NodeProvisionerBYO,
-			vllm:        true,
 			is:          newIS(map[string]string{kaitov1beta1.AnnotationEnableSpeculativeDecoding: "true"}, podTemplate),
 			wantErr:     "requires a preset inference",
 		},
 		{
-			name:        "speculative decoding with the vLLM feature gate disabled is rejected",
+			name:        "speculative decoding with the transformers runtime is rejected",
 			provisioner: featuregates.NodeProvisionerBYO,
-			vllm:        false,
-			is: newIS(map[string]string{kaitov1beta1.AnnotationEnableSpeculativeDecoding: "true"}, kaitov1beta1.InferenceSpec{
+			is: newIS(map[string]string{
+				kaitov1beta1.AnnotationEnableSpeculativeDecoding: "true",
+				kaitov1beta1.AnnotationWorkspaceRuntime:          "transformers",
+			}, kaitov1beta1.InferenceSpec{
 				Preset: &kaitov1beta1.PresetSpec{PresetMeta: kaitov1beta1.PresetMeta{Name: "deepseek-r1-0528"}},
 			}),
 			wantErr: "requires the vLLM runtime",
@@ -1265,7 +1261,6 @@ func TestValidateWorkspaceForInferenceSet_CreateAnnotations(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			featuregates.NodeProvisioner = tt.provisioner
 			featuregates.FeatureGates[featuregates.FeatureFlagDisableNodeAutoProvisioning] = tt.provisioner == featuregates.NodeProvisionerBYO
-			featuregates.FeatureGates[featuregates.FeatureFlagVLLM] = tt.vllm
 
 			err := ValidateWorkspaceForInferenceSet(context.Background(), tt.is)
 			assert.NotNil(t, err)

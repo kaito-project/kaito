@@ -22,7 +22,6 @@ import (
 	"knative.dev/pkg/apis"
 
 	"github.com/kaito-project/kaito/pkg/consts"
-	"github.com/kaito-project/kaito/pkg/featuregates"
 	"github.com/kaito-project/kaito/pkg/model"
 )
 
@@ -240,9 +239,6 @@ func TestInferenceSetValidateSelector(t *testing.T) {
 }
 
 func TestInferenceSetBenchmarkApplicabilityRequiresDeclaredCPUType(t *testing.T) {
-	old := featuregates.FeatureGates[featuregates.FeatureFlagVLLM]
-	t.Cleanup(func() { featuregates.FeatureGates[featuregates.FeatureFlagVLLM] = old })
-	featuregates.FeatureGates[featuregates.FeatureFlagVLLM] = true
 	t.Setenv("CLOUD_PROVIDER", consts.AzureCloudName)
 	is := &InferenceSet{Spec: InferenceSetSpec{Template: InferenceSetTemplate{Inference: InferenceSpec{Preset: &PresetSpec{PresetMeta: PresetMeta{Name: "test-model"}}}}}}
 	assert.True(t, ShouldRunInferenceSetBenchmark(is), "label-only targets do not select CPU")

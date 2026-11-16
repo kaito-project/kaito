@@ -62,7 +62,6 @@ az aks update -n $CLUSTER_NAME -g $RESOURCE_GROUP --attach-acr $ACR_NAME
 
   ```yaml
   feature_gates:
-    vLLM: true
     gatewayAPIInferenceExtension: true
     disableNodeAutoProvisioning: true
     enableInferenceSetController: true

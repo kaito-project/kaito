@@ -2765,14 +2765,9 @@ func TestUpdateWorkspaceTargetNodeCountDeclaredCPUInitialization(t *testing.T) {
 func TestUpdateWorkspaceTargetNodeCountCPUPresetsAndCustomTemplates(t *testing.T) {
 	testutil.RegisterTestModel()
 	t.Setenv("CLOUD_PROVIDER", consts.AzureCloudName)
-	for gate, enabled := range map[string]bool{
-		featuregates.FeatureFlagVLLM:                        true,
-		featuregates.FeatureFlagDisableNodeAutoProvisioning: false,
-	} {
-		old := featuregates.FeatureGates[gate]
-		t.Cleanup(func() { featuregates.FeatureGates[gate] = old })
-		featuregates.FeatureGates[gate] = enabled
-	}
+	oldNAP := featuregates.FeatureGates[featuregates.FeatureFlagDisableNodeAutoProvisioning]
+	t.Cleanup(func() { featuregates.FeatureGates[featuregates.FeatureFlagDisableNodeAutoProvisioning] = oldNAP })
+	featuregates.FeatureGates[featuregates.FeatureFlagDisableNodeAutoProvisioning] = false
 	for _, runtimeName := range []string{"vllm", "transformers"} {
 		for _, preset := range []bool{false, true} {
 			t.Run(fmt.Sprintf("runtime=%s/preset=%t", runtimeName, preset), func(t *testing.T) {

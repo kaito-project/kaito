@@ -357,21 +357,4 @@ func TestMultiRoleInferenceValidateSpeculativeDecoding(t *testing.T) {
 			}
 		})
 	}
-
-	// Feature-gate-off case: with the vLLM feature gate disabled,
-	// EffectiveInferenceRuntime resolves to HuggingFace regardless of the
-	// annotation, so the MRI-level spec-decoding opt-in must be rejected.
-	t.Run("vllm feature gate disabled - rejected", func(t *testing.T) {
-		orig := featuregates.FeatureGates[featuregates.FeatureFlagVLLM]
-		featuregates.FeatureGates[featuregates.FeatureFlagVLLM] = false
-		defer func() { featuregates.FeatureGates[featuregates.FeatureFlagVLLM] = orig }()
-
-		m := newMRI(
-			map[string]string{AnnotationEnableSpeculativeDecoding: "true"},
-			"deepseek-r1-0528",
-		)
-		if errs := m.validateSpeculativeDecoding(); errs == nil {
-			t.Fatalf("expected rejection when vLLM feature gate is disabled")
-		}
-	})
 }

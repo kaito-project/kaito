@@ -28,35 +28,28 @@ func TestParseFeatureGates(t *testing.T) {
 		expectedValue bool
 	}{
 		{
-			name:          "WithValidEnableFeatureGates-vLLM",
-			featureGates:  "vLLM=true",
-			expectedError: false,
-			targetFeature: "vLLM",
-			expectedValue: true,
-		},
-		{
-			name:          "WithDuplicateFeatureGates-vLLM",
-			featureGates:  "vLLM=false,vLLM=true",
-			expectedError: false,
-			targetFeature: "vLLM",
-			expectedValue: true, // Apply the last value.
-		},
-		{
 			name:          "WithInvalidFeatureGates",
 			featureGates:  "invalid",
 			expectedError: true,
 		},
 		{
 			name:          "WithUnsupportedFeatureGate",
-			featureGates:  "unsupported=true,vLLM=false",
+			featureGates:  "unsupported=true,enableMIG=false",
 			expectedError: true,
 		},
 		{
-			name:          "WithValidDisableFeatureGates-vLLM",
-			featureGates:  "vLLM=false",
+			name:          "WithDeprecatedFeatureGateIgnored",
+			featureGates:  "vLLM=false,enableMIG=true",
 			expectedError: false,
-			targetFeature: "vLLM",
-			expectedValue: false,
+			targetFeature: "enableMIG",
+			expectedValue: true,
+		},
+		{
+			name:          "WithDuplicateFeatureGates",
+			featureGates:  "enableMIG=true,enableMIG=false",
+			expectedError: false,
+			targetFeature: "enableMIG",
+			expectedValue: false, // Apply the last value.
 		},
 		{
 			name:          "WithEnableInferenceSetController",
@@ -89,6 +82,8 @@ func TestParseFeatureGates(t *testing.T) {
 				if tt.targetFeature != "" && FeatureGates[tt.targetFeature] != tt.expectedValue {
 					t.Errorf("feature gate test %s fails", tt.name)
 				}
+				_, registered := FeatureGates["vLLM"]
+				assert.Check(t, !registered, "deprecated gate must not be registered")
 			}
 		})
 	}

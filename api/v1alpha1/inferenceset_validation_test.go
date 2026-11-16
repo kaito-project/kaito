@@ -377,22 +377,6 @@ func TestInferenceSet_validateSpeculativeDecoding(t *testing.T) {
 			}
 		})
 	}
-
-	t.Run("vllm feature gate disabled - rejected", func(t *testing.T) {
-		orig := featuregates.FeatureGates[featuregates.FeatureFlagVLLM]
-		featuregates.FeatureGates[featuregates.FeatureFlagVLLM] = false
-		defer func() { featuregates.FeatureGates[featuregates.FeatureFlagVLLM] = orig }()
-
-		tpl := presetTpl("deepseek-r1-0528")
-		tpl.Annotations = map[string]string{AnnotationEnableSpeculativeDecoding: "true"}
-		is := &InferenceSet{
-			ObjectMeta: metav1.ObjectMeta{Name: "is", Namespace: "default"},
-			Spec:       InferenceSetSpec{Template: tpl},
-		}
-		if err := is.validateSpeculativeDecoding(); err == nil {
-			t.Fatalf("expected rejection when vLLM feature gate is disabled")
-		}
-	})
 }
 
 func TestValidateMaintenanceWindow(t *testing.T) {

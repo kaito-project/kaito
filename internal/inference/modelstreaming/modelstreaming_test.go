@@ -45,13 +45,8 @@ func TestModelStreamingEnabled(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			origStream := featuregates.FeatureGates[featuregates.FeatureFlagModelStreaming]
 			featuregates.FeatureGates[featuregates.FeatureFlagModelStreaming] = tc.featureGateOn
-			// GetWorkspaceRuntimeName returns transformers when the vLLM gate is OFF,
-			// so this test must force the vLLM gate ON to exercise the runtime annotation.
-			origVLLM := featuregates.FeatureGates[featuregates.FeatureFlagVLLM]
-			featuregates.FeatureGates[featuregates.FeatureFlagVLLM] = true
 			t.Cleanup(func() {
 				featuregates.FeatureGates[featuregates.FeatureFlagModelStreaming] = origStream
-				featuregates.FeatureGates[featuregates.FeatureFlagVLLM] = origVLLM
 			})
 
 			anns := tc.annotations

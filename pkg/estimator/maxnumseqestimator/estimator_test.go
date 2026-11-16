@@ -187,6 +187,27 @@ func TestMaxNumSeqsEstimator_Estimate_NilInputs(t *testing.T) {
 	assert.Equal(t, 0, got)
 }
 
+func TestMaxNumSeqsEstimator_UtilizationOverride(t *testing.T) {
+	params := &pkgmodel.PresetParam{
+		Metadata: pkgmodel.Metadata{
+			MambaStateBytesPerLayer: 3207168,
+			NumFullAttnLayers:       16,
+			NumLinearLayers:         48,
+		},
+		TotalSafeTensorFileSize: "51.75Gi",
+		RuntimeParam: pkgmodel.RuntimeParam{VLLM: pkgmodel.VLLMParam{
+			ModelRunParams: map[string]string{"gpu-memory-utilization": "0.70"},
+		}},
+	}
+	got, ok := (&MaxNumSeqsEstimator{}).Estimate(MaxNumSeqsEstimateRequest{
+		InferenceParams: params,
+		GPUConfig:       &sku.GPUConfig{GPUCount: 1, GPUMem: resource.MustParse("94Gi"), GPUModel: "NVIDIA H100"},
+		NumNodes:        1,
+	})
+	assert.True(t, ok)
+	assert.Equal(t, 152, got)
+}
+
 func TestResolveGroupSize(t *testing.T) {
 	cases := []struct {
 		name      string

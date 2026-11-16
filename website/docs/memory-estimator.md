@@ -40,6 +40,8 @@ Model Memory = Parameter Count × Bytes per Parameter
 
 Where bytes per parameter depends on the precision: 2 bytes for FP16/BF16, 1 byte for FP8, 0.5 bytes for INT4. For example, a 70B-parameter model in FP16 needs 70 × 10⁹ × 2 = 140 GiB. In practice, the vLLM runtime representation is about **2% larger** than the raw checkpoint size.
 
+For presets with known CPU-offloaded weights, KAITO subtracts those weights from the GPU memory estimate only while offloading remains enabled. For example, DeepSeek-V4.1-Flash offloads 183.1 GiB of Engram weights by default. Setting `vllm.engram-config: '{"cpu_offload":false}'` in the inference ConfigMap makes both node sizing and the speculative-decoding memory gate count the full checkpoint instead.
+
 ### KV Cache
 
 During autoregressive generation, the model caches the **Key** and **Value** vectors from every previous token so it doesn't recompute attention from scratch. This KV cache is the largest *dynamic* memory consumer and the direct reason context length is bounded by GPU memory.
@@ -91,6 +93,8 @@ Runtime Overhead per GPU = baseOverhead + scaleFactor × (model weight share per
 The base covers model-independent costs (CUDA context, NCCL buffers, and a small-model activation/CUDA-graph baseline); the weight-scaled term approximates the larger activation and CUDA graph footprints of bigger models. Because activations and CUDA graphs are sharded across tensor-parallel ranks the same way weights are, the per-GPU weight share is a good proxy.
 
 Beyond this, not all of a GPU's physical VRAM is available to the application. The GPU driver, CUDA runtime, and memory allocator fragmentation all claim a portion. KAITO accounts for this by applying a **GPU utilization factor** — treating only a fraction of the advertised VRAM as usable.
+
+Node sizing, the sequence-count estimate, and the speculative-decoding memory gate use `vllm.gpu-memory-utilization` from the inference ConfigMap when set, otherwise the GPU-specific default. The value must be greater than zero and at most one.
 
 :::tip
 The exact overhead and utilization constants are tuned for vLLM's inference engine. If you observe OOM errors, consider selecting a larger GPU SKU or reducing the context length.

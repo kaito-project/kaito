@@ -14,9 +14,13 @@
 package estimator
 
 import (
-	"strconv"
+	"fmt"
+
+	"k8s.io/apimachinery/pkg/api/resource"
 
 	"github.com/kaito-project/kaito/pkg/catalog/hfgen"
+	pkgmodel "github.com/kaito-project/kaito/pkg/model"
+	"github.com/kaito-project/kaito/pkg/sku"
 )
 
 // Shared per-GPU memory budget parameters. Both the node estimator (which solves
@@ -42,10 +46,6 @@ const (
 	// measures these empirically in determine_available_memory() and
 	// profile_cudagraph_memory(). We approximate at best effort here.
 	OverheadWeightFactor = 0.05
-
-	// defaultGPUMemoryUtilization is the fallback used when the launcher's
-	// --gpu-memory-utilization value cannot be parsed.
-	defaultGPUMemoryUtilization = 0.92
 )
 
 // baseOverheadGiBByGPUModel overrides BaseOverheadGiB for specific GPU models.
@@ -57,15 +57,15 @@ var baseOverheadGiBByGPUModel = map[string]float64{
 	"NVIDIA A10": 1.5,
 }
 
-// ResolveGPUMemoryUtilization returns the --gpu-memory-utilization the launcher
-// runs vLLM with for the given GPU model, so estimators predict the same
-// per-GPU budget vLLM will have.
-func ResolveGPUMemoryUtilization(gpuModel string) float64 {
-	v, err := strconv.ParseFloat(hfgen.ResolveGPUMemoryUtilization(gpuModel), 64)
-	if err != nil {
-		return defaultGPUMemoryUtilization
+// ResolveGPUMemoryUtilization resolves an explicit setting before the GPU default.
+func ResolveGPUMemoryUtilization(gpuModel string, params *pkgmodel.PresetParam) (float64, error) {
+	value := hfgen.ResolveGPUMemoryUtilization(gpuModel)
+	if params != nil {
+		if override, ok := params.VLLM.ModelRunParams["gpu-memory-utilization"]; ok {
+			value = override
+		}
 	}
-	return v
+	return pkgmodel.ParseGPUMemoryUtilization(value)
 }
 
 // ResolveBaseOverheadGiB returns the fixed per-GPU overhead reserve for the GPU model.
@@ -74,4 +74,52 @@ func ResolveBaseOverheadGiB(gpuModel string) float64 {
 		return v
 	}
 	return BaseOverheadGiB
+}
+
+// ResidentWeightBytes returns the bytes of model weights vLLM keeps in GPU
+// memory: the checkpoint size minus any part the runtime offloads to CPU memory.
+func ResidentWeightBytes(params *pkgmodel.PresetParam) (int64, error) {
+	total, err := resource.ParseQuantity(params.TotalSafeTensorFileSize)
+	if err != nil {
+		return 0, fmt.Errorf("invalid model size %q: %w", params.TotalSafeTensorFileSize, err)
+	}
+	resident := total.Value()
+	if params.CPUOffloadedWeightSize != "" {
+		offloaded, err := resource.ParseQuantity(params.CPUOffloadedWeightSize)
+		if err != nil {
+			return 0, fmt.Errorf("invalid CPU-offloaded weight size %q: %w", params.CPUOffloadedWeightSize, err)
+		}
+		resident -= offloaded.Value()
+	}
+	return max(resident, 0), nil
+}
+
+// KVHeadroomBytesPerGPU estimates the per-GPU memory vLLM has left for the KV
+// cache after GPU-resident weights and fixed runtime overhead, with the weights
+// sharded across every GPU of numNodes nodes. It returns false when the model
+// size or GPU memory is unknown, and an error for invalid memory settings.
+func KVHeadroomBytesPerGPU(params *pkgmodel.PresetParam, gpuConfig *sku.GPUConfig, numNodes int) (float64, bool, error) {
+	if params == nil || gpuConfig == nil || gpuConfig.GPUCount <= 0 || gpuConfig.GPUMem.IsZero() {
+		return 0, false, nil
+	}
+	utilization, err := ResolveGPUMemoryUtilization(gpuConfig.GPUModel, params)
+	if err != nil {
+		return 0, false, err
+	}
+	if params.TotalSafeTensorFileSize == "" {
+		return 0, false, nil
+	}
+	weights, err := ResidentWeightBytes(params)
+	if err != nil {
+		return 0, false, err
+	}
+	if weights == 0 {
+		return 0, false, nil
+	}
+	numGPUs := gpuConfig.GPUCount * max(numNodes, 1)
+	gpuMemPerGPU := float64(gpuConfig.GPUMem.Value() / int64(gpuConfig.GPUCount))
+	usable := gpuMemPerGPU * utilization
+	weightsPerGPU := float64(weights) * WeightExpansionFactor / float64(numGPUs)
+	overhead := ResolveBaseOverheadGiB(gpuConfig.GPUModel)*float64(sku.GiB) + OverheadWeightFactor*weightsPerGPU
+	return usable - weightsPerGPU - overhead, true, nil
 }

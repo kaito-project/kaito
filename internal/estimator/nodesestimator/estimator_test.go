@@ -24,12 +24,15 @@ import (
 	"k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/utils/ptr"
+	"sigs.k8s.io/controller-runtime/pkg/client/fake"
 
 	kaitov1beta1 "github.com/kaito-project/kaito/api/v1beta1"
 	"github.com/kaito-project/kaito/internal/k8s/nodes"
 	"github.com/kaito-project/kaito/internal/testutil"
 	"github.com/kaito-project/kaito/pkg/consts"
+	"github.com/kaito-project/kaito/pkg/estimator"
 	"github.com/kaito-project/kaito/pkg/featuregates"
+	pkgmodel "github.com/kaito-project/kaito/pkg/model"
 )
 
 func init() {
@@ -672,12 +675,68 @@ func TestNodeEstimator_EstimateNodeCount_RealCatalogModels_H100(t *testing.T) {
 		h100_2GPU = "Standard_NC80adis_H100_v5"
 	)
 	runRealCatalogModelCases(t, []realCatalogModelCase{
-		{"gpt-oss-120b/1xH100", "openai/gpt-oss-120b", h100_1GPU, 1},                          // 60.77Gi
-		{"DeepSeek-V4-Flash-0731/1xH100", "deepseek-ai/DeepSeek-V4-Flash-0731", h100_1GPU, 2}, // 155.43Gi
-		{"DeepSeek-V4-Flash-0731/2xH100", "deepseek-ai/DeepSeek-V4-Flash-0731", h100_2GPU, 1}, // 155.43Gi
-		{"Qwen3.8-27B/1xH100", "Qwen/Qwen3.8-27B", h100_1GPU, 1},                              // 51.75Gi
-		{"gemma-4-31B-it/1xH100", "google/gemma-4-31B-it", h100_1GPU, 1},                      // 58.25Gi
+		{"gpt-oss-120b/1xH100", "openai/gpt-oss-120b", h100_1GPU, 1},                              // 60.77Gi
+		{"DeepSeek-V4-Flash-0731/1xH100", "deepseek-ai/DeepSeek-V4-Flash-0731", h100_1GPU, 2},     // 155.43Gi
+		{"DeepSeek-V4-Flash-0731/2xH100", "deepseek-ai/DeepSeek-V4-Flash-0731", h100_2GPU, 1},     // 155.43Gi
+		{"DeepSeek-V4.1-Flash-1017/2xH100", "deepseek-ai/DeepSeek-V4.1-Flash-1017", h100_2GPU, 2}, // 475.26Gi, of which the 183.1Gi Engram tables stay in CPU memory
+		{"Qwen3.8-27B/1xH100", "Qwen/Qwen3.8-27B", h100_1GPU, 1},                                  // 51.75Gi
+		{"gemma-4-31B-it/1xH100", "google/gemma-4-31B-it", h100_1GPU, 1},                          // 58.25Gi
 	})
+}
+
+func TestNodeEstimator_EngramOffloadOverride(t *testing.T) {
+	t.Setenv("CLOUD_PROVIDER", consts.AzureCloudName)
+	originalNAP := featuregates.FeatureGates[featuregates.FeatureFlagDisableNodeAutoProvisioning]
+	featuregates.FeatureGates[featuregates.FeatureFlagDisableNodeAutoProvisioning] = false
+	t.Cleanup(func() {
+		featuregates.FeatureGates[featuregates.FeatureFlagDisableNodeAutoProvisioning] = originalNAP
+	})
+
+	for _, tc := range []struct {
+		name        string
+		config      string
+		wantOffload string
+		wantNodes   int32
+	}{
+		{"disabled", "vllm:\n  engram-config: '{\"cpu_offload\":false}'\n", "", 4},
+		{"enabled", "vllm:\n  engram-config: '{\"cpu_offload\":true}'\n", "183.1Gi", 2},
+		{"preset default", "vllm: {}\n", "183.1Gi", 2},
+		{"lower utilization", "vllm:\n  gpu-memory-utilization: 0.70\n", "183.1Gi", 3},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			workspace := &kaitov1beta1.Workspace{
+				ObjectMeta: metav1.ObjectMeta{Name: "engram", Namespace: "default"},
+				Resource:   kaitov1beta1.ResourceSpec{InstanceType: "Standard_NC80adis_H100_v5"},
+				Inference: &kaitov1beta1.InferenceSpec{
+					Config: "engram-config",
+					Preset: &kaitov1beta1.PresetSpec{
+						PresetMeta: kaitov1beta1.PresetMeta{Name: "deepseek-ai/DeepSeek-V4.1-Flash-1017"},
+					},
+				},
+			}
+			cm := &corev1.ConfigMap{
+				ObjectMeta: metav1.ObjectMeta{Name: workspace.Inference.Config, Namespace: workspace.Namespace},
+				Data:       map[string]string{pkgmodel.ConfigfileNameVLLM: tc.config},
+			}
+			kubeClient := fake.NewClientBuilder().WithObjects(cm).Build()
+			req, err := RequestFromWorkspace(t.Context(), workspace, kubeClient)
+			require.NoError(t, err)
+			params := req.ModelProfile.Model.GetInferenceParameters()
+			assert.Equal(t, tc.wantOffload, params.CPUOffloadedWeightSize)
+			resident, err := estimator.ResidentWeightBytes(params)
+			require.NoError(t, err)
+			total := resource.MustParse("475.26Gi")
+			wantResident := total.Value()
+			if tc.wantOffload != "" {
+				offloaded := resource.MustParse(tc.wantOffload)
+				wantResident -= offloaded.Value()
+			}
+			assert.Equal(t, wantResident, resident)
+			count, err := (&NodeEstimator{}).EstimateNodeCount(t.Context(), req, kubeClient)
+			require.NoError(t, err)
+			assert.Equal(t, tc.wantNodes, count)
+		})
+	}
 }
 
 // TestNodeEstimator_EstimateNodeCount_RealCatalogModels_A10 exercises real

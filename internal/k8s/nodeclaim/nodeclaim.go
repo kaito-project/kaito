@@ -19,7 +19,6 @@ import (
 	"encoding/hex"
 	"errors"
 	"fmt"
-	"os"
 	"reflect"
 	"regexp"
 	"strconv"
@@ -43,6 +42,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 	karpenterv1 "sigs.k8s.io/karpenter/pkg/apis/v1"
 
+	"github.com/kaito-project/kaito/api/env"
 	kaitov1beta1 "github.com/kaito-project/kaito/api/v1beta1"
 	"github.com/kaito-project/kaito/internal/k8s/nodes"
 	"github.com/kaito-project/kaito/internal/k8s/resources"
@@ -137,12 +137,12 @@ type ManifestOptions struct {
 }
 
 // GenerateNodeClaimManifest generates a nodeClaim object from the given workspace or RAGEngine.
-func GenerateNodeClaimManifest(storageRequirement string, obj client.Object) *karpenterv1.NodeClaim {
-	return GenerateNodeClaimManifestWithOptions(storageRequirement, obj, ManifestOptions{})
+func GenerateNodeClaimManifest(ctx context.Context, storageRequirement string, obj client.Object) *karpenterv1.NodeClaim {
+	return GenerateNodeClaimManifestWithOptions(ctx, storageRequirement, obj, ManifestOptions{})
 }
 
 // GenerateNodeClaimManifestWithOptions generates a nodeClaim object from the given workspace or RAGEngine with explicit options.
-func GenerateNodeClaimManifestWithOptions(storageRequirement string, obj client.Object, options ManifestOptions) *karpenterv1.NodeClaim {
+func GenerateNodeClaimManifestWithOptions(ctx context.Context, storageRequirement string, obj client.Object, options ManifestOptions) *karpenterv1.NodeClaim {
 	klog.InfoS("GenerateNodeClaimManifest", "object", obj)
 
 	// Determine the type of the input object and extract relevant fields
@@ -179,10 +179,10 @@ func GenerateNodeClaimManifestWithOptions(storageRequirement string, obj client.
 		}
 	}
 
-	cloudName := os.Getenv("CLOUD_PROVIDER")
+	cloudName := string(env.FromContext(ctx).CloudProvider)
 	isCPUWorkspace := false
 	if workspaceObj, ok := obj.(*kaitov1beta1.Workspace); ok {
-		isCPUWorkspace = kaitov1beta1.IsCPUInferenceWorkspace(workspaceObj)
+		isCPUWorkspace = kaitov1beta1.IsCPUInferenceWorkspace(ctx, workspaceObj)
 	}
 
 	var nodeClassRefKind string

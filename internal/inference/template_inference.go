@@ -27,7 +27,7 @@ import (
 )
 
 func CreateTemplateInference(ctx context.Context, workspaceObj *kaitov1beta1.Workspace, kubeClient client.Client, provisioner nodeprovision.NodeProvisioner) (client.Object, error) {
-	ssObj := manifests.GenerateManifestWithPodTemplate(workspaceObj, defaultTolerations(workspaceObj))
+	ssObj := manifests.GenerateManifestWithPodTemplate(workspaceObj, defaultTolerations(ctx, workspaceObj))
 	// Pin the pod to nodes provisioned for this workspace. Without this, a
 	// custom-template pod could schedule onto a sibling workspace's node when
 	// they share the same user label selector (e.g. InferenceSet replicas).

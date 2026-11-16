@@ -23,8 +23,8 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"knative.dev/pkg/apis"
 
+	"github.com/kaito-project/kaito/api/env"
 	kaitov1beta1 "github.com/kaito-project/kaito/api/v1beta1"
-	"github.com/kaito-project/kaito/pkg/featuregates"
 )
 
 func int32Ptr(v int32) *int32 { return &v }
@@ -85,9 +85,6 @@ func TestMultiRoleInference_SetDefaults(t *testing.T) {
 func TestMultiRoleInference_Validate(t *testing.T) {
 	// Existing tests assume the default (required) behavior for instanceType,
 	// which corresponds to auto-provisioning (Karpenter/AzureGPU).
-	orig := featuregates.NodeProvisioner
-	featuregates.NodeProvisioner = featuregates.NodeProvisionerKarpenter
-	defer func() { featuregates.NodeProvisioner = orig }()
 	validMRI := func() *MultiRoleInference {
 		return &MultiRoleInference{
 			ObjectMeta: metav1.ObjectMeta{
@@ -211,7 +208,7 @@ func TestMultiRoleInference_Validate(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			err := tt.mri.Validate(context.Background())
+			err := tt.mri.Validate(testCtx(withNodeProvisioner(env.NodeProvisionerKarpenter)))
 			if tt.wantErr {
 				assert.NotNil(t, err)
 			} else {
@@ -224,9 +221,6 @@ func TestMultiRoleInference_Validate(t *testing.T) {
 func TestMultiRoleInference_validateUpdate(t *testing.T) {
 	// Existing tests assume the default (required) behavior for instanceType,
 	// which corresponds to auto-provisioning (Karpenter/AzureGPU).
-	orig := featuregates.NodeProvisioner
-	featuregates.NodeProvisioner = featuregates.NodeProvisionerKarpenter
-	defer func() { featuregates.NodeProvisioner = orig }()
 	validMRI := func() *MultiRoleInference {
 		return &MultiRoleInference{
 			ObjectMeta: metav1.ObjectMeta{
@@ -282,7 +276,7 @@ func TestMultiRoleInference_validateUpdate(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			ctx := apis.WithinUpdate(context.Background(), tt.old)
+			ctx := apis.WithinUpdate(testCtx(withNodeProvisioner(env.NodeProvisionerKarpenter)), tt.old)
 			err := tt.mri.Validate(ctx)
 			if tt.wantErr {
 				assert.NotNil(t, err)
@@ -294,9 +288,7 @@ func TestMultiRoleInference_validateUpdate(t *testing.T) {
 }
 
 func TestMultiRoleInferenceCapacityTypeAnnotation(t *testing.T) {
-	originalProvisioner := featuregates.NodeProvisioner
-	featuregates.NodeProvisioner = featuregates.NodeProvisionerKarpenter
-	t.Cleanup(func() { featuregates.NodeProvisioner = originalProvisioner })
+	ctx := testCtx(withNodeProvisioner(env.NodeProvisionerKarpenter))
 
 	makeMRI := func(value string) *MultiRoleInference {
 		return &MultiRoleInference{ObjectMeta: metav1.ObjectMeta{
@@ -304,12 +296,12 @@ func TestMultiRoleInferenceCapacityTypeAnnotation(t *testing.T) {
 		}}
 	}
 
-	assert.Nil(t, makeMRI(kaitov1beta1.CapacityTypeSpot).validateCapacityTypeAnnotation())
-	assert.NotNil(t, makeMRI("reserved").validateCapacityTypeAnnotation())
+	assert.Nil(t, makeMRI(kaitov1beta1.CapacityTypeSpot).validateCapacityTypeAnnotation(ctx))
+	assert.NotNil(t, makeMRI("reserved").validateCapacityTypeAnnotation(ctx))
 	assert.NotNil(t, makeMRI(kaitov1beta1.CapacityTypeSpot).
-		validateCapacityTypeAnnotationUpdate(makeMRI(kaitov1beta1.CapacityTypeOnDemand)))
+		validateCapacityTypeAnnotationUpdate(ctx, makeMRI(kaitov1beta1.CapacityTypeOnDemand)))
 	assert.Nil(t, makeMRI(kaitov1beta1.CapacityTypeOnDemand).
-		validateCapacityTypeAnnotationUpdate(makeMRI("reserved")))
+		validateCapacityTypeAnnotationUpdate(ctx, makeMRI("reserved")))
 }
 
 func TestMultiRoleInferenceValidateSpeculativeDecoding(t *testing.T) {

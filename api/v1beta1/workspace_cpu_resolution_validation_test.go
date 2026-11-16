@@ -17,12 +17,9 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-
-	"github.com/kaito-project/kaito/pkg/consts"
 )
 
 func TestValidateCPUInferenceRuntimeAndCount(t *testing.T) {
-	t.Setenv("CLOUD_PROVIDER", consts.AzureCloudName)
 	for _, tc := range []struct {
 		name, runtime string
 		count         int
@@ -36,7 +33,7 @@ func TestValidateCPUInferenceRuntimeAndCount(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			ws := &Workspace{Resource: ResourceSpec{InstanceType: "Standard_D16s_v6", Count: &tc.count}, Inference: &InferenceSpec{Preset: &PresetSpec{PresetMeta: PresetMeta{Name: "test-model"}}}}
 			ws.Annotations = map[string]string{AnnotationWorkspaceRuntime: tc.runtime}
-			assert.Equal(t, tc.valid, ws.validateCPUInferenceConstraints() == nil)
+			assert.Equal(t, tc.valid, ws.validateCPUInferenceConstraints(testCtx()) == nil)
 		})
 	}
 }

@@ -222,8 +222,8 @@ func defaultTolerationsForTarget(isCPUInference bool) []corev1.Toleration {
 	return tolerations
 }
 
-func defaultTolerations(ws *v1beta1.Workspace) []corev1.Toleration {
-	return defaultTolerationsForTarget(v1beta1.IsCPUInferenceWorkspace(ws))
+func defaultTolerations(ctx context.Context, ws *v1beta1.Workspace) []corev1.Toleration {
+	return defaultTolerationsForTarget(v1beta1.IsCPUInferenceWorkspace(ctx, ws))
 }
 
 func GetInferenceImageInfo(ctx context.Context, workspaceObj *v1beta1.Workspace) []corev1.LocalObjectReference {
@@ -400,7 +400,7 @@ func GeneratePresetInference(ctx context.Context, workspaceObj *v1beta1.Workspac
 // getGPUConfig resolves the inference target once per generation. A nil config with
 // no error denotes CPU; every successful GPU path returns a non-nil config.
 func getGPUConfig(ctx *builder.WorkspaceGeneratorContext) (*sku.GPUConfig, error) {
-	if v1beta1.IsCPUInferenceWorkspace(ctx.Workspace) {
+	if v1beta1.IsCPUInferenceWorkspace(ctx.Ctx, ctx.Workspace) {
 		if v1beta1.GetWorkspaceRuntimeName(ctx.Workspace) != pkgmodel.RuntimeNameVLLM {
 			return nil, fmt.Errorf("CPU preset inference supports only vllm")
 		}
@@ -644,8 +644,8 @@ func getPresetInferenceBaseImage(runtimeName pkgmodel.RuntimeName, isCPU bool) p
 }
 
 // GetDesiredInferenceImageName returns the image for the declared preset target.
-func GetDesiredInferenceImageName(ws *v1beta1.Workspace) (string, error) {
-	baseImage, err := GetDesiredInferenceBaseImage(ws)
+func GetDesiredInferenceImageName(ctx context.Context, ws *v1beta1.Workspace) (string, error) {
+	baseImage, err := GetDesiredInferenceBaseImage(ctx, ws)
 	if err != nil {
 		return "", err
 	}
@@ -653,8 +653,8 @@ func GetDesiredInferenceImageName(ws *v1beta1.Workspace) (string, error) {
 }
 
 // GetDesiredInferenceBaseImage keeps image and upgrade-tag selection consistent.
-func GetDesiredInferenceBaseImage(ws *v1beta1.Workspace) (pkgmodel.Metadata, error) {
-	if !v1beta1.IsCPUInferenceWorkspace(ws) {
+func GetDesiredInferenceBaseImage(ctx context.Context, ws *v1beta1.Workspace) (pkgmodel.Metadata, error) {
+	if !v1beta1.IsCPUInferenceWorkspace(ctx, ws) {
 		return catalog.MustGet("base"), nil
 	}
 	if v1beta1.GetWorkspaceRuntimeName(ws) != pkgmodel.RuntimeNameVLLM {

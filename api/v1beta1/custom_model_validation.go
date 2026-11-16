@@ -14,12 +14,13 @@
 package v1beta1
 
 import (
+	"context"
 	"fmt"
 
 	"knative.dev/pkg/apis"
 
+	"github.com/kaito-project/kaito/api/env"
 	"github.com/kaito-project/kaito/pkg/catalog"
-	"github.com/kaito-project/kaito/pkg/featuregates"
 	"github.com/kaito-project/kaito/pkg/model"
 	mmconsts "github.com/kaito-project/kaito/pkg/modelmirror/consts"
 )
@@ -59,15 +60,15 @@ func (i *InferenceSpec) validateCustomPreset() *apis.FieldError {
 // custom model depends on are actually in place. Without them the deployment
 // has no way to obtain weights, and there is deliberately no HuggingFace
 // fallback for a model that does not exist there.
-func (w *Workspace) validateCustomModelStreaming() *apis.FieldError {
+func (w *Workspace) validateCustomModelStreaming(ctx context.Context) *apis.FieldError {
 	if w.Inference == nil || w.Inference.Preset == nil || !model.IsCustomPreset(string(w.Inference.Preset.Name)) {
 		return nil
 	}
 
-	if !featuregates.FeatureGates[featuregates.FeatureFlagModelStreaming] {
+	if !env.FromContext(ctx).Features.ModelStreaming {
 		return apis.ErrGeneric(fmt.Sprintf(
-			"preset %q requires the %s feature gate to be enabled",
-			model.PresetNameCustom, featuregates.FeatureFlagModelStreaming), "inference.preset.name")
+			"preset %q requires the ModelStreaming feature gate to be enabled",
+			model.PresetNameCustom), "inference.preset.name")
 	}
 
 	annotations := w.GetAnnotations()

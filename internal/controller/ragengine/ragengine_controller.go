@@ -511,7 +511,7 @@ func (c *RAGEngineReconciler) CreateNodeClaim(ctx context.Context, ragEngineObj 
 	err := retry.OnError(retry.DefaultRetry, func(err error) bool {
 		return apierrors.IsAlreadyExists(err)
 	}, func() error {
-		newNodeClaim = nodeclaim.GenerateNodeClaimManifest(nodeOSDiskSize, ragEngineObj)
+		newNodeClaim = nodeclaim.GenerateNodeClaimManifest(ctx, nodeOSDiskSize, ragEngineObj)
 		return nodeclaim.CreateNodeClaim(ctx, newNodeClaim, c.Client)
 	})
 

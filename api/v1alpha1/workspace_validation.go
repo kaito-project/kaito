@@ -16,7 +16,6 @@ package v1alpha1
 import (
 	"context"
 	"fmt"
-	"os"
 	"reflect"
 	"strconv"
 	"strings"
@@ -29,10 +28,10 @@ import (
 	"k8s.io/klog/v2"
 	"knative.dev/pkg/apis"
 
+	"github.com/kaito-project/kaito/api/env"
 	"github.com/kaito-project/kaito/api/internal/speculativedecoding"
 	kaitov1beta1 "github.com/kaito-project/kaito/api/v1beta1"
 	"github.com/kaito-project/kaito/pkg/consts"
-	"github.com/kaito-project/kaito/pkg/k8sclient"
 	"github.com/kaito-project/kaito/pkg/model"
 	"github.com/kaito-project/kaito/pkg/sku"
 )
@@ -77,7 +76,7 @@ func (w *Workspace) Validate(ctx context.Context) (errs *apis.FieldError) {
 			runtime := GetWorkspaceRuntimeName(w)
 			// TODO: Add Adapter Spec Validation - Including DataSource Validation for Adapter
 			errs = errs.Also(w.Resource.validateCreateWithInference(
-				w.Inference, bypassResourceChecks).ViaField("resource"),
+				ctx, w.Inference, bypassResourceChecks).ViaField("resource"),
 				w.Inference.validateCreate(ctx, runtime).ViaField("inference"),
 				w.validateInferenceConfig(ctx),
 			)
@@ -242,7 +241,7 @@ func (r *TuningSpec) validateCreate(ctx context.Context, workspaceNamespace stri
 	}
 	if r.Config == "" {
 		klog.InfoS("Tuning config not specified. Using default based on method.")
-		releaseNamespace, err := k8sclient.GetReleaseNamespace()
+		releaseNamespace, err := env.FromContext(ctx).RequireReleaseNamespace()
 		if err != nil {
 			errs = errs.Also(apis.ErrGeneric(fmt.Sprintf("Failed to determine release namespace: %v", err), "namespace"))
 		}
@@ -382,7 +381,7 @@ func (r *ResourceSpec) validateCreateWithTuning(tuning *TuningSpec) (errs *apis.
 	return errs
 }
 
-func (r *ResourceSpec) validateCreateWithInference(inference *InferenceSpec, bypassResourceChecks bool) (errs *apis.FieldError) {
+func (r *ResourceSpec) validateCreateWithInference(ctx context.Context, inference *InferenceSpec, bypassResourceChecks bool) (errs *apis.FieldError) {
 	var presetName string
 	if inference.Preset != nil {
 		presetName = strings.ToLower(string(inference.Preset.Name))
@@ -393,8 +392,9 @@ func (r *ResourceSpec) validateCreateWithInference(inference *InferenceSpec, byp
 		}
 	}
 	instanceType := string(r.InstanceType)
+	e := env.FromContext(ctx)
 
-	skuHandler, err := sku.GetSKUHandler()
+	skuHandler, err := e.RequireSKUHandler()
 	if err != nil {
 		errs = errs.Also(apis.ErrGeneric(fmt.Sprintf("Failed to get SKU handler: %v", err), "instanceType"))
 		return errs
@@ -439,9 +439,8 @@ func (r *ResourceSpec) validateCreateWithInference(inference *InferenceSpec, byp
 			}
 		}
 	} else {
-		provider := os.Getenv("CLOUD_PROVIDER")
 		// Check for other instance types pattern matches if cloud provider is Azure
-		if provider != consts.AzureCloudName || !sku.HasSKUNamePrefix(instanceType, N_SERIES_PREFIX, D_SERIES_PREFIX) {
+		if e.CloudProvider != consts.AzureCloudName || !sku.HasSKUNamePrefix(instanceType, N_SERIES_PREFIX, D_SERIES_PREFIX) {
 			errs = errs.Also(apis.ErrInvalidValue(fmt.Sprintf("Unsupported instance type %s. Supported SKUs: %s", instanceType, skuHandler.GetSupportedSKUs()), "instanceType"))
 		}
 	}

@@ -14,6 +14,7 @@
 package karpenter
 
 import (
+	"context"
 	"strings"
 	"testing"
 
@@ -237,7 +238,7 @@ func newTestWorkspace(ns, name, instanceType string, targetNodeCount int32, labe
 
 func TestGenerateNodePool_Standalone(t *testing.T) {
 	ws := newTestWorkspace("default", "llama-serve", "Standard_NC24ads_A100_v4", 2, nil, nil)
-	np := generateNodePool(ws, testConfig, testConfig.DefaultName, karpenterv1.CapacityTypeOnDemand)
+	np := generateNodePool(context.Background(), ws, testConfig, testConfig.DefaultName, karpenterv1.CapacityTypeOnDemand)
 
 	// Name
 	assert.Equal(t, "default-llama-serve", np.Name)
@@ -299,7 +300,7 @@ func TestGenerateNodePool_InferenceSet(t *testing.T) {
 		kaitov1beta1.WorkspaceCreatedByInferenceSetLabel: "my-infset",
 	}
 	ws := newTestWorkspace("prod", "llama-infset-0", "Standard_NC24ads_A100_v4", 1, labels, nil)
-	np := generateNodePool(ws, testConfig, testConfig.DefaultName, karpenterv1.CapacityTypeOnDemand)
+	np := generateNodePool(context.Background(), ws, testConfig, testConfig.DefaultName, karpenterv1.CapacityTypeOnDemand)
 
 	// InferenceSet workspace gets budget "0"
 	assert.Equal(t, "0", np.Spec.Disruption.Budgets[0].Nodes)
@@ -321,7 +322,7 @@ func TestGenerateNodePool_CPUWorkspaceOmitsGPUTaint(t *testing.T) {
 		Status:     kaitov1beta1.WorkspaceStatus{TargetNodeCount: 1},
 	}
 
-	np := generateNodePool(ws, testConfig, testConfig.DefaultName, karpenterv1.CapacityTypeOnDemand)
+	np := generateNodePool(context.Background(), ws, testConfig, testConfig.DefaultName, karpenterv1.CapacityTypeOnDemand)
 	assert.Equal(t, 1, len(np.Spec.Template.Spec.Taints))
 	assert.Equal(t, kaitov1beta1.LabelSKU, np.Spec.Template.Spec.Taints[0].Key)
 	assert.Equal(t, kaitov1beta1.SKUCPU, np.Spec.Template.Spec.Taints[0].Value)
@@ -335,7 +336,7 @@ func TestGenerateNodePool_WithAnnotation(t *testing.T) {
 	})
 	nodeClassName, err := resolveNodeClassName(ws, testConfig)
 	assert.NilError(t, err)
-	np := generateNodePool(ws, testConfig, nodeClassName, karpenterv1.CapacityTypeOnDemand)
+	np := generateNodePool(context.Background(), ws, testConfig, nodeClassName, karpenterv1.CapacityTypeOnDemand)
 	assert.Equal(t, "image-family-azure-linux", np.Spec.Template.Spec.NodeClassRef.Name)
 }
 
@@ -346,7 +347,7 @@ func TestGenerateNodePool_CustomCloudConfig(t *testing.T) {
 		DefaultName: "default-ec2",
 	}
 	ws := newTestWorkspace("default", "ws1", "m5.xlarge", 1, nil, nil)
-	np := generateNodePool(ws, cfg, cfg.DefaultName, karpenterv1.CapacityTypeSpot)
+	np := generateNodePool(context.Background(), ws, cfg, cfg.DefaultName, karpenterv1.CapacityTypeSpot)
 
 	ref := np.Spec.Template.Spec.NodeClassRef
 	assert.Equal(t, "karpenter.k8s.aws", ref.Group)

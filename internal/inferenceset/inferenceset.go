@@ -93,7 +93,7 @@ func ListWorkspaces(ctx context.Context, iObj *kaitov1beta1.InferenceSet, kubeCl
 // It is the single source of truth for child-Workspace construction: the
 // InferenceSet controller and AutoUpgradeRunner create workspaces from it, and
 // the InferenceSet admission webhook validates the very object it produces.
-func NewWorkspaceForInferenceSet(iObj *kaitov1beta1.InferenceSet) *kaitov1beta1.Workspace {
+func NewWorkspaceForInferenceSet(ctx context.Context, iObj *kaitov1beta1.InferenceSet) *kaitov1beta1.Workspace {
 	annotations := maps.Clone(iObj.Spec.Template.Annotations)
 	if runtime := iObj.GetAnnotations()[kaitov1beta1.AnnotationWorkspaceRuntime]; runtime != "" {
 		if annotations == nil {
@@ -140,7 +140,7 @@ func NewWorkspaceForInferenceSet(iObj *kaitov1beta1.InferenceSet) *kaitov1beta1.
 		},
 		Resource: kaitov1beta1.ResourceSpec{
 			InstanceType:  iObj.Spec.Template.Resource.InstanceType,
-			LabelSelector: workspaceNodeSelector(iObj),
+			LabelSelector: kaitov1beta1.InferenceSetNodeSelector(ctx, iObj),
 			Partition:     iObj.Spec.Template.Resource.Partition,
 		},
 		Inference: iObj.Spec.Template.Inference.DeepCopy(),
@@ -165,13 +165,6 @@ func workspaceGenerateName(inferenceSetName string) string {
 	return inferenceSetName + "-"
 }
 
-// workspaceNodeSelector returns the node selector for child Workspaces:
-// template.resource.labelSelector, or, for backward compatibility with node
-// auto-provisioning only, spec.labelSelector when the former is unset or empty.
-func workspaceNodeSelector(iObj *kaitov1beta1.InferenceSet) *metav1.LabelSelector {
-	return kaitov1beta1.InferenceSetNodeSelector(iObj)
-}
-
 // ValidateWorkspaceForInferenceSet validates the child Workspace the given
 // InferenceSet would create, with the same rules the Workspace webhook applies.
 // Like any knative Validate, it treats the admission baseline in ctx as the
@@ -180,13 +173,13 @@ func workspaceNodeSelector(iObj *kaitov1beta1.InferenceSet) *metav1.LabelSelecto
 // Workspace projected from the baseline. Returned errors are rooted at the
 // InferenceSet. It is wired into api/v1beta1 at startup.
 func ValidateWorkspaceForInferenceSet(ctx context.Context, iObj *kaitov1beta1.InferenceSet) *apis.FieldError {
-	ws := NewWorkspaceForInferenceSet(iObj)
+	ws := NewWorkspaceForInferenceSet(ctx, iObj)
 	base, _ := apis.GetBaseline(ctx).(*kaitov1beta1.InferenceSet)
 	if base == nil {
 		return ws.ValidateCreate(ctx).ViaField("spec", "template")
 	}
 
-	oldWs := NewWorkspaceForInferenceSet(base)
+	oldWs := NewWorkspaceForInferenceSet(ctx, base)
 	// When both node selectors are inherited from spec.labelSelector, report a
 	// change only at spec.labelSelector instead of the projected template path.
 	if kaitov1beta1.IsEmptyLabelSelector(iObj.Spec.Template.Resource.LabelSelector) &&

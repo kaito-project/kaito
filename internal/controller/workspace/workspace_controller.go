@@ -1740,7 +1740,7 @@ func (c *WorkspaceReconciler) UpdateWorkspaceTargetNodeCount(ctx context.Context
 	var err error
 	targetNodeCount := int32(1)
 	if wObj.Status.TargetNodeCount == 0 {
-		isCPU := kaitov1beta1.IsCPUInferenceWorkspace(wObj)
+		isCPU := kaitov1beta1.IsCPUInferenceWorkspace(ctx, wObj)
 		if isCPU && wObj.Inference.Preset != nil {
 			if err := resources.UpdateStatusWithRetry(ctx, c.Client, client.ObjectKey{Namespace: wObj.Namespace, Name: wObj.Name}, func(obj *kaitov1beta1.Workspace) error {
 				status := &obj.Status

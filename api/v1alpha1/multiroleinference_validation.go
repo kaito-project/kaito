@@ -23,9 +23,9 @@ import (
 	"k8s.io/klog/v2"
 	"knative.dev/pkg/apis"
 
+	"github.com/kaito-project/kaito/api/env"
 	"github.com/kaito-project/kaito/api/internal/speculativedecoding"
 	kaitov1beta1 "github.com/kaito-project/kaito/api/v1beta1"
-	"github.com/kaito-project/kaito/pkg/featuregates"
 )
 
 // MaxMultiRoleInferenceNameLength caps new MultiRoleInference names so the
@@ -53,13 +53,13 @@ func (m *MultiRoleInference) Validate(ctx context.Context) (errs *apis.FieldErro
 		if len(m.Name) > MaxMultiRoleInferenceNameLength {
 			errs = errs.Also(apis.ErrInvalidValue(fmt.Sprintf("must be no more than %d characters", MaxMultiRoleInferenceNameLength), "name"))
 		}
-		errs = errs.Also(m.validateCreate().ViaField("spec"))
-		errs = errs.Also(m.validateCapacityTypeAnnotation())
+		errs = errs.Also(m.validateCreate(ctx).ViaField("spec"))
+		errs = errs.Also(m.validateCapacityTypeAnnotation(ctx))
 	} else {
 		klog.InfoS("Validate update", "multiroleinference", fmt.Sprintf("%s/%s", m.Namespace, m.Name))
 		old := base.(*MultiRoleInference)
-		errs = errs.Also(m.validateUpdate(old).ViaField("spec"))
-		errs = errs.Also(m.validateCapacityTypeAnnotationUpdate(old))
+		errs = errs.Also(m.validateUpdate(ctx, old).ViaField("spec"))
+		errs = errs.Also(m.validateCapacityTypeAnnotationUpdate(ctx, old))
 	}
 	// Speculative-decoding opt-in is validated against top-level metadata
 	// (annotation propagates to child InferenceSets -> Workspaces via the
@@ -70,7 +70,7 @@ func (m *MultiRoleInference) Validate(ctx context.Context) (errs *apis.FieldErro
 	return errs
 }
 
-func (m *MultiRoleInference) validateCreate() (errs *apis.FieldError) {
+func (m *MultiRoleInference) validateCreate(ctx context.Context) (errs *apis.FieldError) {
 	// Validate model name is not empty.
 	if m.Spec.Model.Name == "" {
 		errs = errs.Also(apis.ErrMissingField("model.name"))
@@ -84,12 +84,12 @@ func (m *MultiRoleInference) validateCreate() (errs *apis.FieldError) {
 	}
 
 	// Validate roles.
-	errs = errs.Also(m.validateRoles())
+	errs = errs.Also(m.validateRoles(ctx))
 
 	return errs
 }
 
-func (m *MultiRoleInference) validateUpdate(old *MultiRoleInference) (errs *apis.FieldError) {
+func (m *MultiRoleInference) validateUpdate(ctx context.Context, old *MultiRoleInference) (errs *apis.FieldError) {
 	// Model name is immutable.
 	if m.Spec.Model.Name != old.Spec.Model.Name {
 		errs = errs.Also(apis.ErrInvalidValue(
@@ -99,13 +99,13 @@ func (m *MultiRoleInference) validateUpdate(old *MultiRoleInference) (errs *apis
 	}
 
 	// Validate roles (same as create).
-	errs = errs.Also(m.validateRoles())
+	errs = errs.Also(m.validateRoles(ctx))
 
 	return errs
 }
 
-func (m *MultiRoleInference) validateCapacityTypeAnnotation() *apis.FieldError {
-	if !featuregates.IsKarpenterProvisioner() {
+func (m *MultiRoleInference) validateCapacityTypeAnnotation(ctx context.Context) *apis.FieldError {
+	if env.FromContext(ctx).NodeProvisioner != env.NodeProvisionerKarpenter {
 		return nil
 	}
 	capacityType := m.GetAnnotations()[kaitov1beta1.AnnotationCapacityType]
@@ -119,8 +119,8 @@ func (m *MultiRoleInference) validateCapacityTypeAnnotation() *apis.FieldError {
 	)
 }
 
-func (m *MultiRoleInference) validateCapacityTypeAnnotationUpdate(old *MultiRoleInference) *apis.FieldError {
-	if !featuregates.IsKarpenterProvisioner() {
+func (m *MultiRoleInference) validateCapacityTypeAnnotationUpdate(ctx context.Context, old *MultiRoleInference) *apis.FieldError {
+	if env.FromContext(ctx).NodeProvisioner != env.NodeProvisionerKarpenter {
 		return nil
 	}
 	oldValue := old.GetAnnotations()[kaitov1beta1.AnnotationCapacityType]
@@ -129,7 +129,7 @@ func (m *MultiRoleInference) validateCapacityTypeAnnotationUpdate(old *MultiRole
 		return nil
 	}
 	if !kaitov1beta1.IsSupportedKarpenterCapacityType(oldValue) {
-		return m.validateCapacityTypeAnnotation()
+		return m.validateCapacityTypeAnnotation(ctx)
 	}
 	return apis.ErrGeneric(
 		fmt.Sprintf("annotation %s is immutable after creation", kaitov1beta1.AnnotationCapacityType),
@@ -137,7 +137,7 @@ func (m *MultiRoleInference) validateCapacityTypeAnnotationUpdate(old *MultiRole
 	)
 }
 
-func (m *MultiRoleInference) validateRoles() (errs *apis.FieldError) {
+func (m *MultiRoleInference) validateRoles(ctx context.Context) (errs *apis.FieldError) {
 	// Validate exactly 2 roles.
 	if len(m.Spec.Roles) != 2 {
 		errs = errs.Also(apis.ErrInvalidValue(
@@ -172,13 +172,13 @@ func (m *MultiRoleInference) validateRoles() (errs *apis.FieldError) {
 		}
 
 		// Validate instanceType based on active node provisioner.
-		switch featuregates.NodeProvisioner {
-		case featuregates.NodeProvisionerBYO:
+		switch env.FromContext(ctx).NodeProvisioner {
+		case env.NodeProvisionerBYO:
 			if role.InstanceType != "" {
 				errs = errs.Also(apis.ErrInvalidValue(role.InstanceType, field+".instanceType",
 					"instanceType must be empty when nodeProvisioner is byo"))
 			}
-		case featuregates.NodeProvisionerKarpenter, featuregates.NodeProvisionerAzureGPU:
+		case env.NodeProvisionerKarpenter, env.NodeProvisionerAzureGPU:
 			if role.InstanceType == "" {
 				errs = errs.Also(apis.ErrMissingField(field + ".instanceType"))
 			}

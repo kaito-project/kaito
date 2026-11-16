@@ -29,6 +29,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	karpenterv1 "sigs.k8s.io/karpenter/pkg/apis/v1"
 
+	"github.com/kaito-project/kaito/api/env"
 	kaitov1beta1 "github.com/kaito-project/kaito/api/v1beta1"
 	"github.com/kaito-project/kaito/internal/k8s/resources"
 	"github.com/kaito-project/kaito/internal/testutil"
@@ -65,7 +66,6 @@ func TestCreateNodeClaim(t *testing.T) {
 			tc.callMocks(mockClient)
 
 			mockNodeClaim := &testutil.MockNodeClaim
-			t.Setenv("CLOUD_PROVIDER", consts.AzureCloudName)
 			err := CreateNodeClaim(context.Background(), mockNodeClaim, mockClient)
 			if tc.expectedError == nil {
 				assert.Check(t, err == nil, "Not expected to return error")
@@ -171,7 +171,7 @@ func TestGenerateNodeClaimManifest_OmitsInferenceSetLabel(t *testing.T) {
 		"nodepool": "cpu",
 	}}
 
-	nc := GenerateNodeClaimManifestWithOptions("0", ws, ManifestOptions{})
+	nc := GenerateNodeClaimManifestWithOptions(env.WithEnv(context.Background(), &env.Env{CloudProvider: consts.AzureCloudName}), "0", ws, ManifestOptions{})
 	if nc == nil {
 		t.Fatalf("expected nodeclaim manifest")
 	}
@@ -285,18 +285,17 @@ func TestGenerateNodeClaimManifest(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			t.Setenv("CLOUD_PROVIDER", tc.cloudProvider)
-
 			workspace := tc.workspace.DeepCopy()
 			if tc.name == "image family defaults to ubuntu when startup parameter is empty and workspace annotation missing" {
 				workspace.Annotations = nil
 			}
 
+			ctx := env.WithEnv(context.Background(), &env.Env{CloudProvider: env.CloudProvider(tc.cloudProvider)})
 			var nodeClaim *karpenterv1.NodeClaim
 			if tc.useOptions {
-				nodeClaim = GenerateNodeClaimManifestWithOptions("0", workspace, tc.options)
+				nodeClaim = GenerateNodeClaimManifestWithOptions(ctx, "0", workspace, tc.options)
 			} else {
-				nodeClaim = GenerateNodeClaimManifest("0", workspace)
+				nodeClaim = GenerateNodeClaimManifest(ctx, "0", workspace)
 			}
 
 			assert.Check(t, nodeClaim != nil, "NodeClaim must not be nil")
@@ -313,7 +312,7 @@ func TestGenerateNodeClaimManifest(t *testing.T) {
 			assert.Equal(t, nodeClaim.Spec.NodeClassRef.Group, tc.expectedNodeClassGroup, "NodeClaim must have expected nodeclass group")
 			assert.Equal(t, 1, len(nodeClaim.Spec.Taints), "NodeClaim must have a dedicated sku taint")
 			assert.Equal(t, kaitov1beta1.LabelSKU, nodeClaim.Spec.Taints[0].Key, "NodeClaim taint key mismatch")
-			if kaitov1beta1.IsCPUInferenceWorkspace(workspace) {
+			if kaitov1beta1.IsCPUInferenceWorkspace(ctx, workspace) {
 				assert.Equal(t, kaitov1beta1.SKUCPU, nodeClaim.Spec.Taints[0].Value, "CPU NodeClaim must use cpu taint")
 				assert.Equal(t, kaitov1beta1.SKUCPU, nodeClaim.Labels[kaitov1beta1.LabelSKU], "CPU NodeClaim must carry cpu sku label")
 			} else {

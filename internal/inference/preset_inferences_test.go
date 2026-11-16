@@ -39,6 +39,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client/fake"
 	"sigs.k8s.io/controller-runtime/pkg/client/interceptor"
 
+	"github.com/kaito-project/kaito/api/env"
 	kaitov1alpha1 "github.com/kaito-project/kaito/api/v1alpha1"
 	"github.com/kaito-project/kaito/api/v1beta1"
 	"github.com/kaito-project/kaito/internal/cache"
@@ -1505,7 +1506,7 @@ func TestDefaultTolerations(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			t.Setenv("CLOUD_PROVIDER", tc.cloudProvider)
 
-			actual := defaultTolerations(tc.workspace)
+			actual := defaultTolerations(env.WithEnv(context.Background(), &env.Env{CloudProvider: env.CloudProvider(tc.cloudProvider)}), tc.workspace)
 			hasSpot := false
 			hasGPU := false
 			hasCPU := false
@@ -2566,7 +2567,7 @@ func TestPresetInferenceRuntimeImages(t *testing.T) {
 			ws := testutil.MockWorkspaceWithPresetVLLM.DeepCopy()
 			ws.Resource.InstanceType = tc.instanceType
 			ws.Annotations = map[string]string{v1beta1.AnnotationWorkspaceRuntime: tc.runtime}
-			image, err := GetDesiredInferenceImageName(ws)
+			image, err := GetDesiredInferenceImageName(context.Background(), ws)
 			if tc.wantError {
 				require.ErrorContains(t, err, "CPU preset inference supports only vllm")
 				assert.Empty(t, image)

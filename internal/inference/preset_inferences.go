@@ -1460,7 +1460,7 @@ func applyGeneratorRuntimeOverrides(params *pkgmodel.PresetParam, gpuConfig *sku
 	if dtype, ok := hfgen.ResolveIndexerKVDtype(params.Architectures, gpuConfig.GPUModel); ok {
 		params.VLLM.ModelRunParams["attention-config.indexer_kv_dtype"] = dtype
 	}
-	if config, ok := presetgenerator.ResolveEngramConfig(params.Architectures, gpuConfig.GPUModel); ok {
+	if config, ok := hfgen.ResolveEngramConfig(params.Architectures, gpuConfig.GPUModel); ok {
 		params.VLLM.ModelRunParams["engram-config"] = config
 	}
 }

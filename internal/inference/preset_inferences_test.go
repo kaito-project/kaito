@@ -1654,15 +1654,13 @@ func TestQwen4ExpKeepsPLEOnDeviceOnA100(t *testing.T) {
 			}
 			gpuConfig := &sku.GPUConfig{GPUModel: tc.gpuModel}
 			applyGeneratorRuntimeOverrides(params, gpuConfig)
-			cmd := utils.BuildCmdStr("python3 /workspace/vllm/inference_api.py", params.VLLM.ModelRunParams)
-
-			count := strings.Count(cmd, "--engram-config")
+			value, ok := params.VLLM.ModelRunParams["engram-config"]
 			if tc.wantFlag {
-				if count != 1 || !strings.Contains(cmd, `--engram-config='{"cpu_offload":false}'`) {
-					t.Fatalf("command %q: want exactly one --engram-config='{\"cpu_offload\":false}'", cmd)
+				if !ok || value != `'{"cpu_offload":false}'` {
+					t.Fatalf("engram-config = %q (set=%v), want '{\"cpu_offload\":false}'", value, ok)
 				}
-			} else if count != 0 {
-				t.Fatalf("command %q: want no --engram-config", cmd)
+			} else if ok {
+				t.Fatalf("unexpected engram-config = %q", value)
 			}
 
 			// The env var was removed from vLLM; the run param above replaces it.

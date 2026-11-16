@@ -15,9 +15,11 @@
 
 virtualenv (pulled in by ray[default]) bundles pip/setuptools seed wheels for
 every Python version it supports. Only the wheels mapped to the running
-interpreter's major.minor are needed, so the rest are deleted. The wheel set is
-read from virtualenv itself rather than hard-coded because virtualenv is an
-unpinned transitive dependency.
+interpreter's major.minor are needed, so the rest are deleted. The wheels for
+older Python versions (e.g. pip 26.0.1 and setuptools 82.0.1, mapped only to
+Python 3.9) contain known CVEs, and no virtualenv release replaces them, so
+deleting them is the only fix. The wheel set is read from virtualenv itself
+rather than hard-coded because virtualenv is an unpinned transitive dependency.
 
 virtualenv also ships a CycloneDX SBOM in its dist-info that lists every bundled
 seed wheel. Entries for the deleted wheels are removed so the SBOM matches the
@@ -31,8 +33,8 @@ from pathlib import Path
 import virtualenv
 from virtualenv.seed.wheels.embed import BUNDLE_FOLDER, BUNDLE_SUPPORT
 
-# Seed wheels that must not remain after pruning (they are only mapped to older
-# Python versions in current virtualenv releases).
+# Seed wheels with known CVEs that must not remain after pruning (they are only
+# mapped to older Python versions in current virtualenv releases).
 _MUST_BE_ABSENT = ("pip-26.0.1-", "setuptools-82.0.1-")
 _MUST_BE_ABSENT_PURLS = ("pkg:pypi/pip@26.0.1", "pkg:pypi/setuptools@82.0.1")
 

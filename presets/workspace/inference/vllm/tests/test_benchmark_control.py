@@ -18,7 +18,7 @@ import sys
 import types
 from pathlib import Path
 from types import SimpleNamespace
-from unittest.mock import AsyncMock, MagicMock
+from unittest.mock import AsyncMock, MagicMock, create_autospec
 
 
 class _StubBaseHTTPMiddleware:
@@ -58,9 +58,13 @@ def _run(coro):
     return asyncio.run(coro)
 
 
+async def _pause_generation(*, mode="abort", clear_cache=True):
+    """Signature of vLLM's AsyncLLM.pause_generation."""
+
+
 def _make_request(path="/abort_requests", method="POST", host="127.0.0.1"):
     engine = SimpleNamespace(
-        pause_generation=AsyncMock(),
+        pause_generation=create_autospec(_pause_generation),
         resume_generation=AsyncMock(),
     )
     request = SimpleNamespace(
@@ -99,11 +103,7 @@ def test_abort_requests_pauses_with_abort_then_resumes():
     response = _run(middleware.dispatch(request, AsyncMock()))
 
     assert response.status_code == 200
-    engine.pause_generation.assert_awaited_once_with(
-        mode="abort",
-        wait_for_inflight_requests=False,
-        clear_cache=True,
-    )
+    engine.pause_generation.assert_awaited_once_with(mode="abort", clear_cache=True)
     engine.resume_generation.assert_awaited_once_with()
 
 

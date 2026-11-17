@@ -30,6 +30,11 @@ on:
         required: false
         default: ""
         type: string
+      model_streaming:
+        description: "Stream every preset through DACS; disable to test local CSI instead"
+        required: false
+        default: true
+        type: boolean
       subscription:
         description: "Azure subscription name or id to run in"
         required: false
@@ -105,6 +110,7 @@ jobs:
           PYTHONPATH=.github/scripts/preset-regression-tests python3 .github/scripts/preset-regression-tests/test_preset_regression_gsm8k.py
           PYTHONPATH=.github/scripts/preset-regression-tests python3 .github/scripts/preset-regression-tests/test_preset_regression_test_utils.py
           PYTHONPATH=.github/scripts/preset-regression-tests python3 .github/scripts/preset-regression-tests/test_update_preset_regression_baselines.py
+          PYTHONPATH=.github/scripts/preset-regression-tests python3 .github/scripts/preset-regression-tests/test_preset_regression_storage.py
 
       - name: Build GPU pool matrix
         id: plan
@@ -171,6 +177,8 @@ jobs:
       KARPENTER_NAMESPACE: "karpenter"
       GPU_PROVISIONER_NAMESPACE: "gpu-provisioner"
       KAITO_NAMESPACE: "kaito-workspace"
+      NAMESPACE: "default"
+      STREAMING_ENABLED: ${{ github.event_name == 'pull_request' || inputs.model_streaming }}
       # Also selects which MSI and federated credential generate-identities.sh creates.
       TEST_SUITE: ${{ inputs.node_provisioner || 'gpuprovisioner' }}
       # Shared by the name generator and the leaked-group sweep; keep them in sync.
@@ -351,7 +359,7 @@ jobs:
               --generate-ssh-keys \
               --network-plugin azure --network-plugin-mode overlay --network-dataplane cilium \
               --enable-managed-identity --enable-workload-identity --enable-oidc-issuer \
-              --enable-aad -o none
+              --enable-aad --enable-blob-driver -o none
           }
 
           set +e
@@ -388,6 +396,40 @@ jobs:
           az aks get-credentials --name "$CLUSTER_NAME" --resource-group "$CLUSTER_NAME" \
             --admin --overwrite-existing
 
+      - name: Configure model streaming
+        if: ${{ env.STREAMING_ENABLED == 'true' }}
+        run: |
+          set -euo pipefail
+          kubectl get storageclass azureblob-fuse-premium
+          IDENTITY=$(az aks show -n "$CLUSTER_NAME" -g "$CLUSTER_NAME" --query identityProfile.kubeletidentity.resourceId -o tsv)
+          CLIENT_ID=$(az aks show -n "$CLUSTER_NAME" -g "$CLUSTER_NAME" --query identityProfile.kubeletidentity.clientId -o tsv)
+          PRINCIPAL_ID=$(az identity show --ids "$IDENTITY" --query principalId -o tsv)
+          ISSUER=$(az aks show -n "$CLUSTER_NAME" -g "$CLUSTER_NAME" --query oidcIssuerProfile.issuerUrl -o tsv)
+          NODE_RG=$(az aks show -n "$CLUSTER_NAME" -g "$CLUSTER_NAME" --query nodeResourceGroup -o tsv)
+          SUB_ID=$(az account show --query id -o tsv)
+          az role assignment create --role "Storage Blob Data Reader" \
+            --assignee-object-id "$PRINCIPAL_ID" --assignee-principal-type ServicePrincipal \
+            --scope "/subscriptions/${SUB_ID}/resourceGroups/${NODE_RG}" -o none
+          kubectl create serviceaccount kaito-model-streamer -n "$NAMESPACE" --dry-run=client -o yaml |
+            kubectl annotate --local -f - "azure.workload.identity/client-id=${CLIENT_ID}" -o yaml |
+            kubectl apply -f -
+          az identity federated-credential create --name "streaming-ci-${NAMESPACE}" \
+            --identity-name "${IDENTITY##*/}" --resource-group "$(printf '%s' "$IDENTITY" | cut -d/ -f5)" \
+            --issuer "$ISSUER" --subject "system:serviceaccount:${NAMESPACE}:kaito-model-streamer" \
+            --audiences api://AzureADTokenExchange -o none
+          kubectl create configmap preset-regression-cache -n "$NAMESPACE" \
+            --from-literal=cache.yaml=$'modelWeights:\n  provider: dacs\n  mode: Required\n' \
+            --dry-run=client -o yaml | kubectl apply -f -
+
+      - name: Install pinned DACS backend
+        if: ${{ env.STREAMING_ENABLED == 'true' }}
+        run: |
+          set -euo pipefail
+          DACS_CHART=charts/kaito/workspace/charts/dacs-0.1.0-pr189.71faac8.tgz
+          helm upgrade --install dacs "$DACS_CHART" --namespace kube-system \
+            --values <(yq '.dacs' charts/kaito/workspace/values.yaml) --wait --timeout 5m
+          echo "DACS_CHART=${DACS_CHART}" >> "$GITHUB_ENV"
+
       - name: Install the node provisioner
         run: |
           set -euo pipefail
@@ -411,7 +453,16 @@ jobs:
           AZURE_CLUSTER_NAME: ${{ env.CLUSTER_NAME }}
           REGISTRY: ${{ env.REGISTRY }}
           IMG_TAG: ${{ env.VERSION }}
-          HELM_INSTALL_EXTRA_ARGS: "--set nodeProvisioner=${{ (inputs.node_provisioner || 'gpuprovisioner') == 'azkarpenter' && 'karpenter' || 'azure-gpu-provisioner' }}"
+          HELM_INSTALL_EXTRA_ARGS: >-
+            --set nodeProvisioner=${{ (inputs.node_provisioner || 'gpuprovisioner') == 'azkarpenter' && 'karpenter' || 'azure-gpu-provisioner' }}
+            --set dacs.enabled=false
+            --set featureGates.ModelMirror=${{ env.STREAMING_ENABLED }}
+            --set featureGates.ModelStreaming=${{ env.STREAMING_ENABLED }}
+            --set featureGates.distributedCache=${{ env.STREAMING_ENABLED }}
+            --set cache.providers.dacs.enabled=${{ env.STREAMING_ENABLED }}
+            --set cache.providers.dacs.cache.enabled=false
+            --set defaultModelMirrorStorageClass=azureblob-fuse-premium
+            --set defaultStreamingServiceAccount=kaito-model-streamer
 
       - name: Wait for the validating webhook to be reachable
         run: |

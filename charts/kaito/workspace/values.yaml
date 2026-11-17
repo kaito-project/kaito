@@ -233,7 +233,7 @@ productionstack:
 
 # Distributed cache provider configuration.
 # Only active when featureGates.distributedCache is true.
-# Install the DACS controller and disk prerequisites as a separate Helm release.
+# Enable dacs.enabled to install the bundled controller, or use an existing release.
 # Model-weight caching requires Run:ai streaming and a workspace cache attachment;
 # enabling the provider alone does not change the model-loading path.
 cache:
@@ -265,3 +265,21 @@ cache:
           storage:
             hostPath:
               nodeCacheFolderPath: /var/lib/ssd/cacheserver
+
+# Unreleased controller-chart snapshot from Azure/dacs#189. Installation and
+# runtime provider selection are independent; do not install over managed DACS.
+dacs:
+  enabled: false
+  global:
+    registry: mcr.microsoft.com
+  manager:
+    image:
+      tag: v0.1.0
+    cacheServerImage:
+      tag: v0.1.0
+  cacheServerPrereq:
+    enabled: false
+    nvmeRaidSetup:
+      image:
+        repository: mcr.microsoft.com/dacs/cache-setup
+        tag: v0.1.0

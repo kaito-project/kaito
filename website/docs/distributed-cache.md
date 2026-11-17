@@ -5,8 +5,8 @@ title: Distributed Cache
 This document explains how to enable distributed caching for model weights and KV cache in KAITO using a pluggable cache provider.
 
 KAITO ships the cache **framework**, a DACS provider and a `noop` reference provider.
-The DACS controller is installed separately, not bundled in the workspace Helm
-chart. Additional providers implement the `cache.Provider` interface (see
+The DACS controller can be installed with the optional workspace Helm subchart
+or managed separately. Additional providers implement the `cache.Provider` interface (see
 [Implementing a provider](#implementing-a-provider)).
 
 ## Overview
@@ -27,7 +27,13 @@ Each concern is independently configurable with its own provider and mode.
 
 ### 1. Install the cache backend
 
-For DACS, install its pinned chart as a separate release before installing KAITO:
+Enable bundled DACS with `dacs.enabled=true` and
+`cache.providers.dacs.cache.namespace=""`; see the
+[workspace chart README](https://github.com/kaito-project/kaito/blob/main/charts/kaito/workspace/README.md#dacs-cache-configuration)
+for the pinned snapshot and disk-preparation requirements.
+
+Alternatively, install the pinned released chart separately before KAITO,
+leaving `dacs.enabled=false`:
 
 ```bash
 helm show crds oci://mcr.microsoft.com/dacs/helmchart/dacs --version 0.1.0 |
@@ -44,7 +50,8 @@ DaemonSet excludes these labeled nodes; do not relabel nodes with existing
 storage. The DACS prerequisite and KAITO Cache selectors must stay aligned.
 If DACS is already managed by the cluster, reuse that installation instead of
 installing another controller. For prepared storage, disable
-`cacheServerPrereq.enabled` in the DACS release.
+`cacheServerPrereq.enabled` in the separate DACS release, or
+`dacs.cacheServerPrereq.enabled` when bundled.
 
 The `cache.providers.dacs.enabled` workspace value controls provider configuration,
 not backend installation. Other providers still need to be linked into KAITO.

@@ -45,6 +45,11 @@ dependencies:
   version: "0.4.1"
   repository: oci://localcsidriver.azurecr.io/acstor/charts
   condition: localCSIDriver.useLocalCSIDriver
+# Unreleased Azure/dacs#189 snapshot, vendored from commit
+# 71faac8377292e790a2291c6f9e0543d584a920c. No registry release is implied.
+- name: dacs
+  version: "0.1.0-pr189.71faac8"
+  condition: dacs.enabled
 - name: productionstack
   version: "0.5.2"
   repository: oci://mcr.microsoft.com/aks/kaito/helm

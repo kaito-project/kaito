@@ -2,8 +2,9 @@
 
 ## Install
 
-Install DACS separately first as described below, or disable its integration
-with `--set cache.providers.dacs.enabled=false` when it is not needed.
+Enable the optional DACS subchart as described below, reuse a separately managed
+DACS installation, or disable integration with
+`--set cache.providers.dacs.enabled=false` when it is not needed.
 
 ```bash
 export REGISTRY=mcr.microsoft.com/aks/kaito
@@ -65,6 +66,8 @@ helm install workspace ./charts/kaito/workspace  \
 | featureGates.gatewayAPIInferenceExtension      | bool   | `false`                                                  | Allowed values: `true`, `false`. Enables the Gateway API Inference Extension (also gates installation of the GAIE subchart). |
 | featureGates.enableInferenceSetController      | bool   | `true`                                                  | Allowed values: `true`, `false`. Enables the InferenceSet controller and its RBAC. |
 | featureGates.distributedCache                  | bool   | `false`                                                  | Allowed values: `true`, `false`. Enables the distributed cache feature (model weights and KV cache injection). |
+| dacs.enabled                                   | bool   | `false`                                                  | Installs the bundled, unreleased DACS controller-chart snapshot. Leave disabled for separately managed DACS. |
+| dacs.cacheServerPrereq.enabled                  | bool   | `false`                                                  | Enables NVMe initialization on explicitly selected, unused DACS nodes. Never target local-CSI disks. |
 | cache.providers.dacs.enabled                   | bool   | `true`                                                   | Configures the DACS runtime provider; does not install DACS. Injection additionally requires `featureGates.distributedCache=true` and an applicable workspace cache attachment. |
 | cache.providers.dacs.discoveryEndpoint         | string | `""`                                                     | DACS cache server discovery URL. Auto-discovered from the Cache CR status when empty. |
 | cache.providers.dacs.clientImage               | string | `"mcr.microsoft.com/dacs/runai-dacs-client:v0.1.0"` | OCI image bundling the DACS client libraries, mounted into inference pods as an ImageVolume. Requires glibc >= 2.35 (Ubuntu 22.04+). |
@@ -91,12 +94,23 @@ python3 hack/test_workspace_chart.py
 
 ## DACS Cache configuration
 
-DACS must be installed as a **separate Helm release**, or supplied by an existing
-managed installation. Do not install a second controller over managed DACS.
-Separate releases avoid global Helm helper-name collisions with local CSI.
+DACS can be installed with `dacs.enabled=true`, or supplied by an existing
+managed installation with `dacs.enabled=false`. Do not install a second
+controller over managed DACS. Backend installation, runtime provider selection
+and workspace streaming remain independent.
+
+The bundled chart is the **unreleased** Azure/dacs#189 snapshot
+`0.1.0-pr189.71faac8` from commit `71faac8377292e790a2291c6f9e0543d584a920c`;
+runtime images are pinned to `v0.1.0`. It has no registry release: use the
+vendored archive, or extract it into `charts/dacs` before rebuilding dependencies.
+
+For bundled DACS, set `cache.providers.dacs.cache.namespace=""` to keep the Cache
+with its controller. Leave `dacs.cacheServerPrereq.enabled=false` when storage is
+already prepared.
+
 KAITO renders the Cache resource from
 `cache.providers.dacs.cache`, keeping node selection and scaling configurable
-through this chart:
+through this chart. Alternatively, install a separately managed release first:
 
 ```bash
 # Install/upgrade the CRD before installing KAITO or upgrading DACS.
@@ -110,7 +124,8 @@ helm upgrade --install dacs oci://mcr.microsoft.com/dacs/helmchart/dacs \
   --set cacheServerPrereq.enabled=true --wait --timeout 15m
 ```
 
-These are DACS release values, not workspace chart values. The prerequisite's
+These are separate DACS release values. For the subchart, prefix them with
+`dacs.` (for example, `dacs.cacheServerPrereq.enabled`). The prerequisite's
 default selector is `dacs.azure.com/processing-unit=cpu`; the workspace chart
 uses the same label for its Cache and excludes these nodes from local CSI.
 
@@ -170,10 +185,10 @@ delete it. An existing Cache owned by a different Helm release must be migrated
 before enabling KAITO management. Apply the target DACS CRD before upgrading an
 existing installation, since Helm does not upgrade CRDs automatically.
 
-Upgrades from a KAITO release that bundled DACS also need an ownership migration:
-removing a subchart can delete its old controller, webhook and RBAC resources.
-Do not upgrade such a release in place without arranging that migration first.
-The CI path installs on disposable fresh clusters and does not perform it.
+Switching between bundled and separately managed DACS needs an ownership
+migration: removing a subchart can delete its old controller, webhook and RBAC
+resources. Do not switch ownership in place without arranging that migration
+first. Fresh-install tests do not validate such a migration.
 
 ## Karpenter NodeClass Updates
 

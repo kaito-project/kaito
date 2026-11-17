@@ -40,6 +40,7 @@ const (
 	SpeculativeDecodingMethodDSpark  = "dspark"
 	mtpSpeculativeDecodingTokenCount = 1
 	defaultGPUMemoryUtilization      = "0.92"
+	hybridMaxNumBatchedTokens        = "4096"
 )
 
 // Please update the following model-specific configurations when adding new models to model catalog
@@ -382,9 +383,39 @@ var (
 	// and assert at engine init otherwise.
 	// source: https://docs.vllm.ai/en/latest/configuration/engine_args/#-kv-cache-dtype
 	vllmKVCacheDtypeArchMap = map[string]string{
-		"DeepseekV4ForCausalLM":              "fp8",
-		"DeepseekV4ForConditionalGeneration": "fp8",
+		"DeepseekV4ForCausalLM":              "fp8_ds_mla",
+		"DeepseekV4ForConditionalGeneration": "fp8_ds_mla",
+		"DeepseekV41ForCausalLM":             "fp8_ds_mla",
 		"GlmMoeDsaForCausalLM":               "fp8",
+	}
+
+	// Hybrid linear-attention (GDN, Mamba-2, KDA) state must be cached at
+	// aligned block boundaries for prefix caching and LMCache reuse.
+	// source: https://docs.lmcache.ai/mp/hybrid_models.html
+	// source: https://docs.lmcache.ai/recipes/qwen3_5.html
+	// source: https://docs.lmcache.ai/recipes/qwen3_8_flash_next.html
+	vllmMambaCacheModeArchMap = map[string]string{
+		"Glm5NextForCausalLM":                "align",
+		"Glm5NextForConditionalGeneration":   "align",
+		"Glm5NextMTPModel":                   "align",
+		"NemotronHForCausalLM":               "align",
+		"NemotronHMTPModel":                  "align",
+		"NemotronHPuzzleForCausalLM":         "align",
+		"NemotronH_Nano_Omni_Reasoning_V3":   "align",
+		"NemotronH_Nano_VL_V2":               "align",
+		"NemotronH_Omni_Reasoning_V3":        "align",
+		"NemotronH_Super_Omni_Reasoning_V3":  "align",
+		"Qwen3NextForCausalLM":               "align",
+		"Qwen3NextMTP":                       "align",
+		"Qwen3_5ForCausalLM":                 "align",
+		"Qwen3_5ForConditionalGeneration":    "align",
+		"Qwen3_5MTP":                         "align",
+		"Qwen3_5MoeForCausalLM":              "align",
+		"Qwen3_5MoeForConditionalGeneration": "align",
+		"Qwen3_5MoeMTP":                      "align",
+		"Qwen4ExpForCausalLM":                "align",
+		"Qwen4ExpForConditionalGeneration":   "align",
+		"Qwen4ExpMTP":                        "align",
 	}
 
 	// vllmGdnPrefillBackendPrefixMap maps model name prefixes to their vLLM GDN prefill backend.
@@ -1237,6 +1268,20 @@ func (g *Generator) applyFamilyRunParams() {
 	for _, arch := range g.Param.Metadata.Architectures {
 		if dtype, ok := vllmKVCacheDtypeArchMap[arch]; ok {
 			params["kv-cache-dtype"] = dtype
+			break
+		}
+	}
+	for _, arch := range g.Param.Metadata.Architectures {
+		if mode, ok := vllmMambaCacheModeArchMap[arch]; ok {
+			params["mamba-cache-mode"] = mode
+			params["enable-prefix-caching"] = ""
+			// LMCache requires every prefill step to cover at least one vLLM
+			// block. Hybrid block sizes exceed some GPUs' 2048-token default,
+			// while an 8192-token warmup can exceed vLLM's profiled memory in
+			// aligned Mamba mode.
+			if _, set := params["max-num-batched-tokens"]; !set {
+				params["max-num-batched-tokens"] = hybridMaxNumBatchedTokens
+			}
 			break
 		}
 	}

@@ -1,11 +1,12 @@
 images:
   # base image with no model weights
   - name: base
-    tag: 0.7.0
+    tag: 0.7.1
     runtimeVersion:
       vllm: 0.32.0
       transformers: 5.19.0
     # Tag history:
+    # 0.7.1 - bump lmcache to 0.5.7 for chunk-size negotiation required by hybrid Mamba/linear-attention models
     # 0.7.0 - bump vllm to 0.32.0, transformers to 5.19.0, lmcache to 0.5.6, ray to 2.59.1 and datasets to 5.0.1; pin fsspec to 2026.6.0 and trl to 1.16.0; drop unused ray jars, virtualenv seed wheels and uv cache
     # 0.6.4 - migrate CPU KV cache offload to use LMCacheMPConnector
     # 0.6.3 - security fix

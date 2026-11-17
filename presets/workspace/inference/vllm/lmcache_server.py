@@ -115,6 +115,7 @@ def build_server_command(args: argparse.Namespace) -> list[str]:
         str(LMCACHE_HTTP_PORT),
         "--chunk-size",
         "256",
+        "--separate-object-groups",
         "--isolated-ipc",
         "--l1-use-lazy",
         "--l1-init-size-gb",

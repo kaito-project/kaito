@@ -15,7 +15,8 @@ spec:
   template:
     metadata:
       labels:
-        name: nvidia-device-plugin-ds
+        {{- $podLabels := merge (dict "name" "nvidia-device-plugin-ds") .Values.podTemplateLabels }}
+        {{- include "utils.toYamlStrMap" $podLabels | nindent 8 }}
     spec:
       nodeSelector:
         kubernetes.io/os: linux

@@ -21,6 +21,7 @@ from unittest.mock import patch
 import httpx
 import pytest
 import respx
+from llama_index.core.embeddings import MockEmbedding
 
 from ragengine.models import Document
 from ragengine.tests.vector_store.test_base_store import BaseVectorStoreTest
@@ -387,3 +388,27 @@ class TestQdrantVectorStore(BaseVectorStoreTest):
         # Verify all doc_ids from the second batch are present (order-independent).
         resp_doc_ids = {doc.doc_id for doc in resp.documents}
         assert all(doc_id in resp_doc_ids for doc_id in ids)
+
+
+@pytest.mark.asyncio
+async def test_retrieve_applies_metadata_filter():
+    """retrieve() only returns nodes whose metadata matches metadata_filter.
+
+    Uses a constant mock embedding, so the test needs no embedding model.
+    """
+    handler = QdrantVectorStoreHandler(MockEmbedding(embed_dim=8))
+    await handler.index_documents(
+        "test_index",
+        [
+            Document(text="What is KAITO? Notes from dev.", metadata={"branch": "dev"}),
+            Document(text="KAITO overview from main.", metadata={"branch": "main"}),
+        ],
+    )
+
+    unfiltered = await handler.retrieve("test_index", "What is KAITO?")
+    assert {r["metadata"]["branch"] for r in unfiltered["results"]} == {"dev", "main"}
+
+    filtered = await handler.retrieve(
+        "test_index", "What is KAITO?", metadata_filter={"branch": "main"}
+    )
+    assert [r["metadata"]["branch"] for r in filtered["results"]] == ["main"]

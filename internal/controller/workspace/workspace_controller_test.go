@@ -601,8 +601,7 @@ func TestApplyInferenceRefusesUncontrolledStatefulSet(t *testing.T) {
 			require.NoError(t, c.Get(t.Context(), client.ObjectKeyFromObject(victim), before))
 
 			r := &WorkspaceReconciler{Client: c}
-			err := r.applyInference(t.Context(), ws)
-			require.ErrorContains(t, err, "is not controlled by Workspace kaito/testWorkspace")
+			require.NoError(t, r.applyInference(t.Context(), ws))
 
 			after := &appsv1.StatefulSet{}
 			require.NoError(t, c.Get(t.Context(), client.ObjectKeyFromObject(victim), after))

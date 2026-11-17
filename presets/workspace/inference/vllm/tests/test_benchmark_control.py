@@ -62,9 +62,14 @@ async def _pause_generation(*, mode="abort", clear_cache=True):
     """Signature of vLLM's AsyncLLM.pause_generation."""
 
 
+async def _reset_prefix_cache(reset_running_requests=False, reset_connector=False):
+    """Signature of vLLM's AsyncLLM.reset_prefix_cache."""
+
+
 def _make_request(path="/abort_requests", method="POST", host="127.0.0.1"):
     engine = SimpleNamespace(
         pause_generation=create_autospec(_pause_generation),
+        reset_prefix_cache=create_autospec(_reset_prefix_cache, return_value=True),
         resume_generation=AsyncMock(),
     )
     request = SimpleNamespace(
@@ -103,7 +108,8 @@ def test_abort_requests_pauses_with_abort_then_resumes():
     response = _run(middleware.dispatch(request, AsyncMock()))
 
     assert response.status_code == 200
-    engine.pause_generation.assert_awaited_once_with(mode="abort", clear_cache=True)
+    engine.pause_generation.assert_awaited_once_with(mode="abort", clear_cache=False)
+    engine.reset_prefix_cache.assert_awaited_once_with(reset_connector=False)
     engine.resume_generation.assert_awaited_once_with()
 
 
@@ -115,4 +121,16 @@ def test_abort_requests_resumes_after_pause_failure():
     response = _run(middleware.dispatch(request, AsyncMock()))
 
     assert response.status_code == 500
+    engine.reset_prefix_cache.assert_not_awaited()
+    engine.resume_generation.assert_awaited_once_with()
+
+
+def test_abort_requests_succeeds_when_prefix_cache_reset_is_refused():
+    request, engine = _make_request()
+    engine.reset_prefix_cache.return_value = False
+    middleware = benchmark_control.BenchmarkControlMiddleware(app=MagicMock())
+
+    response = _run(middleware.dispatch(request, AsyncMock()))
+
+    assert response.status_code == 200
     engine.resume_generation.assert_awaited_once_with()

@@ -15,7 +15,7 @@ spec:
   template:
     metadata:
       labels:
-        {{- $podLabels := merge (dict "name" "nvidia-device-plugin-ds") .Values.podTemplateLabels }}
+        {{- $podLabels := merge (dict "name" "nvidia-device-plugin-ds") (.Values.podTemplateLabels | default dict) }}
         {{- include "utils.toYamlStrMap" $podLabels | nindent 8 }}
     spec:
       nodeSelector:

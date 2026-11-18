@@ -55,6 +55,17 @@ class WorkspaceChartLabelsTest(unittest.TestCase):
             plugin["metadata"]["labels"]["app.kubernetes.io/managed-by"], "Helm"
         )
 
+    def test_null_pod_labels_preserve_defaults(self):
+        documents = render({"podTemplateLabels": None})
+        plugin = documents[("DaemonSet", DEVICE_PLUGIN)]
+        self.assertEqual(plugin["spec"]["selector"]["matchLabels"], SELECTOR)
+        self.assertEqual(plugin["spec"]["template"]["metadata"]["labels"], SELECTOR)
+        controller = documents[("Deployment", "workspace")]
+        self.assertEqual(
+            controller["spec"]["template"]["metadata"]["labels"],
+            controller["spec"]["selector"]["matchLabels"],
+        )
+
     def test_custom_labels_reach_controller_and_pods(self):
         controller_labels = {"example.com/owner": "platform"}
         pod_labels = {

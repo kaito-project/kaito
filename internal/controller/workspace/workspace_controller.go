@@ -760,6 +760,11 @@ func (c *WorkspaceReconciler) applyInference(ctx context.Context, wObj *kaitov1b
 	if existingErr != nil && !apierrors.IsNotFound(existingErr) {
 		return existingErr
 	}
+	if existingErr == nil && !metav1.IsControlledBy(existingObj, wObj) {
+		klog.InfoS("Skipping StatefulSet not controlled by workspace; delete or rename the conflicting StatefulSet",
+			"statefulset", klog.KObj(existingObj), "workspace", klog.KObj(wObj))
+		return nil
+	}
 
 	baseImageUpgrade := false
 	if existingErr == nil {

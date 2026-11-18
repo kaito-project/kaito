@@ -438,6 +438,7 @@ func TestApplyInferenceWithPreset(t *testing.T) {
 						Annotations: map[string]string{
 							v1beta1.WorkspaceRevisionAnnotation: "1",
 						},
+						OwnerReferences: workspaceControllerRefs(testutil.MockWorkspaceWithPreset),
 					},
 					Spec: appsv1.StatefulSetSpec{
 						Replicas: &numRep,
@@ -475,8 +476,9 @@ func TestApplyInferenceWithPreset(t *testing.T) {
 				relevantMap := c.CreateMapWithType(&appsv1.StatefulSet{})
 				relevantMap[client.ObjectKey{Namespace: "kaito", Name: "testWorkspace"}] = &appsv1.StatefulSet{
 					ObjectMeta: v1.ObjectMeta{
-						Name:      "testWorkspace",
-						Namespace: "kaito",
+						Name:            "testWorkspace",
+						Namespace:       "kaito",
+						OwnerReferences: workspaceControllerRefs(testutil.MockWorkspaceDistributedModel),
 					},
 					Spec: appsv1.StatefulSetSpec{
 						Replicas: &numRep,
@@ -515,6 +517,7 @@ func TestApplyInferenceWithPreset(t *testing.T) {
 					Run(func(args mock.Arguments) {
 						ss := args.Get(2).(*appsv1.StatefulSet)
 						*ss = *testutil.MockStatefulSetUpdated.DeepCopy()
+						ss.OwnerReferences = workspaceControllerRefs(testutil.MockWorkspaceWithPreset)
 						ss.Spec.Template.Spec.Containers[0].Resources.Limits = corev1.ResourceList{corev1.ResourceName("nvidia.com/gpu"): resource.MustParse("1")}
 					}).
 					Return(nil)
@@ -562,6 +565,47 @@ func TestApplyInferenceWithPreset(t *testing.T) {
 			} else {
 				assert.Equal(t, tc.expectedError.Error(), err.Error())
 			}
+		})
+	}
+}
+
+func workspaceControllerRefs(ws *v1beta1.Workspace) []v1.OwnerReference {
+	return []v1.OwnerReference{*v1.NewControllerRef(ws, v1beta1.GroupVersion.WithKind("Workspace"))}
+}
+
+// A preset Workspace must never overwrite a same-named StatefulSet it does not control.
+func TestApplyInferenceRefusesUncontrolledStatefulSet(t *testing.T) {
+	t.Setenv("CLOUD_PROVIDER", consts.AzureCloudName)
+	t.Setenv("PRESET_REGISTRY_NAME", "mcr.microsoft.com/aks/kaito")
+	testutil.RegisterTestModel()
+
+	otherWorkspace := &v1beta1.Workspace{ObjectMeta: v1.ObjectMeta{Name: "testWorkspace", Namespace: "kaito", UID: "other-uid"}}
+	for name, refs := range map[string][]v1.OwnerReference{
+		"unowned StatefulSet":                         nil,
+		"StatefulSet controlled by another Workspace": workspaceControllerRefs(otherWorkspace),
+	} {
+		t.Run(name, func(t *testing.T) {
+			ws := testutil.MockWorkspaceWithPresetVLLM.DeepCopy()
+			ws.UID = "ws-uid"
+			ws.Resource.InstanceType = "Standard_NC24ads_A100_v4"
+			ws.Status.TargetNodeCount = 1
+			victim := &appsv1.StatefulSet{
+				ObjectMeta: v1.ObjectMeta{Name: ws.Name, Namespace: ws.Namespace, OwnerReferences: refs},
+				Spec: appsv1.StatefulSetSpec{Template: corev1.PodTemplateSpec{Spec: corev1.PodSpec{
+					ServiceAccountName: "privileged-sa",
+					Containers:         []corev1.Container{{Name: "app", Image: "victim:1", Command: []string{"/victim"}}},
+				}}},
+			}
+			c := fake.NewClientBuilder().WithScheme(benchmarkTestScheme(t)).WithStatusSubresource(ws).WithObjects(ws, victim).Build()
+			before := &appsv1.StatefulSet{}
+			require.NoError(t, c.Get(t.Context(), client.ObjectKeyFromObject(victim), before))
+
+			r := &WorkspaceReconciler{Client: c}
+			require.NoError(t, r.applyInference(t.Context(), ws))
+
+			after := &appsv1.StatefulSet{}
+			require.NoError(t, c.Get(t.Context(), client.ObjectKeyFromObject(victim), after))
+			require.Equal(t, before, after)
 		})
 	}
 }

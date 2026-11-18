@@ -85,9 +85,19 @@ func GetGPUConfigBySKU(instanceType string) (*GPUConfig, error) {
 // Nodes with MIG configured always use their live labels because the SKU catalog
 // describes full physical GPUs rather than the partition topology.
 func GetGPUConfigFromNode(node *corev1.Node) (*GPUConfig, error) {
-	if !hasMIGConfig(node) {
+	handler := DefaultSKUHandler
+	if handler == nil {
+		handler, _ = GetSKUHandler()
+	}
+	return GetGPUConfigFromNodeWithHandler(handler, node)
+}
+
+// GetGPUConfigFromNodeWithHandler is GetGPUConfigFromNode with an explicit
+// SKU handler. A nil handler resolves from GPU Feature Discovery labels only.
+func GetGPUConfigFromNodeWithHandler(handler CloudSKUHandler, node *corev1.Node) (*GPUConfig, error) {
+	if handler != nil && !hasMIGConfig(node) {
 		if instanceType := node.Labels[corev1.LabelInstanceTypeStable]; instanceType != "" {
-			if config, _ := GetGPUConfigBySKU(instanceType); config != nil {
+			if config := handler.GetGPUConfigBySKU(instanceType); config != nil {
 				return config, nil
 			}
 		}

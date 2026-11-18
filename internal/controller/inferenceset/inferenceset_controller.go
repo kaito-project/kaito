@@ -295,7 +295,7 @@ func (c *InferenceSetReconciler) isWorkspaceOnOldImage(ctx context.Context, ws *
 //
 // Workspaces already being deleted count toward the target without issuing a new delete.
 func (c *InferenceSetReconciler) selectWorkspacesToDelete(ctx context.Context, iObj *kaitov1beta1.InferenceSet, workspaces []kaitov1beta1.Workspace, desiredReplicas, numToDelete int) ([]*kaitov1beta1.Workspace, error) {
-	desiredImage, err := inference.GetDesiredInferenceImageName(inferenceset.NewWorkspaceForInferenceSet(iObj))
+	desiredImage, err := inference.GetDesiredInferenceImageName(ctx, inferenceset.NewWorkspaceForInferenceSet(ctx, iObj))
 	if err != nil {
 		return nil, fmt.Errorf("failed to resolve desired inference image: %w", err)
 	}
@@ -506,7 +506,7 @@ func (c *InferenceSetReconciler) addOrUpdateInferenceSet(ctx context.Context, iO
 			return reconcile.Result{}, err
 		}
 		for i := range replicaNumToCreate {
-			workspaceObj := inferenceset.NewWorkspaceForInferenceSet(iObj)
+			workspaceObj := inferenceset.NewWorkspaceForInferenceSet(ctx, iObj)
 			klog.InfoS("creating workspace", "workspace", workspaceObj.Name, "index", i)
 			if err := c.Client.Create(ctx, workspaceObj); err != nil {
 				// The create failed, so no create event will be observed for it;
@@ -523,7 +523,7 @@ func (c *InferenceSetReconciler) addOrUpdateInferenceSet(ctx context.Context, iO
 	// For annotations, only reconcile kaito.sh/enable-speculative-decoding here:
 	// child Workspaces also carry controller-owned annotations such as hash/revision
 	// and auto-upgrade markers, so replacing the whole map would fight those controllers.
-	desiredWorkspace := inferenceset.NewWorkspaceForInferenceSet(iObj)
+	desiredWorkspace := inferenceset.NewWorkspaceForInferenceSet(ctx, iObj)
 	for i := range wsList.Items {
 		ws := &wsList.Items[i]
 		if !reconcileExistingWorkspaceMetadata(ws, desiredWorkspace) {
@@ -539,7 +539,7 @@ func (c *InferenceSetReconciler) addOrUpdateInferenceSet(ctx context.Context, iO
 	// check whether all the workspaces are ready
 	totalTPM, readyReplicas, benchmarkedReplicas, hasBenchmarkTPMResult := aggregateBenchmarkResults(wsList.Items)
 
-	benchmarkApplicable := kaitov1beta1.ShouldRunInferenceSetBenchmark(iObj)
+	benchmarkApplicable := kaitov1beta1.ShouldRunInferenceSetBenchmark(ctx, iObj)
 
 	// update the replicas in the status
 	if err = resources.UpdateStatusWithRetry(ctx, c.Client, client.ObjectKey{Name: iObj.Name, Namespace: iObj.Namespace}, func(obj *kaitov1beta1.InferenceSet) error {
@@ -688,7 +688,7 @@ func (c *InferenceSetReconciler) ensureGatewayAPIInferenceExtension(ctx context.
 		return nil
 	}
 	for i := range wsList.Items {
-		isCPUTarget := kaitov1beta1.IsCPUInferenceWorkspace(&wsList.Items[i])
+		isCPUTarget := kaitov1beta1.IsCPUInferenceWorkspace(ctx, &wsList.Items[i])
 		if isCPUTarget {
 			return nil
 		}

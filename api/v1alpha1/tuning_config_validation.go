@@ -28,8 +28,8 @@ import (
 	"knative.dev/pkg/apis"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
+	"github.com/kaito-project/kaito/api/env"
 	"github.com/kaito-project/kaito/api/internal/validation"
-	"github.com/kaito-project/kaito/pkg/k8sclient"
 )
 
 type Config struct {
@@ -266,11 +266,12 @@ func validateTuningConfigMapSchema(cm *corev1.ConfigMap) *apis.FieldError {
 
 func (r *TuningSpec) validateConfigMap(ctx context.Context, namespace string, methodLowerCase string, configMapName string) (errs *apis.FieldError) {
 	var cm corev1.ConfigMap
-	if k8sclient.Client == nil {
-		errs = errs.Also(apis.ErrGeneric("Failed to obtain client from context.Context"))
+	c, err := env.FromContext(ctx).RequireClient()
+	if err != nil {
+		errs = errs.Also(apis.ErrGeneric(err.Error()))
 		return errs
 	}
-	err := k8sclient.Client.Get(ctx, client.ObjectKey{Name: configMapName, Namespace: namespace}, &cm)
+	err = c.Get(ctx, client.ObjectKey{Name: configMapName, Namespace: namespace}, &cm)
 	if err != nil {
 		if errors.IsNotFound(err) {
 			errs = errs.Also(apis.ErrGeneric(fmt.Sprintf("ConfigMap '%s' specified in 'config' not found in namespace '%s'", r.Config, namespace), "config"))

@@ -17,7 +17,10 @@ package env
 
 import (
 	"context"
+	"errors"
+	"fmt"
 
+	"knative.dev/pkg/apis"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
 	"github.com/kaito-project/kaito/pkg/sku"
@@ -44,7 +47,7 @@ type Features struct {
 
 // Env is the runtime state available to API defaulting and validation.
 type Env struct {
-	// Client is nil when no cluster is available; validators skip lookups then.
+	// Client is nil when no cluster is available; checks that need it fail with ErrNoClient.
 	Client   client.Reader
 	Features Features
 	// NodeProvisioner replaces the disableNodeAutoProvisioning gate: auto
@@ -55,7 +58,46 @@ type Env struct {
 	NodeClassNames   func() []string
 	CloudProvider    CloudProvider
 	ReleaseNamespace string
-	SKUHandler       sku.CloudSKUHandler
+	// ReleaseNamespaceErr explains why ReleaseNamespace is empty.
+	ReleaseNamespaceErr error
+	SKUHandler          sku.CloudSKUHandler
+}
+
+// ErrNoClient is returned when a check needs the cluster but no client was injected.
+var ErrNoClient = errors.New("no Kubernetes client is available")
+
+var errReleaseNamespaceUnknown = errors.New("release namespace could not be determined")
+
+// RequireClient returns the client, or ErrNoClient when none was injected.
+func (e *Env) RequireClient() (client.Reader, error) {
+	if e.Client == nil {
+		return nil, ErrNoClient
+	}
+	return e.Client, nil
+}
+
+// RequireReleaseNamespace returns the release namespace, or why it is unknown.
+func (e *Env) RequireReleaseNamespace() (string, error) {
+	if e.ReleaseNamespace != "" {
+		return e.ReleaseNamespace, nil
+	}
+	if e.ReleaseNamespaceErr != nil {
+		return "", e.ReleaseNamespaceErr
+	}
+	return "", errReleaseNamespaceUnknown
+}
+
+// RequireSKUHandler returns the SKU handler, or the error sku.GetSKUHandler
+// returns for the same cloud provider.
+func (e *Env) RequireSKUHandler() (sku.CloudSKUHandler, error) {
+	switch {
+	case e.SKUHandler != nil:
+		return e.SKUHandler, nil
+	case e.CloudProvider == "":
+		return nil, apis.ErrMissingField("CLOUD_PROVIDER environment variable must be set")
+	default:
+		return nil, apis.ErrInvalidValue(fmt.Sprintf("Unsupported cloud provider %s", e.CloudProvider), "CLOUD_PROVIDER")
+	}
 }
 
 type envKey struct{}

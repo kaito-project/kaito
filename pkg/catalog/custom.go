@@ -143,7 +143,7 @@ const maxCustomModelSizeBytes = 1 << 50 // 1 PiB
 // makes that safe: because the ConfigMap is immutable, a cache miss is repaired
 // by re-deriving the identical result from the same bytes, so a restarted
 // controller needs no additional durable state.
-func ResolveCustomModel(ctx context.Context, kubeClient client.Client, configMapName, namespace string) (*ResolvedCustomModel, error) {
+func ResolveCustomModel(ctx context.Context, kubeClient client.Reader, configMapName, namespace string) (*ResolvedCustomModel, error) {
 	if configMapName == "" {
 		return nil, fmt.Errorf("preset %q requires 'inference.config' to reference a ConfigMap containing %s", model.PresetNameCustom, CustomModelConfigKey)
 	}

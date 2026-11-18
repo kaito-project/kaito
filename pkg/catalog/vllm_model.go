@@ -128,7 +128,7 @@ func GetModelByNameWithToken(ctx context.Context, modelName, token string) (mode
 // Kubernetes Secret identified by secretName and secretNamespace,
 // then generates a preset for the corresponding HuggingFace model.
 // Prefer GetModelByNameWithToken when the token has already been resolved by the caller.
-func GetModelByName(ctx context.Context, modelName, configMapName, secretName, secretNamespace string, kubeClient client.Client) (model.Model, error) {
+func GetModelByName(ctx context.Context, modelName, configMapName, secretName, secretNamespace string, kubeClient client.Reader) (model.Model, error) {
 	if model.IsCustomPreset(modelName) {
 		resolved, err := ResolveCustomModel(ctx, kubeClient, configMapName, secretNamespace)
 		if err != nil {
@@ -161,7 +161,7 @@ func GetModelByName(ctx context.Context, modelName, configMapName, secretName, s
 }
 
 // WithInferenceConfig resolves memory overrides without mutating the cached model.
-func WithInferenceConfig(ctx context.Context, m model.Model, configMapName, namespace string, kubeClient client.Client) (model.Model, error) {
+func WithInferenceConfig(ctx context.Context, m model.Model, configMapName, namespace string, kubeClient client.Reader) (model.Model, error) {
 	params := m.GetInferenceParameters()
 	if configMapName == "" {
 		return m, nil
@@ -371,7 +371,7 @@ func (m *vLLMCompatibleModel) SupportTuning() bool {
 // If secretNamespace is empty, it defaults to "default".
 // An error is returned if kubeClient is nil, the secret cannot be retrieved,
 // or the HF_TOKEN key is not present in the secret data.
-func GetHFTokenFromSecret(ctx context.Context, kubeClient client.Client, secretName, secretNamespace string) (string, error) {
+func GetHFTokenFromSecret(ctx context.Context, kubeClient client.Reader, secretName, secretNamespace string) (string, error) {
 	if secretName == "" {
 		return "", nil
 	}

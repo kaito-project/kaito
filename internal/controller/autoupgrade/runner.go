@@ -54,15 +54,15 @@ type AutoUpgradeRunner struct {
 	Interval time.Duration
 
 	// resolveBaseImage may be injected to test independently versioned runtimes.
-	resolveBaseImage func(*kaitov1beta1.Workspace) (pkgmodel.Metadata, error)
+	resolveBaseImage func(context.Context, *kaitov1beta1.Workspace) (pkgmodel.Metadata, error)
 }
 
-func (r *AutoUpgradeRunner) desiredBaseImage(is *kaitov1beta1.InferenceSet) (pkgmodel.Metadata, error) {
+func (r *AutoUpgradeRunner) desiredBaseImage(ctx context.Context, is *kaitov1beta1.InferenceSet) (pkgmodel.Metadata, error) {
 	resolve := r.resolveBaseImage
 	if resolve == nil {
 		resolve = inference.GetDesiredInferenceBaseImage
 	}
-	return resolve(inferenceset.NewWorkspaceForInferenceSet(is))
+	return resolve(ctx, inferenceset.NewWorkspaceForInferenceSet(ctx, is))
 }
 
 // Start implements manager.Runnable. It polls every Interval and reconciles all
@@ -127,7 +127,7 @@ func (r *AutoUpgradeRunner) reconcileInferenceSet(ctx context.Context, inference
 // place. Only one Workspace is upgraded at a time.
 func (r *AutoUpgradeRunner) reconcileInPlace(ctx context.Context, inferenceSetObj *kaitov1beta1.InferenceSet) {
 	// Get the current controller-embedded target image for this InferenceSet.
-	baseImage, err := r.desiredBaseImage(inferenceSetObj)
+	baseImage, err := r.desiredBaseImage(ctx, inferenceSetObj)
 	if err != nil {
 		klog.ErrorS(err, "AutoUpgradeRunner: failed to resolve desired image", "inferenceset", klog.KObj(inferenceSetObj))
 		return
@@ -345,7 +345,7 @@ func (r *AutoUpgradeRunner) tagWorkspaceForUpgrade(ctx context.Context, isObj *k
 // replica count, with no explicit surge bookkeeping — repeats until no drifted Workspaces
 // remain.
 func (r *AutoUpgradeRunner) reconcileSurge(ctx context.Context, inferenceSetObj *kaitov1beta1.InferenceSet) {
-	baseImage, err := r.desiredBaseImage(inferenceSetObj)
+	baseImage, err := r.desiredBaseImage(ctx, inferenceSetObj)
 	if err != nil {
 		klog.ErrorS(err, "AutoUpgradeRunner: failed to resolve desired image", "inferenceset", klog.KObj(inferenceSetObj))
 		return
@@ -429,7 +429,7 @@ func (r *AutoUpgradeRunner) reconcileSurge(ctx context.Context, inferenceSetObj 
 // image. It is generated fresh from the InferenceSet template, so it picks up the
 // controller's current base image.
 func (r *AutoUpgradeRunner) createUpgradeWorkspace(ctx context.Context, inferenceSetObj *kaitov1beta1.InferenceSet, desiredTag string) {
-	ws := inferenceset.NewWorkspaceForInferenceSet(inferenceSetObj)
+	ws := inferenceset.NewWorkspaceForInferenceSet(ctx, inferenceSetObj)
 
 	if err := r.Client.Create(ctx, ws); err != nil {
 		klog.ErrorS(err, "AutoUpgradeRunner: failed to create upgrade workspace", "inferenceset", klog.KObj(inferenceSetObj))

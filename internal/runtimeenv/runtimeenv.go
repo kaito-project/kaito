@@ -39,10 +39,11 @@ func New(skuHandler sku.CloudSKUHandler) *env.Env {
 			EnableMIG:         featuregates.FeatureGates[featuregates.FeatureFlagEnableMIG],
 			EnableAccelerator: featuregates.FeatureGates[featuregates.FeatureFlagEnableAccelerator],
 		},
-		NodeProvisioner:  env.NodeProvisioner(featuregates.NodeProvisioner),
-		NodeClassNames:   featuregates.AllowedNodeClassNames,
-		CloudProvider:    env.CloudProvider(os.Getenv("CLOUD_PROVIDER")),
-		ReleaseNamespace: releaseNamespace,
-		SKUHandler:       skuHandler,
+		NodeProvisioner:     env.NodeProvisioner(featuregates.NodeProvisioner),
+		NodeClassNames:      featuregates.AllowedNodeClassNames,
+		CloudProvider:       env.CloudProvider(os.Getenv("CLOUD_PROVIDER")),
+		ReleaseNamespace:    releaseNamespace,
+		ReleaseNamespaceErr: err,
+		SKUHandler:          skuHandler,
 	}
 }

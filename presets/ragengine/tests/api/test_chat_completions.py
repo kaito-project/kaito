@@ -969,6 +969,191 @@ async def test_chat_completions_developer_role(mock_get, async_client):
 @pytest.mark.asyncio
 @respx.mock
 @patch("requests.get")
+async def test_chat_completions_text_part_arrays_in_non_user_messages(
+    mock_get, async_client
+):
+    """system, developer and assistant content can be an array of text parts."""
+    mock_get.return_value.status_code = 200
+    mock_get.return_value.json.return_value = {
+        "data": [{"id": "mock-model", "max_model_len": 2048}]
+    }
+
+    mock_response = {
+        "id": "chatcmpl-test123",
+        "object": "chat.completion",
+        "model": "mock-model",
+        "choices": [
+            {
+                "index": 0,
+                "message": {"role": "assistant", "content": "Answer"},
+                "finish_reason": "stop",
+            }
+        ],
+    }
+    route = respx.post("http://localhost:5000/v1/chat/completions").mock(
+        return_value=httpx.Response(200, json=mock_response)
+    )
+
+    response = await async_client.post(
+        "/index",
+        json={
+            "index_name": "test_index",
+            "documents": [{"text": "Technical documentation about APIs."}],
+        },
+    )
+    assert response.status_code == 200
+
+    def parts(*texts):
+        return [{"type": "text", "text": text} for text in texts]
+
+    response = await async_client.post(
+        "/v1/chat/completions",
+        json={
+            "index_name": "test_index",
+            "model": "mock-model",
+            "messages": [
+                {"role": "system", "content": parts("Be brief.", "Use bullet points.")},
+                {"role": "developer", "content": parts("Debug mode is on.")},
+                {"role": "user", "content": "Hello"},
+                {"role": "assistant", "content": parts("Hi! How can I help?")},
+                {"role": "user", "content": "Help me understand the API."},
+            ],
+        },
+    )
+
+    assert response.status_code == 200
+    assert response.json()["choices"][0]["message"]["content"] == "Answer"
+    upstream_messages = json.loads(route.calls.last.request.content)["messages"]
+    assert {"role": "system", "content": "Be brief.\nUse bullet points."} in (
+        upstream_messages
+    )
+    assert {"role": "developer", "content": "Debug mode is on."} in upstream_messages
+    assert {"role": "assistant", "content": "Hi! How can I help?"} in upstream_messages
+
+
+@pytest.mark.asyncio
+@respx.mock
+@patch("requests.get")
+async def test_chat_completions_assistant_message_with_null_content(
+    mock_get, async_client
+):
+    """An assistant message with content null is allowed and sent without text."""
+    mock_get.return_value.status_code = 200
+    mock_get.return_value.json.return_value = {
+        "data": [{"id": "mock-model", "max_model_len": 2048}]
+    }
+
+    mock_response = {
+        "id": "chatcmpl-test123",
+        "object": "chat.completion",
+        "model": "mock-model",
+        "choices": [
+            {
+                "index": 0,
+                "message": {"role": "assistant", "content": "Answer"},
+                "finish_reason": "stop",
+            }
+        ],
+    }
+    respx.post("http://localhost:5000/v1/chat/completions").mock(
+        return_value=httpx.Response(200, json=mock_response)
+    )
+
+    response = await async_client.post(
+        "/index",
+        json={
+            "index_name": "test_index",
+            "documents": [{"text": "Conversation about AI."}],
+        },
+    )
+    assert response.status_code == 200
+
+    response = await async_client.post(
+        "/v1/chat/completions",
+        json={
+            "index_name": "test_index",
+            "model": "mock-model",
+            "messages": [
+                {"role": "user", "content": "Hello"},
+                {"role": "assistant", "content": None},
+                {"role": "user", "content": "Can you help me?"},
+            ],
+        },
+    )
+
+    assert response.status_code == 200
+    assert response.json()["choices"][0]["message"]["content"] == "Answer"
+
+
+@pytest.mark.asyncio
+@respx.mock
+@patch("requests.get")
+@pytest.mark.parametrize("role", ["system", "developer"])
+async def test_chat_completions_output_guardrails_with_text_part_arrays(
+    mock_get, role, async_client, monkeypatch
+):
+    """Output guardrails must scan replies to prompts that use text-part arrays."""
+    mock_get.return_value.status_code = 200
+    mock_get.return_value.json.return_value = {
+        "data": [{"id": "mock-model", "max_model_len": 2048}]
+    }
+
+    mock_response = {
+        "id": "chatcmpl-guardrails123",
+        "object": "chat.completion",
+        "created": int(time.time()),
+        "model": "mock-model",
+        "choices": [
+            {
+                "index": 0,
+                "message": {
+                    "role": "assistant",
+                    "content": "Visit http://evil.example now",
+                },
+                "finish_reason": "stop",
+            }
+        ],
+    }
+    respx.post("http://localhost:5000/v1/chat/completions").mock(
+        return_value=httpx.Response(200, json=mock_response)
+    )
+
+    import ragengine.main
+
+    monkeypatch.setattr(
+        ragengine.main.guardrails_reloader,
+        "_current",
+        OutputGuardrails(
+            enabled=True,
+            fail_open=False,
+            action_on_hit="redact",
+            scanner_configs=(
+                ParsedScannerConfig(
+                    type="regex",
+                    config=RegexConfig(patterns=[r"https?://\S+"]),
+                ),
+            ),
+        ),
+    )
+
+    response = await async_client.post(
+        "/v1/chat/completions",
+        json={
+            "model": "mock-model",
+            "messages": [
+                {"role": role, "content": [{"type": "text", "text": "Be brief."}]},
+                {"role": "user", "content": "Share the link"},
+            ],
+        },
+    )
+
+    assert response.status_code == 200
+    assert response.json()["choices"][0]["message"]["content"] == "Visit [REDACTED] now"
+
+
+@pytest.mark.asyncio
+@respx.mock
+@patch("requests.get")
 async def test_chat_completions_error_handling(mock_get, async_client):
     """Test chat completion error handling when LLM call fails."""
     # Mock the response for the default model fetch

@@ -113,27 +113,35 @@ def input_messages_to_llamaindex_messages(messages: list[dict]) -> list[ChatMess
     return resp_messages
 
 
+def _join_text_parts(parts: list) -> str:
+    """Join the text of an OpenAI content-parts array, skipping non-text parts."""
+    texts = []
+    for part in parts:
+        if isinstance(part, str):
+            texts.append(part)
+        elif isinstance(part, dict) and part.get("type") == "text":
+            texts.append(part.get("text", ""))
+    return "\n".join(texts)
+
+
 def get_message_content(message: dict) -> str:
-    """Extract content from a ChatCompletionMessageParam."""
+    """Extract the text of a ChatCompletionMessageParam as a plain string.
+
+    Content can be a string, a single text part, or an array of text parts.
+    A missing or null content (allowed for assistant messages) is an empty string.
+    """
+    content = message.get("content")
     if message.get("role") == "user":
-        if message.get("content"):
-            content = message.get("content")
+        if content:
             if isinstance(content, str):
                 return content
             elif isinstance(content, dict) and content.get("type") == "text":
                 return content.get("text", "")
             elif isinstance(content, list):
-                user_text_content = []
-                for part in content:
-                    if isinstance(part, str):
-                        user_text_content.append(part)
-                    elif part.get("type") == "text":
-                        user_text_content.append(part.get("text", ""))
-                return "\n".join(user_text_content)
+                return _join_text_parts(content)
         return ""
-    else:
-        return (
-            message.get("content", {}).get("text", "")
-            if isinstance(message.get("content"), dict)
-            else message.get("content", "")
-        )
+    if isinstance(content, dict):
+        return content.get("text", "")
+    if isinstance(content, list):
+        return _join_text_parts(content)
+    return content or ""

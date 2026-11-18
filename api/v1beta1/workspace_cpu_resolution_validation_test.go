@@ -18,28 +18,22 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
-	"github.com/kaito-project/kaito/pkg/featuregates"
-	"github.com/kaito-project/kaito/pkg/utils/consts"
+	"github.com/kaito-project/kaito/pkg/consts"
 )
 
 func TestValidateCPUInferenceRuntimeAndCount(t *testing.T) {
 	t.Setenv("CLOUD_PROVIDER", consts.AzureCloudName)
-	old := featuregates.FeatureGates[consts.FeatureFlagVLLM]
-	t.Cleanup(func() { featuregates.FeatureGates[consts.FeatureFlagVLLM] = old })
 	for _, tc := range []struct {
 		name, runtime string
-		gate          bool
 		count         int
 		valid         bool
 	}{
-		{"default vllm", "", true, 1, true}, {"explicit vllm", "vllm", true, 1, true},
-		{"transformers rejected", "transformers", true, 1, false},
-		{"unknown runtime rejected", "unknown", true, 1, false},
-		{"explicit vllm gate disabled", "vllm", false, 1, false},
-		{"vllm gate disabled", "", false, 1, false}, {"multinode", "vllm", true, 2, false},
+		{"default vllm", "", 1, true}, {"explicit vllm", "vllm", 1, true},
+		{"transformers rejected", "transformers", 1, false},
+		{"unknown runtime rejected", "unknown", 1, false},
+		{"multinode", "vllm", 2, false},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
-			featuregates.FeatureGates[consts.FeatureFlagVLLM] = tc.gate
 			ws := &Workspace{Resource: ResourceSpec{InstanceType: "Standard_D16s_v6", Count: &tc.count}, Inference: &InferenceSpec{Preset: &PresetSpec{PresetMeta: PresetMeta{Name: "test-model"}}}}
 			ws.Annotations = map[string]string{AnnotationWorkspaceRuntime: tc.runtime}
 			assert.Equal(t, tc.valid, ws.validateCPUInferenceConstraints() == nil)

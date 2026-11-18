@@ -27,7 +27,6 @@ import (
 	kaitov1beta1 "github.com/kaito-project/kaito/api/v1beta1"
 	"github.com/kaito-project/kaito/internal/manifests/builder"
 	"github.com/kaito-project/kaito/pkg/featuregates"
-	"github.com/kaito-project/kaito/pkg/utils/consts"
 )
 
 func TestMergeMutations_DeduplicatesEnvVars(t *testing.T) {
@@ -500,8 +499,8 @@ func TestCollectMutations_WithBothConcernsMergesLabelsAndEnvVars(t *testing.T) {
 
 func TestApplyPresetCacheMutations_AppliesLabels(t *testing.T) {
 	isolateProviderRegistry(t)
-	featuregates.FeatureGates[consts.FeatureFlagDistributedCache] = true
-	defer func() { featuregates.FeatureGates[consts.FeatureFlagDistributedCache] = false }()
+	featuregates.FeatureGates[featuregates.FeatureFlagDistributedCache] = true
+	defer func() { featuregates.FeatureGates[featuregates.FeatureFlagDistributedCache] = false }()
 
 	provider := &labelScopedProvider{
 		concernTestProvider: concernTestProvider{name: "concern-test"},

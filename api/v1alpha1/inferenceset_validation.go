@@ -25,7 +25,7 @@ import (
 	"knative.dev/pkg/apis"
 
 	"github.com/kaito-project/kaito/api/internal/speculativedecoding"
-	"github.com/kaito-project/kaito/pkg/utils/consts"
+	"github.com/kaito-project/kaito/pkg/featuregates"
 )
 
 func (is *InferenceSet) SupportedVerbs() []admissionregistrationv1.OperationType {
@@ -141,14 +141,14 @@ func validateMaintenanceWindow(autoUpgrade *AutoUpgradePolicy) (errs *apis.Field
 // is enabled, and is empty when using BYO (Bring Your Own) nodes.
 func (is *InferenceSet) validateInstanceType() (errs *apis.FieldError) {
 	instanceType := is.Spec.Template.Resource.InstanceType
-	switch consts.ActiveNodeProvisioner {
-	case consts.NodeProvisionerBYO:
+	switch featuregates.NodeProvisioner {
+	case featuregates.NodeProvisionerBYO:
 		// BYO mode: instanceType must be empty.
 		if instanceType != "" {
 			errs = errs.Also(apis.ErrInvalidValue(instanceType, "resource.instanceType",
 				"instanceType must be empty when nodeProvisioner is byo"))
 		}
-	case consts.NodeProvisionerKarpenter, consts.NodeProvisionerAzureGPU:
+	case featuregates.NodeProvisionerKarpenter, featuregates.NodeProvisionerAzureGPU:
 		// Auto-provisioning modes: instanceType is required.
 		if instanceType == "" {
 			errs = errs.Also(apis.ErrMissingField("resource.instanceType"))

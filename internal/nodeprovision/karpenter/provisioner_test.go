@@ -38,7 +38,8 @@ import (
 	kaitov1beta1 "github.com/kaito-project/kaito/api/v1beta1"
 	karpenterutils "github.com/kaito-project/kaito/internal/k8s/karpenter"
 	"github.com/kaito-project/kaito/internal/nodeprovision"
-	"github.com/kaito-project/kaito/pkg/utils/consts"
+	"github.com/kaito-project/kaito/pkg/consts"
+	"github.com/kaito-project/kaito/pkg/featuregates"
 )
 
 var testConfig = NodeClassConfig{
@@ -52,9 +53,9 @@ var testConfig = NodeClassConfig{
 // setAllowedNodeClasses scopes the process-wide NodeClass allowlist to a single test.
 func setAllowedNodeClasses(t *testing.T, names ...string) {
 	t.Helper()
-	prev := consts.AllowedNodeClassNames()
-	consts.SetAllowedNodeClassNames(names)
-	t.Cleanup(func() { consts.SetAllowedNodeClassNames(prev) })
+	prev := featuregates.AllowedNodeClassNames()
+	featuregates.SetAllowedNodeClassNames(names)
+	t.Cleanup(func() { featuregates.SetAllowedNodeClassNames(prev) })
 }
 
 // testScheme returns a scheme with all types needed for fake.Client tests.
@@ -251,7 +252,7 @@ func TestStart_CreatesNodeClassesAndPublishesAllowlist(t *testing.T) {
 	assert.Equal(t, "image-family-ubuntu", p.nodeClassConfig.DefaultName)
 
 	// The webhook allowlist must name exactly the NodeClasses that now exist.
-	assert.Equal(t, []string{"image-family-azure-linux", "image-family-ubuntu"}, consts.AllowedNodeClassNames())
+	assert.Equal(t, []string{"image-family-azure-linux", "image-family-ubuntu"}, featuregates.AllowedNodeClassNames())
 	for _, entry := range cfg.NodeClasses {
 		obj := &unstructured.Unstructured{}
 		obj.SetGroupVersionKind(schema.GroupVersionKind{Group: cfg.Group, Version: cfg.Version, Kind: cfg.Kind})
@@ -537,7 +538,7 @@ func TestProvisionNodes_KarpenterNodesExcludedFromDelta(t *testing.T) {
 	nodeClass := makeNodeClassUnstructured("image-family-ubuntu")
 	// A karpenter node should NOT count toward non-karpenter coverage.
 	karpNode := makeReadyNode("karp-1", "Standard_NC24ads_A100_v4", map[string]string{
-		consts.KarpenterWorkspaceNameKey: "ws1",
+		kaitov1beta1.LabelKarpenterWorkspaceName: "ws1",
 	})
 	c := newFakeClient(nodeClass, karpNode)
 
@@ -896,7 +897,7 @@ func TestEnsureNodesReady_AllReady_BYOOnly(t *testing.T) {
 func TestEnsureNodesReady_MixedBYOAndKarpenter(t *testing.T) {
 	byoNode := makeReadyNode("byo-1", "Standard_NC24ads_A100_v4", nil)
 	karpNode := makeReadyNode("karp-1", "Standard_NC24ads_A100_v4", map[string]string{
-		consts.KarpenterWorkspaceNameKey: "ws1",
+		kaitov1beta1.LabelKarpenterWorkspaceName: "ws1",
 	})
 	// Karpenter NodeClaim — labeled with correct NodePool, ready.
 	nc := makeKarpenterNodeClaim("nc-1", "default-ws1", true)
@@ -1051,7 +1052,7 @@ func TestCountCoveredNodes_LegacyNCsForDifferentWorkspaceNotCounted(t *testing.T
 func TestCountCoveredNodes_KarpenterNodeNotCountedAsBYO(t *testing.T) {
 	// A karpenter-labeled node should not count toward BYO coverage.
 	karpNode := makeReadyNode("karp-1", "Standard_NC24ads_A100_v4", map[string]string{
-		consts.KarpenterWorkspaceNameKey: "ws1",
+		kaitov1beta1.LabelKarpenterWorkspaceName: "ws1",
 	})
 	c := newFakeClient(karpNode)
 	p := NewKarpenterProvisioner(c, testConfig)
@@ -1068,12 +1069,12 @@ func TestCountCoveredNodes_SiblingKarpenterNodeExcluded(t *testing.T) {
 	// A karpenter node provisioned for a sibling workspace (same InferenceSet,
 	// shared label selector) must NOT be counted for this workspace.
 	ownNode := makeReadyNode("ws1-node", "Standard_NC24ads_A100_v4", map[string]string{
-		consts.KarpenterWorkspaceNameKey:      "ws1",
-		consts.KarpenterWorkspaceNamespaceKey: "default",
+		kaitov1beta1.LabelKarpenterWorkspaceName:      "ws1",
+		kaitov1beta1.LabelKarpenterWorkspaceNamespace: "default",
 	})
 	siblingNode := makeReadyNode("ws2-node", "Standard_NC24ads_A100_v4", map[string]string{
-		consts.KarpenterWorkspaceNameKey:      "ws2",
-		consts.KarpenterWorkspaceNamespaceKey: "default",
+		kaitov1beta1.LabelKarpenterWorkspaceName:      "ws2",
+		kaitov1beta1.LabelKarpenterWorkspaceNamespace: "default",
 	})
 	c := newFakeClient(ownNode, siblingNode)
 	p := NewKarpenterProvisioner(c, testConfig)
@@ -1232,9 +1233,9 @@ func TestCollectNodeStatusInfo_SurfacesProvisioningError(t *testing.T) {
 }
 
 func TestBuildNodeSelectorCPUUsesWorkspaceIsolation(t *testing.T) {
-	ws := &kaitov1beta1.Workspace{ObjectMeta: metav1.ObjectMeta{Name: "cpu-child", Namespace: "default", Labels: map[string]string{consts.WorkspaceCreatedByInferenceSetLabel: "parent"}}, Resource: kaitov1beta1.ResourceSpec{InstanceType: "Standard_D16s_v6"}, Inference: &kaitov1beta1.InferenceSpec{Template: &corev1.PodTemplateSpec{Spec: corev1.PodSpec{Containers: []corev1.Container{{Name: "cpu", Image: "cpu:v1"}}}}}}
+	ws := &kaitov1beta1.Workspace{ObjectMeta: metav1.ObjectMeta{Name: "cpu-child", Namespace: "default", Labels: map[string]string{kaitov1beta1.WorkspaceCreatedByInferenceSetLabel: "parent"}}, Resource: kaitov1beta1.ResourceSpec{InstanceType: "Standard_D16s_v6"}, Inference: &kaitov1beta1.InferenceSpec{Template: &corev1.PodTemplateSpec{Spec: corev1.PodSpec{Containers: []corev1.Container{{Name: "cpu", Image: "cpu:v1"}}}}}}
 	got := (&KarpenterProvisioner{}).BuildNodeSelector(context.Background(), ws)
-	want := []corev1.NodeSelectorRequirement{{Key: consts.KarpenterWorkspaceNameKey, Operator: corev1.NodeSelectorOpIn, Values: []string{ws.Name}}, {Key: consts.KarpenterWorkspaceNamespaceKey, Operator: corev1.NodeSelectorOpIn, Values: []string{ws.Namespace}}}
+	want := []corev1.NodeSelectorRequirement{{Key: kaitov1beta1.LabelKarpenterWorkspaceName, Operator: corev1.NodeSelectorOpIn, Values: []string{ws.Name}}, {Key: kaitov1beta1.LabelKarpenterWorkspaceNamespace, Operator: corev1.NodeSelectorOpIn, Values: []string{ws.Namespace}}}
 	if !reflect.DeepEqual(got, want) {
 		t.Fatalf("workspace isolation requirements = %v, want %v", got, want)
 	}

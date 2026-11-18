@@ -23,7 +23,7 @@ The script downloads model weights during server bootstrap, eliminating the need
 
 ## Basic CPU preset support
 
-CPU preset inference supports **vLLM only**, with the `vllm` feature gate enabled.
+CPU preset inference supports **vLLM only**.
 Declare a non-GPU, non-ARM Azure VM SKU in `resource.instanceType`, such as
 `Standard_D16s_v6`. Label-only BYO CPU selection, custom-template CPU inference,
 Transformers CPU inference, AWS CPU, and ARM64 are not supported. The CPU image

@@ -19,8 +19,8 @@ import (
 	"github.com/stretchr/testify/assert"
 	corev1 "k8s.io/api/core/v1"
 
+	"github.com/kaito-project/kaito/internal/inference/modelstreaming"
 	pkgmodel "github.com/kaito-project/kaito/pkg/model"
-	"github.com/kaito-project/kaito/pkg/utils/consts"
 )
 
 func customEnvValue(env []corev1.EnvVar, name string) (string, bool) {
@@ -48,7 +48,7 @@ func TestBuildMainContainerEnvPassesCustomModelIdentity(t *testing.T) {
 
 	env := buildMainContainerEnv(pkgmodel.RuntimeNameVLLM, param, nil, "", "/workspace/weights")
 
-	gotDigest, ok := customEnvValue(env, consts.ModelConfigSHA256EnvName)
+	gotDigest, ok := customEnvValue(env, modelstreaming.ModelConfigSHA256EnvName)
 	assert.True(t, ok, "the config digest must be passed to the serving container")
 	assert.Equal(t, digest, gotDigest)
 }
@@ -60,6 +60,6 @@ func TestBuildMainContainerEnvOmitsIdentityForPresetModels(t *testing.T) {
 
 	env := buildMainContainerEnv(pkgmodel.RuntimeNameVLLM, param, nil, "", "/workspace/weights")
 
-	_, ok := customEnvValue(env, consts.ModelConfigSHA256EnvName)
+	_, ok := customEnvValue(env, modelstreaming.ModelConfigSHA256EnvName)
 	assert.False(t, ok, "a preset model has no operator-supplied config to verify")
 }

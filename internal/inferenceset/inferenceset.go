@@ -34,7 +34,6 @@ import (
 	kaitov1alpha1 "github.com/kaito-project/kaito/api/v1alpha1"
 	kaitov1beta1 "github.com/kaito-project/kaito/api/v1beta1"
 	"github.com/kaito-project/kaito/internal/k8s/resources"
-	"github.com/kaito-project/kaito/pkg/utils/consts"
 )
 
 // UpdateStatusConditionIfNotMatch updates the inferenceset status condition if it doesn't match the current values
@@ -72,7 +71,7 @@ func ListWorkspaces(ctx context.Context, iObj *kaitov1beta1.InferenceSet, kubeCl
 	// We use label selector to find the workspaces.
 	// The label is "inferenceset.kaito.sh/created-by": <inferenceset-name>
 	ls := labels.Set{
-		consts.WorkspaceCreatedByInferenceSetLabel: iObj.Name,
+		kaitov1beta1.WorkspaceCreatedByInferenceSetLabel: iObj.Name,
 	}
 
 	err := retry.OnError(retry.DefaultBackoff, func(err error) bool {
@@ -127,7 +126,7 @@ func NewWorkspaceForInferenceSet(iObj *kaitov1beta1.InferenceSet) *kaitov1beta1.
 	if iObj.Spec.Selector != nil {
 		maps.Copy(workspaceLabels, iObj.Spec.Selector.MatchLabels)
 	}
-	workspaceLabels[consts.WorkspaceCreatedByInferenceSetLabel] = iObj.Name
+	workspaceLabels[kaitov1beta1.WorkspaceCreatedByInferenceSetLabel] = iObj.Name
 
 	workspaceObj := &kaitov1beta1.Workspace{
 		ObjectMeta: metav1.ObjectMeta{
@@ -157,7 +156,7 @@ const generatedNameSuffixLength = 5
 // Workspaces of the named InferenceSet. The InferenceSet name is truncated so
 // generated Workspace names stay within kaitov1beta1.MaxWorkspaceNameLength;
 // the full InferenceSet name remains on the
-// consts.WorkspaceCreatedByInferenceSetLabel label.
+// kaitov1beta1.WorkspaceCreatedByInferenceSetLabel label.
 func workspaceGenerateName(inferenceSetName string) string {
 	maxPrefixLength := kaitov1beta1.MaxWorkspaceNameLength - generatedNameSuffixLength - 1 // 1 for the dash separator
 	if len(inferenceSetName) > maxPrefixLength {

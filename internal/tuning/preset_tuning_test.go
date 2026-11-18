@@ -27,10 +27,10 @@ import (
 
 	kaitov1beta1 "github.com/kaito-project/kaito/api/v1beta1"
 	"github.com/kaito-project/kaito/internal/image"
+	"github.com/kaito-project/kaito/internal/manifests"
 	"github.com/kaito-project/kaito/internal/manifests/builder"
+	"github.com/kaito-project/kaito/pkg/consts"
 	pkgmodel "github.com/kaito-project/kaito/pkg/model"
-	"github.com/kaito-project/kaito/pkg/utils"
-	"github.com/kaito-project/kaito/pkg/utils/consts"
 )
 
 func normalize(s string) string {
@@ -59,8 +59,8 @@ func TestHandleURLDataSource(t *testing.T) {
 			expectedImage:             "curlimages/curl:8.23.0",
 			expectedCommands:          "curl -sSL --proto =http,https -w \"%{http_code}\" -o \"$DATA_VOLUME_PATH/$filename\" \"$url\"",
 			expectedVolumeName:        "data-volume",
-			expectedVolumeMountPath:   utils.DefaultDataVolumePath,
-			expectedVolumeMounts:      []corev1.VolumeMount{{Name: "data-volume", MountPath: utils.DefaultDataVolumePath}},
+			expectedVolumeMountPath:   defaultDataVolumePath,
+			expectedVolumeMounts:      []corev1.VolumeMount{{Name: "data-volume", MountPath: defaultDataVolumePath}},
 		},
 	}
 
@@ -662,7 +662,7 @@ func TestDefaultTolerations(t *testing.T) {
 			actual := defaultTolerations()
 			hasSpot := false
 			for _, toleration := range actual {
-				if toleration.Key == consts.SpotInstanceKey && toleration.Value == consts.SpotInstanceValue {
+				if toleration.Key == manifests.SpotInstanceKey && toleration.Value == manifests.SpotInstanceValue {
 					hasSpot = true
 					break
 				}
@@ -780,13 +780,13 @@ func TestGenerateBasicTuningPodSpec_UsesTuningParams(t *testing.T) {
 	assert.Len(t, podSpec.InitContainers, 1)
 	puller := podSpec.InitContainers[0]
 	assert.Equal(t, "model-weights-downloader", puller.Name)
-	assert.Equal(t, utils.DefaultORASToolImage, puller.Image)
+	assert.Equal(t, defaultORASToolImage, puller.Image)
 	assert.Equal(t, []string{
 		"oras",
 		"pull",
 		"test-registry/kaito-test-model:0.2.0",
 		"-o",
-		utils.DefaultWeightsVolumePath,
+		pkgmodel.DefaultWeightsVolumePath,
 	}, puller.Command)
-	assert.Equal(t, []corev1.VolumeMount{utils.DefaultModelWeightsVolumeMount}, puller.VolumeMounts)
+	assert.Equal(t, []corev1.VolumeMount{manifests.DefaultModelWeightsVolumeMount}, puller.VolumeMounts)
 }

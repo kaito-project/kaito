@@ -24,8 +24,8 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
 	kaitov1alpha1 "github.com/kaito-project/kaito/api/v1alpha1"
+	"github.com/kaito-project/kaito/internal/image"
 	mmconsts "github.com/kaito-project/kaito/pkg/modelmirror/consts"
-	kaitoconsts "github.com/kaito-project/kaito/pkg/utils/consts"
 )
 
 func newTestModelMirror() *kaitov1alpha1.ModelMirror {
@@ -122,7 +122,7 @@ func TestBuildDownloadJobScript(t *testing.T) {
 	})
 
 	t.Run("pins pip before installing dependencies", func(t *testing.T) {
-		pinIdx := strings.Index(script, kaitoconsts.PipBootstrapCommand)
+		pinIdx := strings.Index(script, image.PipBootstrapCommand)
 		require.NotEqual(t, -1, pinIdx)
 		assert.Less(t, pinIdx, strings.Index(script, `pip install -q "huggingface-hub==`))
 	})

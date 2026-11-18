@@ -18,8 +18,7 @@ import (
 	"sort"
 
 	corev1 "k8s.io/api/core/v1"
-
-	"github.com/kaito-project/kaito/pkg/utils/consts"
+	karpenterv1 "sigs.k8s.io/karpenter/pkg/apis/v1"
 )
 
 // SelectNodes sorts qualified nodes by preferred, previously used, and
@@ -43,12 +42,12 @@ func SelectNodes(qualified []*corev1.Node, preferred []string, previous []string
 				return false
 			} else { // either all are previous, or none is previous
 				var iCreatedByGPUProvisioner, jCreatedByGPUProvisioner bool
-				_, iCreatedByGPUProvisioner = qualified[i].Labels[consts.LabelGPUProvisionerCustom]
-				_, jCreatedByGPUProvisioner = qualified[j].Labels[consts.LabelGPUProvisionerCustom]
+				_, iCreatedByGPUProvisioner = qualified[i].Labels[labelGPUProvisionerCustom]
+				_, jCreatedByGPUProvisioner = qualified[j].Labels[labelGPUProvisionerCustom]
 				// Choose node created by gpu-provisioner and karpenter since it is more likely to be empty to use.
 				var iCreatedByKarpenter, jCreatedByKarpenter bool
-				_, iCreatedByKarpenter = qualified[i].Labels[consts.LabelNodePool]
-				_, jCreatedByKarpenter = qualified[j].Labels[consts.LabelNodePool]
+				_, iCreatedByKarpenter = qualified[i].Labels[karpenterv1.NodePoolLabelKey]
+				_, jCreatedByKarpenter = qualified[j].Labels[karpenterv1.NodePoolLabelKey]
 
 				if (iCreatedByGPUProvisioner && !jCreatedByGPUProvisioner) ||
 					(iCreatedByKarpenter && !jCreatedByKarpenter) {

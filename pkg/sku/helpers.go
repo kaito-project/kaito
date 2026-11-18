@@ -23,8 +23,9 @@ import (
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/resource"
 
+	"github.com/kaito-project/kaito/pkg/accelerator/nvidia"
 	"github.com/kaito-project/kaito/pkg/apis"
-	"github.com/kaito-project/kaito/pkg/utils/consts"
+	"github.com/kaito-project/kaito/pkg/consts"
 )
 
 // DefaultSKUHandler is the package-level CloudSKUHandler used by callers that
@@ -34,6 +35,9 @@ var DefaultSKUHandler CloudSKUHandler = nil
 
 // UnknownSKU identifies GPU configuration that was not resolved from a SKU table.
 const UnknownSKU = "unknown"
+
+// GiB is the number of bytes in a gibibyte.
+const GiB = 1024 * 1024 * 1024
 
 // GetSKUHandler returns the CloudSKUHandler for the current cloud provider
 // as configured via the CLOUD_PROVIDER environment variable.
@@ -112,9 +116,9 @@ func CanonicalGPUModel(gpuModel string) string {
 
 // getGPUConfigFromNodeLabels extracts GPU configuration from nvidia.com labels on a node.
 func getGPUConfigFromNodeLabels(node *corev1.Node) (*GPUConfig, error) {
-	gpuProduct, hasGPUProduct := node.Labels[consts.NvidiaGPUProduct]
-	gpuCountStr, hasGPUCount := node.Labels[consts.NvidiaGPUCount]
-	gpuMemoryStr, hasGPUMemory := node.Labels[consts.NvidiaGPUMemory]
+	gpuProduct, hasGPUProduct := node.Labels[nvidia.LabelGPUProduct]
+	gpuCountStr, hasGPUCount := node.Labels[nvidia.LabelGPUCount]
+	gpuMemoryStr, hasGPUMemory := node.Labels[nvidia.LabelGPUMemory]
 
 	if !hasGPUProduct || !hasGPUCount || !hasGPUMemory {
 		return nil, fmt.Errorf("missing required nvidia.com labels on node %s", node.Name)
@@ -136,10 +140,10 @@ func getGPUConfigFromNodeLabels(node *corev1.Node) (*GPUConfig, error) {
 	// Parse CUDA compute capability from nvidia.com/cuda.compute.major and nvidia.com/cuda.compute.minor labels.
 	// These are set by the NVIDIA GPU Feature Discovery (GFD) DaemonSet.
 	var cudaComputeCap float64
-	if majorStr, ok := node.Labels[consts.NvidiaCUDAComputeCapMajor]; ok {
+	if majorStr, ok := node.Labels[nvidia.LabelCUDAComputeMajor]; ok {
 		if major, err := strconv.Atoi(majorStr); err == nil {
 			cudaComputeCap = float64(major)
-			if minorStr, ok := node.Labels[consts.NvidiaCUDAComputeCapMinor]; ok {
+			if minorStr, ok := node.Labels[nvidia.LabelCUDAComputeMinor]; ok {
 				if minor, err := strconv.Atoi(minorStr); err == nil {
 					cudaComputeCap += float64(minor) / 10.0
 				}
@@ -151,7 +155,7 @@ func getGPUConfigFromNodeLabels(node *corev1.Node) (*GPUConfig, error) {
 		SKU:                   UnknownSKU,
 		GPUCount:              gpuCount,
 		GPUModel:              gpuProduct,
-		GPUMem:                *resource.NewQuantity(gpuMemGiB*consts.GiBToBytes, resource.BinarySI),
+		GPUMem:                *resource.NewQuantity(gpuMemGiB*GiB, resource.BinarySI),
 		CUDAComputeCapability: cudaComputeCap,
 		IsMIG:                 isMIGNode(node),
 	}, nil
@@ -182,12 +186,12 @@ func ScaleGPUConfigToCount(nodeCfg *GPUConfig, count int) (*GPUConfig, error) {
 // node-detected MIG under the "single" strategy keeps requesting nvidia.com/gpu.
 func isMIGNode(node *corev1.Node) bool {
 	return hasMIGConfig(node) &&
-		node.Labels[consts.NvidiaMIGConfigState] == consts.NvidiaMIGConfigStateSuccess
+		node.Labels[nvidia.LabelMIGConfigState] == nvidia.MIGConfigStateSuccess
 }
 
 // hasMIGConfig reports whether MIG is requested, including while it is pending
 // or failed, so a SKU's full-GPU topology is not used during reconfiguration.
 func hasMIGConfig(node *corev1.Node) bool {
-	migConfig := node.Labels[consts.NvidiaMIGConfig]
-	return migConfig != "" && migConfig != consts.NvidiaMIGConfigDisabled
+	migConfig := node.Labels[nvidia.LabelMIGConfig]
+	return migConfig != "" && migConfig != nvidia.MIGConfigDisabled
 }

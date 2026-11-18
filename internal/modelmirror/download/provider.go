@@ -15,7 +15,7 @@ package download
 
 import (
 	"github.com/kaito-project/kaito/internal/modelmirror/download/azure"
-	"github.com/kaito-project/kaito/pkg/utils/consts"
+	"github.com/kaito-project/kaito/pkg/consts"
 )
 
 // WorkloadIdentityPodLabels returns the cloud-specific pod labels that let the download Job

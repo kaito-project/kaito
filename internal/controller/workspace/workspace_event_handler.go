@@ -27,7 +27,6 @@ import (
 	kaitov1beta1 "github.com/kaito-project/kaito/api/v1beta1"
 	"github.com/kaito-project/kaito/internal/inference/modelstreaming"
 	"github.com/kaito-project/kaito/internal/k8s/expectations"
-	"github.com/kaito-project/kaito/pkg/utils/consts"
 )
 
 type nodeClaimEventHandler struct {
@@ -46,8 +45,8 @@ func getControllerKeyForNodeClaim(nc *karpenterv1.NodeClaim) *client.ObjectKey {
 		}
 	}
 	// Karpenter path.
-	if name, ok := nc.Labels[consts.KarpenterWorkspaceNameKey]; ok {
-		if namespace, ok := nc.Labels[consts.KarpenterWorkspaceNamespaceKey]; ok {
+	if name, ok := nc.Labels[kaitov1beta1.LabelKarpenterWorkspaceName]; ok {
+		if namespace, ok := nc.Labels[kaitov1beta1.LabelKarpenterWorkspaceNamespace]; ok {
 			return &client.ObjectKey{Namespace: namespace, Name: name}
 		}
 	}

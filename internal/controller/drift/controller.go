@@ -35,7 +35,6 @@ import (
 
 	kaitov1beta1 "github.com/kaito-project/kaito/api/v1beta1"
 	"github.com/kaito-project/kaito/internal/nodeprovision"
-	"github.com/kaito-project/kaito/pkg/utils/consts"
 )
 
 const (
@@ -107,8 +106,8 @@ func (r *DriftReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl
 	nodePoolList := &karpenterv1.NodePoolList{}
 	if err := r.List(ctx, nodePoolList,
 		client.MatchingLabels{
-			consts.KarpenterInferenceSetKey:          inferenceSet.Name,
-			consts.KarpenterInferenceSetNamespaceKey: inferenceSet.Namespace,
+			kaitov1beta1.LabelKarpenterInferenceSet:          inferenceSet.Name,
+			kaitov1beta1.LabelKarpenterInferenceSetNamespace: inferenceSet.Namespace,
 		},
 	); err != nil {
 		return ctrl.Result{}, fmt.Errorf("listing NodePools for InferenceSet %s/%s: %w",
@@ -122,8 +121,8 @@ func (r *DriftReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl
 	nodeClaimList := &karpenterv1.NodeClaimList{}
 	if err := r.List(ctx, nodeClaimList,
 		client.MatchingLabels{
-			consts.KarpenterInferenceSetKey:          inferenceSet.Name,
-			consts.KarpenterInferenceSetNamespaceKey: inferenceSet.Namespace,
+			kaitov1beta1.LabelKarpenterInferenceSet:          inferenceSet.Name,
+			kaitov1beta1.LabelKarpenterInferenceSetNamespace: inferenceSet.Namespace,
 		},
 	); err != nil {
 		return ctrl.Result{}, fmt.Errorf("listing NodeClaims for InferenceSet %s/%s: %w",
@@ -160,8 +159,8 @@ func (r *DriftReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl
 			continue
 		}
 
-		wsName := np.Labels[consts.KarpenterWorkspaceNameKey]
-		wsNamespace := np.Labels[consts.KarpenterWorkspaceNamespaceKey]
+		wsName := np.Labels[kaitov1beta1.LabelKarpenterWorkspaceName]
+		wsNamespace := np.Labels[kaitov1beta1.LabelKarpenterWorkspaceNamespace]
 
 		if budgetNodes == "1" {
 			upgrading = &nodePoolInfo{
@@ -258,8 +257,8 @@ func isWorkspaceReady(ws *kaitov1beta1.Workspace) bool {
 func inferenceSetNodeClaimPredicate() predicate.Predicate {
 	return predicate.NewPredicateFuncs(func(obj client.Object) bool {
 		labels := obj.GetLabels()
-		name, hasName := labels[consts.KarpenterInferenceSetKey]
-		namespace, hasNamespace := labels[consts.KarpenterInferenceSetNamespaceKey]
+		name, hasName := labels[kaitov1beta1.LabelKarpenterInferenceSet]
+		namespace, hasNamespace := labels[kaitov1beta1.LabelKarpenterInferenceSetNamespace]
 		return hasName && hasNamespace && name != "" && namespace != ""
 	})
 }
@@ -268,8 +267,8 @@ func inferenceSetNodeClaimPredicate() predicate.Predicate {
 // NodeClaim labels and returns a reconcile request.
 func mapNodeClaimToInferenceSet(_ context.Context, o client.Object) []reconcile.Request {
 	labels := o.GetLabels()
-	name := labels[consts.KarpenterInferenceSetKey]
-	ns := labels[consts.KarpenterInferenceSetNamespaceKey]
+	name := labels[kaitov1beta1.LabelKarpenterInferenceSet]
+	ns := labels[kaitov1beta1.LabelKarpenterInferenceSetNamespace]
 	if name == "" || ns == "" {
 		return nil
 	}
@@ -285,7 +284,7 @@ var enqueueInferenceSetForNodeClaim = handler.EnqueueRequestsFromMapFunc(mapNode
 func inferenceSetWorkspacePredicate() predicate.Predicate {
 	return predicate.NewPredicateFuncs(func(obj client.Object) bool {
 		labels := obj.GetLabels()
-		val, has := labels[consts.WorkspaceCreatedByInferenceSetLabel]
+		val, has := labels[kaitov1beta1.WorkspaceCreatedByInferenceSetLabel]
 		return has && val != ""
 	})
 }
@@ -294,7 +293,7 @@ func inferenceSetWorkspacePredicate() predicate.Predicate {
 // created-by label and returns a reconcile request using the workspace's namespace.
 func mapWorkspaceToInferenceSet(_ context.Context, o client.Object) []reconcile.Request {
 	labels := o.GetLabels()
-	name := labels[consts.WorkspaceCreatedByInferenceSetLabel]
+	name := labels[kaitov1beta1.WorkspaceCreatedByInferenceSetLabel]
 	if name == "" {
 		return nil
 	}

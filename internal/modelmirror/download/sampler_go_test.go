@@ -22,6 +22,7 @@ import (
 	corev1 "k8s.io/api/core/v1"
 
 	kaitov1alpha1 "github.com/kaito-project/kaito/api/v1alpha1"
+	"github.com/kaito-project/kaito/internal/image"
 	mmconsts "github.com/kaito-project/kaito/pkg/modelmirror/consts"
 )
 
@@ -40,7 +41,7 @@ func TestSamplerSidecar(t *testing.T) {
 
 	require.NotNil(t, sc.RestartPolicy)
 	assert.Equal(t, corev1.ContainerRestartPolicyAlways, *sc.RestartPolicy)
-	assert.Equal(t, mmconsts.DownloaderImage, sc.Image)
+	assert.Equal(t, image.PythonHelperImage, sc.Image)
 
 	t.Run("mounts the model PVC read-only", func(t *testing.T) {
 		require.Len(t, sc.VolumeMounts, 1)

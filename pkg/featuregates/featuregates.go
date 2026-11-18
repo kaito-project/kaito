@@ -18,26 +18,48 @@ import (
 	"fmt"
 
 	cliflag "k8s.io/component-base/cli/flag"
+	"k8s.io/klog/v2"
+)
 
-	"github.com/kaito-project/kaito/pkg/utils/consts"
+// Feature gate names.
+const (
+	FeatureFlagDisableNodeAutoProvisioning  = "disableNodeAutoProvisioning"
+	FeatureFlagGatewayAPIInferenceExtension = "gatewayAPIInferenceExtension"
+	FeatureFlagEnableInferenceSetController = "enableInferenceSetController"
+	FeatureFlagEnableMIG                    = "enableMIG"
+	FeatureFlagEnableAccelerator            = "enableAccelerator"
+	// Deprecated: the vLLM gate has no effect; vLLM is always the default runtime.
+	FeatureFlagVLLM = "vLLM"
+
+	FeatureFlagEnableMultiRoleInferenceController = "enableMultiRoleInferenceController"
+	FeatureFlagModelMirror                        = "ModelMirror"
+	FeatureFlagModelStreaming                     = "ModelStreaming"
+	FeatureFlagEnableBaseImageAutoUpgrade         = "enableBaseImageAutoUpgrade"
+	FeatureFlagEnableEPPFlowControl               = "enableEPPFlowControl"
+
+	FeatureFlagDistributedCache = "distributedCache"
 )
 
 var (
 	// FeatureGates is a map that holds the feature gate names and their default values for KAITO.
 	FeatureGates = map[string]bool{
-		consts.FeatureFlagVLLM:                               true,
-		consts.FeatureFlagDisableNodeAutoProvisioning:        false,
-		consts.FeatureFlagGatewayAPIInferenceExtension:       false,
-		consts.FeatureFlagEnableInferenceSetController:       true,
-		consts.FeatureFlagEnableMIG:                          false,
-		consts.FeatureFlagEnableAccelerator:                  false,
-		consts.FeatureFlagEnableMultiRoleInferenceController: false,
-		consts.FeatureFlagModelMirror:                        false,
-		consts.FeatureFlagModelStreaming:                     false,
-		consts.FeatureFlagEnableBaseImageAutoUpgrade:         false,
-		consts.FeatureFlagEnableEPPFlowControl:               false,
-		consts.FeatureFlagDistributedCache:                   false,
+		FeatureFlagDisableNodeAutoProvisioning:        false,
+		FeatureFlagGatewayAPIInferenceExtension:       false,
+		FeatureFlagEnableInferenceSetController:       true,
+		FeatureFlagEnableMIG:                          false,
+		FeatureFlagEnableAccelerator:                  false,
+		FeatureFlagEnableMultiRoleInferenceController: false,
+		FeatureFlagModelMirror:                        false,
+		FeatureFlagModelStreaming:                     false,
+		FeatureFlagEnableBaseImageAutoUpgrade:         false,
+		FeatureFlagEnableEPPFlowControl:               false,
+		FeatureFlagDistributedCache:                   false,
 		//	Add more feature gates here
+	}
+
+	// deprecatedFeatureGates are still accepted so old flags and Helm values keep working, but they have no effect.
+	deprecatedFeatureGates = map[string]struct{}{
+		FeatureFlagVLLM: {},
 	}
 )
 
@@ -54,6 +76,10 @@ func ParseAndValidateFeatureGates(featureGates string) error {
 
 	var invalidFeatures string
 	for key, val := range gateMap {
+		if _, ok := deprecatedFeatureGates[key]; ok {
+			klog.Warningf("feature gate %q is deprecated and has no effect", key)
+			continue
+		}
 		if _, ok := FeatureGates[key]; !ok {
 			invalidFeatures = fmt.Sprintf("%s, %s", invalidFeatures, key)
 			continue

@@ -17,6 +17,7 @@ import (
 	"context"
 	"crypto/sha256"
 	"encoding/hex"
+	"errors"
 	"fmt"
 	"os"
 	"reflect"
@@ -46,7 +47,14 @@ import (
 	"github.com/kaito-project/kaito/internal/k8s/nodes"
 	"github.com/kaito-project/kaito/internal/k8s/resources"
 	"github.com/kaito-project/kaito/pkg/apis"
-	"github.com/kaito-project/kaito/pkg/utils/consts"
+	"github.com/kaito-project/kaito/pkg/consts"
+)
+
+const (
+	// kaitoNodePoolName is a fake nodepool name that prevents Karpenter from scaling up.
+	kaitoNodePoolName             = "kaito"
+	nodeClassName                 = "default"
+	errorInstanceTypesUnavailable = "all requested instance types were unavailable during launch"
 )
 
 var (
@@ -61,7 +69,7 @@ var (
 
 	KarpenterWorkspaceSelector, _ = metav1.LabelSelectorAsSelector(&metav1.LabelSelector{
 		MatchExpressions: []metav1.LabelSelectorRequirement{
-			{Key: consts.KarpenterWorkspaceNameKey, Operator: metav1.LabelSelectorOpExists},
+			{Key: kaitov1beta1.LabelKarpenterWorkspaceName, Operator: metav1.LabelSelectorOpExists},
 		},
 	})
 
@@ -147,9 +155,9 @@ func GenerateNodeClaimManifestWithOptions(storageRequirement string, obj client.
 	nodeClaimName := GenerateNodeClaimName(obj)
 
 	nodeClaimLabels := map[string]string{
-		consts.LabelNodePool: consts.KaitoNodePoolName, // Fake nodepool name to prevent Karpenter from scaling up.
-		nameLabel:            name,
-		namespaceLabel:       namespace,
+		karpenterv1.NodePoolLabelKey: kaitoNodePoolName, // Fake nodepool name to prevent Karpenter from scaling up.
+		nameLabel:                    name,
+		namespaceLabel:               namespace,
 	}
 	if sanitized := kaitov1beta1.SanitizedMatchLabels(labelSelector); len(sanitized) != 0 {
 		nodeClaimLabels = lo.Assign(nodeClaimLabels, sanitized)
@@ -160,13 +168,13 @@ func GenerateNodeClaimManifestWithOptions(storageRequirement string, obj client.
 	}
 
 	if options.DefaultNodeImageFamily == "" {
-		nodeClaimAnnotations[kaitov1beta1.AnnotationNodeImageFamily] = consts.NodeImageFamilyUbuntu
-	} else if defaultNodeImageFamily, ok := consts.NormalizeSupportedNodeImageFamily(options.DefaultNodeImageFamily); ok {
+		nodeClaimAnnotations[kaitov1beta1.AnnotationNodeImageFamily] = kaitov1beta1.NodeImageFamilyUbuntu
+	} else if defaultNodeImageFamily, ok := kaitov1beta1.NormalizeSupportedNodeImageFamily(options.DefaultNodeImageFamily); ok {
 		nodeClaimAnnotations[kaitov1beta1.AnnotationNodeImageFamily] = defaultNodeImageFamily
 	}
 
 	if nodeImageFamily, ok := obj.GetAnnotations()[kaitov1beta1.AnnotationNodeImageFamily]; ok {
-		if normalizedNodeImageFamily, valid := consts.NormalizeSupportedNodeImageFamily(nodeImageFamily); valid {
+		if normalizedNodeImageFamily, valid := kaitov1beta1.NormalizeSupportedNodeImageFamily(nodeImageFamily); valid {
 			nodeClaimAnnotations[kaitov1beta1.AnnotationNodeImageFamily] = normalizedNodeImageFamily
 		}
 	}
@@ -198,15 +206,15 @@ func GenerateNodeClaimManifestWithOptions(storageRequirement string, obj client.
 		},
 		Spec: karpenterv1.NodeClaimSpec{
 			NodeClassRef: &karpenterv1.NodeClassReference{
-				Name:  consts.NodeClassName,
+				Name:  nodeClassName,
 				Kind:  nodeClassRefKind,
 				Group: nodeClassRefGroup,
 			},
 			Requirements: []karpenterv1.NodeSelectorRequirementWithMinValues{
 				{
-					Key:      consts.LabelNodePool,
+					Key:      karpenterv1.NodePoolLabelKey,
 					Operator: corev1.NodeSelectorOpIn,
-					Values:   []string{consts.KaitoNodePoolName},
+					Values:   []string{kaitoNodePoolName},
 				},
 				{
 					Key:      corev1.LabelInstanceTypeStable,
@@ -228,16 +236,16 @@ func GenerateNodeClaimManifestWithOptions(storageRequirement string, obj client.
 	}
 
 	if isCPUWorkspace {
-		nodeClaimLabels[consts.SKUString] = consts.CPUString
+		nodeClaimLabels[kaitov1beta1.LabelSKU] = kaitov1beta1.SKUCPU
 		nodeClaimObj.Spec.Taints = []corev1.Taint{{
-			Key:    consts.SKUString,
-			Value:  consts.CPUString,
+			Key:    kaitov1beta1.LabelSKU,
+			Value:  kaitov1beta1.SKUCPU,
 			Effect: corev1.TaintEffectNoSchedule,
 		}}
 	} else {
 		nodeClaimObj.Spec.Taints = []corev1.Taint{{
-			Key:    consts.SKUString,
-			Value:  consts.GPUString,
+			Key:    kaitov1beta1.LabelSKU,
+			Value:  kaitov1beta1.SKUGPU,
 			Effect: corev1.TaintEffectNoSchedule,
 		}}
 	}
@@ -382,11 +390,11 @@ func CheckNodeClaimStatus(ctx context.Context, nodeClaimObj *karpenterv1.NodeCla
 			// if SKU is not available, then no need to retry.
 			_, conditionFound := lo.Find(nodeClaimObj.GetConditions(), func(condition status.Condition) bool {
 				return condition.Type == karpenterv1.ConditionTypeLaunched &&
-					condition.Status == metav1.ConditionFalse && strings.Contains(condition.Message, consts.ErrorInstanceTypesUnavailable)
+					condition.Status == metav1.ConditionFalse && strings.Contains(condition.Message, errorInstanceTypesUnavailable)
 			})
 			if conditionFound {
-				klog.Error(consts.ErrorInstanceTypesUnavailable, "reconcile will not continue")
-				return reconcile.TerminalError(fmt.Errorf(consts.ErrorInstanceTypesUnavailable))
+				klog.Error(errorInstanceTypesUnavailable, "reconcile will not continue")
+				return reconcile.TerminalError(errors.New(errorInstanceTypesUnavailable))
 			}
 
 			// if nodeClaim is not ready, then continue.

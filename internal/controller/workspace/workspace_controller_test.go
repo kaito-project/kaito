@@ -43,6 +43,7 @@ import (
 	kubefake "k8s.io/client-go/kubernetes/fake"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/client/fake"
+	karpenterv1 "sigs.k8s.io/karpenter/pkg/apis/v1"
 
 	kaitov1alpha1 "github.com/kaito-project/kaito/api/v1alpha1"
 	"github.com/kaito-project/kaito/api/v1beta1"
@@ -55,11 +56,11 @@ import (
 	byoprovisioner "github.com/kaito-project/kaito/internal/nodeprovision/byo-provisioner"
 	"github.com/kaito-project/kaito/internal/testutil"
 	"github.com/kaito-project/kaito/pkg/catalog"
+	"github.com/kaito-project/kaito/pkg/consts"
 	"github.com/kaito-project/kaito/pkg/estimator"
 	"github.com/kaito-project/kaito/pkg/featuregates"
 	"github.com/kaito-project/kaito/pkg/k8sclient"
 	mmconsts "github.com/kaito-project/kaito/pkg/modelmirror/consts"
-	"github.com/kaito-project/kaito/pkg/utils/consts"
 )
 
 func TestSelectWorkspaceNodes(t *testing.T) {
@@ -202,7 +203,7 @@ func TestSelectWorkspaceNodes(t *testing.T) {
 					ObjectMeta: v1.ObjectMeta{
 						Name: "node3",
 						Labels: map[string]string{
-							consts.LabelGPUProvisionerCustom: consts.GPUString,
+							"kaito.sh/machine-type": "gpu",
 						},
 					},
 				},
@@ -228,7 +229,7 @@ func TestSelectWorkspaceNodes(t *testing.T) {
 					ObjectMeta: v1.ObjectMeta{
 						Name: "node3",
 						Labels: map[string]string{
-							consts.LabelGPUProvisionerCustom: consts.GPUString,
+							"kaito.sh/machine-type": "gpu",
 						},
 					},
 				},
@@ -254,7 +255,7 @@ func TestSelectWorkspaceNodes(t *testing.T) {
 					ObjectMeta: v1.ObjectMeta{
 						Name: "node3",
 						Labels: map[string]string{
-							consts.LabelGPUProvisionerCustom: consts.GPUString,
+							"kaito.sh/machine-type": "gpu",
 						},
 					},
 				},
@@ -275,7 +276,7 @@ func TestSelectWorkspaceNodes(t *testing.T) {
 					ObjectMeta: v1.ObjectMeta{
 						Name: "node2",
 						Labels: map[string]string{
-							consts.LabelNodePool: consts.KaitoNodePoolName,
+							karpenterv1.NodePoolLabelKey: "kaito",
 						},
 					},
 				},
@@ -283,7 +284,7 @@ func TestSelectWorkspaceNodes(t *testing.T) {
 					ObjectMeta: v1.ObjectMeta{
 						Name: "node3",
 						Labels: map[string]string{
-							consts.LabelGPUProvisionerCustom: consts.GPUString,
+							"kaito.sh/machine-type": "gpu",
 						},
 					},
 				},
@@ -309,7 +310,7 @@ func TestSelectWorkspaceNodes(t *testing.T) {
 					ObjectMeta: v1.ObjectMeta{
 						Name: "node3",
 						Labels: map[string]string{
-							consts.LabelNodePool: consts.KaitoNodePoolName,
+							karpenterv1.NodePoolLabelKey: "kaito",
 						},
 					},
 				},
@@ -437,6 +438,7 @@ func TestApplyInferenceWithPreset(t *testing.T) {
 						Annotations: map[string]string{
 							v1beta1.WorkspaceRevisionAnnotation: "1",
 						},
+						OwnerReferences: workspaceControllerRefs(testutil.MockWorkspaceWithPreset),
 					},
 					Spec: appsv1.StatefulSetSpec{
 						Replicas: &numRep,
@@ -445,7 +447,7 @@ func TestApplyInferenceWithPreset(t *testing.T) {
 								Containers: []corev1.Container{{
 									Name:      "inference-container",
 									Image:     "inference-image:latest",
-									Resources: corev1.ResourceRequirements{Limits: corev1.ResourceList{corev1.ResourceName(consts.NvidiaGPU): resource.MustParse("1")}},
+									Resources: corev1.ResourceRequirements{Limits: corev1.ResourceList{corev1.ResourceName("nvidia.com/gpu"): resource.MustParse("1")}},
 								}},
 							},
 						},
@@ -474,8 +476,9 @@ func TestApplyInferenceWithPreset(t *testing.T) {
 				relevantMap := c.CreateMapWithType(&appsv1.StatefulSet{})
 				relevantMap[client.ObjectKey{Namespace: "kaito", Name: "testWorkspace"}] = &appsv1.StatefulSet{
 					ObjectMeta: v1.ObjectMeta{
-						Name:      "testWorkspace",
-						Namespace: "kaito",
+						Name:            "testWorkspace",
+						Namespace:       "kaito",
+						OwnerReferences: workspaceControllerRefs(testutil.MockWorkspaceDistributedModel),
 					},
 					Spec: appsv1.StatefulSetSpec{
 						Replicas: &numRep,
@@ -484,7 +487,7 @@ func TestApplyInferenceWithPreset(t *testing.T) {
 								Containers: []corev1.Container{{
 									Name:      "inference-container",
 									Image:     "inference-image:latest",
-									Resources: corev1.ResourceRequirements{Limits: corev1.ResourceList{corev1.ResourceName(consts.NvidiaGPU): resource.MustParse("1")}},
+									Resources: corev1.ResourceRequirements{Limits: corev1.ResourceList{corev1.ResourceName("nvidia.com/gpu"): resource.MustParse("1")}},
 								}},
 							},
 						},
@@ -514,7 +517,8 @@ func TestApplyInferenceWithPreset(t *testing.T) {
 					Run(func(args mock.Arguments) {
 						ss := args.Get(2).(*appsv1.StatefulSet)
 						*ss = *testutil.MockStatefulSetUpdated.DeepCopy()
-						ss.Spec.Template.Spec.Containers[0].Resources.Limits = corev1.ResourceList{corev1.ResourceName(consts.NvidiaGPU): resource.MustParse("1")}
+						ss.OwnerReferences = workspaceControllerRefs(testutil.MockWorkspaceWithPreset)
+						ss.Spec.Template.Spec.Containers[0].Resources.Limits = corev1.ResourceList{corev1.ResourceName("nvidia.com/gpu"): resource.MustParse("1")}
 					}).
 					Return(nil)
 
@@ -561,6 +565,47 @@ func TestApplyInferenceWithPreset(t *testing.T) {
 			} else {
 				assert.Equal(t, tc.expectedError.Error(), err.Error())
 			}
+		})
+	}
+}
+
+func workspaceControllerRefs(ws *v1beta1.Workspace) []v1.OwnerReference {
+	return []v1.OwnerReference{*v1.NewControllerRef(ws, v1beta1.GroupVersion.WithKind("Workspace"))}
+}
+
+// A preset Workspace must never overwrite a same-named StatefulSet it does not control.
+func TestApplyInferenceRefusesUncontrolledStatefulSet(t *testing.T) {
+	t.Setenv("CLOUD_PROVIDER", consts.AzureCloudName)
+	t.Setenv("PRESET_REGISTRY_NAME", "mcr.microsoft.com/aks/kaito")
+	testutil.RegisterTestModel()
+
+	otherWorkspace := &v1beta1.Workspace{ObjectMeta: v1.ObjectMeta{Name: "testWorkspace", Namespace: "kaito", UID: "other-uid"}}
+	for name, refs := range map[string][]v1.OwnerReference{
+		"unowned StatefulSet":                         nil,
+		"StatefulSet controlled by another Workspace": workspaceControllerRefs(otherWorkspace),
+	} {
+		t.Run(name, func(t *testing.T) {
+			ws := testutil.MockWorkspaceWithPresetVLLM.DeepCopy()
+			ws.UID = "ws-uid"
+			ws.Resource.InstanceType = "Standard_NC24ads_A100_v4"
+			ws.Status.TargetNodeCount = 1
+			victim := &appsv1.StatefulSet{
+				ObjectMeta: v1.ObjectMeta{Name: ws.Name, Namespace: ws.Namespace, OwnerReferences: refs},
+				Spec: appsv1.StatefulSetSpec{Template: corev1.PodTemplateSpec{Spec: corev1.PodSpec{
+					ServiceAccountName: "privileged-sa",
+					Containers:         []corev1.Container{{Name: "app", Image: "victim:1", Command: []string{"/victim"}}},
+				}}},
+			}
+			c := fake.NewClientBuilder().WithScheme(benchmarkTestScheme(t)).WithStatusSubresource(ws).WithObjects(ws, victim).Build()
+			before := &appsv1.StatefulSet{}
+			require.NoError(t, c.Get(t.Context(), client.ObjectKeyFromObject(victim), before))
+
+			r := &WorkspaceReconciler{Client: c}
+			require.NoError(t, r.applyInference(t.Context(), ws))
+
+			after := &appsv1.StatefulSet{}
+			require.NoError(t, c.Get(t.Context(), client.ObjectKeyFromObject(victim), after))
+			require.Equal(t, before, after)
 		})
 	}
 }
@@ -842,7 +887,7 @@ func TestSyncControllerRevision(t *testing.T) {
 				revisions := &appsv1.ControllerRevisionList{}
 				jsonData, _ := json.Marshal(testutil.MockWorkspaceWithUpdatedDeployment)
 
-				for i := 0; i <= consts.MaxRevisionHistoryLimit; i++ {
+				for i := 0; i <= resources.MaxRevisionHistoryLimit; i++ {
 					revision := &appsv1.ControllerRevision{
 						ObjectMeta: v1.ObjectMeta{
 							Name: fmt.Sprintf("revision-%d", i),
@@ -890,7 +935,7 @@ func TestSyncControllerRevision(t *testing.T) {
 				revisions := &appsv1.ControllerRevisionList{}
 				jsonData, _ := json.Marshal(testutil.MockWorkspaceWithUpdatedDeployment)
 
-				for i := 0; i <= consts.MaxRevisionHistoryLimit; i++ {
+				for i := 0; i <= resources.MaxRevisionHistoryLimit; i++ {
 					revision := &appsv1.ControllerRevision{
 						ObjectMeta: v1.ObjectMeta{
 							Name: fmt.Sprintf("revision-%d", i),
@@ -1117,9 +1162,9 @@ func TestEnsureModelMirror_StaticWithPartialSASFails(t *testing.T) {
 			Name:      "ws-static-partial-sas",
 			Namespace: "default",
 			Annotations: map[string]string{
-				modelstreaming.AnnotationStaticModelMirror: "true",
-				modelstreaming.AnnotationStreamDatarefsURL: "https://x/models/m/versions/1",
-				modelstreaming.AnnotationStreamSourceType:  modelstreaming.SourceTypeBYO,
+				v1beta1.AnnotationStaticModelMirror: "true",
+				v1beta1.AnnotationStreamDatarefsURL: "https://x/models/m/versions/1",
+				v1beta1.AnnotationStreamSourceType:  v1beta1.StreamSourceTypeBYO,
 				// inference.kaito.sh/stream-identity-client-id intentionally omitted (partial core set).
 			},
 		},
@@ -1131,8 +1176,8 @@ func TestEnsureModelMirror_StaticWithPartialSASFails(t *testing.T) {
 	reconciler := &WorkspaceReconciler{}
 	err := reconciler.ensureModelMirror(context.Background(), ws)
 	assert.Error(t, err)
-	assert.Contains(t, err.Error(), modelstreaming.AnnotationStaticModelMirror)
-	assert.Contains(t, err.Error(), modelstreaming.AnnotationStreamIdentityClientID)
+	assert.Contains(t, err.Error(), v1beta1.AnnotationStaticModelMirror)
+	assert.Contains(t, err.Error(), v1beta1.AnnotationStreamIdentityClientID)
 }
 
 func TestEnsureModelMirror_StaticWithoutSASFails(t *testing.T) {
@@ -1141,7 +1186,7 @@ func TestEnsureModelMirror_StaticWithoutSASFails(t *testing.T) {
 			Name:      "ws-static-no-sas",
 			Namespace: "default",
 			Annotations: map[string]string{
-				modelstreaming.AnnotationStaticModelMirror: "true",
+				v1beta1.AnnotationStaticModelMirror: "true",
 			},
 		},
 		Inference: &v1beta1.InferenceSpec{
@@ -1152,7 +1197,7 @@ func TestEnsureModelMirror_StaticWithoutSASFails(t *testing.T) {
 	reconciler := &WorkspaceReconciler{}
 	err := reconciler.ensureModelMirror(context.Background(), ws)
 	assert.Error(t, err)
-	assert.Contains(t, err.Error(), modelstreaming.AnnotationStaticModelMirror)
+	assert.Contains(t, err.Error(), v1beta1.AnnotationStaticModelMirror)
 }
 
 // TestEnsureModelMirror_ManagedStampsServiceAccount verifies the managed (download) path
@@ -1252,10 +1297,10 @@ func TestEnsureModelMirror_StaticCreatedInWorkspaceNamespace(t *testing.T) {
 			Name:      "ws-static",
 			Namespace: "other-ns",
 			Annotations: map[string]string{
-				modelstreaming.AnnotationStaticModelMirror:      "true",
-				modelstreaming.AnnotationStreamDatarefsURL:      "https://example.blob.core.windows.net/models",
-				modelstreaming.AnnotationStreamIdentityClientID: "00000000-0000-0000-0000-000000000000",
-				modelstreaming.AnnotationStreamSourceType:       "public",
+				v1beta1.AnnotationStaticModelMirror:      "true",
+				v1beta1.AnnotationStreamDatarefsURL:      "https://example.blob.core.windows.net/models",
+				v1beta1.AnnotationStreamIdentityClientID: "00000000-0000-0000-0000-000000000000",
+				v1beta1.AnnotationStreamSourceType:       "public",
 			},
 		},
 		Inference: &v1beta1.InferenceSpec{
@@ -1279,10 +1324,10 @@ func TestEnsureModelMirror_StaticCreatedInWorkspaceNamespace(t *testing.T) {
 }
 
 func TestSyncWorkspaceStatus(t *testing.T) {
-	originalDisableNAP := featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning]
-	featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning] = true
+	originalDisableNAP := featuregates.FeatureGates[featuregates.FeatureFlagDisableNodeAutoProvisioning]
+	featuregates.FeatureGates[featuregates.FeatureFlagDisableNodeAutoProvisioning] = true
 	t.Cleanup(func() {
-		featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning] = originalDisableNAP
+		featuregates.FeatureGates[featuregates.FeatureFlagDisableNodeAutoProvisioning] = originalDisableNAP
 	})
 
 	testcases := map[string]struct {
@@ -2704,17 +2749,17 @@ func TestEnsureModelMirror_StaticAnnotationsCarryReason(t *testing.T) {
 		{
 			name: "partial core SAS annotations",
 			annotations: map[string]string{
-				modelstreaming.AnnotationStaticModelMirror: "true",
+				v1beta1.AnnotationStaticModelMirror: "true",
 			},
 			wantMessage: "missing",
 		},
 		{
 			name: "invalid stream source type",
 			annotations: map[string]string{
-				modelstreaming.AnnotationStaticModelMirror:      "true",
-				modelstreaming.AnnotationStreamDatarefsURL:      "https://example.com/refs",
-				modelstreaming.AnnotationStreamIdentityClientID: "00000000-0000-0000-0000-000000000000",
-				modelstreaming.AnnotationStreamSourceType:       "bogus",
+				v1beta1.AnnotationStaticModelMirror:      "true",
+				v1beta1.AnnotationStreamDatarefsURL:      "https://example.com/refs",
+				v1beta1.AnnotationStreamIdentityClientID: "00000000-0000-0000-0000-000000000000",
+				v1beta1.AnnotationStreamSourceType:       "bogus",
 			},
 			wantMessage: "stream-source-type",
 		},
@@ -2737,7 +2782,7 @@ func TestEnsureModelMirror_StaticAnnotationsCarryReason(t *testing.T) {
 
 func TestUpdateWorkspaceTargetNodeCountDeclaredCPUInitialization(t *testing.T) {
 	testutil.RegisterTestModel()
-	for _, gate := range []string{consts.FeatureFlagDisableNodeAutoProvisioning} {
+	for _, gate := range []string{featuregates.FeatureFlagDisableNodeAutoProvisioning} {
 		old := featuregates.FeatureGates[gate]
 		defer func(g string, v bool) { featuregates.FeatureGates[g] = v }(gate, old)
 		featuregates.FeatureGates[gate] = true
@@ -2764,14 +2809,9 @@ func TestUpdateWorkspaceTargetNodeCountDeclaredCPUInitialization(t *testing.T) {
 func TestUpdateWorkspaceTargetNodeCountCPUPresetsAndCustomTemplates(t *testing.T) {
 	testutil.RegisterTestModel()
 	t.Setenv("CLOUD_PROVIDER", consts.AzureCloudName)
-	for gate, enabled := range map[string]bool{
-		consts.FeatureFlagVLLM:                        true,
-		consts.FeatureFlagDisableNodeAutoProvisioning: false,
-	} {
-		old := featuregates.FeatureGates[gate]
-		t.Cleanup(func() { featuregates.FeatureGates[gate] = old })
-		featuregates.FeatureGates[gate] = enabled
-	}
+	oldNAP := featuregates.FeatureGates[featuregates.FeatureFlagDisableNodeAutoProvisioning]
+	t.Cleanup(func() { featuregates.FeatureGates[featuregates.FeatureFlagDisableNodeAutoProvisioning] = oldNAP })
+	featuregates.FeatureGates[featuregates.FeatureFlagDisableNodeAutoProvisioning] = false
 	for _, runtimeName := range []string{"vllm", "transformers"} {
 		for _, preset := range []bool{false, true} {
 			t.Run(fmt.Sprintf("runtime=%s/preset=%t", runtimeName, preset), func(t *testing.T) {

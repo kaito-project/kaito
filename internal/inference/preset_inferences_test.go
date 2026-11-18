@@ -17,6 +17,7 @@ import (
 	"context"
 	"fmt"
 	"reflect"
+	"strconv"
 	"strings"
 	"testing"
 	"time"
@@ -42,20 +43,22 @@ import (
 	"github.com/kaito-project/kaito/api/v1beta1"
 	"github.com/kaito-project/kaito/internal/cache"
 	"github.com/kaito-project/kaito/internal/estimator/nodesestimator"
+	"github.com/kaito-project/kaito/internal/image"
 	"github.com/kaito-project/kaito/internal/k8s/nodes"
+	"github.com/kaito-project/kaito/internal/manifests"
 	"github.com/kaito-project/kaito/internal/manifests/builder"
 	"github.com/kaito-project/kaito/internal/testutil"
+	"github.com/kaito-project/kaito/pkg/accelerator/nvidia"
 	"github.com/kaito-project/kaito/pkg/catalog"
+	"github.com/kaito-project/kaito/pkg/consts"
 	"github.com/kaito-project/kaito/pkg/featuregates"
 	pkgmodel "github.com/kaito-project/kaito/pkg/model"
 	"github.com/kaito-project/kaito/pkg/sku"
-	"github.com/kaito-project/kaito/pkg/utils"
-	"github.com/kaito-project/kaito/pkg/utils/consts"
 )
 
 func getCPUVLLMImageName() string {
 	presetObj := catalog.MustGet("base-cpu")
-	return utils.GetPresetImageName(presetObj.Registry, presetObj.Name, presetObj.Tag)
+	return image.PresetImageName(presetObj.Registry, presetObj.Name, presetObj.Tag)
 }
 
 var ValidStrength string = "0.5"
@@ -63,19 +66,19 @@ var ValidStrength string = "0.5"
 // flashInferSamplerEnvVar is injected into every vLLM inference container to
 // disable vLLM's FlashInfer sampler (KAITO does not support FlashInfer).
 var flashInferSamplerEnvVar = corev1.EnvVar{
-	Name:  consts.VLLMUseFlashInferSamplerEnvName,
+	Name:  vllmUseFlashInferSamplerEnvName,
 	Value: "0",
 }
 
 // deepGEMMEnvVar is injected into every vLLM inference container to disable
 // vLLM's DeepGEMM FP8 kernels (the native backend is absent from the base image).
 var deepGEMMEnvVar = corev1.EnvVar{
-	Name:  consts.VLLMUseDeepGEMMEnvName,
+	Name:  vllmUseDeepGEMMEnvName,
 	Value: "0",
 }
 
 var wsl2PinMemoryEnvVar = corev1.EnvVar{
-	Name:  consts.VLLMWSL2EnablePinMemoryEnvName,
+	Name:  vllmWSL2EnablePinMemoryEnvName,
 	Value: "1",
 }
 
@@ -549,9 +552,9 @@ func TestApplyPresetCacheMutations_CacheGatedOnStreaming(t *testing.T) {
 	provider := &guardCacheProvider{name: "cache-guard-preset"}
 	cache.Register(provider)
 
-	origGate := featuregates.FeatureGates[consts.FeatureFlagDistributedCache]
-	featuregates.FeatureGates[consts.FeatureFlagDistributedCache] = true
-	defer func() { featuregates.FeatureGates[consts.FeatureFlagDistributedCache] = origGate }()
+	origGate := featuregates.FeatureGates[featuregates.FeatureFlagDistributedCache]
+	featuregates.FeatureGates[featuregates.FeatureFlagDistributedCache] = true
+	defer func() { featuregates.FeatureGates[featuregates.FeatureFlagDistributedCache] = origGate }()
 
 	// Sanity: the guard provider really would inject if invoked, so that the
 	// negative assertion below is meaningful rather than trivially true.
@@ -672,9 +675,9 @@ func TestApplyPresetCacheMutations_CacheFeatureGate(t *testing.T) {
 		{name: "gate disabled - skipped", gateEnabled: false, expectLabel: false},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
-			origGate := featuregates.FeatureGates[consts.FeatureFlagDistributedCache]
-			featuregates.FeatureGates[consts.FeatureFlagDistributedCache] = tc.gateEnabled
-			defer func() { featuregates.FeatureGates[consts.FeatureFlagDistributedCache] = origGate }()
+			origGate := featuregates.FeatureGates[featuregates.FeatureFlagDistributedCache]
+			featuregates.FeatureGates[featuregates.FeatureFlagDistributedCache] = tc.gateEnabled
+			defer func() { featuregates.FeatureGates[featuregates.FeatureFlagDistributedCache] = origGate }()
 
 			mockClient := testutil.NewClient()
 			mockClient.On("Get", mock.IsType(context.TODO()), mock.Anything, mock.IsType(&corev1.ConfigMap{}), mock.Anything).Return(nil)
@@ -807,7 +810,7 @@ func TestGetDistributedInferenceProbe(t *testing.T) {
 			periodSeconds:       10,
 			timeoutSeconds:      1,
 			failureThreshold:    1,
-			vllmPort:            consts.PortDecodeVLLM,
+			vllmPort:            portDecodeVLLM,
 			expectedProbe: &corev1.Probe{
 				ProbeHandler: corev1.ProbeHandler{
 					Exec: &corev1.ExecAction{
@@ -826,10 +829,8 @@ func TestGetDistributedInferenceProbe(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			actualProbe := getDistributedInferenceProbe(tc.probeType, tc.workspace, tc.initialDelaySeconds, tc.periodSeconds, tc.timeoutSeconds, tc.failureThreshold, tc.vllmPort)
 			if actualProbe.Exec != nil && tc.expectedProbe.Exec != nil {
-				expected := toParameterMap(tc.expectedProbe.Exec.Command)
-				actual := toParameterMap(actualProbe.Exec.Command)
-				if !reflect.DeepEqual(expected, actual) {
-					t.Errorf("Exec command mismatch: expected %+v, got %+v", expected, actual)
+				if !reflect.DeepEqual(tc.expectedProbe.Exec.Command, actualProbe.Exec.Command) {
+					t.Errorf("Exec command mismatch: expected %q, got %q", tc.expectedProbe.Exec.Command, actualProbe.Exec.Command)
 				}
 			}
 			if actualProbe.HTTPGet != nil && tc.expectedProbe.HTTPGet != nil {
@@ -992,10 +993,10 @@ func TestGetGPUConfig(t *testing.T) {
 						// TODO: add nvidia.com labels for GPU product, count, and memory
 						Labels: map[string]string{
 							// TODO: use the variable names for nvidia.com labels instead of the string literals.
-							consts.NvidiaGPUProduct: "NVIDIA-A10-24Q",
-							consts.NvidiaGPUCount:   "2",
-							consts.NvidiaGPUMemory:  "24512", // in MiB
-							"test-label-key":        "test-label-value",
+							nvidia.LabelGPUProduct: "NVIDIA-A10-24Q",
+							nvidia.LabelGPUCount:   "2",
+							nvidia.LabelGPUMemory:  "24512", // in MiB
+							"test-label-key":       "test-label-value",
 						},
 					},
 					Status: corev1.NodeStatus{
@@ -1062,10 +1063,10 @@ func TestGetGPUConfig(t *testing.T) {
 
 	for k, tc := range testcases {
 		t.Run(k, func(t *testing.T) {
-			originalFeatureGate := featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning]
-			featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning] = tc.disableNodeAutoProvisioning
+			originalFeatureGate := featuregates.FeatureGates[featuregates.FeatureFlagDisableNodeAutoProvisioning]
+			featuregates.FeatureGates[featuregates.FeatureFlagDisableNodeAutoProvisioning] = tc.disableNodeAutoProvisioning
 			defer func() {
-				featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning] = originalFeatureGate
+				featuregates.FeatureGates[featuregates.FeatureFlagDisableNodeAutoProvisioning] = originalFeatureGate
 			}()
 
 			t.Setenv("CLOUD_PROVIDER", consts.AzureCloudName)
@@ -1509,13 +1510,13 @@ func TestDefaultTolerations(t *testing.T) {
 			hasGPU := false
 			hasCPU := false
 			for _, toleration := range actual {
-				if toleration.Key == consts.SpotInstanceKey && toleration.Value == consts.SpotInstanceValue {
+				if toleration.Key == manifests.SpotInstanceKey && toleration.Value == manifests.SpotInstanceValue {
 					hasSpot = true
 				}
-				if toleration.Key == nodes.CapacityNvidiaGPU || (toleration.Key == consts.SKUString && toleration.Value == consts.GPUString) {
+				if toleration.Key == nodes.CapacityNvidiaGPU || (toleration.Key == v1beta1.LabelSKU && toleration.Value == v1beta1.SKUGPU) {
 					hasGPU = true
 				}
-				if toleration.Key == consts.SKUString && toleration.Value == consts.CPUString {
+				if toleration.Key == v1beta1.LabelSKU && toleration.Value == v1beta1.SKUCPU {
 					hasCPU = true
 				}
 			}
@@ -1535,7 +1536,7 @@ func TestDefaultTolerations(t *testing.T) {
 
 func TestApplyCPUDedicatedPlacement(t *testing.T) {
 	cpuWS := &v1beta1.Workspace{ObjectMeta: metav1.ObjectMeta{Name: "ws-a", Namespace: "ns-a"}}
-	cpuWS.Labels = map[string]string{consts.WorkspaceCreatedByInferenceSetLabel: "iset-a"}
+	cpuWS.Labels = map[string]string{v1beta1.WorkspaceCreatedByInferenceSetLabel: "iset-a"}
 	cpuWS.Inference = &v1beta1.InferenceSpec{Preset: &v1beta1.PresetSpec{PresetMeta: v1beta1.PresetMeta{Name: "test-model"}}}
 	cpuWS.Resource = v1beta1.ResourceSpec{InstanceType: "Standard_D16s_v6"}
 
@@ -1638,35 +1639,36 @@ func TestV41ExtendsVLLMEngineReadyTimeout(t *testing.T) {
 	}
 }
 
-func TestQwen4ExpDisablesPLECPUOffloadOnA100(t *testing.T) {
-	params := &pkgmodel.PresetParam{
-		Metadata: pkgmodel.Metadata{
-			Architectures: []string{"Qwen4ExpForConditionalGeneration"},
-		},
-	}
+func TestQwen4ExpKeepsPLEOnDeviceOnA100(t *testing.T) {
 	for _, tc := range []struct {
-		gpuModel string
-		want     bool
+		gpuModel     string
+		wantFlag     bool
+		architecture string
 	}{
-		{gpuModel: "NVIDIA A100", want: true},
-		{gpuModel: "NVIDIA H100", want: false},
+		{gpuModel: "NVIDIA A100", wantFlag: true, architecture: "Qwen4ExpForConditionalGeneration"},
+		{gpuModel: "A100-SXM4-80GB", wantFlag: true, architecture: "Qwen4ExpForCausalLM"},
+		{gpuModel: "NVIDIA H100", wantFlag: false, architecture: "Qwen4ExpForConditionalGeneration"},
 	} {
 		t.Run(tc.gpuModel, func(t *testing.T) {
-			env := buildMainContainerEnv(
-				pkgmodel.RuntimeNameVLLM,
-				params,
-				&sku.GPUConfig{GPUModel: tc.gpuModel},
-				"",
-				"",
-			)
-			hasOverride := false
-			for _, variable := range env {
-				if variable.Name == "VLLM_PLE_CPU_OFFLOAD" {
-					hasOverride = variable.Value == "0"
-				}
+			params := &pkgmodel.PresetParam{
+				Metadata: pkgmodel.Metadata{Architectures: []string{tc.architecture}},
 			}
-			if hasOverride != tc.want {
-				t.Fatalf("VLLM_PLE_CPU_OFFLOAD=0 present = %v, want %v", hasOverride, tc.want)
+			gpuConfig := &sku.GPUConfig{GPUModel: tc.gpuModel}
+			applyGeneratorRuntimeOverrides(params, gpuConfig)
+			value, ok := params.VLLM.ModelRunParams["engram-config"]
+			if tc.wantFlag {
+				if !ok || value != `'{"cpu_offload":false}'` {
+					t.Fatalf("engram-config = %q (set=%v), want '{\"cpu_offload\":false}'", value, ok)
+				}
+			} else if ok {
+				t.Fatalf("unexpected engram-config = %q", value)
+			}
+
+			// The env var was removed from vLLM; the run param above replaces it.
+			for _, variable := range buildMainContainerEnv(pkgmodel.RuntimeNameVLLM, params, gpuConfig, "", "") {
+				if variable.Name == "VLLM_PLE_CPU_OFFLOAD" {
+					t.Fatalf("unexpected VLLM_PLE_CPU_OFFLOAD env var")
+				}
 			}
 		})
 	}
@@ -1692,12 +1694,23 @@ func TestApplyGeneratorRuntimeOverrides(t *testing.T) {
 			},
 		},
 		{
-			name:          "BYO A100 uses BF16",
+			name:          "BYO A100 uses BF16 and keeps Engram on-device",
 			architectures: []string{"Qwen4ExpForConditionalGeneration"},
 			gpuModel:      "A100-SXM4-80GB",
 			want: map[string]string{
 				"gpu-memory-utilization":            "0.92",
 				"attention-config.indexer_kv_dtype": "bf16",
+				"engram-config":                     `'{"cpu_offload":false}'`,
+			},
+		},
+		{
+			name:          "Engram arch default preserved off A100",
+			architectures: []string{"DeepseekV41ForCausalLM"},
+			gpuModel:      "NVIDIA H100",
+			runParams:     map[string]string{"engram-config": `'{"cpu_offload":true}'`},
+			want: map[string]string{
+				"gpu-memory-utilization": "0.92",
+				"engram-config":          `'{"cpu_offload":true}'`,
 			},
 		},
 		{
@@ -1824,7 +1837,7 @@ func TestApplyInferenceRoleEnv(t *testing.T) {
 			found := false
 			foundNIXL := false
 			for _, e := range spec.Containers[0].Env {
-				if e.Name == consts.InferenceRoleEnvName {
+				if e.Name == inferenceRoleEnvName {
 					found = true
 					if e.Value != tc.expectedValue {
 						t.Errorf("expected value %q, got %q", tc.expectedValue, e.Value)
@@ -1878,11 +1891,6 @@ func TestInjectRoutingSidecar(t *testing.T) {
 
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
-			// Enable vLLM feature gate for runtime detection
-			originalVLLM := featuregates.FeatureGates[consts.FeatureFlagVLLM]
-			featuregates.FeatureGates[consts.FeatureFlagVLLM] = true
-			defer func() { featuregates.FeatureGates[consts.FeatureFlagVLLM] = originalVLLM }()
-
 			workspace := &v1beta1.Workspace{}
 			workspace.Labels = tc.labels
 
@@ -1892,12 +1900,12 @@ func TestInjectRoutingSidecar(t *testing.T) {
 						Name:    "vllm",
 						Command: []string{"/bin/sh", "-c", "python3 /workspace/vllm/inference_api.py"},
 						Ports: []corev1.ContainerPort{
-							{ContainerPort: int32(consts.PortInferenceServer), Name: "http", Protocol: corev1.ProtocolTCP},
+							{ContainerPort: int32(manifests.PortInferenceServer), Name: "http", Protocol: corev1.ProtocolTCP},
 						},
 						ReadinessProbe: &corev1.Probe{
 							ProbeHandler: corev1.ProbeHandler{
 								HTTPGet: &corev1.HTTPGetAction{
-									Port: intstr.FromInt32(int32(consts.PortInferenceServer)),
+									Port: intstr.FromInt32(int32(manifests.PortInferenceServer)),
 									Path: "/health",
 								},
 							},
@@ -1905,7 +1913,7 @@ func TestInjectRoutingSidecar(t *testing.T) {
 						LivenessProbe: &corev1.Probe{
 							ProbeHandler: corev1.ProbeHandler{
 								HTTPGet: &corev1.HTTPGetAction{
-									Port: intstr.FromInt32(int32(consts.PortInferenceServer)),
+									Port: intstr.FromInt32(int32(manifests.PortInferenceServer)),
 									Path: "/health",
 								},
 							},
@@ -1949,16 +1957,16 @@ func TestInjectRoutingSidecar(t *testing.T) {
 				if sidecar == nil {
 					t.Fatal("sidecar not found")
 				}
-				expectedImage := fmt.Sprintf("%s:%s", consts.RoutingSidecarImage, consts.RoutingSidecarTag)
+				expectedImage := fmt.Sprintf("%s:%s", routingSidecarImage, routingSidecarTag)
 				if sidecar.Image != expectedImage {
 					t.Errorf("expected image %q, got %q", expectedImage, sidecar.Image)
 				}
-				if len(sidecar.Ports) != 1 || sidecar.Ports[0].ContainerPort != consts.PortInferenceServer {
-					t.Errorf("expected sidecar port %d, got %v", consts.PortInferenceServer, sidecar.Ports)
+				if len(sidecar.Ports) != 1 || sidecar.Ports[0].ContainerPort != manifests.PortInferenceServer {
+					t.Errorf("expected sidecar port %d, got %v", manifests.PortInferenceServer, sidecar.Ports)
 				}
 				expectedArgs := []string{
-					fmt.Sprintf("--port=%d", consts.PortInferenceServer),
-					fmt.Sprintf("--vllm-port=%d", consts.PortDecodeVLLM),
+					fmt.Sprintf("--port=%d", manifests.PortInferenceServer),
+					fmt.Sprintf("--vllm-port=%d", portDecodeVLLM),
 					"--secure-proxy=false",
 				}
 				if len(sidecar.Args) != len(expectedArgs) {
@@ -1983,12 +1991,12 @@ func TestInjectRoutingSidecar(t *testing.T) {
 				main := spec.Containers[0]
 				hasDecodePort := false
 				for _, p := range main.Ports {
-					if p.ContainerPort == consts.PortDecodeVLLM {
+					if p.ContainerPort == portDecodeVLLM {
 						hasDecodePort = true
 					}
 				}
 				if !hasDecodePort {
-					t.Errorf("main container should have containerPort %d", consts.PortDecodeVLLM)
+					t.Errorf("main container should have containerPort %d", portDecodeVLLM)
 				}
 			}
 		})
@@ -2002,7 +2010,7 @@ func TestInjectLMCacheSidecar(t *testing.T) {
 			Image:   GetBaseImageName(catalog.MustGet("base")),
 			Command: []string{"/bin/sh", "-c", "python3 /workspace/vllm/inference_api.py --tensor-parallel-size=2"},
 			VolumeMounts: []corev1.VolumeMount{{
-				Name: "config-volume", MountPath: utils.DefaultConfigMapMountPath,
+				Name: "config-volume", MountPath: manifests.DefaultConfigMapMountPath,
 			}},
 		}},
 	}
@@ -2109,7 +2117,7 @@ func TestConfigureLMCacheSidecarReturnsConfigErrors(t *testing.T) {
 			if tc.getErr == nil {
 				mockClient.CreateOrUpdateObjectInMap(&corev1.ConfigMap{
 					ObjectMeta: metav1.ObjectMeta{Name: "test-config", Namespace: "test-ns"},
-					Data:       map[string]string{utils.InferenceConfigKey: tc.configData},
+					Data:       map[string]string{inferenceConfigKey: tc.configData},
 				})
 			}
 
@@ -2362,8 +2370,8 @@ func TestGeneratePresetInferenceNodeImageWeights(t *testing.T) {
 	if m, ok := mountsByPath[cudaPath]; !ok || !m.ReadOnly {
 		t.Errorf("expected read-only cuda mount at %s, got %v", cudaPath, mountsByPath)
 	}
-	if _, ok := mountsByPath[utils.DefaultWeightsVolumePath]; ok {
-		t.Errorf("did not expect default weights mount at %s", utils.DefaultWeightsVolumePath)
+	if _, ok := mountsByPath[pkgmodel.DefaultWeightsVolumePath]; ok {
+		t.Errorf("did not expect default weights mount at %s", pkgmodel.DefaultWeightsVolumePath)
 	}
 
 	// No prewarm init container: local weights load via the RunAI streamer, whose
@@ -2562,29 +2570,20 @@ func TestGeneratePresetInferenceCUDAToolkitProvisioner(t *testing.T) {
 
 func TestPresetInferenceRuntimeImages(t *testing.T) {
 	testutil.RegisterTestModel()
-	oldVLLM := featuregates.FeatureGates[consts.FeatureFlagVLLM]
-	t.Cleanup(func() {
-		featuregates.FeatureGates[consts.FeatureFlagVLLM] = oldVLLM
-	})
 	for _, tc := range []struct {
-		name, instanceType, runtime     string
-		vllmEnabled, wantCPU, wantError bool
+		name, instanceType, runtime string
+		wantCPU, wantError          bool
 	}{
-		{"cpu vllm", "Standard_D8s_v5", "vllm", true, true, false},
-		{"cpu default runtime", "Standard_D8s_v5", "", true, true, false},
-		{"cpu transformers rejected", "Standard_D8s_v5", "transformers", true, false, true},
-		{"cpu transformers without vllm gate rejected", "Standard_D8s_v5", "transformers", false, false, true},
-		{"cpu requires vllm gate", "Standard_D8s_v5", "vllm", false, false, true},
-		{"cpu default requires vllm gate", "Standard_D8s_v5", "", false, false, true},
-		{"gpu transformers unchanged", "Standard_NC6s_v3", "transformers", true, false, false},
-		{"gpu vllm unchanged", "Standard_NC6s_v3", "vllm", true, false, false},
-		{"ARM does not select CPU image", "Standard_D16ps_v5", "vllm", true, false, false},
-		{"label-only does not select CPU image", "", "vllm", true, false, false},
-		{"unknown does not select CPU image", "unknown", "vllm", true, false, false},
-		{"gpu default without vllm unchanged", "Standard_NC6s_v3", "", false, false, false},
+		{"cpu vllm", "Standard_D8s_v5", "vllm", true, false},
+		{"cpu default runtime", "Standard_D8s_v5", "", true, false},
+		{"cpu transformers rejected", "Standard_D8s_v5", "transformers", false, true},
+		{"gpu transformers unchanged", "Standard_NC6s_v3", "transformers", false, false},
+		{"gpu vllm unchanged", "Standard_NC6s_v3", "vllm", false, false},
+		{"ARM does not select CPU image", "Standard_D16ps_v5", "vllm", false, false},
+		{"label-only does not select CPU image", "", "vllm", false, false},
+		{"unknown does not select CPU image", "unknown", "vllm", false, false},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
-			featuregates.FeatureGates[consts.FeatureFlagVLLM] = tc.vllmEnabled
 			ws := testutil.MockWorkspaceWithPresetVLLM.DeepCopy()
 			ws.Resource.InstanceType = tc.instanceType
 			ws.Annotations = map[string]string{v1beta1.AnnotationWorkspaceRuntime: tc.runtime}
@@ -2635,11 +2634,6 @@ func assertNoLMCacheSidecar(t *testing.T, spec *corev1.PodSpec) {
 
 func TestGeneratePresetInference_VLLMCPUSkipsLMCache(t *testing.T) {
 	testutil.RegisterTestModel()
-	oldVLLM := featuregates.FeatureGates[consts.FeatureFlagVLLM]
-	t.Cleanup(func() {
-		featuregates.FeatureGates[consts.FeatureFlagVLLM] = oldVLLM
-	})
-	featuregates.FeatureGates[consts.FeatureFlagVLLM] = true
 	for _, runtimeName := range []string{"", "vllm"} {
 		t.Run("runtime="+runtimeName, func(t *testing.T) {
 			ws := testutil.MockWorkspaceWithPresetVLLM.DeepCopy()
@@ -2720,11 +2714,11 @@ func TestGeneratePresetInference_CapturedTarget(t *testing.T) {
 	testutil.RegisterTestModel()
 	t.Setenv("CLOUD_PROVIDER", consts.AzureCloudName)
 	t.Setenv("PRESET_REGISTRY_NAME", "test-registry")
-	oldNAP, oldVLLM := featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning], featuregates.FeatureGates[consts.FeatureFlagVLLM]
+	oldNAP := featuregates.FeatureGates[featuregates.FeatureFlagDisableNodeAutoProvisioning]
 	t.Cleanup(func() {
-		featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning], featuregates.FeatureGates[consts.FeatureFlagVLLM] = oldNAP, oldVLLM
+		featuregates.FeatureGates[featuregates.FeatureFlagDisableNodeAutoProvisioning] = oldNAP
 	})
-	featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning], featuregates.FeatureGates[consts.FeatureFlagVLLM] = true, true
+	featuregates.FeatureGates[featuregates.FeatureFlagDisableNodeAutoProvisioning] = true
 	for _, cpu := range []bool{true, false} {
 		t.Run(fmt.Sprintf("CPU=%t", cpu), func(t *testing.T) {
 			scheme := runtime.NewScheme()
@@ -2732,9 +2726,9 @@ func TestGeneratePresetInference_CapturedTarget(t *testing.T) {
 			node := corev1.Node{ObjectMeta: metav1.ObjectMeta{Name: "target", Labels: map[string]string{"pool": "inference", corev1.LabelArchStable: "amd64"}}, Status: corev1.NodeStatus{Conditions: []corev1.NodeCondition{{Type: corev1.NodeReady, Status: corev1.ConditionTrue}}}}
 			if !cpu {
 				node.Labels[corev1.LabelInstanceTypeStable] = "Standard_NC6s_v3"
-				node.Labels[consts.NvidiaGPUProduct] = "NVIDIA-V100"
-				node.Labels[consts.NvidiaGPUCount] = "1"
-				node.Labels[consts.NvidiaGPUMemory] = "16384"
+				node.Labels[nvidia.LabelGPUProduct] = "NVIDIA-V100"
+				node.Labels[nvidia.LabelGPUCount] = "1"
+				node.Labels[nvidia.LabelGPUMemory] = "16384"
 			}
 			inventoryAvailable := true
 			reads := 0
@@ -2769,7 +2763,7 @@ func TestGeneratePresetInference_CapturedTarget(t *testing.T) {
 			require.NoError(t, GenerateInferencePodSpec(config, 1, "", "", "", &lmCacheResolvedConfig{})(gctx, spec))
 			require.Equal(t, readsAtCapture, reads, "pod generation must reuse the captured target")
 			require.Equal(t, getPresetInferenceImageName(pkgmodel.RuntimeNameVLLM, cpu), spec.Containers[0].Image)
-			_, hasGPU := spec.Containers[0].Resources.Limits[corev1.ResourceName(consts.NvidiaGPU)]
+			_, hasGPU := spec.Containers[0].Resources.Limits[corev1.ResourceName("nvidia.com/gpu")]
 			require.Equal(t, !cpu, hasGPU)
 			require.NotNil(t, spec.Containers[0].ReadinessProbe.HTTPGet)
 			require.Equal(t, defaultTolerationsForTarget(cpu), spec.Tolerations)
@@ -2794,7 +2788,7 @@ func TestGeneratePresetInference_CapturedTarget(t *testing.T) {
 			require.NoError(t, err)
 			require.Equal(t, expectedBaseImage.Tag, tag)
 			complete := result.Workload.(*appsv1.StatefulSet).Spec.Template.Spec
-			require.Equal(t, utils.GetPresetImageName(result.BaseImage.Registry, result.BaseImage.Name, tag), complete.Containers[0].Image)
+			require.Equal(t, image.PresetImageName(result.BaseImage.Registry, result.BaseImage.Name, tag), complete.Containers[0].Image)
 			require.Equal(t, spec.Containers[0].Image, complete.Containers[0].Image)
 			require.Equal(t, spec.Containers[0].Resources, complete.Containers[0].Resources)
 			require.Equal(t, spec.Containers[0].ReadinessProbe, complete.Containers[0].ReadinessProbe)
@@ -2806,7 +2800,7 @@ func TestGeneratePresetInference_CapturedTarget(t *testing.T) {
 func TestCPUNodeExclusivityAcrossParentsAndNamespaces(t *testing.T) {
 	for _, parent := range []string{"", "parent-a", "parent-b"} {
 		for _, namespace := range []string{"first", "second"} {
-			ws := &v1beta1.Workspace{ObjectMeta: metav1.ObjectMeta{Namespace: namespace, Labels: map[string]string{consts.WorkspaceCreatedByInferenceSetLabel: parent}}}
+			ws := &v1beta1.Workspace{ObjectMeta: metav1.ObjectMeta{Namespace: namespace, Labels: map[string]string{v1beta1.WorkspaceCreatedByInferenceSetLabel: parent}}}
 			pod := &corev1.PodTemplateSpec{}
 			applyCPUDedicatedPlacement(ws, &pod.Spec, true)
 			require.Len(t, pod.Spec.Affinity.PodAntiAffinity.RequiredDuringSchedulingIgnoredDuringExecution, 1)
@@ -2818,8 +2812,284 @@ func TestCPUNodeExclusivityAcrossParentsAndNamespaces(t *testing.T) {
 			require.True(t, nsSelector.Matches(labels.Set{"kubernetes.io/metadata.name": "other-namespace"}))
 			selector, err := metav1.LabelSelectorAsSelector(term.LabelSelector)
 			require.NoError(t, err)
-			require.True(t, selector.Matches(labels.Set{cpuInferenceWorkloadLabel: "true", consts.WorkspaceCreatedByInferenceSetLabel: "different-parent"}))
+			require.True(t, selector.Matches(labels.Set{cpuInferenceWorkloadLabel: "true", v1beta1.WorkspaceCreatedByInferenceSetLabel: "different-parent"}))
 			require.False(t, selector.Matches(labels.Set{cpuInferenceWorkloadLabel: "false"}))
 		}
+	}
+}
+
+// TestDeepSeekV41FlashDSparkCommandOnH100 builds the vLLM command KAITO renders
+// for DeepSeek-V4.1-Flash-1017 with speculative decoding enabled on an 8x H100
+// node and checks it matches the configuration validated there.
+func TestDeepSeekV41FlashDSparkCommandOnH100(t *testing.T) {
+	m, err := catalog.GetModelByNameWithToken(context.Background(), "deepseek-ai/DeepSeek-V4.1-Flash-1017", "")
+	if err != nil {
+		t.Fatalf("resolve model: %v", err)
+	}
+	gpuConfig := &sku.GPUConfig{SKU: "Standard_ND96isr_H100_v5", GPUCount: 8, GPUMem: resource.MustParse("640Gi"), GPUModel: "NVIDIA H100"}
+
+	for _, tc := range []struct {
+		name       string
+		annotation string
+		wantFlags  []string
+		denyFlags  []string
+	}{
+		{
+			name:       "enabled",
+			annotation: "true",
+			wantFlags: []string{
+				`--speculative-config='{"draft_sample_method":"probabilistic","enable_adaptive_verification":true,"method":"dspark","num_speculative_tokens":5,"rejection_sample_method":"block"}'`,
+				"--max-num-batched-tokens=4096",
+				"--max-num-seqs=256",
+				"--max-cudagraph-capture-size=1024",
+				"--gpu-memory-utilization=0.92",
+			},
+		},
+		{
+			name:       "disabled",
+			annotation: "false",
+			denyFlags:  []string{"--speculative-config", "--max-num-seqs", "--max-num-batched-tokens", "--max-cudagraph-capture-size"},
+		},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			ws := &v1beta1.Workspace{ObjectMeta: metav1.ObjectMeta{
+				Name:        "dsv41",
+				Annotations: map[string]string{v1beta1.AnnotationEnableSpeculativeDecoding: tc.annotation},
+			}}
+			params := m.GetInferenceParameters().DeepCopy()
+			if _, err := applySpeculativeDecoding(ws, pkgmodel.RuntimeNameVLLM, params, nil, false, gpuConfig, 1); err != nil {
+				t.Fatalf("applySpeculativeDecoding: %v", err)
+			}
+			applyGeneratorRuntimeOverrides(params, gpuConfig)
+			cmd := params.GetInferenceCommand(pkgmodel.RuntimeContext{
+				RuntimeName: pkgmodel.RuntimeNameVLLM,
+				GPUConfig:   gpuConfig,
+				SKUNumGPUs:  gpuConfig.GPUCount,
+				NumNodes:    1,
+				MaxNumSeqs:  resolveMaxNumSeqs(ws.Name, params, gpuConfig, 1),
+				MaxModelLen: pkgmodel.MaxModelLenAuto,
+			})
+			command := strings.Join(cmd, " ")
+			for _, flag := range tc.wantFlags {
+				if !strings.Contains(command, flag) {
+					t.Errorf("command missing %s\n%s", flag, command)
+				}
+			}
+			for _, flag := range tc.denyFlags {
+				if strings.Contains(command, flag) {
+					t.Errorf("command unexpectedly contains %s\n%s", flag, command)
+				}
+			}
+		})
+	}
+}
+
+func TestDeepSeekV41FlashDSparkEngramOffloadOverride(t *testing.T) {
+	for _, tc := range []struct {
+		name     string
+		offload  bool
+		decision SpecDecoDecision
+	}{
+		{"disabled", false, SpecDecoSkippedLowGPUMemory},
+		{"enabled", true, SpecDecoInjected},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			ws := &v1beta1.Workspace{
+				ObjectMeta: metav1.ObjectMeta{
+					Name: "dsv41", Namespace: "default",
+					Annotations: map[string]string{v1beta1.AnnotationEnableSpeculativeDecoding: "true"},
+				},
+				Inference: &v1beta1.InferenceSpec{Config: "engram-config"},
+			}
+			cm := &corev1.ConfigMap{
+				ObjectMeta: metav1.ObjectMeta{Name: ws.Inference.Config, Namespace: ws.Namespace},
+				Data: map[string]string{
+					pkgmodel.ConfigfileNameVLLM: fmt.Sprintf("vllm:\n  engram-config: '{\"cpu_offload\":%t}'\n", tc.offload),
+				},
+			}
+			kubeClient := fake.NewClientBuilder().WithObjects(cm).Build()
+			m, err := catalog.GetModelByName(t.Context(), "deepseek-ai/DeepSeek-V4.1-Flash-1017", ws.Inference.Config, "", ws.Namespace, kubeClient)
+			require.NoError(t, err)
+			params := m.GetInferenceParameters()
+			gpuConfig := &sku.GPUConfig{GPUCount: 8, GPUMem: resource.MustParse("640Gi"), GPUModel: "NVIDIA H100"}
+			decision, err := applySpeculativeDecoding(ws, pkgmodel.RuntimeNameVLLM, params, nil, false, gpuConfig, 1)
+			require.NoError(t, err)
+			assert.Equal(t, tc.decision, decision)
+			_, injected := params.VLLM.ModelRunParams["speculative-config"]
+			assert.Equal(t, tc.offload, injected)
+		})
+	}
+}
+
+func TestDeepSeekV41FlashDSparkRuntimeConfigOverrides(t *testing.T) {
+	for _, tc := range []struct {
+		name         string
+		config       string
+		wantAdaptive bool
+		wantMode     string
+	}{
+		{"default", "vllm: {}\n", true, "FULL_DECODE_ONLY"},
+		{"pipeline parallel override", "vllm:\n  pipeline-parallel-size: 2\n", false, "FULL_DECODE_ONLY"},
+		{"eager execution", "vllm:\n  enforce-eager: true\n", false, "FULL_DECODE_ONLY"},
+		{"no graphs", "vllm:\n  compilation-config.cudagraph_mode: NONE\n", false, "NONE"},
+		{"piecewise graphs", "vllm:\n  compilation-config.cudagraph_mode: PIECEWISE\n", false, "PIECEWISE"},
+		{"JSON graph config", "vllm:\n  compilation-config: '{\"cudagraph_mode\":\"NONE\"}'\n", false, "NONE"},
+		{"full graphs", "vllm:\n  compilation-config.cudagraph_mode: FULL\n", true, "FULL"},
+		{"full decode graphs", "vllm:\n  compilation-config.cudagraph_mode: FULL_DECODE_ONLY\n", true, "FULL_DECODE_ONLY"},
+		{"mixed full graphs", "vllm:\n  compilation-config.cudagraph_mode: FULL_AND_PIECEWISE\n", true, "FULL_AND_PIECEWISE"},
+		{"numeric JSON graph mode", "vllm:\n  compilation-config: '{\"cudagraph_mode\":0}'\n", false, "NONE"},
+		{"dotted graph mode wins", "vllm:\n  compilation-config: '{\"cudagraph_mode\":\"NONE\"}'\n  compilation-config.cudagraph_mode: FULL\n", true, "FULL"},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			ws := &v1beta1.Workspace{
+				ObjectMeta: metav1.ObjectMeta{
+					Name: "dsv41", Namespace: "default",
+					Annotations: map[string]string{v1beta1.AnnotationEnableSpeculativeDecoding: "true"},
+				},
+				Inference: &v1beta1.InferenceSpec{Config: "runtime-config"},
+			}
+			cm := &corev1.ConfigMap{
+				ObjectMeta: metav1.ObjectMeta{Name: ws.Inference.Config, Namespace: ws.Namespace},
+				Data:       map[string]string{pkgmodel.ConfigfileNameVLLM: tc.config},
+			}
+			kubeClient := fake.NewClientBuilder().WithObjects(cm).Build()
+			m, err := catalog.GetModelByName(t.Context(), "deepseek-ai/DeepSeek-V4.1-Flash-1017", ws.Inference.Config, "", ws.Namespace, kubeClient)
+			require.NoError(t, err)
+			userConfig, err := loadUserSpeculativeConfig(t.Context(), kubeClient, ws)
+			require.NoError(t, err)
+			params := m.GetInferenceParameters()
+			shared := params.SpeculativeDecoding
+			gpuConfig := &sku.GPUConfig{GPUCount: 8, GPUMem: resource.MustParse("640Gi"), GPUModel: "NVIDIA H100"}
+			decision, err := applySpeculativeDecoding(ws, pkgmodel.RuntimeNameVLLM, params, userConfig, false, gpuConfig, 1)
+			require.NoError(t, err)
+			assert.Equal(t, SpecDecoInjected, decision)
+			assert.Equal(t, tc.wantAdaptive, strings.Contains(params.VLLM.ModelRunParams["speculative-config"], `"enable_adaptive_verification":true`))
+			assert.True(t, shared.DSpark.EnableAdaptiveVerification, "the shared preset must not be mutated")
+			applyGeneratorRuntimeOverrides(params, gpuConfig)
+			assert.Equal(t, tc.wantMode, params.VLLM.ModelRunParams["compilation-config.cudagraph_mode"])
+			command := strings.Join(params.GetInferenceCommand(pkgmodel.RuntimeContext{
+				RuntimeName: pkgmodel.RuntimeNameVLLM,
+				GPUConfig:   gpuConfig,
+				SKUNumGPUs:  gpuConfig.GPUCount,
+				NumNodes:    1,
+				MaxModelLen: pkgmodel.MaxModelLenAuto,
+			}), " ")
+			assert.Contains(t, command, "--compilation-config.cudagraph_mode="+tc.wantMode)
+			var after corev1.ConfigMap
+			require.NoError(t, kubeClient.Get(t.Context(), client.ObjectKeyFromObject(cm), &after))
+			assert.Equal(t, cm.Data, after.Data, "the user's settings must not be rewritten")
+		})
+	}
+}
+
+func TestDeepSeekV41FlashDSparkGPUMemoryUtilizationOverride(t *testing.T) {
+	for _, tc := range []struct {
+		name       string
+		override   string
+		wantValue  string
+		wantDSpark bool
+	}{
+		{"default", "", "0.92", true},
+		{"below threshold", "0.70", "0.7", false},
+		{"quoted override", "'0.70'", "0.7", false},
+		{"above threshold", "0.72", "0.72", true},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			config := "vllm: {}\n"
+			if tc.override != "" {
+				config = fmt.Sprintf("vllm:\n  gpu-memory-utilization: %s\n", tc.override)
+			}
+			ws := &v1beta1.Workspace{
+				ObjectMeta: metav1.ObjectMeta{
+					Name: "dsv41", Namespace: "default",
+					Annotations: map[string]string{v1beta1.AnnotationEnableSpeculativeDecoding: "true"},
+				},
+				Inference: &v1beta1.InferenceSpec{Config: "memory-config"},
+			}
+			cm := &corev1.ConfigMap{
+				ObjectMeta: metav1.ObjectMeta{Name: ws.Inference.Config, Namespace: ws.Namespace},
+				Data:       map[string]string{pkgmodel.ConfigfileNameVLLM: config},
+			}
+			kubeClient := fake.NewClientBuilder().WithObjects(cm).Build()
+			m, err := catalog.GetModelByName(t.Context(), "deepseek-ai/DeepSeek-V4.1-Flash-1017", ws.Inference.Config, "", ws.Namespace, kubeClient)
+			require.NoError(t, err)
+			params := m.GetInferenceParameters()
+			gpuConfig := &sku.GPUConfig{GPUCount: 8, GPUMem: resource.MustParse("640Gi"), GPUModel: "NVIDIA H100"}
+			decision, err := applySpeculativeDecoding(ws, pkgmodel.RuntimeNameVLLM, params, nil, false, gpuConfig, 1)
+			require.NoError(t, err)
+			if tc.wantDSpark {
+				assert.Equal(t, SpecDecoInjected, decision)
+			} else {
+				assert.Equal(t, SpecDecoSkippedLowGPUMemory, decision)
+			}
+			_, injected := params.VLLM.ModelRunParams["speculative-config"]
+			assert.Equal(t, tc.wantDSpark, injected)
+			applyGeneratorRuntimeOverrides(params, gpuConfig)
+			assert.Equal(t, tc.wantValue, params.VLLM.ModelRunParams["gpu-memory-utilization"])
+		})
+	}
+}
+
+// TestDeepSeekV4FlashDSparkCommandGatedByGPUMemory checks the vLLM command KAITO
+// renders for DeepSeek-V4-Flash-0731 with speculative decoding enabled: on
+// Standard_NC80adis_H100_v5 the weights leave too little GPU memory, so DSpark
+// is not injected; on an 8x H100 node it is, with the recipe's config.
+func TestDeepSeekV4FlashDSparkCommandGatedByGPUMemory(t *testing.T) {
+	m, err := catalog.GetModelByNameWithToken(context.Background(), "deepseek-ai/DeepSeek-V4-Flash-0731", "")
+	if err != nil {
+		t.Fatalf("resolve model: %v", err)
+	}
+	specConfig := `--speculative-config='{"draft_sample_method":"probabilistic","method":"dspark","num_speculative_tokens":7}'`
+	for _, tc := range []struct {
+		name      string
+		gpuConfig *sku.GPUConfig
+		enabled   bool
+		wantSpec  bool
+	}{
+		{
+			name:      "NC80adis enabled: gated off",
+			gpuConfig: &sku.GPUConfig{SKU: "Standard_NC80adis_H100_v5", GPUCount: 2, GPUMem: resource.MustParse("188Gi"), GPUModel: "NVIDIA H100"},
+			enabled:   true,
+		},
+		{
+			name:      "8x H100 enabled: injected",
+			gpuConfig: &sku.GPUConfig{SKU: "Standard_ND96isr_H100_v5", GPUCount: 8, GPUMem: resource.MustParse("640Gi"), GPUModel: "NVIDIA H100"},
+			enabled:   true,
+			wantSpec:  true,
+		},
+		{
+			name:      "8x H100 disabled",
+			gpuConfig: &sku.GPUConfig{SKU: "Standard_ND96isr_H100_v5", GPUCount: 8, GPUMem: resource.MustParse("640Gi"), GPUModel: "NVIDIA H100"},
+		},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			ws := &v1beta1.Workspace{ObjectMeta: metav1.ObjectMeta{
+				Name:        "dsv4",
+				Annotations: map[string]string{v1beta1.AnnotationEnableSpeculativeDecoding: strconv.FormatBool(tc.enabled)},
+			}}
+			params := m.GetInferenceParameters().DeepCopy()
+			if _, err := applySpeculativeDecoding(ws, pkgmodel.RuntimeNameVLLM, params, nil, false, tc.gpuConfig, 1); err != nil {
+				t.Fatalf("applySpeculativeDecoding: %v", err)
+			}
+			applyGeneratorRuntimeOverrides(params, tc.gpuConfig)
+			command := strings.Join(params.GetInferenceCommand(pkgmodel.RuntimeContext{
+				RuntimeName: pkgmodel.RuntimeNameVLLM,
+				GPUConfig:   tc.gpuConfig,
+				SKUNumGPUs:  tc.gpuConfig.GPUCount,
+				NumNodes:    1,
+				MaxModelLen: pkgmodel.MaxModelLenAuto,
+			}), " ")
+			if got := strings.Contains(command, specConfig); got != tc.wantSpec {
+				t.Errorf("command contains %s = %v, want %v\n%s", specConfig, got, tc.wantSpec, command)
+			}
+			for _, flag := range []string{"--max-num-batched-tokens", "--max-num-seqs"} {
+				if strings.Contains(command, flag) {
+					t.Errorf("command sets %s; DeepSeek-V4-Flash uses vLLM's default\n%s", flag, command)
+				}
+			}
+			if !tc.wantSpec && strings.Contains(command, "--speculative-config") {
+				t.Errorf("speculative-config injected:\n%s", command)
+			}
+		})
 	}
 }

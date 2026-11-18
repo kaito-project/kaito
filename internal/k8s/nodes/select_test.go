@@ -19,8 +19,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-
-	"github.com/kaito-project/kaito/pkg/utils/consts"
+	karpenterv1 "sigs.k8s.io/karpenter/pkg/apis/v1"
 )
 
 func TestSelectNodes(t *testing.T) {
@@ -57,7 +56,7 @@ func TestSelectNodes(t *testing.T) {
 
 	t.Run("previous node ranked above provisioner node", func(t *testing.T) {
 		nodes := []*corev1.Node{
-			makeNode("node-prov", map[string]string{consts.LabelGPUProvisionerCustom: "gpu"}),
+			makeNode("node-prov", map[string]string{labelGPUProvisionerCustom: "gpu"}),
 			makeNode("node-prev", nil),
 		}
 		result := SelectNodes(nodes, nil, []string{"node-prev"}, 2)
@@ -68,7 +67,7 @@ func TestSelectNodes(t *testing.T) {
 	t.Run("karpenter node ranked above plain node", func(t *testing.T) {
 		nodes := []*corev1.Node{
 			makeNode("plain", nil),
-			makeNode("karpenter", map[string]string{consts.LabelNodePool: "default"}),
+			makeNode("karpenter", map[string]string{karpenterv1.NodePoolLabelKey: "default"}),
 		}
 		result := SelectNodes(nodes, nil, nil, 2)
 		assert.Len(t, result, 2)

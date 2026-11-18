@@ -37,8 +37,6 @@ import (
 	"github.com/kaito-project/kaito/pkg/catalog"
 	pkgmodel "github.com/kaito-project/kaito/pkg/model"
 	"github.com/kaito-project/kaito/pkg/sku"
-	"github.com/kaito-project/kaito/pkg/utils"
-	"github.com/kaito-project/kaito/pkg/utils/consts"
 )
 
 const (
@@ -51,7 +49,7 @@ var (
 	dataDownloaderScript string
 
 	containerPorts = []corev1.ContainerPort{{
-		ContainerPort: consts.PortInferenceServer,
+		ContainerPort: manifests.PortInferenceServer,
 	}}
 
 	// Come up with valid liveness and readiness probes for fine-tuning
@@ -64,21 +62,21 @@ func defaultTolerations() []corev1.Toleration {
 		{
 			Effect:   corev1.TaintEffectNoSchedule,
 			Operator: corev1.TolerationOpEqual,
-			Key:      consts.GPUString,
+			Key:      "gpu",
 		},
 		{
 			Effect: corev1.TaintEffectNoSchedule,
-			Value:  consts.GPUString,
-			Key:    consts.SKUString,
+			Value:  kaitov1beta1.SKUGPU,
+			Key:    kaitov1beta1.LabelSKU,
 		},
 	}
 
 	if sku.IsAzureCloudProvider() {
 		tolerations = append(tolerations, corev1.Toleration{
 			Effect:   corev1.TaintEffectNoSchedule,
-			Key:      consts.SpotInstanceKey,
+			Key:      manifests.SpotInstanceKey,
 			Operator: corev1.TolerationOpEqual,
-			Value:    consts.SpotInstanceValue,
+			Value:    manifests.SpotInstanceValue,
 		})
 	}
 
@@ -87,7 +85,7 @@ func defaultTolerations() []corev1.Toleration {
 
 func GetTuningImageInfo() string {
 	presetObj := catalog.MustGet("base")
-	return utils.GetPresetImageName(presetObj.Registry, presetObj.Name, presetObj.Tag)
+	return image.PresetImageName(presetObj.Registry, presetObj.Name, presetObj.Tag)
 }
 
 // PrepareOutputDir ensures the output directory is within the base directory.
@@ -193,13 +191,13 @@ func GenerateBasicTuningPodSpec(skuNumGPUs int) func(*builder.WorkspaceGenerator
 		var volumeMounts []corev1.VolumeMount
 
 		// add share memory for cross process communication
-		shmVolume, shmVolumeMount := utils.ConfigSHMVolume()
+		shmVolume, shmVolumeMount := manifests.ConfigSHMVolume()
 		volumes = append(volumes, shmVolume)
 		volumeMounts = append(volumeMounts, shmVolumeMount)
 
 		// Add volume for model weights access
-		volumes = append(volumes, utils.DefaultModelWeightsVolume)
-		volumeMounts = append(volumeMounts, utils.DefaultModelWeightsVolumeMount)
+		volumes = append(volumes, manifests.DefaultModelWeightsVolume)
+		volumeMounts = append(volumeMounts, manifests.DefaultModelWeightsVolumeMount)
 		spec.InitContainers = append(spec.InitContainers, generateTuningModelPullerContainer(tuningParam))
 
 		// resource requirements
@@ -281,18 +279,18 @@ func GenerateBasicTuningPodSpec(skuNumGPUs int) func(*builder.WorkspaceGenerator
 }
 
 func generateTuningModelPullerContainer(params *pkgmodel.PresetParam) corev1.Container {
-	modelImage := utils.GetPresetImageName(params.Registry, params.Transformers.ModelName, params.Transformers.Tag)
+	modelImage := image.PresetImageName(params.Registry, params.Transformers.ModelName, params.Transformers.Tag)
 	return corev1.Container{
 		Name:  "model-weights-downloader",
-		Image: utils.DefaultORASToolImage,
+		Image: defaultORASToolImage,
 		Command: []string{
 			"oras",
 			"pull",
 			modelImage,
 			"-o",
-			utils.DefaultWeightsVolumePath,
+			pkgmodel.DefaultWeightsVolumePath,
 		},
-		VolumeMounts: []corev1.VolumeMount{utils.DefaultModelWeightsVolumeMount},
+		VolumeMounts: []corev1.VolumeMount{manifests.DefaultModelWeightsVolumeMount},
 	}
 }
 
@@ -316,14 +314,14 @@ func SetTrainingResultVolume(ctx *builder.WorkspaceGeneratorContext, spec *corev
 	}
 
 	// Add shared volume for tuning parameters
-	cmVolume, cmVolumeMount := utils.ConfigCMVolume(configVolume.Name)
+	cmVolume, cmVolumeMount := configCMVolume(configVolume.Name)
 
 	// Add results volume for training output
 	outputDir, err := GetTrainingOutputDir(ctx.Ctx, configVolume)
 	if err != nil {
 		return fmt.Errorf("failed to get training output directory from config: %w", err)
 	}
-	resultsVolume, resultsVolumeMount := utils.ConfigResultsVolume(outputDir, ctx.Workspace.Tuning.Output.Volume)
+	resultsVolume, resultsVolumeMount := configResultsVolume(outputDir, ctx.Workspace.Tuning.Output.Volume)
 
 	volumes := []corev1.Volume{cmVolume, resultsVolume}
 	volumeMounts := []corev1.VolumeMount{cmVolumeMount, resultsVolumeMount}
@@ -362,11 +360,11 @@ func SetTrainingOutputImagePush(ctx *builder.WorkspaceGeneratorContext, spec *co
 		Name: output.ImagePushSecret,
 	}
 	spec.ImagePullSecrets = append(spec.ImagePullSecrets, imagePushSecretRef)
-	secretVolume, secretVolumeMount := utils.ConfigImagePushSecretVolume(imagePushSecretRef.Name)
+	secretVolume, secretVolumeMount := configImagePushSecretVolume(imagePushSecretRef.Name)
 	spec.Volumes = append(spec.Volumes, secretVolume)
 
 	// additional sidecar container for uploading image
-	resultVolumeMount := utils.FindResultsVolumeMount(spec)
+	resultVolumeMount := findResultsVolumeMount(spec)
 	if resultVolumeMount == nil {
 		return fmt.Errorf("results volume mount not found in pod spec")
 	}
@@ -405,9 +403,9 @@ func prepareDataSource(ctx context.Context, workspaceObj *kaitov1beta1.Workspace
 
 	switch {
 	case input.Image != "":
-		dataVolume, dataVolumeMount := utils.ConfigDataVolume(nil)
-		imagePullSecretVolume, imagePullSecretVolumeMount := utils.ConfigImagePullSecretVolume(input.Name+"-tuning-input", input.ImagePullSecrets)
-		pullerContainer := image.NewPullerContainer(input.Image, utils.DefaultDataVolumePath)
+		dataVolume, dataVolumeMount := configDataVolume(nil)
+		imagePullSecretVolume, imagePullSecretVolumeMount := manifests.ConfigImagePullSecretVolume(input.Name+"-tuning-input", input.ImagePullSecrets)
+		pullerContainer := image.NewPullerContainer(input.Image, defaultDataVolumePath)
 		pullerContainer.VolumeMounts = append(pullerContainer.VolumeMounts, imagePullSecretVolumeMount, dataVolumeMount)
 		return pullerContainer, []corev1.Volume{imagePullSecretVolume, dataVolume}, []corev1.VolumeMount{imagePullSecretVolumeMount, dataVolumeMount}
 
@@ -416,7 +414,7 @@ func prepareDataSource(ctx context.Context, workspaceObj *kaitov1beta1.Workspace
 		return initContainer, []corev1.Volume{volume}, []corev1.VolumeMount{volumeMount}
 
 	case input.Volume != nil:
-		dataVolume, dataVolumeMount := utils.ConfigDataVolume(input.Volume)
+		dataVolume, dataVolumeMount := configDataVolume(input.Volume)
 		return nil, []corev1.Volume{dataVolume}, []corev1.VolumeMount{dataVolumeMount}
 
 	default:
@@ -425,7 +423,7 @@ func prepareDataSource(ctx context.Context, workspaceObj *kaitov1beta1.Workspace
 }
 
 func handleURLDataSource(workspaceObj *kaitov1beta1.Workspace) (*corev1.Container, corev1.Volume, corev1.VolumeMount) {
-	volume, volumeMount := utils.ConfigDataVolume(nil)
+	volume, volumeMount := configDataVolume(nil)
 	initContainer := &corev1.Container{
 		Name:    "data-downloader",
 		Image:   "curlimages/curl:8.23.0",
@@ -437,7 +435,7 @@ func handleURLDataSource(workspaceObj *kaitov1beta1.Workspace) (*corev1.Containe
 			},
 			{
 				Name:  "DATA_VOLUME_PATH",
-				Value: utils.DefaultDataVolumePath,
+				Value: defaultDataVolumePath,
 			},
 		},
 		VolumeMounts: []corev1.VolumeMount{volumeMount},

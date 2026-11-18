@@ -40,11 +40,11 @@ class BenchmarkControlMiddleware(BaseHTTPMiddleware):
         engine = request.app.state.engine_client
         error = None
         try:
-            await engine.pause_generation(
-                mode="abort",
-                wait_for_inflight_requests=False,
-                clear_cache=True,
-            )
+            await engine.pause_generation(mode="abort", clear_cache=False)
+            # Clearing through pause_generation also resets the KV connector,
+            # which would wipe the LMCache sidecar shared across vLLM restarts.
+            if not await engine.reset_prefix_cache(reset_connector=False):
+                logger.warning("Failed to reset prefix cache after benchmark abort")
         except Exception as exc:
             logger.exception("Failed to abort benchmark requests")
             error = exc

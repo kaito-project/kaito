@@ -55,7 +55,6 @@ helm install workspace ./charts/kaito/workspace  \
 | nvidiaDevicePlugin.daemonsetName               | string | `"nvidia-device-plugin-daemonset"`                       | DNS-1123 name of the generated DaemonSet.                     |
 | nvidiaDevicePlugin.image                       | string | `"mcr.microsoft.com/oss/v2/nvidia/k8s-device-plugin:v0.20.1-5"` | Full image reference for the device plugin container. |
 | nvidiaDevicePlugin.imagePullPolicy             | string | `"IfNotPresent"`                                         | Allowed values: `Always`, `IfNotPresent`, `Never`.            |
-| featureGates.vLLM                              | bool   | `true`                                                   | Allowed values: `true`, `false`. Enables the vLLM inference runtime feature gate. |
 | featureGates.disableNodeAutoProvisioning       | bool   | `false`                                                  | Allowed values: `true`, `false`. When `true`, disables Node Auto-Provisioning (NAP) and installs the `gpu-feature-discovery` subchart as a standalone replacement. |
 | featureGates.gatewayAPIInferenceExtension      | bool   | `false`                                                  | Allowed values: `true`, `false`. Enables the Gateway API Inference Extension (also gates installation of the GAIE subchart). |
 | featureGates.enableInferenceSetController      | bool   | `true`                                                  | Allowed values: `true`, `false`. Enables the InferenceSet controller and its RBAC. |

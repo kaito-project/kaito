@@ -14,34 +14,27 @@
 package ragengine
 
 import (
-	"context"
-
 	"k8s.io/apimachinery/pkg/runtime/schema"
-	"knative.dev/pkg/configmap"
-	"knative.dev/pkg/controller"
 	knativeinjection "knative.dev/pkg/injection"
 	"knative.dev/pkg/webhook/certificates"
 	"knative.dev/pkg/webhook/resourcesemantics"
-	"knative.dev/pkg/webhook/resourcesemantics/validation"
 
+	"github.com/kaito-project/kaito/api/env"
 	kaitov1beta1 "github.com/kaito-project/kaito/api/v1beta1"
+	"github.com/kaito-project/kaito/internal/webhook/admission"
 )
 
-func NewRAGEngineWebhooks() []knativeinjection.ControllerConstructor {
+// NewRAGEngineWebhooks returns the webhook constructors; every admission
+// request context carries e.
+func NewRAGEngineWebhooks(e *env.Env) []knativeinjection.ControllerConstructor {
 	return []knativeinjection.ControllerConstructor{
 		certificates.NewController,
-		NewRAGEngineCRDValidationWebhook,
+		NewRAGEngineCRDValidationWebhook(e),
 	}
 }
 
-func NewRAGEngineCRDValidationWebhook(ctx context.Context, _ configmap.Watcher) *controller.Impl {
-	return validation.NewAdmissionController(ctx,
-		"validation.ragengine.kaito.sh",
-		"/validate/ragengine.kaito.sh",
-		RAGEngineResources,
-		func(ctx context.Context) context.Context { return ctx },
-		true,
-	)
+func NewRAGEngineCRDValidationWebhook(e *env.Env) knativeinjection.ControllerConstructor {
+	return admission.NewValidationController(e, "validation.ragengine.kaito.sh", "/validate/ragengine.kaito.sh", RAGEngineResources)
 }
 
 var RAGEngineResources = map[schema.GroupVersionKind]resourcesemantics.GenericCRD{

@@ -39,13 +39,12 @@ import (
 	"github.com/kaito-project/kaito/api/internal/speculativedecoding"
 	"github.com/kaito-project/kaito/pkg/accelerator/nvidia"
 	"github.com/kaito-project/kaito/pkg/catalog"
+	"github.com/kaito-project/kaito/pkg/consts"
 	"github.com/kaito-project/kaito/pkg/featuregates"
 	"github.com/kaito-project/kaito/pkg/k8sclient"
 	"github.com/kaito-project/kaito/pkg/model"
 	mmconsts "github.com/kaito-project/kaito/pkg/modelmirror/consts"
 	"github.com/kaito-project/kaito/pkg/sku"
-	"github.com/kaito-project/kaito/pkg/utils"
-	"github.com/kaito-project/kaito/pkg/utils/consts"
 )
 
 const (
@@ -115,7 +114,7 @@ func (w *Workspace) ValidateUpdate(ctx context.Context, old *Workspace) (errs *a
 		errs = errs.Also(w.validateNodeClassNameAnnotation())
 	}
 	errs = errs.Also(w.validateCapacityTypeAnnotationUpdate(old))
-	if featuregates.FeatureGates[consts.FeatureFlagModelStreaming] {
+	if featuregates.FeatureGates[featuregates.FeatureFlagModelStreaming] {
 		errs = errs.Also(w.validateModelStreamingAnnotationImmutable(old))
 	}
 	if w.Inference != nil {
@@ -156,7 +155,7 @@ func (w *Workspace) ValidateCreate(ctx context.Context) (errs *apis.FieldError) 
 			w.validateInferenceConfig(ctx),
 			w.validateCustomModelStreaming(),
 		)
-		if featuregates.FeatureGates[consts.FeatureFlagModelStreaming] {
+		if featuregates.FeatureGates[featuregates.FeatureFlagModelStreaming] {
 			errs = errs.Also(w.validateStreamingCSIDriver(ctx))
 		}
 	}
@@ -202,7 +201,7 @@ func (w *Workspace) validateCPUInferenceConstraints() (errs *apis.FieldError) {
 	}
 	runtimeAnnotation := w.Annotations[AnnotationWorkspaceRuntime]
 	if GetWorkspaceRuntimeName(w) != model.RuntimeNameVLLM || (runtimeAnnotation != "" && runtimeAnnotation != string(model.RuntimeNameVLLM)) {
-		errs = errs.Also(apis.ErrInvalidValue("CPU preset inference supports only vllm; enable the vllm feature gate and select the vllm runtime", "inference.preset"))
+		errs = errs.Also(apis.ErrInvalidValue("CPU preset inference supports only vllm; select the vllm runtime", "inference.preset"))
 	}
 	if w.Resource.Count != nil && *w.Resource.Count != 1 {
 		errs = errs.Also(apis.ErrInvalidValue("basic CPU inference only supports a single node per Workspace", "resource.count"))
@@ -249,8 +248,9 @@ func (w *Workspace) validateSpeculativeDecoding(ctx context.Context) (errs *apis
 	// get their preset-tuned config (e.g. mtp for DeepSeek R1/V3/V3.2); everything else
 	// falls back to the universal ngram default at pod-spec generation time.
 	//
-	// Current reachable methods in this PR are only preset-tuned mtp and the
-	// universal ngram fallback; both are allowed under pipeline parallelism.
+	// Reachable methods are preset-tuned mtp and dspark plus the universal
+	// ngram fallback; all run under pipeline parallelism (dspark's adaptive
+	// verification is turned off there at pod-spec generation time).
 	// If KAITO later adds a speculative-decoding method that is not PP-safe,
 	// add an explicit guard here before accepting the annotation.
 
@@ -265,7 +265,7 @@ func (w *Workspace) validateCreate() (errs *apis.FieldError) {
 		errs = errs.Also(apis.ErrGeneric("Either Inference or Tuning must be specified, but not both", ""))
 	}
 
-	if !featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning] {
+	if !featuregates.FeatureGates[featuregates.FeatureFlagDisableNodeAutoProvisioning] {
 		if w.Resource.InstanceType == "" {
 			errs = errs.Also(apis.ErrMissingField("instanceType is required when node auto-provisioning is enabled", "resource.instanceType"))
 		}
@@ -289,7 +289,7 @@ func (w *Workspace) validateNodeImageFamilyAnnotation() (errs *apis.FieldError) 
 		return nil
 	}
 
-	if _, valid := consts.NormalizeSupportedNodeImageFamily(nodeImageFamily); !valid {
+	if _, valid := NormalizeSupportedNodeImageFamily(nodeImageFamily); !valid {
 		return apis.ErrInvalidValue(
 			fmt.Sprintf("unsupported node image family %q, supported values are azurelinux, ubuntu", nodeImageFamily),
 			fmt.Sprintf("metadata.annotations[%q]", AnnotationNodeImageFamily),
@@ -307,12 +307,12 @@ func (w *Workspace) validateNodeClassNameAnnotation() *apis.FieldError {
 		return nil
 	}
 	// The annotation is inert unless karpenter is provisioning nodes.
-	if !consts.IsKarpenterProvisioner() {
+	if !featuregates.IsKarpenterProvisioner() {
 		return nil
 	}
 	field := fmt.Sprintf("metadata.annotations[%q]", AnnotationNodeClassName)
 
-	allowed := consts.AllowedNodeClassNames()
+	allowed := featuregates.AllowedNodeClassNames()
 	if !slices.Contains(allowed, name) {
 		return apis.ErrInvalidValue(
 			fmt.Sprintf("%q is not a KAITO-managed NodeClass, supported values are %v", name, allowed),
@@ -323,22 +323,22 @@ func (w *Workspace) validateNodeClassNameAnnotation() *apis.FieldError {
 }
 
 func (w *Workspace) validateCapacityTypeAnnotation() *apis.FieldError {
-	if !consts.IsKarpenterProvisioner() {
+	if !featuregates.IsKarpenterProvisioner() {
 		return nil
 	}
 	capacityType := w.GetAnnotations()[AnnotationCapacityType]
-	if consts.IsSupportedKarpenterCapacityType(capacityType) {
+	if IsSupportedKarpenterCapacityType(capacityType) {
 		return nil
 	}
 	return apis.ErrInvalidValue(
 		fmt.Sprintf("%q is not a supported capacity type; choose one of: %s, %s",
-			capacityType, consts.KarpenterCapacityTypeOnDemand, consts.KarpenterCapacityTypeSpot),
+			capacityType, CapacityTypeOnDemand, CapacityTypeSpot),
 		fmt.Sprintf("metadata.annotations[%s]", AnnotationCapacityType),
 	)
 }
 
 func (w *Workspace) validateCapacityTypeAnnotationUpdate(old *Workspace) *apis.FieldError {
-	if !consts.IsKarpenterProvisioner() {
+	if !featuregates.IsKarpenterProvisioner() {
 		return nil
 	}
 	oldValue := old.GetAnnotations()[AnnotationCapacityType]
@@ -346,7 +346,7 @@ func (w *Workspace) validateCapacityTypeAnnotationUpdate(old *Workspace) *apis.F
 	if oldValue == newValue {
 		return nil
 	}
-	if !consts.IsSupportedKarpenterCapacityType(oldValue) {
+	if !IsSupportedKarpenterCapacityType(oldValue) {
 		return w.validateCapacityTypeAnnotation()
 	}
 	return apis.ErrGeneric(
@@ -407,7 +407,7 @@ func (r *TuningSpec) validateCreate(ctx context.Context, workspaceNamespace stri
 	}
 	if r.Config == "" {
 		klog.InfoS("Tuning config not specified. Using default based on method.")
-		releaseNamespace, err := utils.GetReleaseNamespace()
+		releaseNamespace, err := k8sclient.GetReleaseNamespace()
 		if err != nil {
 			errs = errs.Also(apis.ErrGeneric(fmt.Sprintf("Failed to determine release namespace: %v", err), "namespace"))
 		}
@@ -637,7 +637,7 @@ func (r *ResourceSpec) validateCreateWithInference(ctx context.Context, inferenc
 		return errs
 	}
 
-	napDisabled := featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning]
+	napDisabled := featuregates.FeatureGates[featuregates.FeatureFlagDisableNodeAutoProvisioning]
 	isCPUInference := IsCPUInferenceTarget(inference, r.InstanceType)
 
 	// Defer GPU-memory sufficiency checks when BYO reconciliation selects the
@@ -771,10 +771,10 @@ func (r *ResourceSpec) validateCreateWithInference(ctx context.Context, inferenc
 			return errs.Also(apis.ErrGeneric("GPU partitioning is only supported with BYO nodes (disableNodeAutoProvisioning=true)", "partition"))
 		}
 		if isCPUInference {
-			if selectorSKU := SanitizedMatchLabels(r.LabelSelector)[consts.SKUString]; selectorSKU != "" && selectorSKU != consts.CPUString {
+			if selectorSKU := SanitizedMatchLabels(r.LabelSelector)[LabelSKU]; selectorSKU != "" && selectorSKU != SKUCPU {
 				errs = errs.Also(apis.ErrInvalidValue(
-					fmt.Sprintf("auto-provisioned basic CPU inference reserves labelSelector.matchLabels[%q]=%q; got %q", consts.SKUString, consts.CPUString, selectorSKU),
-					fmt.Sprintf("labelSelector.matchLabels[%s]", consts.SKUString),
+					fmt.Sprintf("auto-provisioned basic CPU inference reserves labelSelector.matchLabels[%q]=%q; got %q", LabelSKU, SKUCPU, selectorSKU),
+					fmt.Sprintf("labelSelector.matchLabels[%s]", LabelSKU),
 				))
 			}
 			if err := ValidateCPUInstanceTypeForNAP(instanceType); err != nil {
@@ -886,7 +886,7 @@ func (r *ResourceSpec) validatePartition() (errs *apis.FieldError) {
 // The BYO-node (NAP-disabled) requirement is enforced by the caller. Model-to-
 // partition fit is left to the lightweight webhook check and the node estimator.
 func (r *ResourceSpec) validateMIGPartition() (errs *apis.FieldError) {
-	if !featuregates.FeatureGates[consts.FeatureFlagEnableMIG] {
+	if !featuregates.FeatureGates[featuregates.FeatureFlagEnableMIG] {
 		return apis.ErrGeneric("MIG support is not enabled, set feature gate enableMIG=true", "partition")
 	}
 	if r.Partition.Count != nil {
@@ -905,7 +905,7 @@ func (r *ResourceSpec) validateMIGPartition() (errs *apis.FieldError) {
 // schema); Profile is not valid. The BYO-node (NAP-disabled) requirement is enforced
 // by the caller.
 func (r *ResourceSpec) validateAcceleratorPartition() (errs *apis.FieldError) {
-	if !featuregates.FeatureGates[consts.FeatureFlagEnableAccelerator] {
+	if !featuregates.FeatureGates[featuregates.FeatureFlagEnableAccelerator] {
 		return apis.ErrGeneric("accelerator partition support is not enabled, set feature gate enableAccelerator=true", "partition")
 	}
 	if r.Partition.Profile != "" {
@@ -996,7 +996,7 @@ func (r *ResourceSpec) validateUpdate(old *ResourceSpec) (errs *apis.FieldError)
 	}
 
 	// Check node auto-provisioning feature gate and validate instanceType accordingly
-	if featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning] {
+	if featuregates.FeatureGates[featuregates.FeatureFlagDisableNodeAutoProvisioning] {
 		// Keep instanceType immutable once set, while allowing it to be added and
 		// preserving the v0.7 upgrade path that clears it.
 		if old.InstanceType != "" && r.InstanceType != "" && old.InstanceType != r.InstanceType {
@@ -1161,7 +1161,7 @@ func (w *Workspace) validateModelStreamingAnnotationImmutable(old *Workspace) *a
 // validateStreamingCSIDriver validates that the required CSI driver for model streaming
 // is installed on the cluster. The CSI driver name is resolved from CLOUD_PROVIDER env
 // via consts.CSIDriverNameForCloud. To add a new cloud provider: add a constant and case
-// in pkg/utils/consts.
+// in pkg/consts.
 func (w *Workspace) validateStreamingCSIDriver(ctx context.Context) *apis.FieldError {
 	if w.Inference == nil || w.Inference.Preset == nil {
 		return nil

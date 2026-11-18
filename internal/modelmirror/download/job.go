@@ -23,8 +23,8 @@ import (
 	"k8s.io/utils/ptr"
 
 	kaitov1alpha1 "github.com/kaito-project/kaito/api/v1alpha1"
+	"github.com/kaito-project/kaito/internal/image"
 	mmconsts "github.com/kaito-project/kaito/pkg/modelmirror/consts"
-	kaitoconsts "github.com/kaito-project/kaito/pkg/utils/consts"
 )
 
 // BuildDownloadJob constructs the Job that downloads model files to the PVC.
@@ -68,7 +68,7 @@ hf download "${MODEL_ID}" \
 # zero-byte objects that cause RunAI model streamer to fail with FileExistsError.
 rm -rf "/models/${MODEL_ID}/.cache" 2>/dev/null || true
 find "/models/${MODEL_ID}/" -mindepth 1 -type d -exec rm -rf {} + 2>/dev/null || true`,
-		kaitoconsts.PipBootstrapCommand,
+		image.PipBootstrapCommand,
 		mmconsts.HuggingFaceHubVersion,
 		mmconsts.CertifiVersion,
 		excludeFlags,
@@ -95,7 +95,7 @@ find "/models/${MODEL_ID}/" -mindepth 1 -type d -exec rm -rf {} + 2>/dev/null ||
 
 	container := corev1.Container{
 		Name:    "downloader",
-		Image:   mmconsts.DownloaderImage,
+		Image:   image.PythonHelperImage,
 		Command: []string{"/bin/sh", "-c"},
 		Args:    []string{script},
 		Env:     envVars,

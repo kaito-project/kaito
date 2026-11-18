@@ -25,7 +25,7 @@ import (
 	karpenterv1 "sigs.k8s.io/karpenter/pkg/apis/v1"
 
 	kaitov1beta1 "github.com/kaito-project/kaito/api/v1beta1"
-	"github.com/kaito-project/kaito/pkg/utils/consts"
+	"github.com/kaito-project/kaito/pkg/featuregates"
 )
 
 const (
@@ -35,6 +35,10 @@ const (
 	// fits the karpenter.sh/nodepool label on NodeClaims and Nodes.
 	maxNodePoolNameLen = 53
 	hashSuffixLen      = 9
+
+	// karpenter-provider-azure placement labels.
+	azurePlacementScopeLabel = "karpenter.azure.com/placement-scope"
+	azurePlacementRegional   = "regional"
 )
 
 // truncatedName returns a deterministic, truncated string with a hash suffix
@@ -62,7 +66,7 @@ func resolveNodeClassName(ws *kaitov1beta1.Workspace, cfg NodeClassConfig) (stri
 	if !ok || name == "" {
 		return cfg.DefaultName, nil
 	}
-	allowed := consts.AllowedNodeClassNames()
+	allowed := featuregates.AllowedNodeClassNames()
 	if !slices.Contains(allowed, name) {
 		return "", fmt.Errorf("annotation %s=%q is not permitted: choose one of the KAITO-managed NodeClasses %v",
 			kaitov1beta1.AnnotationNodeClassName, name, allowed)
@@ -72,25 +76,23 @@ func resolveNodeClassName(ws *kaitov1beta1.Workspace, cfg NodeClassConfig) (stri
 
 // isInferenceSetWorkspace returns true if the Workspace was created by an InferenceSet.
 func isInferenceSetWorkspace(ws *kaitov1beta1.Workspace) bool {
-	_, ok := ws.Labels[consts.WorkspaceCreatedByInferenceSetLabel]
+	_, ok := ws.Labels[kaitov1beta1.WorkspaceCreatedByInferenceSetLabel]
 	return ok
 }
 
 func resolveCapacityType(ws *kaitov1beta1.Workspace) (string, error) {
 	capacityType := ws.Annotations[kaitov1beta1.AnnotationCapacityType]
 	if capacityType == "" {
-		return consts.KarpenterCapacityTypeOnDemand, nil
+		return karpenterv1.CapacityTypeOnDemand, nil
 	}
-	switch capacityType {
-	case consts.KarpenterCapacityTypeOnDemand, consts.KarpenterCapacityTypeSpot:
-		return capacityType, nil
-	default:
+	if !kaitov1beta1.IsSupportedKarpenterCapacityType(capacityType) {
 		return "", fmt.Errorf("annotation %s=%q is invalid: supported values are %q and %q",
 			kaitov1beta1.AnnotationCapacityType,
 			capacityType,
-			consts.KarpenterCapacityTypeOnDemand,
-			consts.KarpenterCapacityTypeSpot)
+			kaitov1beta1.CapacityTypeOnDemand,
+			kaitov1beta1.CapacityTypeSpot)
 	}
+	return capacityType, nil
 }
 
 // nodePoolRequirements builds the NodePool requirements list.
@@ -105,7 +107,7 @@ func nodePoolRequirements(ws *kaitov1beta1.Workspace, cfg NodeClassConfig, capac
 			Values:   []string{ws.Resource.InstanceType},
 		},
 		{
-			Key:      consts.KarpenterCapacityTypeLabel,
+			Key:      karpenterv1.CapacityTypeLabelKey,
 			Operator: corev1.NodeSelectorOpIn,
 			Values:   []string{capacityType},
 		},
@@ -113,9 +115,9 @@ func nodePoolRequirements(ws *kaitov1beta1.Workspace, cfg NodeClassConfig, capac
 	// Azure Karpenter requires regional placement scope.
 	if cfg.Group == "karpenter.azure.com" {
 		reqs = append(reqs, karpenterv1.NodeSelectorRequirementWithMinValues{
-			Key:      consts.AzurePlacementScopeLabel,
+			Key:      azurePlacementScopeLabel,
 			Operator: corev1.NodeSelectorOpIn,
-			Values:   []string{consts.AzurePlacementRegional},
+			Values:   []string{azurePlacementRegional},
 		})
 	}
 	return reqs
@@ -134,8 +136,8 @@ func generateNodePool(ws *kaitov1beta1.Workspace, cfg NodeClassConfig, nodeClass
 
 	// Template labels propagated to NodeClaims and Nodes.
 	templateLabels := map[string]string{
-		consts.KarpenterWorkspaceNameKey:      ws.Name,
-		consts.KarpenterWorkspaceNamespaceKey: ws.Namespace,
+		kaitov1beta1.LabelKarpenterWorkspaceName:      ws.Name,
+		kaitov1beta1.LabelKarpenterWorkspaceNamespace: ws.Namespace,
 	}
 	// Include the user's matchLabels so that inference pods' nodeAffinity
 	// (built from matchLabels) is satisfied. KAITO-reserved keys are stripped
@@ -146,33 +148,33 @@ func generateNodePool(ws *kaitov1beta1.Workspace, cfg NodeClassConfig, nodeClass
 	// InferenceSet workspaces get additional labels so the drift controller
 	// can map NodeClaim events back to the owning InferenceSet.
 	if isInferenceSetWorkspace(ws) {
-		templateLabels[consts.KarpenterInferenceSetKey] = ws.Labels[consts.WorkspaceCreatedByInferenceSetLabel]
-		templateLabels[consts.KarpenterInferenceSetNamespaceKey] = ws.Namespace
+		templateLabels[kaitov1beta1.LabelKarpenterInferenceSet] = ws.Labels[kaitov1beta1.WorkspaceCreatedByInferenceSetLabel]
+		templateLabels[kaitov1beta1.LabelKarpenterInferenceSetNamespace] = ws.Namespace
 	}
 
 	// NodePool-level labels for management and lookup.
 	nodePoolLabels := map[string]string{
-		consts.KarpenterLabelManagedBy:        consts.KarpenterManagedByValue,
-		consts.KarpenterWorkspaceNameKey:      ws.Name,
-		consts.KarpenterWorkspaceNamespaceKey: ws.Namespace,
+		kaitov1beta1.LabelKarpenterManagedBy:          kaitov1beta1.KarpenterManagedByKAITO,
+		kaitov1beta1.LabelKarpenterWorkspaceName:      ws.Name,
+		kaitov1beta1.LabelKarpenterWorkspaceNamespace: ws.Namespace,
 	}
 	// InferenceSet workspaces get labels on NodePool ObjectMeta so the drift
 	// controller can List NodePools by InferenceSet directly.
 	if isInferenceSetWorkspace(ws) {
-		nodePoolLabels[consts.KarpenterInferenceSetKey] = ws.Labels[consts.WorkspaceCreatedByInferenceSetLabel]
-		nodePoolLabels[consts.KarpenterInferenceSetNamespaceKey] = ws.Namespace
+		nodePoolLabels[kaitov1beta1.LabelKarpenterInferenceSet] = ws.Labels[kaitov1beta1.WorkspaceCreatedByInferenceSetLabel]
+		nodePoolLabels[kaitov1beta1.LabelKarpenterInferenceSetNamespace] = ws.Namespace
 	}
 
 	nodePoolTaints := []corev1.Taint{{
-		Key:    consts.SKUString,
-		Value:  consts.GPUString,
+		Key:    kaitov1beta1.LabelSKU,
+		Value:  kaitov1beta1.SKUGPU,
 		Effect: corev1.TaintEffectNoSchedule,
 	}}
 	if kaitov1beta1.IsCPUInferenceWorkspace(ws) {
-		templateLabels[consts.SKUString] = consts.CPUString
+		templateLabels[kaitov1beta1.LabelSKU] = kaitov1beta1.SKUCPU
 		nodePoolTaints = []corev1.Taint{{
-			Key:    consts.SKUString,
-			Value:  consts.CPUString,
+			Key:    kaitov1beta1.LabelSKU,
+			Value:  kaitov1beta1.SKUCPU,
 			Effect: corev1.TaintEffectNoSchedule,
 		}}
 	}

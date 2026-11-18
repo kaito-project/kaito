@@ -11,33 +11,16 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package utils
+package workspace
 
 import (
 	"strconv"
 	"strings"
-
-	"gopkg.in/yaml.v2"
 )
 
-// InferenceRuntimeConfig contains the inference settings needed during workload generation.
-type InferenceRuntimeConfig struct {
-	VLLM                        map[string]interface{} `yaml:"vllm"`
-	KVCacheCPUMemoryUtilization *float64               `yaml:"kv_cache_cpu_memory_utilization"`
-}
-
-// ParseInferenceRuntimeConfig parses inference_config.yaml settings used by the controller.
-func ParseInferenceRuntimeConfig(content string) (InferenceRuntimeConfig, error) {
-	config := InferenceRuntimeConfig{}
-	if err := yaml.Unmarshal([]byte(content), &config); err != nil {
-		return InferenceRuntimeConfig{}, err
-	}
-	return config, nil
-}
-
-// ParseExplicitMaxModelLen scans YAML content for a top-level (under vllm:) 'max-model-len:' value.
+// parseExplicitMaxModelLen scans YAML content for a top-level (under vllm:) 'max-model-len:' value.
 // Returns (value,true) only if an explicit non-empty positive integer is found; otherwise (0,false).
-func ParseExplicitMaxModelLen(content string) (int, bool) {
+func parseExplicitMaxModelLen(content string) (int, bool) {
 	lines := strings.Split(content, "\n")
 	inVLLM := false
 	baseIndent := ""

@@ -14,21 +14,17 @@
 package workspace
 
 import (
-	"context"
-
 	"k8s.io/apimachinery/pkg/runtime/schema"
-	"knative.dev/pkg/configmap"
-	"knative.dev/pkg/controller"
 	knativeinjection "knative.dev/pkg/injection"
 	"knative.dev/pkg/webhook/certificates"
 	"knative.dev/pkg/webhook/resourcesemantics"
-	"knative.dev/pkg/webhook/resourcesemantics/validation"
 
+	"github.com/kaito-project/kaito/api/env"
 	kaitov1alpha1 "github.com/kaito-project/kaito/api/v1alpha1"
 	kaitov1beta1 "github.com/kaito-project/kaito/api/v1beta1"
 	"github.com/kaito-project/kaito/internal/inferenceset"
+	"github.com/kaito-project/kaito/internal/webhook/admission"
 	"github.com/kaito-project/kaito/pkg/featuregates"
-	"github.com/kaito-project/kaito/pkg/utils/consts"
 )
 
 // Wire the InferenceSet admission webhook to validate the child Workspace it
@@ -38,53 +34,37 @@ func init() {
 	kaitov1beta1.ValidateInferenceSetWorkspace = inferenceset.ValidateWorkspaceForInferenceSet
 }
 
-func NewControllerWebhooks() []knativeinjection.ControllerConstructor {
+// NewControllerWebhooks returns the webhook constructors; every admission
+// request context carries e.
+func NewControllerWebhooks(e *env.Env) []knativeinjection.ControllerConstructor {
 	constructor := []knativeinjection.ControllerConstructor{
 		certificates.NewController,
-		NewWorkspaceCRDValidationWebhook,
+		NewWorkspaceCRDValidationWebhook(e),
 	}
 
-	if featuregates.FeatureGates[consts.FeatureFlagEnableInferenceSetController] {
-		constructor = append(constructor, NewInferenceSetCRDValidationWebhook)
+	if featuregates.FeatureGates[featuregates.FeatureFlagEnableInferenceSetController] {
+		constructor = append(constructor, NewInferenceSetCRDValidationWebhook(e))
 	}
-	if featuregates.FeatureGates[consts.FeatureFlagEnableMultiRoleInferenceController] {
-		constructor = append(constructor, NewMultiRoleInferenceCRDValidationWebhook)
+	if featuregates.FeatureGates[featuregates.FeatureFlagEnableMultiRoleInferenceController] {
+		constructor = append(constructor, NewMultiRoleInferenceCRDValidationWebhook(e))
 	}
-	if featuregates.FeatureGates[consts.FeatureFlagModelMirror] {
-		constructor = append(constructor, NewModelMirrorCRDValidationWebhook)
+	if featuregates.FeatureGates[featuregates.FeatureFlagModelMirror] {
+		constructor = append(constructor, NewModelMirrorCRDValidationWebhook(e))
 	}
 
 	return constructor
 }
 
-func NewWorkspaceCRDValidationWebhook(ctx context.Context, _ configmap.Watcher) *controller.Impl {
-	return validation.NewAdmissionController(ctx,
-		"validation.workspace.kaito.sh",
-		"/validate/workspace.kaito.sh",
-		WorkspaceResources,
-		func(ctx context.Context) context.Context { return ctx },
-		true,
-	)
+func NewWorkspaceCRDValidationWebhook(e *env.Env) knativeinjection.ControllerConstructor {
+	return admission.NewValidationController(e, "validation.workspace.kaito.sh", "/validate/workspace.kaito.sh", WorkspaceResources)
 }
 
-func NewInferenceSetCRDValidationWebhook(ctx context.Context, _ configmap.Watcher) *controller.Impl {
-	return validation.NewAdmissionController(ctx,
-		"validation.inferenceset.kaito.sh",
-		"/validate/inferenceset.kaito.sh",
-		InferenceSetResources,
-		func(ctx context.Context) context.Context { return ctx },
-		true,
-	)
+func NewInferenceSetCRDValidationWebhook(e *env.Env) knativeinjection.ControllerConstructor {
+	return admission.NewValidationController(e, "validation.inferenceset.kaito.sh", "/validate/inferenceset.kaito.sh", InferenceSetResources)
 }
 
-func NewMultiRoleInferenceCRDValidationWebhook(ctx context.Context, _ configmap.Watcher) *controller.Impl {
-	return validation.NewAdmissionController(ctx,
-		"validation.multiroleinference.kaito.sh",
-		"/validate/multiroleinference.kaito.sh",
-		MultiRoleInferenceResources,
-		func(ctx context.Context) context.Context { return ctx },
-		true,
-	)
+func NewMultiRoleInferenceCRDValidationWebhook(e *env.Env) knativeinjection.ControllerConstructor {
+	return admission.NewValidationController(e, "validation.multiroleinference.kaito.sh", "/validate/multiroleinference.kaito.sh", MultiRoleInferenceResources)
 }
 
 var WorkspaceResources = map[schema.GroupVersionKind]resourcesemantics.GenericCRD{
@@ -101,14 +81,8 @@ var MultiRoleInferenceResources = map[schema.GroupVersionKind]resourcesemantics.
 	kaitov1alpha1.GroupVersion.WithKind("MultiRoleInference"): &kaitov1alpha1.MultiRoleInference{},
 }
 
-func NewModelMirrorCRDValidationWebhook(ctx context.Context, _ configmap.Watcher) *controller.Impl {
-	return validation.NewAdmissionController(ctx,
-		"validation.modelmirror.kaito.sh",
-		"/validate/modelmirror.kaito.sh",
-		ModelMirrorResources,
-		func(ctx context.Context) context.Context { return ctx },
-		true,
-	)
+func NewModelMirrorCRDValidationWebhook(e *env.Env) knativeinjection.ControllerConstructor {
+	return admission.NewValidationController(e, "validation.modelmirror.kaito.sh", "/validate/modelmirror.kaito.sh", ModelMirrorResources)
 }
 
 var ModelMirrorResources = map[schema.GroupVersionKind]resourcesemantics.GenericCRD{

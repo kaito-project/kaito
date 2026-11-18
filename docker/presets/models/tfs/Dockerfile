@@ -27,6 +27,7 @@ RUN apt-get update -y && apt upgrade -y && \
         apt-get install --only-upgrade --no-install-recommends -y openssl; \
     fi && \
     apt-get install --no-install-recommends -y curl gcc g++ libc-dev perl libglib2.0-0 libgl1 libsm6 libxext6 libxrender1 && \
+    apt-get install --only-upgrade --no-install-recommends -y libsasl2-2 libsasl2-modules-db && \
     apt-get clean && rm -rf /var/lib/apt/lists/*
 
 FROM dependencies AS base
@@ -38,6 +39,7 @@ COPY presets/workspace/dependencies/requirements.txt /workspace/requirements.txt
 # Install the CUDA 12.9 build of the stack (vLLM, torch, LMCache) instead of the
 # default CUDA 13 wheels, because CUDA 13 requires 580+ Nvidia GPU drivers.
 RUN --mount=type=cache,target=/root/.cache/pip \
+    --mount=type=bind,source=docker/presets/models/tfs/prune_virtualenv_seed_wheels.py,target=/tmp/prune_virtualenv_seed_wheels.py \
     pip3 install --no-cache-dir "uv==${UV_VERSION}" && \
     VLLM_VERSION=$(grep 'vllm==' /workspace/requirements.txt | cut -d'=' -f3 | tr -d ' ') && \
     LMCACHE_VERSION=$(grep 'lmcache==' /workspace/requirements.txt | cut -d'=' -f3 | tr -d ' ') && \
@@ -56,7 +58,15 @@ RUN --mount=type=cache,target=/root/.cache/pip \
       "Without the dispatcher, prefill/decode pods crash at engine init with 'NIXL is not available'." && \
     NIXL_VERSION=$(grep 'nixl-cu12==' /workspace/requirements.txt | cut -d'=' -f3 | tr -d ' ') && \
     uv pip install --system -q --no-deps "nixl==${NIXL_VERSION}" && \
-    pip3 uninstall -y uv
+    pip3 uninstall -y uv && \
+    : "Drop files that are unused at runtime: Ray's Java worker jars (KAITO only runs" \
+      "Python Ray workers), virtualenv seed wheels for other Python versions, and" \
+      "uv's download cache. Fail if the Ray layout changes so this is revisited." && \
+    RAY_JARS="$(python3 -c 'import os, ray; print(os.path.join(os.path.dirname(ray.__file__), "jars"))')" && \
+    test -d "${RAY_JARS}" && rm -rf "${RAY_JARS}" && \
+    python3 /tmp/prune_virtualenv_seed_wheels.py && \
+    if [ -d /root/.cache/uv ]; then rm -rf /root/.cache/uv; fi && \
+    test ! -e /root/.cache/uv
 
 # 1. Huggingface transformers
 COPY presets/workspace/inference/${MODEL_TYPE}/inference_api.py \

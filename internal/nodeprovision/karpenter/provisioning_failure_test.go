@@ -34,7 +34,7 @@ import (
 
 	kaitov1beta1 "github.com/kaito-project/kaito/api/v1beta1"
 	"github.com/kaito-project/kaito/internal/k8s/nodeclaim"
-	"github.com/kaito-project/kaito/pkg/utils/consts"
+	"github.com/kaito-project/kaito/pkg/consts"
 )
 
 const (
@@ -74,9 +74,9 @@ func newWorkspaceNodeClaim(name string, conds ...status.Condition) *karpenterv1.
 			Name: name,
 			UID:  types.UID(name + "-uid"),
 			Labels: map[string]string{
-				karpenterv1.NodePoolLabelKey:          testPoolName,
-				consts.KarpenterWorkspaceNameKey:      "ws1",
-				consts.KarpenterWorkspaceNamespaceKey: "default",
+				karpenterv1.NodePoolLabelKey:                  testPoolName,
+				kaitov1beta1.LabelKarpenterWorkspaceName:      "ws1",
+				kaitov1beta1.LabelKarpenterWorkspaceNamespace: "default",
 			},
 			OwnerReferences: []metav1.OwnerReference{
 				{APIVersion: "karpenter.sh/v1", Kind: "NodePool", Name: testPoolName, UID: testPoolUID},
@@ -811,6 +811,7 @@ func TestClassifyProvisioningFailure(t *testing.T) {
 		"asynchronous allocation failure":        {reason: asyncProvisioningEventReason, message: azureAllocationFailedError, expected: consts.ReasonCapacityUnavailable},
 		"AKS machine overconstrained allocation": {reason: asyncProvisioningEventReason, message: "Failed to register: failed to create AKS machine \"m\" during LRO, unhandled provisioning error: code=OverconstrainedAllocationRequest, message=no capacity", expected: consts.ReasonCapacityUnavailable},
 		"VM size not supported":                  {reason: "CreateInstanceFailed", message: "ERROR CODE: VMSizeNotSupported", expected: consts.ReasonCapacityUnavailable},
+		"vm size not available in region":        {reason: asyncProvisioningEventReason, message: "ERROR CODE: InvalidParameter\nThe requested VM size (x) is not available in the current region.", expected: consts.ReasonCapacityUnavailable},
 		"image not found":                        {reason: "CreateInstanceFailed", message: "ERROR CODE: ImageNotFound\nThe platform image 'x' is not available", expected: consts.ReasonNodeImageInvalid},
 		"gallery image not found":                {reason: "CreateInstanceFailed", message: `{"code": "GalleryImageNotFound", "message": "not found"}`, expected: consts.ReasonNodeImageInvalid},
 		"invalid image reference":                {reason: "CreateInstanceFailed", message: "ERROR CODE: InvalidParameter\nThe value of parameter imageReference is invalid.", expected: consts.ReasonNodeImageInvalid},

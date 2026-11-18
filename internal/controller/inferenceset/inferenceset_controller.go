@@ -53,13 +53,15 @@ import (
 	"github.com/kaito-project/kaito/internal/manifests"
 	"github.com/kaito-project/kaito/pkg/featuregates"
 	pkgmodel "github.com/kaito-project/kaito/pkg/model"
-	"github.com/kaito-project/kaito/pkg/utils/consts"
 )
 
 const (
 	InferenceSetHashAnnotation = "inferenceset.kaito.io/hash"
 	InferenceSetNameLabel      = "inferenceset.kaito.io/name"
 	revisionHashSuffix         = 5
+
+	// inferenceSetFinalizer makes sure the inferenceset controller handles garbage collection.
+	inferenceSetFinalizer = "inferenceset.finalizer.kaito.sh"
 )
 
 type InferenceSetReconciler struct {
@@ -120,9 +122,9 @@ func (c *InferenceSetReconciler) Reconcile(ctx context.Context, req reconcile.Re
 }
 
 func (c *InferenceSetReconciler) ensureFinalizer(ctx context.Context, iObj *kaitov1beta1.InferenceSet) error {
-	if !controllerutil.ContainsFinalizer(iObj, consts.InferenceSetFinalizer) {
+	if !controllerutil.ContainsFinalizer(iObj, inferenceSetFinalizer) {
 		patch := client.MergeFrom(iObj.DeepCopy())
-		controllerutil.AddFinalizer(iObj, consts.InferenceSetFinalizer)
+		controllerutil.AddFinalizer(iObj, inferenceSetFinalizer)
 		if err := c.Client.Patch(ctx, iObj, patch); err != nil {
 			klog.ErrorS(err, "failed to ensure the finalizer to the inference set", "inference set", klog.KObj(iObj))
 			return err
@@ -162,7 +164,7 @@ func (c *InferenceSetReconciler) garbageCollectInferenceSet(ctx context.Context,
 	}
 
 	updateErr := resources.UpdateWithRetry(ctx, c.Client, client.ObjectKeyFromObject(iObj), func(ws *kaitov1beta1.InferenceSet) error {
-		controllerutil.RemoveFinalizer(ws, consts.InferenceSetFinalizer)
+		controllerutil.RemoveFinalizer(ws, inferenceSetFinalizer)
 		return nil
 	})
 	if updateErr != nil {
@@ -373,11 +375,11 @@ func (c *InferenceSetReconciler) selectWorkspacesToDelete(ctx context.Context, i
 }
 
 func repairInvalidWorkspaceCapacityType(ws *kaitov1beta1.Workspace, desired string) bool {
-	if !consts.IsSupportedKarpenterCapacityType(desired) {
+	if !kaitov1beta1.IsSupportedKarpenterCapacityType(desired) {
 		return false
 	}
 	current := ws.GetAnnotations()[kaitov1beta1.AnnotationCapacityType]
-	if consts.IsSupportedKarpenterCapacityType(current) {
+	if kaitov1beta1.IsSupportedKarpenterCapacityType(current) {
 		return false
 	}
 	if desired == "" {
@@ -419,7 +421,7 @@ func reconcileExistingWorkspaceMetadata(ws *kaitov1beta1.Workspace, desired *kai
 		needsUpdate = true
 	}
 
-	if consts.IsKarpenterProvisioner() {
+	if featuregates.IsKarpenterProvisioner() {
 		desiredCapacityType := desired.Annotations[kaitov1beta1.AnnotationCapacityType]
 		if repairInvalidWorkspaceCapacityType(ws, desiredCapacityType) {
 			needsUpdate = true
@@ -546,7 +548,7 @@ func (c *InferenceSetReconciler) addOrUpdateInferenceSet(ctx context.Context, iO
 		status.ReadyReplicas = readyReplicas
 		status.MaxModelLen = workspacecontroller.AggregateMaxModelLen(wsList.Items)
 		// set selector for HPA/VPA
-		status.Selector = fmt.Sprintf("%s=%s", consts.WorkspaceCreatedByInferenceSetLabel, iObj.Name)
+		status.Selector = fmt.Sprintf("%s=%s", kaitov1beta1.WorkspaceCreatedByInferenceSetLabel, iObj.Name)
 		runtimeName := kaitov1beta1.GetInferenceSetRuntimeName(iObj)
 		var presetName string
 		if iObj.Spec.Template.Inference.Preset != nil {
@@ -672,7 +674,7 @@ func (c *InferenceSetReconciler) ensureGatewayAPIInferenceExtension(ctx context.
 	isPresetInference := iObj.Spec.Template.Inference.Preset != nil
 
 	// Gateway API Inference Extension is specifically designed to work with vLLM and preset-based inference workloads.
-	if !featuregates.FeatureGates[consts.FeatureFlagGatewayAPIInferenceExtension] ||
+	if !featuregates.FeatureGates[featuregates.FeatureFlagGatewayAPIInferenceExtension] ||
 		runtimeName != pkgmodel.RuntimeNameVLLM || !isPresetInference {
 		return nil
 	}
@@ -813,7 +815,7 @@ func (c *InferenceSetReconciler) syncControllerRevision(ctx context.Context, iOb
 				annotations[kaitov1beta1.InferenceSetRevisionAnnotation] = strconv.FormatInt(revisionNum, 10)
 			}
 
-			if len(revisions.Items) > consts.MaxRevisionHistoryLimit {
+			if len(revisions.Items) > resources.MaxRevisionHistoryLimit {
 				if err := c.Delete(ctx, &revisions.Items[0]); err != nil {
 					return fmt.Errorf("failed to delete old revision: %w", err)
 				}
@@ -856,7 +858,7 @@ func (c *InferenceSetReconciler) SetupWithManager(mgr ctrl.Manager) error {
 		).
 		WithOptions(controller.Options{MaxConcurrentReconciles: 5})
 
-	if featuregates.FeatureGates[consts.FeatureFlagGatewayAPIInferenceExtension] {
+	if featuregates.FeatureGates[featuregates.FeatureFlagGatewayAPIInferenceExtension] {
 		// Verify that all prerequisite CRDs exist before configuring watches that depend on them.
 		// - FluxCD HelmRelease / OCIRepository: required for installing and reconciling the InferencePool Helm chart.
 		// - Gateway API Inference Extension InferencePool / InferenceModel: required runtime CRDs that the Workspace

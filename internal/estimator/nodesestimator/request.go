@@ -25,7 +25,6 @@ import (
 	"github.com/kaito-project/kaito/pkg/estimator"
 	"github.com/kaito-project/kaito/pkg/featuregates"
 	pkgmodel "github.com/kaito-project/kaito/pkg/model"
-	"github.com/kaito-project/kaito/pkg/utils/consts"
 )
 
 // RequestFromWorkspace builds a NodeEstimateRequest from a Workspace object.
@@ -38,7 +37,7 @@ func RequestFromWorkspace(ctx context.Context, w *kaitov1beta1.Workspace, kubeCl
 		ResourceProfile: estimator.ResourceProfile{
 			InstanceType:                w.Resource.InstanceType,
 			LabelSelector:               w.Resource.LabelSelector,
-			DisableNodeAutoProvisioning: featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning],
+			DisableNodeAutoProvisioning: featuregates.FeatureGates[featuregates.FeatureFlagDisableNodeAutoProvisioning],
 		},
 	}
 	//nolint:staticcheck //SA1019: deprecate Resource.Count field
@@ -77,7 +76,7 @@ func resolveModelForEstimation(ctx context.Context, w *kaitov1beta1.Workspace, k
 		if err != nil {
 			return nil, err
 		}
-		return resolved.Model, nil
+		return catalog.WithInferenceConfig(ctx, resolved.Model, w.Inference.Config, w.Namespace, kubeClient)
 	}
 
 	token := ""
@@ -91,5 +90,9 @@ func resolveModelForEstimation(ctx context.Context, w *kaitov1beta1.Workspace, k
 			return nil, fmt.Errorf("failed to resolve access token for model %q: %w", name, err)
 		}
 	}
-	return catalog.GetModelByNameWithToken(ctx, name, token)
+	m, err := catalog.GetModelByNameWithToken(ctx, name, token)
+	if err != nil {
+		return nil, err
+	}
+	return catalog.WithInferenceConfig(ctx, m, w.Inference.Config, w.Namespace, kubeClient)
 }

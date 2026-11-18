@@ -30,15 +30,13 @@ import (
 	"github.com/kaito-project/kaito/internal/testutil"
 	"github.com/kaito-project/kaito/pkg/featuregates"
 	pkgmodel "github.com/kaito-project/kaito/pkg/model"
-	"github.com/kaito-project/kaito/pkg/utils"
-	"github.com/kaito-project/kaito/pkg/utils/consts"
 )
 
 func TestGenerateInferencePoolOCIRepository(t *testing.T) {
 	workspace := testutil.MockInferenceSetWithPreset
 	repo := GenerateInferencePoolOCIRepository(workspace)
 
-	assert.Equal(t, utils.InferencePoolName(workspace.Name), repo.Name)
+	assert.Equal(t, InferencePoolName(workspace.Name), repo.Name)
 	assert.Equal(t, workspace.Namespace, repo.Namespace)
 	assert.Len(t, repo.OwnerReferences, 1)
 	owner := repo.OwnerReferences[0]
@@ -47,9 +45,9 @@ func TestGenerateInferencePoolOCIRepository(t *testing.T) {
 	assert.Equal(t, workspace.Name, owner.Name)
 	assert.True(t, *owner.Controller)
 
-	assert.Equal(t, consts.InferencePoolChartURL, repo.Spec.URL)
+	assert.Equal(t, InferencePoolChartURL, repo.Spec.URL)
 	if assert.NotNil(t, repo.Spec.Reference) {
-		assert.Equal(t, consts.InferencePoolChartVersion, repo.Spec.Reference.Tag)
+		assert.Equal(t, InferencePoolChartVersion, repo.Spec.Reference.Tag)
 	}
 }
 
@@ -71,9 +69,9 @@ func TestGenerateInferencePoolHelmRelease(t *testing.T) {
 				"router": map[string]any{
 					"epp": map[string]any{
 						"image": map[string]any{
-							"registry":   consts.EPPImageRegistry,
-							"repository": consts.EPPImageRepository,
-							"tag":        consts.EPPImageTag,
+							"registry":   EPPImageRegistry,
+							"repository": EPPImageRepository,
+							"tag":        EPPImageTag,
 							"pullPolicy": string(corev1.PullIfNotPresent),
 						},
 						"resources": map[string]any{
@@ -93,12 +91,12 @@ func TestGenerateInferencePoolHelmRelease(t *testing.T) {
 					"modelServers": map[string]any{
 						"targetPorts": []any{
 							map[string]any{
-								"number": float64(consts.PortInferenceServer),
+								"number": float64(PortInferenceServer),
 							},
 						},
 						"matchLabels": map[string]any{
-							consts.WorkspaceCreatedByInferenceSetLabel: base.Name,
-							appsv1.PodIndexLabel:                       "0",
+							kaitov1beta1.WorkspaceCreatedByInferenceSetLabel: base.Name,
+							appsv1.PodIndexLabel:                             "0",
 						},
 					},
 				},
@@ -120,9 +118,9 @@ func TestGenerateInferencePoolHelmRelease(t *testing.T) {
 				"router": map[string]any{
 					"epp": map[string]any{
 						"image": map[string]any{
-							"registry":   consts.EPPImageRegistry,
-							"repository": consts.EPPImageRepository,
-							"tag":        consts.EPPImageTag,
+							"registry":   EPPImageRegistry,
+							"repository": EPPImageRepository,
+							"tag":        EPPImageTag,
 							"pullPolicy": string(corev1.PullIfNotPresent),
 						},
 						"resources": map[string]any{
@@ -142,12 +140,12 @@ func TestGenerateInferencePoolHelmRelease(t *testing.T) {
 					"modelServers": map[string]any{
 						"targetPorts": []any{
 							map[string]any{
-								"number": float64(consts.PortInferenceServer),
+								"number": float64(PortInferenceServer),
 							},
 						},
 						"matchLabels": map[string]any{
-							consts.WorkspaceCreatedByInferenceSetLabel: base.Name,
-							appsv1.PodIndexLabel:                       "0",
+							kaitov1beta1.WorkspaceCreatedByInferenceSetLabel: base.Name,
+							appsv1.PodIndexLabel:                             "0",
 						},
 					},
 				},
@@ -169,9 +167,9 @@ func TestGenerateInferencePoolHelmRelease(t *testing.T) {
 				"router": map[string]any{
 					"epp": map[string]any{
 						"image": map[string]any{
-							"registry":   consts.EPPImageRegistry,
-							"repository": consts.EPPImageRepository,
-							"tag":        consts.EPPImageTag,
+							"registry":   EPPImageRegistry,
+							"repository": EPPImageRepository,
+							"tag":        EPPImageTag,
 							"pullPolicy": string(corev1.PullIfNotPresent),
 						},
 						"resources": map[string]any{
@@ -191,12 +189,12 @@ func TestGenerateInferencePoolHelmRelease(t *testing.T) {
 					"modelServers": map[string]any{
 						"targetPorts": []any{
 							map[string]any{
-								"number": float64(consts.PortInferenceServer),
+								"number": float64(PortInferenceServer),
 							},
 						},
 						"matchLabels": map[string]any{
-							consts.WorkspaceCreatedByInferenceSetLabel: base.Name,
-							appsv1.PodIndexLabel:                       "0",
+							kaitov1beta1.WorkspaceCreatedByInferenceSetLabel: base.Name,
+							appsv1.PodIndexLabel:                             "0",
 						},
 					},
 				},
@@ -206,27 +204,23 @@ func TestGenerateInferencePoolHelmRelease(t *testing.T) {
 
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
-			// Explicitly set vLLM feature gate so decode-role tests are deterministic.
-			origVLLM := featuregates.FeatureGates[consts.FeatureFlagVLLM]
-			featuregates.FeatureGates[consts.FeatureFlagVLLM] = true
-			defer func() { featuregates.FeatureGates[consts.FeatureFlagVLLM] = origVLLM }()
-			origFlowControl := featuregates.FeatureGates[consts.FeatureFlagEnableEPPFlowControl]
-			featuregates.FeatureGates[consts.FeatureFlagEnableEPPFlowControl] = false
+			origFlowControl := featuregates.FeatureGates[featuregates.FeatureFlagEnableEPPFlowControl]
+			featuregates.FeatureGates[featuregates.FeatureFlagEnableEPPFlowControl] = false
 			defer func() {
-				featuregates.FeatureGates[consts.FeatureFlagEnableEPPFlowControl] = origFlowControl
+				featuregates.FeatureGates[featuregates.FeatureFlagEnableEPPFlowControl] = origFlowControl
 			}()
 
 			helmRelease, err := GenerateInferencePoolHelmRelease(tc.workspace)
 			assert.NoError(t, err)
 			assert.NotNil(t, helmRelease)
 
-			assert.Equal(t, utils.InferencePoolName(base.Name), helmRelease.Name)
+			assert.Equal(t, InferencePoolName(base.Name), helmRelease.Name)
 			assert.Equal(t, base.Namespace, helmRelease.Namespace)
 			if assert.NotNil(t, helmRelease.Spec.ChartRef) {
 				assert.Equal(t, helmv2.CrossNamespaceSourceReference{
 					Kind:      sourcev1.OCIRepositoryKind,
 					Namespace: base.Namespace,
-					Name:      utils.InferencePoolName(base.Name),
+					Name:      InferencePoolName(base.Name),
 				}, *helmRelease.Spec.ChartRef)
 			}
 
@@ -240,9 +234,9 @@ func TestGenerateInferencePoolHelmRelease(t *testing.T) {
 
 func TestGenerateInferencePoolHelmReleaseFlowControl(t *testing.T) {
 	inferenceSet := testutil.MockInferenceSetWithPreset.DeepCopy()
-	original := featuregates.FeatureGates[consts.FeatureFlagEnableEPPFlowControl]
+	original := featuregates.FeatureGates[featuregates.FeatureFlagEnableEPPFlowControl]
 	defer func() {
-		featuregates.FeatureGates[consts.FeatureFlagEnableEPPFlowControl] = original
+		featuregates.FeatureGates[featuregates.FeatureFlagEnableEPPFlowControl] = original
 	}()
 
 	for _, tc := range []struct {
@@ -254,7 +248,7 @@ func TestGenerateInferencePoolHelmReleaseFlowControl(t *testing.T) {
 		{name: "enabled", enabled: true, expectedConfig: "flow-control-plugins.yaml"},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
-			featuregates.FeatureGates[consts.FeatureFlagEnableEPPFlowControl] = tc.enabled
+			featuregates.FeatureGates[featuregates.FeatureFlagEnableEPPFlowControl] = tc.enabled
 
 			helmRelease, err := GenerateInferencePoolHelmRelease(inferenceSet)
 			assert.NoError(t, err)
@@ -432,15 +426,6 @@ func TestGeneratePullerContainers(t *testing.T) {
 }
 
 func TestGenerateServiceManifest_KVEventsPort(t *testing.T) {
-	// Deterministically pin the vLLM feature gate for this test. Other packages'
-	// tests mutate featuregates.FeatureGates (sometimes flipping FeatureFlagVLLM
-	// to false or replacing the whole map) without restoring it, which would
-	// otherwise make kaitov1beta1.GetWorkspaceRuntimeName here flaky under
-	// parallel `go test` runs.
-	origVLLM := featuregates.FeatureGates[consts.FeatureFlagVLLM]
-	featuregates.FeatureGates[consts.FeatureFlagVLLM] = true
-	defer func() { featuregates.FeatureGates[consts.FeatureFlagVLLM] = origVLLM }()
-
 	newWS := func(runtime string) *kaitov1beta1.Workspace {
 		ws := &kaitov1beta1.Workspace{}
 		ws.Name = "ws"
@@ -456,8 +441,8 @@ func TestGenerateServiceManifest_KVEventsPort(t *testing.T) {
 	hasKVEvents := func(svc *corev1.Service) bool {
 		for _, p := range svc.Spec.Ports {
 			if p.Name == "kv-events" {
-				if p.Port != consts.PortKVCacheEvents {
-					t.Fatalf("kv-events port = %d, want %d", p.Port, consts.PortKVCacheEvents)
+				if p.Port != PortKVCacheEvents {
+					t.Fatalf("kv-events port = %d, want %d", p.Port, PortKVCacheEvents)
 				}
 				return true
 			}

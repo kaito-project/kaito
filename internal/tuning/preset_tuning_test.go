@@ -816,3 +816,28 @@ func TestGenerateBasicTuningPodSpec_UsesTuningParams(t *testing.T) {
 	}, puller.Command)
 	assert.Equal(t, []corev1.VolumeMount{manifests.DefaultModelWeightsVolumeMount}, puller.VolumeMounts)
 }
+
+func TestPrepareOutputDir(t *testing.T) {
+	tests := []struct {
+		name      string
+		outputDir string
+		want      string
+		wantErr   bool
+	}{
+		{name: "empty uses default", outputDir: "", want: DefaultOutputVolumePath},
+		{name: "relative dir", outputDir: "out", want: "/mnt/out"},
+		{name: "absolute dir under base", outputDir: "/mnt/out", want: "/mnt/out"},
+		{name: "path sharing base prefix is joined under base", outputDir: "/mntx/out", want: "/mnt/mntx/out"},
+		{name: "sibling of base via traversal", outputDir: "../mnt-evil", want: DefaultOutputVolumePath, wantErr: true},
+		{name: "parent of base", outputDir: "..", want: DefaultOutputVolumePath, wantErr: true},
+		{name: "sibling of base via traversal from base", outputDir: "/mnt/../mnt-evil", want: DefaultOutputVolumePath, wantErr: true},
+		{name: "base itself", outputDir: "/mnt", want: DefaultOutputVolumePath, wantErr: true},
+	}
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			got, err := PrepareOutputDir(tc.outputDir)
+			assert.Equal(t, tc.want, got)
+			assert.Equal(t, tc.wantErr, err != nil, "err=%v", err)
+		})
+	}
+}

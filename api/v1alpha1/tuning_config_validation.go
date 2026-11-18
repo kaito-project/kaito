@@ -142,8 +142,14 @@ func validateTrainingArgsViaConfigMap(cm *corev1.ConfigMap) *apis.FieldError {
 
 				// Ensure the user-specified directory is under baseDir
 				baseDir := "/mnt"
-				cleanPath := filepath.Clean(filepath.Join(baseDir, userSpecifiedDir))
-				if cleanPath == baseDir || !strings.HasPrefix(cleanPath, baseDir) {
+				// Same policy as tuning.PrepareOutputDir: paths already under baseDir are not re-joined,
+				// so traversal like "/mnt/../mnt-evil" is caught here instead of in the controller.
+				cleanPath := userSpecifiedDir
+				if cleanPath != baseDir && !strings.HasPrefix(cleanPath, baseDir+"/") {
+					cleanPath = filepath.Join(baseDir, cleanPath)
+				}
+				cleanPath = filepath.Clean(cleanPath)
+				if cleanPath == baseDir || !strings.HasPrefix(cleanPath, baseDir+"/") {
 					return apis.ErrInvalidValue(fmt.Sprintf("Invalid output_dir specified: '%s', must be a directory", userSpecifiedDir), "output_dir")
 				}
 			}

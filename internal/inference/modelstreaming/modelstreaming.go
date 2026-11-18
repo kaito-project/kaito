@@ -24,10 +24,9 @@ import (
 
 	"github.com/kaito-project/kaito/api/v1beta1"
 	"github.com/kaito-project/kaito/internal/custommodel"
+	"github.com/kaito-project/kaito/internal/featuregates"
 	"github.com/kaito-project/kaito/internal/manifests/builder"
-	"github.com/kaito-project/kaito/pkg/featuregates"
 	pkgmodel "github.com/kaito-project/kaito/pkg/model"
-	mmconsts "github.com/kaito-project/kaito/pkg/modelmirror/consts"
 )
 
 // Shared SAS-fetch wiring, referenced by both SetStreamingConfig (which wires the main
@@ -85,7 +84,7 @@ func ModelStreamingEnabled(ws *v1beta1.Workspace) bool {
 	if !featuregates.FeatureGates[featuregates.FeatureFlagModelStreaming] {
 		return false
 	}
-	if ann := ws.Annotations[mmconsts.AnnotationModelStreaming]; ann == "disabled" {
+	if ann := ws.Annotations[v1beta1.AnnotationModelStreaming]; ann == "disabled" {
 		return false
 	}
 	if v1beta1.GetWorkspaceRuntimeName(ws) != pkgmodel.RuntimeNameVLLM {
@@ -142,28 +141,28 @@ func ResolveHFModelID(ws *v1beta1.Workspace) string {
 // ResolveStreamingServiceAccount resolves the ServiceAccount name for streaming.
 // Priority: workspace annotation > controller flag > error.
 func ResolveStreamingServiceAccount(ws *v1beta1.Workspace, defaultSA string) (string, error) {
-	saName := ws.Annotations[mmconsts.AnnotationStreamingServiceAccount]
+	saName := ws.Annotations[v1beta1.AnnotationStreamingServiceAccount]
 	if saName == "" {
 		saName = defaultSA
 	}
 	if saName == "" {
 		return "", fmt.Errorf("model streaming enabled but no service account configured: "+
 			"set annotation %s on the workspace or --default-streaming-service-account on the controller",
-			mmconsts.AnnotationStreamingServiceAccount)
+			v1beta1.AnnotationStreamingServiceAccount)
 	}
 	return saName, nil
 }
 
 // ResolveStorageClass resolves the StorageClass for the ModelMirror PVC.
 func ResolveStorageClass(ws *v1beta1.Workspace, defaultSC string) (string, error) {
-	sc := ws.Annotations[mmconsts.AnnotationModelMirrorStorageClass]
+	sc := ws.Annotations[v1beta1.AnnotationModelMirrorStorageClass]
 	if sc == "" {
 		sc = defaultSC
 	}
 	if sc == "" {
 		return "", fmt.Errorf("model streaming enabled but no storage class configured: "+
 			"set annotation %s on the workspace or --default-model-mirror-storage-class on the controller",
-			mmconsts.AnnotationModelMirrorStorageClass)
+			v1beta1.AnnotationModelMirrorStorageClass)
 	}
 	return sc, nil
 }

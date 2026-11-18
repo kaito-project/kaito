@@ -13,13 +13,17 @@
 
 package featuregates
 
-import "slices"
+import (
+	"slices"
+
+	"github.com/kaito-project/kaito/api/env"
+)
 
 // Node provisioner types.
 const (
-	NodeProvisionerAzureGPU  = "azure-gpu-provisioner"
-	NodeProvisionerKarpenter = "karpenter"
-	NodeProvisionerBYO       = "byo"
+	NodeProvisionerAzureGPU  = string(env.NodeProvisionerAzureGPU)
+	NodeProvisionerKarpenter = string(env.NodeProvisionerKarpenter)
+	NodeProvisionerBYO       = string(env.NodeProvisionerBYO)
 )
 
 // NodeProvisioner holds the resolved provisioner type at runtime.

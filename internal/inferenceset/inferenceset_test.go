@@ -37,7 +37,6 @@ import (
 	"github.com/kaito-project/kaito/internal/testutil"
 	"github.com/kaito-project/kaito/pkg/consts"
 	pkgmodel "github.com/kaito-project/kaito/pkg/model"
-	mmconsts "github.com/kaito-project/kaito/pkg/modelmirror/consts"
 	"github.com/kaito-project/kaito/pkg/sku"
 )
 
@@ -1122,7 +1121,7 @@ func TestValidateWorkspaceForInferenceSet_Update(t *testing.T) {
 			name:        "model-streaming annotation change is rejected when ModelStreaming is enabled",
 			provisioner: env.NodeProvisionerBYO,
 			streaming:   true,
-			mutateNew:   setAnnotation(mmconsts.AnnotationModelStreaming, "true"),
+			mutateNew:   setAnnotation(kaitov1beta1.AnnotationModelStreaming, "true"),
 			wantErr:     "annotation kaito.sh/model-streaming is immutable after creation",
 		},
 		{

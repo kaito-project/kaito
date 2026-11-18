@@ -22,7 +22,6 @@ import (
 	"k8s.io/utils/ptr"
 
 	"github.com/kaito-project/kaito/internal/image"
-	mmconsts "github.com/kaito-project/kaito/pkg/modelmirror/consts"
 )
 
 // samplerScript computes download speed and ETA and serves them as Prometheus
@@ -52,11 +51,11 @@ trap 'exit 0' TERM
 pip install -q "huggingface-hub==%s" "prometheus-client==%s" "certifi==%s"
 SSL_CERT_FILE="$(python3 -m certifi)"
 export SSL_CERT_FILE
-exec python3 -c "$SAMPLER_SCRIPT"`, image.PipBootstrapCommand, mmconsts.HuggingFaceHubVersion, mmconsts.PrometheusClientVersion, mmconsts.CertifiVersion)
+exec python3 -c "$SAMPLER_SCRIPT"`, image.PipBootstrapCommand, HuggingFaceHubVersion, PrometheusClientVersion, CertifiVersion)
 
 	env := append([]corev1.EnvVar{}, envVars...)
 	env = append(env,
-		corev1.EnvVar{Name: "EXCLUDE_PATTERNS", Value: strings.Join(mmconsts.DownloadExcludePatterns, ",")},
+		corev1.EnvVar{Name: "EXCLUDE_PATTERNS", Value: strings.Join(DownloadExcludePatterns, ",")},
 		corev1.EnvVar{Name: "SAMPLER_SCRIPT", Value: samplerScript},
 	)
 

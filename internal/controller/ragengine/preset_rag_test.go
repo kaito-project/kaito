@@ -27,11 +27,11 @@ import (
 	ctrlclientfake "sigs.k8s.io/controller-runtime/pkg/client/fake"
 
 	"github.com/kaito-project/kaito/api/v1beta1"
+	"github.com/kaito-project/kaito/internal/k8s/k8sclient"
 	"github.com/kaito-project/kaito/internal/k8s/nodes"
 	"github.com/kaito-project/kaito/internal/rag"
 	"github.com/kaito-project/kaito/internal/testutil"
 	"github.com/kaito-project/kaito/pkg/consts"
-	"github.com/kaito-project/kaito/pkg/k8sclient"
 )
 
 func TestConfigStorageVolumeMountPath(t *testing.T) {

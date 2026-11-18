@@ -29,7 +29,7 @@ import (
 	"k8s.io/klog/v2"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
-	"github.com/kaito-project/kaito/pkg/k8sclient"
+	"github.com/kaito-project/kaito/internal/k8s/k8sclient"
 )
 
 const (

@@ -29,9 +29,9 @@ import (
 	karpenterv1 "sigs.k8s.io/karpenter/pkg/apis/v1"
 
 	kaitov1beta1 "github.com/kaito-project/kaito/api/v1beta1"
+	"github.com/kaito-project/kaito/internal/featuregates"
 	"github.com/kaito-project/kaito/internal/k8s/expectations"
 	"github.com/kaito-project/kaito/internal/testutil"
-	"github.com/kaito-project/kaito/pkg/featuregates"
 )
 
 func TestCheckNodeClaims(t *testing.T) {

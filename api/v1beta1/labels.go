@@ -117,6 +117,13 @@ const (
 	LocalWeightsHostPathPrefix = "/opt/kaito/models"
 )
 
+// Model streaming and mirror annotations on a Workspace.
+const (
+	AnnotationModelStreaming          = KAITOPrefix + "model-streaming"
+	AnnotationModelMirrorStorageClass = KAITOPrefix + "model-mirror-storage-class"
+	AnnotationStreamingServiceAccount = KAITOPrefix + "streaming-service-account"
+)
+
 // Valid values for AnnotationPerformanceMode.
 const (
 	PerformanceModeBalanced      = "balanced"

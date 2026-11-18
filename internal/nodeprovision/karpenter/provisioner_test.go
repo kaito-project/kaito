@@ -36,10 +36,10 @@ import (
 	karpenterv1 "sigs.k8s.io/karpenter/pkg/apis/v1"
 
 	kaitov1beta1 "github.com/kaito-project/kaito/api/v1beta1"
+	"github.com/kaito-project/kaito/internal/featuregates"
 	karpenterutils "github.com/kaito-project/kaito/internal/k8s/karpenter"
 	"github.com/kaito-project/kaito/internal/nodeprovision"
 	"github.com/kaito-project/kaito/pkg/consts"
-	"github.com/kaito-project/kaito/pkg/featuregates"
 )
 
 var testConfig = NodeClassConfig{

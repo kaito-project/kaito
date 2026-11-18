@@ -55,16 +55,16 @@ import (
 	modelmirrorcontroller "github.com/kaito-project/kaito/internal/controller/modelmirror"
 	"github.com/kaito-project/kaito/internal/controller/multiroleinference"
 	"github.com/kaito-project/kaito/internal/controller/workspace"
+	"github.com/kaito-project/kaito/internal/featuregates"
 	"github.com/kaito-project/kaito/internal/inference/modelstreaming"
 	"github.com/kaito-project/kaito/internal/inference/modelstreaming/registry"
+	"github.com/kaito-project/kaito/internal/k8s/k8sclient"
 	karpenterutils "github.com/kaito-project/kaito/internal/k8s/karpenter"
+	"github.com/kaito-project/kaito/internal/modelmirror/download"
 	nodeprovisionmanager "github.com/kaito-project/kaito/internal/nodeprovision/manager"
 	"github.com/kaito-project/kaito/internal/runtimeenv"
 	"github.com/kaito-project/kaito/internal/version"
 	workspacewebhook "github.com/kaito-project/kaito/internal/webhook/workspace"
-	"github.com/kaito-project/kaito/pkg/featuregates"
-	"github.com/kaito-project/kaito/pkg/k8sclient"
-	mmconsts "github.com/kaito-project/kaito/pkg/modelmirror/consts"
 	"github.com/kaito-project/kaito/pkg/sku"
 )
 
@@ -157,7 +157,7 @@ func main() {
 	}
 	klog.Info("version: ", version.VersionInfo())
 
-	downloadResources, err := mmconsts.ResolveDownloadJobResources(
+	downloadResources, err := download.ResolveDownloadJobResources(
 		modelMirrorDownloadCPU,
 		modelMirrorDownloadMemory,
 		modelMirrorDownloadCPULimit,

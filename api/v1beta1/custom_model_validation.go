@@ -22,7 +22,6 @@ import (
 	"github.com/kaito-project/kaito/api/env"
 	"github.com/kaito-project/kaito/pkg/catalog"
 	"github.com/kaito-project/kaito/pkg/model"
-	mmconsts "github.com/kaito-project/kaito/pkg/modelmirror/consts"
 )
 
 // validateCustomPreset checks the inputs that only apply to a bring-your-own
@@ -74,10 +73,10 @@ func (w *Workspace) validateCustomModelStreaming(ctx context.Context) *apis.Fiel
 	annotations := w.GetAnnotations()
 	// Streaming is on by default once the feature gate is enabled; only an
 	// explicit opt-out leaves a custom model without a source for its weights.
-	if annotations[mmconsts.AnnotationModelStreaming] == "disabled" {
+	if annotations[AnnotationModelStreaming] == "disabled" {
 		return apis.ErrInvalidValue(fmt.Sprintf(
 			"preset %q requires model streaming; remove annotation %s=\"disabled\"",
-			model.PresetNameCustom, mmconsts.AnnotationModelStreaming), mmconsts.AnnotationModelStreaming)
+			model.PresetNameCustom, AnnotationModelStreaming), AnnotationModelStreaming)
 	}
 	// The source type itself is validated by the streaming configuration, but a
 	// custom model has no HuggingFace identity to fall back on, so the

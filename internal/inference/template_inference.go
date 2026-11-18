@@ -20,10 +20,10 @@ import (
 
 	kaitov1beta1 "github.com/kaito-project/kaito/api/v1beta1"
 	"github.com/kaito-project/kaito/internal/cache"
+	"github.com/kaito-project/kaito/internal/featuregates"
 	"github.com/kaito-project/kaito/internal/k8s/resources"
 	"github.com/kaito-project/kaito/internal/manifests"
 	"github.com/kaito-project/kaito/internal/nodeprovision"
-	"github.com/kaito-project/kaito/pkg/featuregates"
 )
 
 func CreateTemplateInference(ctx context.Context, workspaceObj *kaitov1beta1.Workspace, kubeClient client.Client, provisioner nodeprovision.NodeProvisioner) (client.Object, error) {

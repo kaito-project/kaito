@@ -22,7 +22,6 @@ import (
 
 	"github.com/kaito-project/kaito/api/env"
 	"github.com/kaito-project/kaito/pkg/model"
-	mmconsts "github.com/kaito-project/kaito/pkg/modelmirror/consts"
 )
 
 func customInferenceSpec() *InferenceSpec {
@@ -96,8 +95,8 @@ func TestValidateCustomPresetIgnoresOtherPresets(t *testing.T) {
 
 func TestValidateCustomModelStreaming(t *testing.T) {
 	streamingAnnotations := map[string]string{
-		mmconsts.AnnotationModelStreaming: "true",
-		AnnotationStreamSourceType:        StreamSourceTypeBYO,
+		AnnotationModelStreaming:   "true",
+		AnnotationStreamSourceType: StreamSourceTypeBYO,
 	}
 
 	tests := []struct {
@@ -131,17 +130,17 @@ func TestValidateCustomModelStreaming(t *testing.T) {
 			name:        "streaming explicitly disabled",
 			gateEnabled: true,
 			annotations: map[string]string{
-				mmconsts.AnnotationModelStreaming: "disabled",
-				AnnotationStreamSourceType:        StreamSourceTypeBYO,
+				AnnotationModelStreaming:   "disabled",
+				AnnotationStreamSourceType: StreamSourceTypeBYO,
 			},
-			errSubstr: mmconsts.AnnotationModelStreaming,
+			errSubstr: AnnotationModelStreaming,
 		},
 		{
 			name:        "wrong source type",
 			gateEnabled: true,
 			annotations: map[string]string{
-				mmconsts.AnnotationModelStreaming: "true",
-				AnnotationStreamSourceType:        StreamSourceTypePublic,
+				AnnotationModelStreaming:   "true",
+				AnnotationStreamSourceType: StreamSourceTypePublic,
 			},
 			errSubstr: AnnotationStreamSourceType,
 		},

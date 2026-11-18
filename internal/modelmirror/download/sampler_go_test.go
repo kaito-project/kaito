@@ -23,7 +23,6 @@ import (
 
 	kaitov1alpha1 "github.com/kaito-project/kaito/api/v1alpha1"
 	"github.com/kaito-project/kaito/internal/image"
-	mmconsts "github.com/kaito-project/kaito/pkg/modelmirror/consts"
 )
 
 func TestSamplerSidecar(t *testing.T) {
@@ -32,7 +31,7 @@ func TestSamplerSidecar(t *testing.T) {
 	cr.Namespace = "kaito-workspace"
 	cr.Spec.Source = &kaitov1alpha1.ModelMirrorSource{ModelID: "meta-llama/Llama-3.1-8B-Instruct"}
 
-	job := BuildDownloadJob(cr, mmconsts.DefaultDownloadJobResources(), nil)
+	job := BuildDownloadJob(cr, DefaultDownloadJobResources(), nil)
 
 	// A native sidecar is an initContainer with restartPolicy: Always. A plain
 	// second container would run forever and the Job would never reach Succeeded.
@@ -101,7 +100,7 @@ func TestSamplerSidecarHFToken(t *testing.T) {
 		AccessSecretName: "hf-token",
 	}
 
-	job := BuildDownloadJob(cr, mmconsts.DefaultDownloadJobResources(), nil)
+	job := BuildDownloadJob(cr, DefaultDownloadJobResources(), nil)
 	sc := job.Spec.Template.Spec.InitContainers[0]
 
 	// The total-size lookup hits the Hub API, which needs the token for gated repos.

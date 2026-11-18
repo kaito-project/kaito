@@ -36,6 +36,7 @@ import (
 
 	kaitov1alpha1 "github.com/kaito-project/kaito/api/v1alpha1"
 	"github.com/kaito-project/kaito/api/v1beta1"
+	"github.com/kaito-project/kaito/internal/featuregates"
 	"github.com/kaito-project/kaito/internal/image"
 	"github.com/kaito-project/kaito/internal/inference/modelstreaming"
 	"github.com/kaito-project/kaito/internal/inference/modelstreaming/registry"
@@ -48,7 +49,6 @@ import (
 	"github.com/kaito-project/kaito/pkg/catalog/hfgen"
 	"github.com/kaito-project/kaito/pkg/estimator"
 	"github.com/kaito-project/kaito/pkg/estimator/maxnumseqestimator"
-	"github.com/kaito-project/kaito/pkg/featuregates"
 	pkgmodel "github.com/kaito-project/kaito/pkg/model"
 	"github.com/kaito-project/kaito/pkg/sku"
 )

@@ -22,8 +22,8 @@ import (
 	corev1 "k8s.io/api/core/v1"
 
 	kaitov1beta1 "github.com/kaito-project/kaito/api/v1beta1"
+	"github.com/kaito-project/kaito/internal/featuregates"
 	"github.com/kaito-project/kaito/internal/manifests/builder"
-	"github.com/kaito-project/kaito/pkg/featuregates"
 	pkgmodel "github.com/kaito-project/kaito/pkg/model"
 )
 

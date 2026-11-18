@@ -13,6 +13,8 @@
 
 package v1alpha1
 
+import "github.com/kaito-project/kaito/pkg/consts"
+
 // ConditionType is a valid value for Condition.Type.
 type ConditionType string
 
@@ -69,4 +71,24 @@ const (
 
 	// MultiRoleInferenceConditionTypeReady indicates the overall MultiRoleInference is ready.
 	MultiRoleInferenceConditionTypeReady = ConditionType("Ready")
+)
+
+// ModelMirror condition types.
+const (
+	ModelMirrorConditionTypeStorageReady = ConditionType("StorageReady")
+	ModelMirrorConditionTypeReady        = ConditionType("Ready")
+)
+
+// ModelMirror condition reasons.
+const (
+	ModelMirrorReasonPVCBound          = "PVCBound"
+	ModelMirrorReasonPVCPending        = "PVCPending"
+	ModelMirrorReasonPVCCreateFailed   = "PVCCreateFailed"
+	ModelMirrorReasonJobCreateFailed   = "JobCreateFailed"
+	ModelMirrorReasonDownloadFailed    = consts.ReasonDownloadFailed
+	ModelMirrorReasonDownloadOOMKilled = consts.ReasonDownloadOOMKilled
+	ModelMirrorReasonDownloadEvicted   = "DownloadEvicted"
+	ModelMirrorReasonDownloadSucceeded = "DownloadSucceeded"
+	ModelMirrorReasonStaticMirror      = "StaticMirror"
+	ModelMirrorReasonInvalidSpec       = "InvalidSpec"
 )

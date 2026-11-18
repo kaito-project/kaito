@@ -89,7 +89,12 @@ jobs:
 
           # Install via Helm
           # Kind has no local NVMe devices; omit the driver and its StorageClass.
-          helm template kaito-workspace ./charts/kaito/workspace --namespace ${{ env.KAITO_NAMESPACE }} --set nodeProvisioner="byo" --set localCSIDriver.useLocalCSIDriver=false --set featureGates.enableInferenceSetController="true" --set featureGates.gatewayAPIInferenceExtension="true" --include-crds --debug --wait |
+          # AIKit tests model serving without a DACS backend.
+          helm template kaito-workspace ./charts/kaito/workspace \
+            --namespace ${{ env.KAITO_NAMESPACE }} --set nodeProvisioner="byo" \
+            --set localCSIDriver.useLocalCSIDriver=false --set cache.providers.dacs.cache.enabled=false \
+            --set featureGates.enableInferenceSetController="true" --set featureGates.gatewayAPIInferenceExtension="true" \
+            --include-crds --debug --wait |
             kubectl apply --namespace ${{ env.KAITO_NAMESPACE }} -f -
 
           # Wait for controller to be ready

@@ -12,9 +12,21 @@ rules:
   - apiGroups: ["kaito.sh"]
     resources: ["workspaces/status"]
     verbs: ["update", "patch","get","list","watch"]
+  # Children of a Workspace carry a blockOwnerDeletion owner reference. The
+  # OwnerReferencesPermissionEnforcement admission plugin (on by default in OpenShift)
+  # only allows that for a subject holding update on the owner's finalizers subresource.
+  - apiGroups: ["kaito.sh"]
+    resources: ["workspaces/finalizers"]
+    verbs: ["update"]
   - apiGroups: [""]
     resources: ["nodes", "namespaces"]
     verbs: ["get","list","watch","update", "patch"]
+  # The webhook reconciler makes the release namespace the owner of each
+  # ValidatingWebhookConfiguration, with blockOwnerDeletion set.
+  - apiGroups: [""]
+    resources: ["namespaces/finalizers"]
+    verbs: ["update"]
+    resourceNames: ["{{ .Release.Namespace }}"]
   - apiGroups: [""]
     resources: ["services"]
     verbs: ["get","list","watch","create", "delete", "update", "patch"]
@@ -71,9 +83,11 @@ rules:
   - apiGroups: [ "batch" ]
     resources: [ "jobs" ]
     verbs: [ "get", "list", "watch", "create", "delete","update", "patch" ]
+  # delete is never called: OwnerReferencesPermissionEnforcement only lets a subject that
+  # can delete an object change its owner references.
   - apiGroups: ["admissionregistration.k8s.io"]
     resources: ["validatingwebhookconfigurations"]
-    verbs: ["update"]
+    verbs: ["update", "delete"]
     resourceNames: ["validation.workspace.kaito.sh"]
   - apiGroups: [""]
     resources: ["persistentvolumeclaims"]

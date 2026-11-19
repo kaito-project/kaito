@@ -137,12 +137,15 @@ jobs:
           # owns the full driver + toolkit + device-plugin + MIG-manager stack.
           # Taint with the standard sku=gpu:NoSchedule that KAITO GPU workloads tolerate;
           # GPU Operator DaemonSets tolerate everything.
+          # Pin Ubuntu 22.04: AKS 1.35 defaults to 24.04, where the GPU Operator
+          # driver container never became ready.
           az aks nodepool add \
             --cluster-name "$CLUSTER_NAME" \
             --resource-group "$CLUSTER_NAME" \
             --name migpool \
             --node-vm-size "$VM_SIZE" \
             --node-count 1 \
+            --os-sku Ubuntu2204 \
             --skip-gpu-driver-install \
             --node-taints "sku=gpu:NoSchedule" \
             --labels kaito.sh/mig-enabled=true \
@@ -219,6 +222,8 @@ jobs:
             kubectl get node -l kaito.sh/mig-enabled=true -o json | jq '.items[0].metadata.labels'
             kubectl -n gpu-operator get pods
             kubectl -n gpu-operator logs -l app=nvidia-mig-manager --tail=100 || true
+            kubectl -n gpu-operator logs -l app=nvidia-driver-daemonset --all-containers --tail=100 || true
+            kubectl -n gpu-operator logs -l app=nvidia-driver-daemonset --all-containers --previous --tail=100 || true
             exit 1
           fi
 

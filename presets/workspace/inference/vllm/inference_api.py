@@ -158,8 +158,7 @@ class KAITOArgumentParser(argparse.ArgumentParser):
                 )
 
             for key, value in file_config.vllm.items():
-                runtime_args.append(f"--{key}")
-                runtime_args.append(str(value))
+                runtime_args.extend(self._vllm_config_args(key, value))
 
         vllm_args = self.vllm_parser.parse_args(runtime_args, **kwargs)
         if vllm_args.gpu_memory_utilization is None:
@@ -179,6 +178,21 @@ class KAITOArgumentParser(argparse.ArgumentParser):
 
         # Merge KAITO and vLLM args
         return argparse.Namespace(**vars(kaito_args), **vars(vllm_args))
+
+    def _vllm_config_args(self, key, value):
+        """Convert one `vllm:` entry of the KAITO config file to vLLM CLI args."""
+        # vLLM boolean options are flags that take no value, so `--flag False`
+        # would turn them on. Like vLLM's own --config loader, pass true as
+        # --flag and false as --no-flag, or drop it if there is no --no-flag.
+        # Dotted keys such as compilation-config.x always take a value.
+        if not isinstance(value, bool) or "." in key:
+            return [f"--{key}", str(value)]
+        if value:
+            return [f"--{key}"]
+        no_flag = f"--no-{key}"
+        if no_flag in self.vllm_parser._option_string_actions:
+            return [no_flag]
+        return []
 
     def print_help(self, file=None):
         super().print_help(file)

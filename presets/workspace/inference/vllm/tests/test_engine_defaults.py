@@ -12,7 +12,7 @@
 # limitations under the License.
 
 
-"""Regression tests for CPU/GPU memory utilization parser defaults."""
+"""Regression tests for KAITO parser defaults and inference config merging."""
 
 import argparse
 import sys
@@ -187,3 +187,85 @@ def test_parser_reuse_resolves_each_runtime_memory_default(monkeypatch, gpu_prob
     gpu_probe.assert_called_once_with()
     assert parser.parse_args(["--device=cpu"]).gpu_memory_utilization == 0.8
     gpu_probe.assert_called_once_with()
+
+
+@pytest.fixture
+def bool_flag_parser(monkeypatch, gpu_probe):
+    # Shaped like vLLM's parser: an optional positional model_tag, and boolean
+    # engine options declared with BooleanOptionalAction.
+    parser = argparse.ArgumentParser()
+    parser.add_argument("model_tag", nargs="?")
+    parser.add_argument("--gpu-memory-utilization", type=float, default=0.92)
+    parser.add_argument("--device", default="auto")
+    parser.add_argument("--max-model-len", type=int)
+    parser.add_argument(
+        "--enable-chunked-prefill", action=argparse.BooleanOptionalAction
+    )
+    parser.add_argument(
+        "--enforce-eager", action=argparse.BooleanOptionalAction, default=False
+    )
+    parser.add_argument("--headless", action="store_true", default=False)
+    monkeypatch.setattr(inference_api.KAITOArgumentParser, "vllm_parser", parser)
+    monkeypatch.setenv("VLLM_TARGET_DEVICE", "cpu")
+
+
+def _parse_with_config(tmp_path, content, argv=()):
+    config = tmp_path / "config.yaml"
+    config.write_text(content)
+    return inference_api.KAITOArgumentParser().parse_args(
+        [*argv, "--kaito-config-file", str(config)]
+    )
+
+
+@pytest.mark.parametrize("value", [True, False])
+def test_config_bool_sets_vllm_flag(bool_flag_parser, tmp_path, value):
+    args = _parse_with_config(
+        tmp_path, f"vllm:\n  enable-chunked-prefill: {str(value).lower()}\n"
+    )
+
+    assert args.enable_chunked_prefill is value
+    assert args.model_tag is None
+
+
+def test_config_false_overrides_flag_from_command_line(bool_flag_parser, tmp_path):
+    # Preset run params come first on the command line; the config file is
+    # applied after them.
+    args = _parse_with_config(
+        tmp_path, "vllm:\n  enforce-eager: false\n", argv=["--enforce-eager"]
+    )
+
+    assert args.enforce_eager is False
+    assert args.model_tag is None
+
+
+def test_config_mixes_bools_and_values(bool_flag_parser, tmp_path):
+    args = _parse_with_config(
+        tmp_path,
+        "vllm:\n"
+        "  enable-chunked-prefill: false\n"
+        "  enforce-eager: true\n"
+        "  max-model-len: 2048\n"
+        "  device: cpu\n",
+    )
+
+    assert args.enable_chunked_prefill is False
+    assert args.enforce_eager is True
+    assert args.max_model_len == 2048
+    assert args.device == "cpu"
+    assert args.model_tag is None
+
+
+def test_config_false_without_negative_flag_is_dropped(bool_flag_parser, tmp_path):
+    args = _parse_with_config(tmp_path, "vllm:\n  headless: false\n")
+
+    assert args.headless is False
+    assert args.model_tag is None
+
+
+def test_dotted_config_bool_keeps_its_value(bool_flag_parser):
+    # vLLM reads a dotted option such as --compilation-config.x as key and value.
+    parser = inference_api.KAITOArgumentParser()
+
+    assert parser._vllm_config_args(
+        "compilation-config.pass_config.fuse_allreduce_rms", False
+    ) == ["--compilation-config.pass_config.fuse_allreduce_rms", "False"]

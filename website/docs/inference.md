@@ -199,6 +199,8 @@ Key vLLM parameters include:
 - `tensor-parallel-size`: Number of GPUs to use for tensor parallelism
 - `max-model-len`: Maximum sequence length the model can handle
 
+Set boolean flags to `true` or `false`, for example `enforce-eager: false`. KAITO passes `true` to vLLM as `--enforce-eager` and `false` as `--no-enforce-eager`, the same way vLLM reads its own `--config` file, so `false` also turns off a flag that the preset enables. A `false` value for a flag that has no `--no-` form is ignored.
+
 For the complete list of vLLM parameters, refer to the [vLLM documentation](https://docs.vllm.ai/en/latest/configuration/engine_args.html).
 
 ## Serving with LoRA adapters

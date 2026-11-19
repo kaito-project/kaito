@@ -50,6 +50,7 @@ Before you deploy, review the following variables in the [variables.tf](./variab
 - `deploy_kaito_ragengine` - Whether to deploy the KAITO RAG Engine. Defaults to `true`.
 - `kaito_ragengine_version` - The version of the KAITO RAG Engine.
 - `features` - A list of KAITO features to enable. For example, to enable the Gateway API Inference Extension. Defaults to `["gatewayAPIInferenceExtension"]`.
+- `enable_aad` - Whether to enable Microsoft Entra ID integration on the AKS cluster. Defaults to `false`. Set it to `true` if an Azure Policy in your subscription requires it; Terraform then uses the cluster's local admin credentials. AKS can't turn Entra ID off once it is enabled. To enable it on an existing deployment, apply the cluster first with `terraform apply -target=azurerm_kubernetes_cluster.example -var enable_aad=true`, then run `terraform apply -var enable_aad=true`.
 
 Run the Terraform apply command and enter `yes` when prompted to deploy the Azure resources.
 
@@ -59,7 +60,7 @@ terraform apply
 
 ## Verify
 
-Log into the AKS cluster.
+Log into the AKS cluster. If you set `enable_aad = true`, add `--admin` to use the local admin credentials.
 
 ```bash
 az aks get-credentials -g $(terraform output -raw rg_name) -n $(terraform output -raw aks_name)

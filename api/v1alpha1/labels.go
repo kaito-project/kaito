@@ -78,6 +78,15 @@ const (
 	// should be upgraded to the specified base image version. Set by the AutoUpgradeRunner;
 	// retained after upgrade completes as an audit trail.
 	LabelUpgradeToVersion = KAITOPrefix + "upgrade-to-version"
+
+	// LabelModelMirrorName is set on the download Job of a ModelMirror.
+	LabelModelMirrorName = KAITOPrefix + "model-mirror-name"
+)
+
+// Finalizers.
+const (
+	// ModelMirrorFinalizer is set on a ModelMirror to clean up its storage and jobs.
+	ModelMirrorFinalizer = KAITOPrefix + "model-mirror-cleanup"
 )
 
 // EffectiveInferenceRuntime returns the runtime that a generated Workspace

@@ -22,9 +22,9 @@ import (
 	"github.com/kaito-project/kaito/api/env"
 	kaitov1alpha1 "github.com/kaito-project/kaito/api/v1alpha1"
 	kaitov1beta1 "github.com/kaito-project/kaito/api/v1beta1"
+	"github.com/kaito-project/kaito/internal/featuregates"
 	"github.com/kaito-project/kaito/internal/inferenceset"
 	"github.com/kaito-project/kaito/internal/webhook/admission"
-	"github.com/kaito-project/kaito/pkg/featuregates"
 )
 
 // Wire the InferenceSet admission webhook to validate the child Workspace it

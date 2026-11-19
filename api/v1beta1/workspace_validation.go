@@ -41,7 +41,6 @@ import (
 	"github.com/kaito-project/kaito/pkg/catalog"
 	"github.com/kaito-project/kaito/pkg/consts"
 	"github.com/kaito-project/kaito/pkg/model"
-	mmconsts "github.com/kaito-project/kaito/pkg/modelmirror/consts"
 	"github.com/kaito-project/kaito/pkg/sku"
 )
 
@@ -1146,12 +1145,12 @@ func validateDuplicateName(adapters []AdapterSpec, nameMap map[string]bool) (err
 }
 
 func (w *Workspace) validateModelStreamingAnnotationImmutable(old *Workspace) *apis.FieldError {
-	oldVal := old.GetAnnotations()[mmconsts.AnnotationModelStreaming]
-	newVal := w.GetAnnotations()[mmconsts.AnnotationModelStreaming]
+	oldVal := old.GetAnnotations()[AnnotationModelStreaming]
+	newVal := w.GetAnnotations()[AnnotationModelStreaming]
 	if oldVal != newVal {
 		return apis.ErrGeneric(
-			fmt.Sprintf("annotation %s is immutable after creation", mmconsts.AnnotationModelStreaming),
-			fmt.Sprintf("metadata.annotations[%s]", mmconsts.AnnotationModelStreaming),
+			fmt.Sprintf("annotation %s is immutable after creation", AnnotationModelStreaming),
+			fmt.Sprintf("metadata.annotations[%s]", AnnotationModelStreaming),
 		)
 	}
 	return nil
@@ -1165,7 +1164,7 @@ func (w *Workspace) validateStreamingCSIDriver(ctx context.Context) *apis.FieldE
 	if w.Inference == nil || w.Inference.Preset == nil {
 		return nil
 	}
-	if w.GetAnnotations()[mmconsts.AnnotationModelStreaming] == "disabled" {
+	if w.GetAnnotations()[AnnotationModelStreaming] == "disabled" {
 		return nil
 	}
 

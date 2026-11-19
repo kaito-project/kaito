@@ -48,9 +48,11 @@ import (
 	kaitov1alpha1 "github.com/kaito-project/kaito/api/v1alpha1"
 	"github.com/kaito-project/kaito/api/v1beta1"
 	"github.com/kaito-project/kaito/internal/estimator/nodesestimator"
+	"github.com/kaito-project/kaito/internal/featuregates"
 	"github.com/kaito-project/kaito/internal/inference"
 	"github.com/kaito-project/kaito/internal/inference/modelstreaming"
 	"github.com/kaito-project/kaito/internal/inference/modelstreaming/registry"
+	"github.com/kaito-project/kaito/internal/k8s/k8sclient"
 	"github.com/kaito-project/kaito/internal/k8s/nodes"
 	"github.com/kaito-project/kaito/internal/k8s/resources"
 	byoprovisioner "github.com/kaito-project/kaito/internal/nodeprovision/byo-provisioner"
@@ -58,9 +60,6 @@ import (
 	"github.com/kaito-project/kaito/pkg/catalog"
 	"github.com/kaito-project/kaito/pkg/consts"
 	"github.com/kaito-project/kaito/pkg/estimator"
-	"github.com/kaito-project/kaito/pkg/featuregates"
-	"github.com/kaito-project/kaito/pkg/k8sclient"
-	mmconsts "github.com/kaito-project/kaito/pkg/modelmirror/consts"
 )
 
 func TestSelectWorkspaceNodes(t *testing.T) {
@@ -2650,7 +2649,7 @@ func TestModelMirrorPendingReason(t *testing.T) {
 		return &kaitov1alpha1.ModelMirror{
 			Status: kaitov1alpha1.ModelMirrorStatus{
 				Conditions: []v1.Condition{{
-					Type:   mmconsts.ConditionTypeReady,
+					Type:   string(kaitov1alpha1.ModelMirrorConditionTypeReady),
 					Status: status,
 					Reason: reason,
 				}},
@@ -2665,13 +2664,13 @@ func TestModelMirrorPendingReason(t *testing.T) {
 	}{
 		{
 			name: "OOMKilled forwards the actionable reason",
-			cr:   withReady(v1.ConditionFalse, mmconsts.ReasonDownloadOOMKilled),
-			want: mmconsts.ReasonDownloadOOMKilled,
+			cr:   withReady(v1.ConditionFalse, kaitov1alpha1.ModelMirrorReasonDownloadOOMKilled),
+			want: kaitov1alpha1.ModelMirrorReasonDownloadOOMKilled,
 		},
 		{
 			name: "evicted forwards the actionable reason",
-			cr:   withReady(v1.ConditionFalse, mmconsts.ReasonDownloadEvicted),
-			want: mmconsts.ReasonDownloadEvicted,
+			cr:   withReady(v1.ConditionFalse, kaitov1alpha1.ModelMirrorReasonDownloadEvicted),
+			want: kaitov1alpha1.ModelMirrorReasonDownloadEvicted,
 		},
 		{
 			name: "no Ready condition yet falls back to the generic reason",
@@ -2683,9 +2682,9 @@ func TestModelMirrorPendingReason(t *testing.T) {
 			cr: &kaitov1alpha1.ModelMirror{
 				Status: kaitov1alpha1.ModelMirrorStatus{
 					Conditions: []v1.Condition{{
-						Type:   mmconsts.ConditionTypeStorageReady,
+						Type:   string(kaitov1alpha1.ModelMirrorConditionTypeStorageReady),
 						Status: v1.ConditionFalse,
-						Reason: mmconsts.ReasonPVCPending,
+						Reason: kaitov1alpha1.ModelMirrorReasonPVCPending,
 					}},
 				},
 			},
@@ -2693,7 +2692,7 @@ func TestModelMirrorPendingReason(t *testing.T) {
 		},
 		{
 			name: "Ready=True is not forwarded onto a False condition",
-			cr:   withReady(v1.ConditionTrue, mmconsts.ReasonDownloadSucceeded),
+			cr:   withReady(v1.ConditionTrue, kaitov1alpha1.ModelMirrorReasonDownloadSucceeded),
 			want: reasonModelMirrorPending,
 		},
 		{
@@ -2712,24 +2711,24 @@ func TestModelMirrorPendingReason(t *testing.T) {
 
 func TestModelMirrorPendingReason_ClosedVocabulary(t *testing.T) {
 	allowed := map[string]bool{
-		mmconsts.ReasonPVCBound:          true,
-		mmconsts.ReasonPVCPending:        true,
-		mmconsts.ReasonPVCCreateFailed:   true,
-		mmconsts.ReasonJobCreateFailed:   true,
-		mmconsts.ReasonDownloadFailed:    true,
-		mmconsts.ReasonDownloadOOMKilled: true,
-		mmconsts.ReasonDownloadEvicted:   true,
-		mmconsts.ReasonDownloadSucceeded: true,
-		mmconsts.ReasonStaticMirror:      true,
-		mmconsts.ReasonInvalidSpec:       true,
-		reasonModelMirrorPending:         true,
+		kaitov1alpha1.ModelMirrorReasonPVCBound:          true,
+		kaitov1alpha1.ModelMirrorReasonPVCPending:        true,
+		kaitov1alpha1.ModelMirrorReasonPVCCreateFailed:   true,
+		kaitov1alpha1.ModelMirrorReasonJobCreateFailed:   true,
+		kaitov1alpha1.ModelMirrorReasonDownloadFailed:    true,
+		kaitov1alpha1.ModelMirrorReasonDownloadOOMKilled: true,
+		kaitov1alpha1.ModelMirrorReasonDownloadEvicted:   true,
+		kaitov1alpha1.ModelMirrorReasonDownloadSucceeded: true,
+		kaitov1alpha1.ModelMirrorReasonStaticMirror:      true,
+		kaitov1alpha1.ModelMirrorReasonInvalidSpec:       true,
+		reasonModelMirrorPending:                         true,
 	}
 
 	for reason := range allowed {
 		cr := &kaitov1alpha1.ModelMirror{
 			Status: kaitov1alpha1.ModelMirrorStatus{
 				Conditions: []v1.Condition{{
-					Type:   mmconsts.ConditionTypeReady,
+					Type:   string(kaitov1alpha1.ModelMirrorConditionTypeReady),
 					Status: v1.ConditionFalse,
 					Reason: reason,
 				}},

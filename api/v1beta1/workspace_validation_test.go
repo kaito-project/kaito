@@ -30,7 +30,6 @@ import (
 
 	"github.com/kaito-project/kaito/api/env"
 	"github.com/kaito-project/kaito/pkg/model"
-	mmconsts "github.com/kaito-project/kaito/pkg/modelmirror/consts"
 )
 
 const DefaultReleaseNamespace = "kaito-workspace"
@@ -3300,7 +3299,7 @@ func TestWorkspaceValidateStreamingCSIDriver(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			anns := map[string]string{AnnotationWorkspaceRuntime: tc.runtimeAnn}
 			if tc.streamingAnn != "" {
-				anns[mmconsts.AnnotationModelStreaming] = tc.streamingAnn
+				anns[AnnotationModelStreaming] = tc.streamingAnn
 			}
 			w := &Workspace{
 				ObjectMeta: metav1.ObjectMeta{Name: "ws", Namespace: "default", Annotations: anns},

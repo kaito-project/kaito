@@ -46,11 +46,11 @@ import (
 	kaitov1alpha1 "github.com/kaito-project/kaito/api/v1alpha1"
 	kaitov1beta1 "github.com/kaito-project/kaito/api/v1beta1"
 	"github.com/kaito-project/kaito/internal/controller/ragengine"
+	"github.com/kaito-project/kaito/internal/k8s/k8sclient"
 	karpenterutils "github.com/kaito-project/kaito/internal/k8s/karpenter"
 	"github.com/kaito-project/kaito/internal/runtimeenv"
 	"github.com/kaito-project/kaito/internal/version"
 	ragenginewebhook "github.com/kaito-project/kaito/internal/webhook/ragengine"
-	"github.com/kaito-project/kaito/pkg/k8sclient"
 	"github.com/kaito-project/kaito/pkg/sku"
 )
 

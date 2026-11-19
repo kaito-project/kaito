@@ -19,7 +19,7 @@ import (
 	"github.com/stretchr/testify/assert"
 
 	"github.com/kaito-project/kaito/api/env"
-	"github.com/kaito-project/kaito/pkg/featuregates"
+	"github.com/kaito-project/kaito/internal/featuregates"
 )
 
 func TestNew(t *testing.T) {

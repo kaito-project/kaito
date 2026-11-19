@@ -188,7 +188,8 @@ class Inference(CustomLLM):
                 )
 
             # if max_tokens is not provided but content length is less than the context window, we can pass None for max_tokens to allow the model to decide
-            max_tokens = kwargs.get("max_tokens")
+            # The RAG chat path passes the request's max_tokens via set_params().
+            max_tokens = kwargs.get("max_tokens", self.get_param("max_tokens"))
             if max_tokens is not None:
                 logger.info(f"Using provided max_tokens: {max_tokens} tokens")
                 if max_tokens > LLM_CONTEXT_WINDOW:

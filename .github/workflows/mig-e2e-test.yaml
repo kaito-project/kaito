@@ -81,6 +81,11 @@ env:
   MIG_SLICE_COUNT: ${{ github.event.inputs.mig_slice_count || '2' }}
   MODEL: ${{ github.event.inputs.model || 'microsoft/Phi-4-mini-instruct' }}
   GPU_OPERATOR_VERSION: "v25.3.0"
+  # The chart default (570.124.06) does not compile on current AKS node
+  # kernels: linux-azure 5.15.0-1123+ and 6.8.0-1071+ backport a fourth
+  # (exclude_bars) argument to pci_resize_resource(). 580.126.09 is the first
+  # driver release that handles both signatures; no 570.x release does.
+  NVIDIA_DRIVER_VERSION: "580.126.20"
   MIG_CONFIG_NAME: "kaito-mig-e2e"
 
 jobs:
@@ -137,8 +142,8 @@ jobs:
           # owns the full driver + toolkit + device-plugin + MIG-manager stack.
           # Taint with the standard sku=gpu:NoSchedule that KAITO GPU workloads tolerate;
           # GPU Operator DaemonSets tolerate everything.
-          # Pin Ubuntu 22.04: AKS 1.35 defaults to 24.04, where the GPU Operator
-          # driver container never became ready.
+          # Pin Ubuntu 22.04 so the node OS, and with it the driver image tag
+          # (<version>-ubuntu22.04), does not change with the AKS default.
           az aks nodepool add \
             --cluster-name "$CLUSTER_NAME" \
             --resource-group "$CLUSTER_NAME" \
@@ -188,6 +193,7 @@ jobs:
           helm upgrade --install gpu-operator nvidia/gpu-operator \
             --namespace gpu-operator \
             --version "$GPU_OPERATOR_VERSION" \
+            --set-string driver.version="$NVIDIA_DRIVER_VERSION" \
             --set mig.strategy="$MIG_STRATEGY" \
             --set migManager.enabled=true \
             --set migManager.config.name=custom-mig-config \

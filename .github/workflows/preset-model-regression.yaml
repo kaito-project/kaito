@@ -343,12 +343,15 @@ jobs:
             local vm_size="$2"
             # Pin the node resource group: the default MC_<rg>_<cluster>_<region>
             # exceeds the 80-char limit once rg and cluster share a long name.
+            # --enable-aad: the Azure Policy CloudGov_KubernAuthN_AAD denies AKS
+            # clusters without Microsoft Entra ID integration.
             az aks create --name "$CLUSTER_NAME" --resource-group "$CLUSTER_NAME" \
               --node-resource-group "MC_${CLUSTER_NAME}" \
               --location "$location" --node-vm-size "$vm_size" --node-count 2 \
               --generate-ssh-keys \
               --network-plugin azure --network-plugin-mode overlay --network-dataplane cilium \
-              --enable-managed-identity --enable-workload-identity --enable-oidc-issuer -o none
+              --enable-managed-identity --enable-workload-identity --enable-oidc-issuer \
+              --enable-aad -o none
           }
 
           set +e
@@ -380,7 +383,10 @@ jobs:
             fi
           done
 
-          az aks get-credentials --name "$CLUSTER_NAME" --resource-group "$CLUSTER_NAME" --overwrite-existing
+          # --admin: on an Entra ID cluster the user credentials need kubelogin and a
+          # Kubernetes role; the local admin account keeps the access the run has had.
+          az aks get-credentials --name "$CLUSTER_NAME" --resource-group "$CLUSTER_NAME" \
+            --admin --overwrite-existing
 
       - name: Install the node provisioner
         run: |

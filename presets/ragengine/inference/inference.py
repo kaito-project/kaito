@@ -37,7 +37,6 @@ from openai.types.chat import (
     CompletionCreateParams,
 )
 from pydantic import PrivateAttr
-from requests.exceptions import HTTPError
 
 from ragengine import __version__
 from ragengine.config import (
@@ -394,7 +393,7 @@ class Inference(CustomLLM):
                     data[key] = value
             resp = await self._async_post_request_raw(data, headers=DEFAULT_HEADERS)
             return self._completions_json_to_response(resp)
-        except HTTPError as e:
+        except httpx.HTTPStatusError as e:
             if not model_name and e.response.status_code == 400:
                 logger.warning(
                     f"Potential issue with 'model' parameter in API response. "
@@ -453,7 +452,7 @@ class Inference(CustomLLM):
             logger.error(
                 f'Error fetching models from {models_url}: {e}. "model" parameter will not be included with inference call.'
             )
-            return None
+            return None, None
 
     def _get_default_model_info(self) -> (str, int):
         """

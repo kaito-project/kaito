@@ -164,6 +164,9 @@ class QdrantVectorStoreHandler(BaseVectorStore):
             retriever = self.index_map[index_name].as_retriever(
                 similarity_top_k=top_k,
                 vector_store_query_mode="hybrid",
+                vector_store_kwargs={
+                    "qdrant_filters": self._build_metadata_filter(metadata_filter)
+                },
             )
 
             start_time = time.time()

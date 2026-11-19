@@ -37,6 +37,11 @@ on:
         required: true
         default: "Standard_NC24ads_A100_v4"
         type: string
+      region:
+        description: "Azure region; vm_size must be allowed there"
+        required: true
+        default: "eastus"
+        type: string
       mig_strategy:
         description: "NVIDIA device-plugin MIG strategy (mixed or single)"
         required: true
@@ -68,6 +73,9 @@ permissions:
 env:
   GO_VERSION: "1.26.11"
   VM_SIZE: ${{ github.event.inputs.vm_size || 'Standard_NC24ads_A100_v4' }}
+  # The default e2e region (polandcentral) allows only A10 VMs; A100 runs in
+  # eastus, as in preset-model-regression.
+  REGION: ${{ github.event.inputs.region || 'eastus' }}
   MIG_STRATEGY: ${{ github.event.inputs.mig_strategy || 'mixed' }}
   MIG_PROFILE: ${{ github.event.inputs.mig_profile || '3g.40gb' }}
   MIG_SLICE_COUNT: ${{ github.event.inputs.mig_slice_count || '2' }}
@@ -105,6 +113,8 @@ jobs:
           git_sha: ${{ github.event.pull_request.head.sha || github.sha }}
           build_kaito_base_image: ${{ env.BUILD_KAITO_BASE_IMAGE }}
           skip_helm_install: true
+          region: ${{ env.REGION }}
+          node_vm_size: Standard_D4d_v4
 
       - name: Build workspace controller
         run: |

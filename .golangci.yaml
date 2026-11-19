@@ -1,5 +1,7 @@
 run:
   timeout: 15m
+  # Resolves ${base-path} in depguard globs to the module root.
+  relative-path-mode: gomod
 
 linters-settings:
   gci:
@@ -8,10 +10,40 @@ linters-settings:
       - standard
       - prefix(github.com/kaito-project)
       - default
+  depguard:
+    # Enforce the import direction cmd/ -> internal/ -> api/ -> pkg/ (see AGENTS.md).
+    rules:
+      pkg:
+        files: ["${base-path}/pkg/**"]
+        deny:
+          - pkg: github.com/kaito-project/kaito/cmd
+            desc: pkg/ must not import cmd/
+          - pkg: github.com/kaito-project/kaito/internal
+            desc: pkg/ must not import internal/
+          - pkg: github.com/kaito-project/kaito/api
+            desc: pkg/ must not import api/
+      api:
+        files: ["${base-path}/api/**"]
+        deny:
+          - pkg: github.com/kaito-project/kaito/cmd
+            desc: api/ must not import cmd/
+          - pkg: github.com/kaito-project/kaito/internal
+            desc: api/ must not import internal/
+      internal:
+        files: ["${base-path}/internal/**"]
+        deny:
+          - pkg: github.com/kaito-project/kaito/cmd
+            desc: internal/ must not import cmd/
+      accelerator-vendor:
+        files: ["${base-path}/pkg/accelerator/*/**", "${base-path}/internal/accelerator/*/**"]
+        deny:
+          - pkg: github.com/kaito-project/kaito/pkg/sku
+            desc: vendor accelerator packages must not import pkg/sku
 
 linters:
   disable-all: true
   enable:
+    - depguard
     - gosimple
     - govet
     - ineffassign

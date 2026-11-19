@@ -31,7 +31,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
 	kaitov1beta1 "github.com/kaito-project/kaito/api/v1beta1"
-	"github.com/kaito-project/kaito/pkg/workspace/image"
+	"github.com/kaito-project/kaito/internal/image"
 	"github.com/kaito-project/kaito/test/e2e/utils"
 )
 

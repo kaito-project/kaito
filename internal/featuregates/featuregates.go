@@ -1,0 +1,95 @@
+// Copyright (c) KAITO authors.
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+package featuregates
+
+import (
+	"errors"
+	"fmt"
+
+	cliflag "k8s.io/component-base/cli/flag"
+	"k8s.io/klog/v2"
+)
+
+// Feature gate names.
+const (
+	FeatureFlagDisableNodeAutoProvisioning  = "disableNodeAutoProvisioning"
+	FeatureFlagGatewayAPIInferenceExtension = "gatewayAPIInferenceExtension"
+	FeatureFlagEnableInferenceSetController = "enableInferenceSetController"
+	FeatureFlagEnableMIG                    = "enableMIG"
+	FeatureFlagEnableAccelerator            = "enableAccelerator"
+	// Deprecated: the vLLM gate has no effect; vLLM is always the default runtime.
+	FeatureFlagVLLM = "vLLM"
+
+	FeatureFlagEnableMultiRoleInferenceController = "enableMultiRoleInferenceController"
+	FeatureFlagModelMirror                        = "ModelMirror"
+	FeatureFlagModelStreaming                     = "ModelStreaming"
+	FeatureFlagEnableBaseImageAutoUpgrade         = "enableBaseImageAutoUpgrade"
+	FeatureFlagEnableEPPFlowControl               = "enableEPPFlowControl"
+
+	FeatureFlagDistributedCache = "distributedCache"
+)
+
+var (
+	// FeatureGates is a map that holds the feature gate names and their default values for KAITO.
+	FeatureGates = map[string]bool{
+		FeatureFlagDisableNodeAutoProvisioning:        false,
+		FeatureFlagGatewayAPIInferenceExtension:       false,
+		FeatureFlagEnableInferenceSetController:       true,
+		FeatureFlagEnableMIG:                          false,
+		FeatureFlagEnableAccelerator:                  false,
+		FeatureFlagEnableMultiRoleInferenceController: false,
+		FeatureFlagModelMirror:                        false,
+		FeatureFlagModelStreaming:                     false,
+		FeatureFlagEnableBaseImageAutoUpgrade:         false,
+		FeatureFlagEnableEPPFlowControl:               false,
+		FeatureFlagDistributedCache:                   false,
+		//	Add more feature gates here
+	}
+
+	// deprecatedFeatureGates are still accepted so old flags and Helm values keep working, but they have no effect.
+	deprecatedFeatureGates = map[string]struct{}{
+		FeatureFlagVLLM: {},
+	}
+)
+
+// ParseAndValidateFeatureGates parses the feature gates flag and sets the environment variables for each feature.
+func ParseAndValidateFeatureGates(featureGates string) error {
+	gateMap := map[string]bool{}
+	if err := cliflag.NewMapStringBool(&gateMap).Set(featureGates); err != nil {
+		return err
+	}
+	if len(gateMap) == 0 {
+		// no feature gates set
+		return nil
+	}
+
+	var invalidFeatures string
+	for key, val := range gateMap {
+		if _, ok := deprecatedFeatureGates[key]; ok {
+			klog.Warningf("feature gate %q is deprecated and has no effect", key)
+			continue
+		}
+		if _, ok := FeatureGates[key]; !ok {
+			invalidFeatures = fmt.Sprintf("%s, %s", invalidFeatures, key)
+			continue
+		}
+		FeatureGates[key] = val
+	}
+
+	if invalidFeatures != "" {
+		return errors.New("invalid feature gate(s) " + invalidFeatures)
+	}
+
+	return nil
+}

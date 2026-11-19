@@ -24,8 +24,8 @@ import (
 	"k8s.io/klog/v2"
 	"knative.dev/pkg/apis"
 
-	"github.com/kaito-project/kaito/pkg/utils/consts"
-	"github.com/kaito-project/kaito/pkg/utils/speculativedecoding"
+	"github.com/kaito-project/kaito/api/env"
+	"github.com/kaito-project/kaito/api/internal/speculativedecoding"
 )
 
 func (is *InferenceSet) SupportedVerbs() []admissionregistrationv1.OperationType {
@@ -43,30 +43,30 @@ func (is *InferenceSet) Validate(ctx context.Context) (errs *apis.FieldError) {
 	base := apis.GetBaseline(ctx)
 	if base == nil {
 		klog.InfoS("Validate creation", "inferenceset", fmt.Sprintf("%s/%s", is.Namespace, is.Name))
-		errs = errs.Also(is.validateCreate().ViaField("spec"))
+		errs = errs.Also(is.validateCreate(ctx).ViaField("spec"))
 	} else {
 		klog.InfoS("Validate update", "inferenceset", fmt.Sprintf("%s/%s", is.Namespace, is.Name))
 		old := base.(*InferenceSet)
 		errs = errs.Also(
-			is.validateUpdate(old).ViaField("spec"),
+			is.validateUpdate(ctx, old).ViaField("spec"),
 		)
 	}
 	errs = errs.Also(is.validateSpeculativeDecoding())
 	return errs
 }
 
-func (is *InferenceSet) validateCreate() (errs *apis.FieldError) {
+func (is *InferenceSet) validateCreate(ctx context.Context) (errs *apis.FieldError) {
 	// Validate replicas is non-negative
 	if is.Spec.Replicas != nil && *is.Spec.Replicas < 0 {
 		errs = errs.Also(apis.ErrInvalidValue(*is.Spec.Replicas, "replicas", "must be non-negative"))
 	}
-	errs = errs.Also(is.validateInstanceType().ViaField("template"))
+	errs = errs.Also(is.validateInstanceType(ctx).ViaField("template"))
 	errs = errs.Also(validateMaintenanceWindow(is.Spec.AutoUpgrade))
 	return errs
 }
 
-func (is *InferenceSet) validateUpdate(_ *InferenceSet) (errs *apis.FieldError) {
-	errs = errs.Also(is.validateInstanceType().ViaField("template"))
+func (is *InferenceSet) validateUpdate(ctx context.Context, _ *InferenceSet) (errs *apis.FieldError) {
+	errs = errs.Also(is.validateInstanceType(ctx).ViaField("template"))
 	errs = errs.Also(validateMaintenanceWindow(is.Spec.AutoUpgrade))
 	return errs
 }
@@ -139,16 +139,16 @@ func validateMaintenanceWindow(autoUpgrade *AutoUpgradePolicy) (errs *apis.Field
 
 // validateInstanceType ensures instanceType is set when node auto-provisioning
 // is enabled, and is empty when using BYO (Bring Your Own) nodes.
-func (is *InferenceSet) validateInstanceType() (errs *apis.FieldError) {
+func (is *InferenceSet) validateInstanceType(ctx context.Context) (errs *apis.FieldError) {
 	instanceType := is.Spec.Template.Resource.InstanceType
-	switch consts.ActiveNodeProvisioner {
-	case consts.NodeProvisionerBYO:
+	switch env.FromContext(ctx).NodeProvisioner {
+	case env.NodeProvisionerBYO:
 		// BYO mode: instanceType must be empty.
 		if instanceType != "" {
 			errs = errs.Also(apis.ErrInvalidValue(instanceType, "resource.instanceType",
 				"instanceType must be empty when nodeProvisioner is byo"))
 		}
-	case consts.NodeProvisionerKarpenter, consts.NodeProvisionerAzureGPU:
+	case env.NodeProvisionerKarpenter, env.NodeProvisionerAzureGPU:
 		// Auto-provisioning modes: instanceType is required.
 		if instanceType == "" {
 			errs = errs.Also(apis.ErrMissingField("resource.instanceType"))

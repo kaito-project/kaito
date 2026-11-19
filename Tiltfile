@@ -17,7 +17,6 @@ if 'feature_gates' in settings:
     feature_gates = settings['feature_gates']
 else:
     feature_gates = {
-        'vLLM': True,
         'gatewayAPIInferenceExtension': True,
         'disableNodeAutoProvisioning': False,
     }

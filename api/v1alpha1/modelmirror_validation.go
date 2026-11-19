@@ -26,7 +26,7 @@ import (
 	"k8s.io/apimachinery/pkg/types"
 	"knative.dev/pkg/apis"
 
-	"github.com/kaito-project/kaito/pkg/k8sclient"
+	"github.com/kaito-project/kaito/api/env"
 )
 
 func (m *ModelMirror) SupportedVerbs() []admissionregistrationv1.OperationType {
@@ -101,7 +101,9 @@ func (m *ModelMirror) validateManagedMirror(ctx context.Context) (errs *apis.Fie
 		errs = errs.Also(apis.ErrMissingField("spec.storage.storageClassName"))
 	} else {
 		sc := &storagev1.StorageClass{}
-		if err := k8sclient.Client.Get(ctx, types.NamespacedName{Name: *m.Spec.Storage.StorageClassName}, sc); err != nil {
+		if c, err := env.FromContext(ctx).RequireClient(); err != nil {
+			errs = errs.Also(apis.ErrGeneric(err.Error(), "spec.storage.storageClassName"))
+		} else if err := c.Get(ctx, types.NamespacedName{Name: *m.Spec.Storage.StorageClassName}, sc); err != nil {
 			errs = errs.Also(apis.ErrInvalidValue(*m.Spec.Storage.StorageClassName, "spec.storage.storageClassName"))
 		}
 	}

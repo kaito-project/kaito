@@ -33,8 +33,8 @@ import (
 
 	kaitov1alpha1 "github.com/kaito-project/kaito/api/v1alpha1"
 	kaitov1beta1 "github.com/kaito-project/kaito/api/v1beta1"
-	"github.com/kaito-project/kaito/pkg/workspace/inference/modelstreaming"
-	models "github.com/kaito-project/kaito/presets/workspace/models"
+	"github.com/kaito-project/kaito/internal/inference/modelstreaming"
+	"github.com/kaito-project/kaito/pkg/catalog"
 	"github.com/kaito-project/kaito/test/e2e/utils"
 )
 
@@ -48,7 +48,7 @@ const (
 )
 
 func modelMirrorModelFileSize(modelID string) string {
-	m, err := models.GetModelByNameWithToken(ctx, modelID, "")
+	m, err := catalog.GetModelByNameWithToken(ctx, modelID, "")
 	if err != nil || m == nil {
 		return ""
 	}

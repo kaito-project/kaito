@@ -22,7 +22,7 @@ import (
 
 	"gopkg.in/yaml.v2"
 
-	"github.com/kaito-project/kaito/presets/workspace/generator"
+	"github.com/kaito-project/kaito/pkg/catalog/hfgen"
 )
 
 func main() {
@@ -36,7 +36,7 @@ func main() {
 
 	modelRepo := flag.Arg(0)
 
-	param, err := generator.GeneratePreset(modelRepo, *token)
+	param, err := hfgen.GeneratePreset(modelRepo, *token)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Error: %v\n", err)
 		os.Exit(1)

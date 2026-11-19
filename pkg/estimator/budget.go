@@ -57,9 +57,14 @@ var baseOverheadGiBByGPUModel = map[string]float64{
 	"NVIDIA A10": 1.5,
 }
 
-// ResolveGPUMemoryUtilization resolves an explicit setting before the GPU default.
-func ResolveGPUMemoryUtilization(gpuModel string, params *pkgmodel.PresetParam) (float64, error) {
-	value := hfgen.ResolveGPUMemoryUtilization(gpuModel)
+// ResolveGPUMemoryUtilization resolves an explicit setting before the model and
+// GPU defaults for a node with gpuCount GPUs of type gpuModel.
+func ResolveGPUMemoryUtilization(gpuModel string, gpuCount int, params *pkgmodel.PresetParam) (float64, error) {
+	modelName := ""
+	if params != nil {
+		modelName = params.VLLM.ModelName
+	}
+	value := hfgen.ResolveGPUMemoryUtilization(modelName, gpuModel, gpuCount)
 	if params != nil {
 		if override, ok := params.VLLM.ModelRunParams["gpu-memory-utilization"]; ok {
 			value = override
@@ -102,7 +107,7 @@ func KVHeadroomBytesPerGPU(params *pkgmodel.PresetParam, gpuConfig *sku.GPUConfi
 	if params == nil || gpuConfig == nil || gpuConfig.GPUCount <= 0 || gpuConfig.GPUMem.IsZero() {
 		return 0, false, nil
 	}
-	utilization, err := ResolveGPUMemoryUtilization(gpuConfig.GPUModel, params)
+	utilization, err := ResolveGPUMemoryUtilization(gpuConfig.GPUModel, gpuConfig.GPUCount, params)
 	if err != nil {
 		return 0, false, err
 	}

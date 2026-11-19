@@ -148,7 +148,7 @@ func ComputeNodeCountForGPUConfig(m pkgmodel.Model, gpuConfig *sku.GPUConfig, ma
 		}
 		modelSize := float64(residentWeights) * estimator.WeightExpansionFactor // vllm model size is about 102% of HuggingFace size
 		gpuMemPerGPU := float64(gpuConfig.GPUMem.Value() / int64(gpuConfig.GPUCount))
-		utilization, err := estimator.ResolveGPUMemoryUtilization(gpuConfig.GPUModel, inferParams)
+		utilization, err := estimator.ResolveGPUMemoryUtilization(gpuConfig.GPUModel, gpuConfig.GPUCount, inferParams)
 		if err != nil {
 			return 0, err
 		}

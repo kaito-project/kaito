@@ -444,9 +444,11 @@ prepare-kaito-addon-identity: ## Create Azure identity and federated credential 
     -g "$(AZURE_RESOURCE_GROUP)" --issuer $$AKS_OIDC_ISSUER \
     --subject system:serviceaccount:"$(KAITO_NAMESPACE):kaito-gpu-provisioner" --audience api://AzureADTokenExchange
 
+# --admin: the e2e clusters have Microsoft Entra ID enabled, whose user credentials
+# need kubelogin and a Kubernetes role; the local admin account needs neither.
 .PHONY: az-patch-install-helm
 az-patch-install-helm: ## Install KAITO workspace Helm chart and set Azure client env vars and settings in Helm values.
-	az aks get-credentials --name $(AZURE_CLUSTER_NAME) --resource-group $(AZURE_RESOURCE_GROUP)
+	az aks get-credentials --name $(AZURE_CLUSTER_NAME) --resource-group $(AZURE_RESOURCE_GROUP) --admin
 
 	yq -i '(.image.repository)                                              = "$(REGISTRY)/workspace"'                    ./charts/kaito/workspace/values.yaml
 	yq -i '(.image.tag)                                                     = "$(IMG_TAG)"'                               ./charts/kaito/workspace/values.yaml
@@ -457,7 +459,7 @@ az-patch-install-helm: ## Install KAITO workspace Helm chart and set Azure clien
 
 .PHONY: az-patch-install-ragengine-helm
 az-patch-install-ragengine-helm: ## Install KAITO RAG Engine Helm chart and set Azure client env vars and settings in Helm values.
-	az aks get-credentials --name $(AZURE_CLUSTER_NAME) --resource-group $(AZURE_RESOURCE_GROUP)
+	az aks get-credentials --name $(AZURE_CLUSTER_NAME) --resource-group $(AZURE_RESOURCE_GROUP) --admin
 
 	yq -i '(.image.repository)                                              = "$(REGISTRY)/ragengine"'                    ./charts/kaito/ragengine/values.yaml
 	yq -i '(.image.tag)                                                     = "$(IMG_TAG)"'                               ./charts/kaito/ragengine/values.yaml
@@ -467,7 +469,7 @@ az-patch-install-ragengine-helm: ## Install KAITO RAG Engine Helm chart and set 
 
 .PHONY: az-patch-install-ragengine-helm-e2e
 az-patch-install-ragengine-helm-e2e: ## Install KAITO RAG Engine Helm chart for e2e tests and set Azure client env vars and settings in Helm values.
-	az aks get-credentials --name $(AZURE_CLUSTER_NAME) --resource-group $(AZURE_RESOURCE_GROUP)
+	az aks get-credentials --name $(AZURE_CLUSTER_NAME) --resource-group $(AZURE_RESOURCE_GROUP) --admin
 
 	yq -i '(.image.repository)                                              = "$(REGISTRY)/ragengine"'                    ./charts/kaito/ragengine/values.yaml
 	yq -i '(.image.tag)                                                     = "$(IMG_TAG)"'                               ./charts/kaito/ragengine/values.yaml

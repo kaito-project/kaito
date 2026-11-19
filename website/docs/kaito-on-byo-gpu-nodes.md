@@ -51,7 +51,7 @@ az group create \
 
 ### Create an Azure Kubernetes Service (AKS) cluster
 
-Run the following command to create an AKS cluster:
+Run the following command to create an AKS cluster with Microsoft Entra ID integration enabled:
 
 ```bash
 az aks create \
@@ -61,6 +61,7 @@ az aks create \
     --enable-oidc-issuer \
     --enable-workload-identity \
     --enable-managed-identity \
+    --enable-aad \
     --node-count 1 \
     --location "${LOCATION}" \
     --ssh-key-value "${SSH_KEY}" \
@@ -90,12 +91,13 @@ az aks nodepool add \
 
 ### Download kubeconfig
 
-Run the following command to download the kubeconfig file:
+Run the following command to download the kubeconfig file. `--admin` downloads the cluster's local admin credentials; signing in with your Microsoft Entra ID account instead needs [kubelogin](https://azure.github.io/kubelogin/) and a Kubernetes role for that account.
 
 ```bash
 az aks get-credentials \
     --resource-group "${RESOURCE_GROUP}" \
-    --name "${CLUSTER_NAME}"
+    --name "${CLUSTER_NAME}" \
+    --admin
 ```
 
 ## Prepare the Kubernetes cluster for GPU workloads

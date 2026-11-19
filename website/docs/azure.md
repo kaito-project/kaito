@@ -107,7 +107,7 @@ Create the cluster, identities, and install Azure Karpenter:
 
 ```bash
 # Create the resource group and an AKS cluster configured for Karpenter
-# (Azure CNI Overlay + Cilium, OIDC issuer, and workload identity)
+# (Azure CNI Overlay + Cilium, OIDC issuer, workload identity, and Microsoft Entra ID)
 make create-rg
 make create-aks-cluster-for-karpenter
 
@@ -117,6 +117,10 @@ make generate-identities
 # Install the Azure Karpenter controller
 make azure-karpenter-helm
 ```
+
+:::note
+`make create-aks-cluster-for-karpenter` downloads the cluster's local admin kubeconfig. When you reconnect later, pass `--admin` to `az aks get-credentials`; signing in with your Microsoft Entra ID account instead needs [kubelogin](https://azure.github.io/kubelogin/) and a Kubernetes role for that account.
+:::
 
 Then continue with [Step 2: Configure the KAITO Workspace Controller to Use Karpenter](#step-2-configure-the-kaito-workspace-controller-to-use-karpenter) above.
 

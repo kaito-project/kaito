@@ -2,7 +2,7 @@
 
 This is a sample of how to deploy an Open Source KAITO on a new Azure Kubernetes Service (AKS) using Terraform. This sample will deploy the following resources:
 
-- Azure Kubernetes Service (AKS)
+- Azure Kubernetes Service (AKS) with Microsoft Entra ID integration
 - Azure Container Registry (ACR) with short lived, repo scoped token
 - Azure Managed Identity with Federated Credential and Role Assignment for GPU Provisioner
 - Install the KAITO GPU Provisioner Helm Chart
@@ -59,10 +59,10 @@ terraform apply
 
 ## Verify
 
-Log into the AKS cluster.
+Log into the AKS cluster. `--admin` downloads the cluster's local admin credentials; signing in with your Microsoft Entra ID account instead needs [kubelogin](https://azure.github.io/kubelogin/) and a Kubernetes role for that account.
 
 ```bash
-az aks get-credentials -g $(terraform output -raw rg_name) -n $(terraform output -raw aks_name)
+az aks get-credentials -g $(terraform output -raw rg_name) -n $(terraform output -raw aks_name) --admin
 ```
 
 Verify installation of the KAITO operators.

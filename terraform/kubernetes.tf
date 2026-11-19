@@ -6,6 +6,11 @@ resource "azurerm_kubernetes_cluster" "example" {
   oidc_issuer_enabled       = true
   workload_identity_enabled = true
 
+  # Microsoft Entra ID integration: Azure Policy can deny AKS clusters without it.
+  azure_active_directory_role_based_access_control {
+    tenant_id = data.azurerm_client_config.current.tenant_id
+  }
+
   default_node_pool {
     name       = "default"
     node_count = var.node_pool_count

@@ -83,4 +83,24 @@ func TestSelectNodes(t *testing.T) {
 		assert.Len(t, result, 2)
 		assert.Equal(t, "node-a", result[0].Name)
 	})
+
+	t.Run("gpu-provisioner and karpenter nodes share one tier and tie-break alphabetically", func(t *testing.T) {
+		gpu := func() *corev1.Node {
+			return makeNode("z-gpu", map[string]string{labelGPUProvisionerCustom: "gpu"})
+		}
+		karpenter := func() *corev1.Node {
+			return makeNode("a-karpenter", map[string]string{karpenterv1.NodePoolLabelKey: "default"})
+		}
+
+		// Both nodes are provisioner-created, so they belong to the same priority
+		// tier and must fall back to an alphabetical, input-order-independent
+		// tie-break regardless of which provisioner created each one.
+		forward := SelectNodes([]*corev1.Node{gpu(), karpenter()}, nil, nil, 1)
+		reversed := SelectNodes([]*corev1.Node{karpenter(), gpu()}, nil, nil, 1)
+
+		assert.Len(t, forward, 1)
+		assert.Len(t, reversed, 1)
+		assert.Equal(t, "a-karpenter", forward[0].Name)
+		assert.Equal(t, "a-karpenter", reversed[0].Name)
+	})
 }

@@ -41,19 +41,25 @@ func SelectNodes(qualified []*corev1.Node, preferred []string, previous []string
 			} else if !iPrevious && jPrevious {
 				return false
 			} else { // either all are previous, or none is previous
-				var iCreatedByGPUProvisioner, jCreatedByGPUProvisioner bool
-				_, iCreatedByGPUProvisioner = qualified[i].Labels[labelGPUProvisionerCustom]
-				_, jCreatedByGPUProvisioner = qualified[j].Labels[labelGPUProvisionerCustom]
-				// Choose node created by gpu-provisioner and karpenter since it is more likely to be empty to use.
-				var iCreatedByKarpenter, jCreatedByKarpenter bool
-				_, iCreatedByKarpenter = qualified[i].Labels[karpenterv1.NodePoolLabelKey]
-				_, jCreatedByKarpenter = qualified[j].Labels[karpenterv1.NodePoolLabelKey]
+				// Nodes created by gpu-provisioner or karpenter are a single
+				// preference tier since they are more likely to be empty to use.
+				// These must be collapsed into one boolean: ranking the two label
+				// dimensions independently is not a valid strict weak ordering (a
+				// gpu-provisioner-only node and a karpenter-only node each compare
+				// as less than the other), which makes the sort non-deterministic
+				// and skips the alphabetical tie-break below.
+				_, iProvisioned := qualified[i].Labels[labelGPUProvisionerCustom]
+				if !iProvisioned {
+					_, iProvisioned = qualified[i].Labels[karpenterv1.NodePoolLabelKey]
+				}
+				_, jProvisioned := qualified[j].Labels[labelGPUProvisionerCustom]
+				if !jProvisioned {
+					_, jProvisioned = qualified[j].Labels[karpenterv1.NodePoolLabelKey]
+				}
 
-				if (iCreatedByGPUProvisioner && !jCreatedByGPUProvisioner) ||
-					(iCreatedByKarpenter && !jCreatedByKarpenter) {
+				if iProvisioned && !jProvisioned {
 					return true
-				} else if (!iCreatedByGPUProvisioner && jCreatedByGPUProvisioner) ||
-					(!iCreatedByKarpenter && jCreatedByKarpenter) {
+				} else if !iProvisioned && jProvisioned {
 					return false
 				} else {
 					return qualified[i].Name < qualified[j].Name

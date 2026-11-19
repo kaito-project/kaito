@@ -833,6 +833,12 @@ class BaseVectorStore(ABC):
         else:
             await self._load_internal(index_name, path, overwrite)
 
+    def _vector_scores_are_distances(self, index_name: str) -> bool:
+        """Whether the index's vector search returns squared L2 distances of
+        unit vectors (lower is better) instead of similarities. HybridRetriever
+        converts them to cosine similarities."""
+        return False
+
     def _create_storage_context_for_load(
         self, index_name: str, path: str
     ) -> StorageContext:
@@ -925,6 +931,9 @@ class BaseVectorStore(ABC):
                     index=self.index_map[index_name],
                     max_results=top_k,
                     metadata_filter=metadata_filter,
+                    vector_scores_are_distances=self._vector_scores_are_distances(
+                        index_name
+                    ),
                 )
 
             start_time = time.time()

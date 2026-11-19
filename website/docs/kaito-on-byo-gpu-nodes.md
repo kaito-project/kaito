@@ -168,7 +168,7 @@ If you have used a different set up to create the GPU nodes, you can label the n
 
 ## Install KAITO on the Kubernetes cluster
 
-When using Bring Your Own (BYO) GPU nodes, you must disable Node Auto Provisioning to avoid conflicts. Run the following command to install KAITO:
+When using Bring Your Own (BYO) GPU nodes, you must select the `byo` node provisioner so that KAITO does not auto-provision nodes. Run the following command to install KAITO:
 
 ```bash
 helm repo add kaito https://kaito-project.github.io/kaito/charts/kaito
@@ -176,12 +176,13 @@ helm repo update
 helm install workspace kaito/workspace \
     --namespace kaito-workspace \
     --create-namespace \
+    --set nodeProvisioner=byo \
     --set featureGates.disableNodeAutoProvisioning=true \
     --set clusterName="${CLUSTER_NAME}"
 ```
 
 :::info Why disable Node Auto Provisioning?
-Since you're bringing your own GPU nodes, KAITO should not attempt to auto-provision new nodes. The `disableNodeAutoProvisioning=true` flag ensures that KAITO will only use your existing, pre-labeled GPU nodes.
+Since you're bringing your own GPU nodes, KAITO should not attempt to auto-provision new nodes. `nodeProvisioner=byo` ensures that KAITO will only use your existing, pre-labeled GPU nodes. The `disableNodeAutoProvisioning=true` feature gate alone does not: the controller derives it from `nodeProvisioner`, which defaults to `azure-gpu-provisioner`. The gate is still needed here, because it installs the bundled `gpu-feature-discovery` subchart.
 :::
 
 Ensure that kaito is installed by running the following command:

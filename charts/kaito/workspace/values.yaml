@@ -98,6 +98,8 @@ nvidiaDevicePlugin:
 spotInstance:
   enabled: false
 
+# Local CSI stores downloaded model weights on inference nodes.
+# DACS uses separate, explicitly labeled cache nodes; both can be installed.
 localCSIDriver:
   useLocalCSIDriver: true
 webhook:
@@ -186,6 +188,15 @@ local-csi-driver:
   daemonset:
     podSelector:
       app: csi-local-node
+    # Keep local CSI off the nodes whose NVMe disks are owned by DACS.
+    nodeAffinity:
+      requiredDuringSchedulingIgnoredDuringExecution:
+        nodeSelectorTerms:
+          - matchExpressions:
+              - key: dacs.azure.com/processing-unit
+                operator: NotIn
+                values:
+                  - cpu
   cleanup:
     enabled: true
     # LVM logical volume garbage collection configuration driven by PV annotation mismatches.
@@ -222,7 +233,53 @@ productionstack:
 
 # Distributed cache provider configuration.
 # Only active when featureGates.distributedCache is true.
-# Each cache provider is configured under cache.providers.<name>. No provider is
-# bundled with this framework; install a provider and add its config here.
+# Enable dacs.enabled to install the bundled controller, or use an existing release.
+# Model-weight caching requires Run:ai streaming and a workspace cache attachment;
+# enabling the provider alone does not change the model-loading path.
 cache:
-  providers: {}
+  providers:
+    dacs:
+      enabled: true
+      discoveryEndpoint: ""
+      # OCI image bundling the DACS client libraries (libStorageDirect.so),
+      # mounted into inference pods as an ImageVolume.
+      # glibc requirement: the client is built against glibc 2.35 (manylinux_2_35),
+      # so the inference/base image using the cache MUST be glibc >= 2.35
+      # (Ubuntu 22.04+), otherwise the library fails to load at runtime.
+      clientImage: "mcr.microsoft.com/dacs/runai-dacs-client:v0.1.0"
+      # KAITO renders this Cache resource; install the DACS CRD/controller first.
+      cache:
+        enabled: true
+        name: cache-sample
+        namespace: kube-system
+        spec:
+          nodeSelectorKey: dacs.azure.com/processing-unit
+          nodeSelectorValue: cpu
+          scaling:
+            dynamic:
+              percentageOfNodesToUse: 100
+              minServers: 1
+              maxServers: 100
+          serverSizeInGB: 4
+          serverThreads: 80
+          storage:
+            hostPath:
+              nodeCacheFolderPath: /var/lib/ssd/cacheserver
+
+# Unreleased controller-chart snapshot from Azure/dacs#189. Installation and
+# runtime provider selection are independent; do not install over managed DACS.
+dacs:
+  enabled: false
+  global:
+    registry: mcr.microsoft.com
+  manager:
+    image:
+      tag: v0.1.0
+    cacheServerImage:
+      tag: v0.1.0
+  cacheServerPrereq:
+    enabled: false
+    nvmeRaidSetup:
+      image:
+        repository: mcr.microsoft.com/dacs/cache-setup
+        tag: v0.1.0

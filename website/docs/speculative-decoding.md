@@ -211,7 +211,7 @@ Once speculative decoding is enabled, vLLM exposes speculative decoding metrics 
 
 ## Measuring the benefit
 
-The gain from speculative decoding depends on the model, GPU, traffic and load: it is usually largest at low concurrency and shrinks as batches fill the GPU. The [speculative decoding benchmark](https://github.com/kaito-project/kaito/tree/main/benchmarks/speculative_decoding) serves a preset with the annotation off and on, sweeps concurrency levels with `vllm bench serve`, and reports the throughput gain and per-user decode speedup at each level.
+The gain from speculative decoding depends on the model, GPU, traffic and load: it is usually largest at low concurrency and shrinks as batches fill the GPU. The [speculative decoding benchmark](https://github.com/kaito-project/kaito/tree/main/test/benchmarks/speculative_decoding) serves a preset with the annotation off and on, sweeps concurrency levels with `vllm bench serve`, and reports the throughput gain and per-user decode speedup at each level.
 
 ## Notes and limitations
 

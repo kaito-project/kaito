@@ -32,4 +32,4 @@ jobs:
       - name: ACR Login
         run: az acr login --name '${{ secrets.KAITO_MCR_REGISTRY }}'
       - name: Docker Build and Push
-        run: docker buildx build --push --build-arg='VERSION=${{ inputs.version }}' --build-arg='REVISION=${{ inputs.revision }}' --platform='linux/amd64,linux/arm64' --provenance='true' --sbom='true' --tag='${{ secrets.KAITO_MCR_REGISTRY }}/public/aks/skopeo:${{ inputs.version }}-${{ inputs.revision }}' --target='azlinux3/container' ./docker/skopeo
+        run: docker buildx build --push --build-arg='VERSION=${{ inputs.version }}' --build-arg='REVISION=${{ inputs.revision }}' --platform='linux/amd64,linux/arm64' --provenance='true' --sbom='true' --tag='${{ secrets.KAITO_MCR_REGISTRY }}/public/aks/skopeo:${{ inputs.version }}-${{ inputs.revision }}' --target='azlinux3/container' ./build/skopeo

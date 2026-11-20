@@ -70,11 +70,11 @@ The `.github/scripts/preset-regression-tests/preset-regression-matrix.sh` script
 
 4. **Check the generated regression targets.** Run `.github/scripts/preset-regression-tests/preset-regression-matrix.sh` and confirm the size policy selects appropriate GPU pools and topology. Adjust the shared policy in `.github/preset-regression-config.json` only when the sizing tiers themselves need to change.
 
-5. **Collect GSM8K baselines on compatible GPU types.** Deploy the model as a KAITO Workspace CR on each compatible GPU type, run the GSM8K evaluation following `.github/scripts/preset-regression-tests/preset-regression-test.md`, and record the reviewed measurements in `benchmarks/gsm8k/baselines.yaml`.
+5. **Collect GSM8K baselines on compatible GPU types.** Deploy the model as a KAITO Workspace CR on each compatible GPU type, run the GSM8K evaluation following `.github/scripts/preset-regression-tests/preset-regression-test.md`, and record the reviewed measurements in `test/benchmarks/gsm8k/baselines.yaml`.
 
 6. **Add the model to the supported models documentation.** Add a row for the new model to the table in `website/docs/presets.md` with its HuggingFace repo ID, model URL, and license.
 
-7. **Submit a pull request** with the updated `model_catalog.yaml`, `benchmarks/gsm8k/baselines.yaml`, `website/docs/presets.md` and other necessary changes.
+7. **Submit a pull request** with the updated `model_catalog.yaml`, `test/benchmarks/gsm8k/baselines.yaml`, `website/docs/presets.md` and other necessary changes.
 
 ## Refreshing All Existing Entries
 

@@ -27,7 +27,7 @@ on:
       - ".github/workflows/preset-model-regression-8xh100.yaml"
       - ".github/scripts/preset-regression-tests/**"
       - ".github/preset-regression-config.json"
-      - "benchmarks/gsm8k/**"
+      - "test/benchmarks/gsm8k/**"
       - "pkg/catalog/model_catalog.yaml"
   workflow_dispatch:
     inputs:

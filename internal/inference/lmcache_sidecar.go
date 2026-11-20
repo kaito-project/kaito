@@ -23,8 +23,10 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
 	"github.com/kaito-project/kaito/api/v1beta1"
+	iaccel "github.com/kaito-project/kaito/internal/accelerator"
 	"github.com/kaito-project/kaito/internal/manifests"
 	"github.com/kaito-project/kaito/internal/manifests/builder"
+	"github.com/kaito-project/kaito/pkg/accelerator"
 	"github.com/kaito-project/kaito/pkg/catalog"
 	pkgmodel "github.com/kaito-project/kaito/pkg/model"
 )
@@ -42,8 +44,8 @@ const (
 type lmCacheResolvedConfig struct {
 	runtimeName pkgmodel.RuntimeName
 	runParams   map[string]string
-	// Reuse the target resolved during pod generation, including label-only BYO nodes.
-	targetCPU bool
+	// driver is the target resolved once per generation, including label-only BYO nodes.
+	driver iaccel.Driver
 }
 
 // ConfigureLMCacheSidecar injects LMCache as a native Kubernetes sidecar when
@@ -52,7 +54,7 @@ func ConfigureLMCacheSidecar(resolved *lmCacheResolvedConfig) builder.TypedManif
 	return func(ctx *builder.WorkspaceGeneratorContext, spec *corev1.PodSpec) error {
 		// CPU KV offload extends GPU inference with host memory; the LMCache
 		// server itself requires CUDA and must never gate a CPU inference pod.
-		if resolved.targetCPU {
+		if resolved.driver.Type() == accelerator.TypeCPU {
 			klog.InfoS("LMCache sidecar disabled", "workspace", klog.KObj(ctx.Workspace), "reason", "CPU inference is unsupported")
 			return nil
 		}
@@ -73,7 +75,7 @@ func ConfigureLMCacheSidecar(resolved *lmCacheResolvedConfig) builder.TypedManif
 		if tensorParallelSize == "" {
 			tensorParallelSize = "1"
 		}
-		injectLMCacheSidecar(spec, ctx.Workspace.Name, tensorParallelSize)
+		injectLMCacheSidecar(spec, ctx.Workspace.Name, tensorParallelSize, resolved.driver.SharedDeviceEnv())
 		return nil
 	}
 }
@@ -141,7 +143,7 @@ func isLMCacheWorkloadEligible(workspace *v1beta1.Workspace, runtimeName pkgmode
 	return true, ""
 }
 
-func injectLMCacheSidecar(spec *corev1.PodSpec, mainContainerName, tensorParallelSize string) {
+func injectLMCacheSidecar(spec *corev1.PodSpec, mainContainerName, tensorParallelSize string, deviceEnv []corev1.EnvVar) {
 	mainIndex := -1
 	for i := range spec.Containers {
 		if spec.Containers[i].Name == mainContainerName {
@@ -193,12 +195,8 @@ func injectLMCacheSidecar(spec *corev1.PodSpec, mainContainerName, tensorParalle
 		RestartPolicy: &restartAlways,
 		// LMCache must open CUDA IPC handles for the same GPUs as vLLM, but a
 		// sibling container cannot share vLLM's device-plugin allocation. KAITO
-		// uses dedicated GPU nodes, so expose their GPUs explicitly; compute
-		// enables CUDA and utility provides the driver/NVML discovery APIs.
-		Env: []corev1.EnvVar{
-			{Name: "NVIDIA_VISIBLE_DEVICES", Value: "all"},
-			{Name: "NVIDIA_DRIVER_CAPABILITIES", Value: "compute,utility"},
-		},
+		// uses dedicated GPU nodes, so expose their GPUs explicitly.
+		Env: deviceEnv,
 		StartupProbe: &corev1.Probe{
 			ProbeHandler:  serverHealthProbe,
 			PeriodSeconds: 5, TimeoutSeconds: lmCacheProbeTimeoutSeconds, FailureThreshold: lmCacheSidecarStartupAttempts,

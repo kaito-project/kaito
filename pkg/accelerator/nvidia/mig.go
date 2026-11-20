@@ -22,6 +22,8 @@ import (
 )
 
 const (
+	// ResourceGPU is the extended resource for a whole NVIDIA GPU.
+	ResourceGPU = "nvidia.com/gpu"
 	// migResourcePrefix is the Kubernetes extended resource prefix for MIG devices.
 	migResourcePrefix = "nvidia.com/mig-"
 )

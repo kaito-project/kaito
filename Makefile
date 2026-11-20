@@ -8,7 +8,7 @@ RAGENGINE_IMG_NAME ?= ragengine
 IMG_TAG ?= $(subst v,,$(VERSION))
 
 # injection variables
-INJECTION_ROOT := github.com/kaito-project/kaito/pkg/version
+INJECTION_ROOT := github.com/kaito-project/kaito/internal/version
 BUILD_DATE := $(shell date -u +%Y-%m-%dT%H:%M:%SZ)
 GIT_VERSION := $(shell git describe --tags --always --dirty)
 LDFLAGS := -X '$(INJECTION_ROOT).Version=$(GIT_VERSION)' \
@@ -46,6 +46,11 @@ GPU_PROVISIONER_NAME ?= gpu-provisioner
 KAITO_NAMESPACE ?= kaito-workspace
 KAITO_RAGENGINE_NAMESPACE ?= kaito-ragengine
 GPU_PROVISIONER_MSI_NAME ?= gpuprovisionerIdentity
+# Set to true where an Azure Policy requires Microsoft Entra ID on AKS clusters (for example,
+# CloudGov_KubernAuthN_AAD in Microsoft-internal subscriptions). The create-aks-cluster* targets
+# then pass --enable-aad and fetch the local admin kubeconfig, because Entra ID user credentials
+# need kubelogin and a Kubernetes role.
+AKS_ENABLE_AAD ?= false
 
 ## Azure Karpenter parameters
 KARPENTER_NAMESPACE ?= karpenter
@@ -128,7 +133,7 @@ compare-base-image-configs: ## Compare base_images.yaml with ConfigMap template 
 	@./hack/compare_base_image_configs.sh
 
 .PHONY: generate-vllm-arch-list
-generate-vllm-arch-list: ## Regenerate presets/workspace/models/vllm_model_arch_list.txt.
+generate-vllm-arch-list: ## Regenerate pkg/catalog/vllm_model_arch_list.txt.
 	@./hack/generate_vllm_arch_list.sh
 
 ## --------------------------------------
@@ -139,8 +144,8 @@ generate-vllm-arch-list: ## Regenerate presets/workspace/models/vllm_model_arch_
 
 .PHONY: unit-test
 unit-test: ## Run unit tests.
-	go test -v $(shell go list ./pkg/... ./api/... ./presets/... | \
-	grep -v -e /vendor -e /api/v1alpha1/zz_generated.deepcopy.go -e /api/v1beta1/zz_generated.deepcopy.go -e /pkg/utils/test/...) \
+	go test -v $(shell go list ./pkg/... ./internal/... ./api/... | \
+	grep -v -e /vendor -e /api/v1alpha1/zz_generated.deepcopy.go -e /api/v1beta1/zz_generated.deepcopy.go -e /internal/testutil) \
 	-race -coverprofile=coverage.txt -covermode=atomic
 	go tool cover -func=coverage.txt
 
@@ -212,22 +217,27 @@ kaito-ragengine-e2e-test: $(RAGENGINE_E2E_TEST) $(GINKGO) ## Run e2e tests for K
 create-rg: ## Create Azure resource group.
 	az group create --name $(AZURE_RESOURCE_GROUP) --location $(AZURE_LOCATION) -o none
 
+ifeq ($(AKS_ENABLE_AAD),true)
+AKS_CREATE_AAD_ARGS := --enable-aad
+AKS_CREDENTIALS_AAD_ARGS := --admin
+endif
+
 .PHONY: create-aks-cluster
-create-aks-cluster: ## Create an AKS cluster with MSI, OIDC, and workload identity enabled.
+create-aks-cluster: ## Create an AKS cluster with MSI, OIDC, and workload identity enabled; AKS_ENABLE_AAD=true adds Microsoft Entra ID.
 	az aks create  --name $(AZURE_CLUSTER_NAME) --resource-group $(AZURE_RESOURCE_GROUP) \
 	--location $(AZURE_LOCATION) --attach-acr $(AZURE_ACR_NAME) \
 	--kubernetes-version $(AKS_K8S_VERSION) --generate-ssh-keys  \
-	--enable-managed-identity --enable-workload-identity --enable-oidc-issuer --node-vm-size Standard_D4d_v4 -o none
-	az aks get-credentials --name $(AZURE_CLUSTER_NAME) --resource-group $(AZURE_RESOURCE_GROUP) --overwrite-existing
+	--enable-managed-identity --enable-workload-identity --enable-oidc-issuer $(AKS_CREATE_AAD_ARGS) --node-vm-size Standard_D4d_v4 -o none
+	az aks get-credentials --name $(AZURE_CLUSTER_NAME) --resource-group $(AZURE_RESOURCE_GROUP) $(AKS_CREDENTIALS_AAD_ARGS) --overwrite-existing
 
 .PHONY: create-aks-cluster-for-karpenter
-create-aks-cluster-for-karpenter: ## Create an AKS cluster with MSI, Cillium, OIDC, and workload identity enabled.
+create-aks-cluster-for-karpenter: ## Create an AKS cluster with MSI, Cilium, OIDC, and workload identity enabled; AKS_ENABLE_AAD=true adds Microsoft Entra ID.
 	az aks create --name $(AZURE_CLUSTER_NAME) --resource-group $(AZURE_RESOURCE_GROUP) \
     --location $(AZURE_LOCATION) --attach-acr $(AZURE_ACR_NAME) --node-vm-size "Standard_D4d_v4" \
     --kubernetes-version $(AKS_K8S_VERSION) --generate-ssh-keys \
     --network-plugin azure --network-plugin-mode overlay --network-dataplane cilium \
-    --enable-managed-identity --enable-oidc-issuer --enable-workload-identity -o none
-	az aks get-credentials --name $(AZURE_CLUSTER_NAME) --resource-group $(AZURE_RESOURCE_GROUP) --overwrite-existing
+    --enable-managed-identity --enable-oidc-issuer --enable-workload-identity $(AKS_CREATE_AAD_ARGS) -o none
+	az aks get-credentials --name $(AZURE_CLUSTER_NAME) --resource-group $(AZURE_RESOURCE_GROUP) $(AKS_CREDENTIALS_AAD_ARGS) --overwrite-existing
 
 ## --------------------------------------
 ## AWS Setup
@@ -276,8 +286,9 @@ RAGENGINE_SERVICE_APP_VERSION := $(subst v,,$(RAGENGINE_SERVICE_IMG_TAG))
 
 KAITO_BASE_IMG_NAME ?= kaito-base
 KAITO_BASE_IMG_TAG ?= v0.0.1
-KAITO_VLLM_CPU_IMG_NAME ?= kaito-base-vllm-cpu
-KAITO_VLLM_CPU_IMG_TAG ?= v0.0.1
+KAITO_CPU_IMG_NAME ?= kaito-base-cpu
+# CPU runtime releases are versioned independently from the GPU base image.
+KAITO_CPU_IMG_TAG ?= 0.0.2
 
 MT_BENCH_IMG_NAME ?= mt-bench-eval
 MT_BENCH_IMG_TAG ?= v0.0.1
@@ -333,16 +344,17 @@ docker-build-kaito-base: docker-buildx ## Build Docker image for KAITO base.
 		$(BUILD_FLAGS) \
         --tag $(REGISTRY)/$(KAITO_BASE_IMG_NAME):$(KAITO_BASE_IMG_TAG) .
 
-.PHONY: docker-build-kaito-base-vllm-cpu
-docker-build-kaito-base-vllm-cpu: docker-buildx ## Build Docker image for KAITO vLLM CPU base (amd64 only).
+.PHONY: docker-build-kaito-base-cpu
+docker-build-kaito-base-cpu: docker-buildx ## Build Docker image for KAITO vLLM CPU base (amd64 only).
 	docker buildx build \
-		--build-arg VERSION=$(KAITO_VLLM_CPU_IMG_TAG) \
+		--build-arg VERSION=$(KAITO_CPU_IMG_TAG) \
 		--platform=linux/amd64 \
 		--output=$(OUTPUT_TYPE) \
-		--file ./docker/presets/models/vllm-cpu/Dockerfile \
+		--file ./docker/presets/models/cpu/Dockerfile \
 		--pull \
 		$(BUILD_FLAGS) \
-		--tag $(REGISTRY)/$(KAITO_VLLM_CPU_IMG_NAME):$(KAITO_VLLM_CPU_IMG_TAG) .
+		--tag $(REGISTRY)/$(KAITO_CPU_IMG_NAME):$(KAITO_CPU_IMG_TAG) .
+
 
 .PHONY: docker-build-ragservice
 docker-build-ragservice: docker-buildx ## Build Docker image for RAG Engine service.
@@ -442,9 +454,11 @@ prepare-kaito-addon-identity: ## Create Azure identity and federated credential 
     -g "$(AZURE_RESOURCE_GROUP)" --issuer $$AKS_OIDC_ISSUER \
     --subject system:serviceaccount:"$(KAITO_NAMESPACE):kaito-gpu-provisioner" --audience api://AzureADTokenExchange
 
+# --admin: the e2e clusters have Microsoft Entra ID enabled, whose user credentials
+# need kubelogin and a Kubernetes role; the local admin account needs neither.
 .PHONY: az-patch-install-helm
 az-patch-install-helm: ## Install KAITO workspace Helm chart and set Azure client env vars and settings in Helm values.
-	az aks get-credentials --name $(AZURE_CLUSTER_NAME) --resource-group $(AZURE_RESOURCE_GROUP)
+	az aks get-credentials --name $(AZURE_CLUSTER_NAME) --resource-group $(AZURE_RESOURCE_GROUP) --admin
 
 	yq -i '(.image.repository)                                              = "$(REGISTRY)/workspace"'                    ./charts/kaito/workspace/values.yaml
 	yq -i '(.image.tag)                                                     = "$(IMG_TAG)"'                               ./charts/kaito/workspace/values.yaml
@@ -455,7 +469,7 @@ az-patch-install-helm: ## Install KAITO workspace Helm chart and set Azure clien
 
 .PHONY: az-patch-install-ragengine-helm
 az-patch-install-ragengine-helm: ## Install KAITO RAG Engine Helm chart and set Azure client env vars and settings in Helm values.
-	az aks get-credentials --name $(AZURE_CLUSTER_NAME) --resource-group $(AZURE_RESOURCE_GROUP)
+	az aks get-credentials --name $(AZURE_CLUSTER_NAME) --resource-group $(AZURE_RESOURCE_GROUP) --admin
 
 	yq -i '(.image.repository)                                              = "$(REGISTRY)/ragengine"'                    ./charts/kaito/ragengine/values.yaml
 	yq -i '(.image.tag)                                                     = "$(IMG_TAG)"'                               ./charts/kaito/ragengine/values.yaml
@@ -465,7 +479,7 @@ az-patch-install-ragengine-helm: ## Install KAITO RAG Engine Helm chart and set 
 
 .PHONY: az-patch-install-ragengine-helm-e2e
 az-patch-install-ragengine-helm-e2e: ## Install KAITO RAG Engine Helm chart for e2e tests and set Azure client env vars and settings in Helm values.
-	az aks get-credentials --name $(AZURE_CLUSTER_NAME) --resource-group $(AZURE_RESOURCE_GROUP)
+	az aks get-credentials --name $(AZURE_CLUSTER_NAME) --resource-group $(AZURE_RESOURCE_GROUP) --admin
 
 	yq -i '(.image.repository)                                              = "$(REGISTRY)/ragengine"'                    ./charts/kaito/ragengine/values.yaml
 	yq -i '(.image.tag)                                                     = "$(IMG_TAG)"'                               ./charts/kaito/ragengine/values.yaml

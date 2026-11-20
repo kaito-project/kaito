@@ -23,9 +23,8 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"knative.dev/pkg/apis"
 
+	"github.com/kaito-project/kaito/api/env"
 	kaitov1beta1 "github.com/kaito-project/kaito/api/v1beta1"
-	"github.com/kaito-project/kaito/pkg/featuregates"
-	"github.com/kaito-project/kaito/pkg/utils/consts"
 )
 
 func int32Ptr(v int32) *int32 { return &v }
@@ -86,9 +85,6 @@ func TestMultiRoleInference_SetDefaults(t *testing.T) {
 func TestMultiRoleInference_Validate(t *testing.T) {
 	// Existing tests assume the default (required) behavior for instanceType,
 	// which corresponds to auto-provisioning (Karpenter/AzureGPU).
-	orig := consts.ActiveNodeProvisioner
-	consts.ActiveNodeProvisioner = consts.NodeProvisionerKarpenter
-	defer func() { consts.ActiveNodeProvisioner = orig }()
 	validMRI := func() *MultiRoleInference {
 		return &MultiRoleInference{
 			ObjectMeta: metav1.ObjectMeta{
@@ -212,7 +208,7 @@ func TestMultiRoleInference_Validate(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			err := tt.mri.Validate(context.Background())
+			err := tt.mri.Validate(testCtx(withNodeProvisioner(env.NodeProvisionerKarpenter)))
 			if tt.wantErr {
 				assert.NotNil(t, err)
 			} else {
@@ -225,9 +221,6 @@ func TestMultiRoleInference_Validate(t *testing.T) {
 func TestMultiRoleInference_validateUpdate(t *testing.T) {
 	// Existing tests assume the default (required) behavior for instanceType,
 	// which corresponds to auto-provisioning (Karpenter/AzureGPU).
-	orig := consts.ActiveNodeProvisioner
-	consts.ActiveNodeProvisioner = consts.NodeProvisionerKarpenter
-	defer func() { consts.ActiveNodeProvisioner = orig }()
 	validMRI := func() *MultiRoleInference {
 		return &MultiRoleInference{
 			ObjectMeta: metav1.ObjectMeta{
@@ -283,7 +276,7 @@ func TestMultiRoleInference_validateUpdate(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			ctx := apis.WithinUpdate(context.Background(), tt.old)
+			ctx := apis.WithinUpdate(testCtx(withNodeProvisioner(env.NodeProvisionerKarpenter)), tt.old)
 			err := tt.mri.Validate(ctx)
 			if tt.wantErr {
 				assert.NotNil(t, err)
@@ -295,9 +288,7 @@ func TestMultiRoleInference_validateUpdate(t *testing.T) {
 }
 
 func TestMultiRoleInferenceCapacityTypeAnnotation(t *testing.T) {
-	originalProvisioner := consts.ActiveNodeProvisioner
-	consts.ActiveNodeProvisioner = consts.NodeProvisionerKarpenter
-	t.Cleanup(func() { consts.ActiveNodeProvisioner = originalProvisioner })
+	ctx := testCtx(withNodeProvisioner(env.NodeProvisionerKarpenter))
 
 	makeMRI := func(value string) *MultiRoleInference {
 		return &MultiRoleInference{ObjectMeta: metav1.ObjectMeta{
@@ -305,12 +296,12 @@ func TestMultiRoleInferenceCapacityTypeAnnotation(t *testing.T) {
 		}}
 	}
 
-	assert.Nil(t, makeMRI(consts.KarpenterCapacityTypeSpot).validateCapacityTypeAnnotation())
-	assert.NotNil(t, makeMRI("reserved").validateCapacityTypeAnnotation())
-	assert.NotNil(t, makeMRI(consts.KarpenterCapacityTypeSpot).
-		validateCapacityTypeAnnotationUpdate(makeMRI(consts.KarpenterCapacityTypeOnDemand)))
-	assert.Nil(t, makeMRI(consts.KarpenterCapacityTypeOnDemand).
-		validateCapacityTypeAnnotationUpdate(makeMRI("reserved")))
+	assert.Nil(t, makeMRI(kaitov1beta1.CapacityTypeSpot).validateCapacityTypeAnnotation(ctx))
+	assert.NotNil(t, makeMRI("reserved").validateCapacityTypeAnnotation(ctx))
+	assert.NotNil(t, makeMRI(kaitov1beta1.CapacityTypeSpot).
+		validateCapacityTypeAnnotationUpdate(ctx, makeMRI(kaitov1beta1.CapacityTypeOnDemand)))
+	assert.Nil(t, makeMRI(kaitov1beta1.CapacityTypeOnDemand).
+		validateCapacityTypeAnnotationUpdate(ctx, makeMRI("reserved")))
 }
 
 func TestMultiRoleInferenceValidateSpeculativeDecoding(t *testing.T) {
@@ -358,21 +349,4 @@ func TestMultiRoleInferenceValidateSpeculativeDecoding(t *testing.T) {
 			}
 		})
 	}
-
-	// Feature-gate-off case: with the vLLM feature gate disabled,
-	// EffectiveInferenceRuntime resolves to HuggingFace regardless of the
-	// annotation, so the MRI-level spec-decoding opt-in must be rejected.
-	t.Run("vllm feature gate disabled - rejected", func(t *testing.T) {
-		orig := featuregates.FeatureGates[consts.FeatureFlagVLLM]
-		featuregates.FeatureGates[consts.FeatureFlagVLLM] = false
-		defer func() { featuregates.FeatureGates[consts.FeatureFlagVLLM] = orig }()
-
-		m := newMRI(
-			map[string]string{AnnotationEnableSpeculativeDecoding: "true"},
-			"deepseek-r1-0528",
-		)
-		if errs := m.validateSpeculativeDecoding(); errs == nil {
-			t.Fatalf("expected rejection when vLLM feature gate is disabled")
-		}
-	})
 }

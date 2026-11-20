@@ -14,7 +14,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# Script to regenerate presets/workspace/models/vllm_model_arch_list.txt by
+# Script to regenerate pkg/catalog/vllm_model_arch_list.txt by
 # running list_supported_llm_archs.py inside the kaito-base Docker image.
 # The image tag is read from the 'base' entry in base_images.yaml.
 # The resulting text file (one architecture per line) is embedded in Go via
@@ -27,8 +27,8 @@ set -o nounset
 set -o pipefail
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-BASE_IMAGES_YAML="${ROOT_DIR}/presets/workspace/models/base_images.yaml"
-OUTPUT_FILE="${ROOT_DIR}/presets/workspace/models/vllm_model_arch_list.txt"
+BASE_IMAGES_YAML="${ROOT_DIR}/pkg/catalog/base_images.yaml"
+OUTPUT_FILE="${ROOT_DIR}/pkg/catalog/vllm_model_arch_list.txt"
 BASE_REGISTRY="mcr.microsoft.com/aks/kaito/kaito-base"
 
 # ---------------------------------------------------------------------------

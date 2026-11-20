@@ -13,6 +13,7 @@ component_management:
       name: workspace
       paths:
         - pkg/**
+        - internal/**
     - component_id: module_presets
       name: presets
       paths:

@@ -14,9 +14,7 @@
 package v1alpha1
 
 import (
-	"github.com/kaito-project/kaito/pkg/featuregates"
 	"github.com/kaito-project/kaito/pkg/model"
-	"github.com/kaito-project/kaito/pkg/utils/consts"
 )
 
 const (
@@ -80,17 +78,23 @@ const (
 	// should be upgraded to the specified base image version. Set by the AutoUpgradeRunner;
 	// retained after upgrade completes as an audit trail.
 	LabelUpgradeToVersion = KAITOPrefix + "upgrade-to-version"
+
+	// LabelModelMirrorName is set on the download Job of a ModelMirror.
+	LabelModelMirrorName = KAITOPrefix + "model-mirror-name"
+)
+
+// Finalizers.
+const (
+	// ModelMirrorFinalizer is set on a ModelMirror to clean up its storage and jobs.
+	ModelMirrorFinalizer = KAITOPrefix + "model-mirror-cleanup"
 )
 
 // EffectiveInferenceRuntime returns the runtime that a generated Workspace
 // with the given annotations would resolve to via GetWorkspaceRuntimeName.
 // Kept here so admission paths that project a set of annotations onto a
 // Workspace can share the exact same effective-runtime computation used at
-// runtime (including the FeatureFlagVLLM gate).
+// runtime.
 func EffectiveInferenceRuntime(annotations map[string]string) model.RuntimeName {
-	if !featuregates.FeatureGates[consts.FeatureFlagVLLM] {
-		return model.RuntimeNameHuggingfaceTransformers
-	}
 	runtime := model.RuntimeNameVLLM
 	switch annotations[AnnotationWorkspaceRuntime] {
 	case string(model.RuntimeNameHuggingfaceTransformers):
@@ -105,10 +109,6 @@ func EffectiveInferenceRuntime(annotations map[string]string) model.RuntimeName 
 func GetWorkspaceRuntimeName(ws *Workspace) model.RuntimeName {
 	if ws == nil {
 		panic("workspace is nil")
-	}
-
-	if !featuregates.FeatureGates[consts.FeatureFlagVLLM] {
-		return model.RuntimeNameHuggingfaceTransformers
 	}
 
 	runtime := model.RuntimeNameVLLM
@@ -126,10 +126,6 @@ func GetWorkspaceRuntimeName(ws *Workspace) model.RuntimeName {
 func GetInferenceSetRuntimeName(iObj *InferenceSet) model.RuntimeName {
 	if iObj == nil {
 		panic("inferenceset is nil")
-	}
-
-	if !featuregates.FeatureGates[consts.FeatureFlagVLLM] {
-		return model.RuntimeNameHuggingfaceTransformers
 	}
 
 	runtime := model.RuntimeNameVLLM

@@ -94,6 +94,7 @@ With persistent storage configured, vector indexes are automatically saved durin
 | podAnnotations               | object | `{}`                                         | Pod annotations                                               |
 | podTemplateLabels            | object | `{}`                                         | Extra labels added to the controller pod                      |
 | podSecurityContext.runAsNonRoot | bool | `true`                                       | Run container as non-root user                                |
+| podSecurityContext.seccompProfile.type | string | `"RuntimeDefault"`                    | Seccomp profile for the controller pod. Required by the `restricted` Pod Security Standard |
 | presetRagRegistryName        | string | `"aimodelsregistrytest.azurecr.io"`          | Registry for preset RAG service images                        |
 | presetRagImageName           | string | `"kaito-rag-service"`                        | Name of the preset RAG service image                          |
 | presetRagImageTag            | string | `"0.3.2"`                                    | Tag of the preset RAG service image                           |

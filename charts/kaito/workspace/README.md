@@ -16,12 +16,14 @@ helm install workspace ./charts/kaito/workspace  \
 | Key                                            | Type   | Default                                                  | Description                                                   |
 |------------------------------------------------|--------|----------------------------------------------------------|---------------------------------------------------------------|
 | affinity                                       | object | `{}`                                                     | Pod affinity rules.                                           |
+| commonLabels                                   | object | `{}`                                                     | Override generated resource metadata labels; does not configure subcharts. |
 | image.pullPolicy                               | string | `"IfNotPresent"`                                         | Allowed values: `Always`, `IfNotPresent`, `Never`.            |
 | image.repository                               | string | `mcr.microsoft.com/aks/kaito/workspace`                  | Controller image repository.                                  |
 | image.tag                                      | string | `"0.13.0"`                                               | Controller image tag.                                         |
 | imagePullSecrets                               | list   | `[]`                                                     | List of image pull secret references (`[{name: <secret>}]`).  |
 | nodeSelector                                   | object | `{"kubernetes.io/os": "linux"}`                          | Controller pod node selector.                                 |
 | podAnnotations                                 | object | `{}`                                                     | Extra annotations added to the controller pod.                |
+| podTemplateLabels                              | object | `{}`                                                     | Extra labels added to workspace controller and NVIDIA device-plugin pods, without changing selectors. The device plugin's fixed `name` label takes precedence. |
 | podSecurityContext.runAsUser                   | int    | `1000`                                                   | UID the controller runs as. Must be non-zero (runAsNonRoot).  |
 | podSecurityContext.runAsGroup                  | int    | `1000`                                                   | GID the controller runs as.                                   |
 | podSecurityContext.runAsNonRoot                | bool   | `true`                                                   | Allowed values: `true`, `false`. Must stay `true` on restricted PSS clusters. |
@@ -55,12 +57,25 @@ helm install workspace ./charts/kaito/workspace  \
 | nvidiaDevicePlugin.daemonsetName               | string | `"nvidia-device-plugin-daemonset"`                       | DNS-1123 name of the generated DaemonSet.                     |
 | nvidiaDevicePlugin.image                       | string | `"mcr.microsoft.com/oss/v2/nvidia/k8s-device-plugin:v0.20.1-5"` | Full image reference for the device plugin container. |
 | nvidiaDevicePlugin.imagePullPolicy             | string | `"IfNotPresent"`                                         | Allowed values: `Always`, `IfNotPresent`, `Never`.            |
-| featureGates.vLLM                              | bool   | `true`                                                   | Allowed values: `true`, `false`. Enables the vLLM inference runtime feature gate. |
 | featureGates.disableNodeAutoProvisioning       | bool   | `false`                                                  | Allowed values: `true`, `false`. When `true`, disables Node Auto-Provisioning (NAP) and installs the `gpu-feature-discovery` subchart as a standalone replacement. |
 | featureGates.gatewayAPIInferenceExtension      | bool   | `false`                                                  | Allowed values: `true`, `false`. Enables the Gateway API Inference Extension (also gates installation of the GAIE subchart). |
 | featureGates.enableInferenceSetController      | bool   | `true`                                                  | Allowed values: `true`, `false`. Enables the InferenceSet controller and its RBAC. |
 | gpu-feature-discovery.nfd.enabled              | bool   | `true`                                                   | Allowed values: `true`, `false`. Set to `false` if NFD is already installed (e.g., via the NVIDIA GPU Operator) to avoid CRD conflicts. Only applies when the GFD subchart is active (`featureGates.disableNodeAutoProvisioning=true`). |
 | gpu-feature-discovery.gfd.enabled              | bool   | `true`                                                   | Allowed values: `true`, `false`. Set to `false` if GFD is already installed (e.g., via the NVIDIA GPU Operator). Only applies when the GFD subchart is active (`featureGates.disableNodeAutoProvisioning=true`). |
+
+## Label Configuration
+
+Use `commonLabels` for resource metadata and `podTemplateLabels` for pod metadata.
+These values do not propagate to subcharts. For example, the local CSI driver's
+manager pod labels are configured separately through
+`local-csi-driver.manager.deployment.podLabels`.
+
+Run the focused rendered-manifest label checks from the repository root with Helm
+and Python's PyYAML installed:
+
+```bash
+python3 hack/test_workspace_chart.py
+```
 
 ## Karpenter NodeClass Updates
 

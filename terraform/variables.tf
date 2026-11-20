@@ -51,3 +51,9 @@ variable "kaito_workspace_features" {
   default     = ["gatewayAPIInferenceExtension"]
   description = "List of KAITO workspace features to enable"
 }
+
+variable "enable_aad" {
+  type        = bool
+  default     = false
+  description = "whether to enable Microsoft Entra ID integration on the AKS cluster, for subscriptions whose Azure Policy requires it; AKS can't turn it off once enabled"
+}

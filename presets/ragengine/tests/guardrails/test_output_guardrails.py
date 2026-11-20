@@ -18,6 +18,7 @@ import textwrap
 import time
 
 import pytest
+from guardrail_core import config as shared_scanner_config
 from guardrail_core.scanning import scan_output
 
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "../../..")))
@@ -575,6 +576,117 @@ def test_apply_policy_file_rejects_non_dict_top_level(tmp_path, monkeypatch):
 # ---------------------------------------------------------------------------
 
 
+@pytest.mark.parametrize(
+    ("raw", "expected"),
+    [
+        ({"type": "ban_substrings", "substrings": ["secret"]}, _ban_subs_cfg()),
+        ({"type": "regex", "patterns": ["a"]}, _regex_cfg()),
+        ({"type": "invisible_text"}, _invisible_text_cfg()),
+        ({"type": "token_limit"}, _token_limit_cfg(limit=4096)),
+        ({"type": "json"}, _json_cfg()),
+        ({"type": "reading_time", "max_time": 0.5}, _reading_time_cfg()),
+        ({"type": "secrets"}, _secrets_cfg()),
+        ({"type": "sensitive"}, _sensitive_cfg()),
+    ],
+)
+def test_shared_schemas_preserve_defaults_and_compatibility_exports(raw, expected):
+    schema_name = type(expected.config).__name__
+    assert getattr(scanner_schemas_module, schema_name) is getattr(
+        shared_scanner_config, schema_name
+    )
+    assert ParsedScannerConfig is shared_scanner_config.ParsedScannerConfig
+    assert (
+        scanner_schemas_module.SCANNER_REGISTRY
+        is shared_scanner_config.SCANNER_REGISTRY
+    )
+    assert output_guardrails_module._parse_policy_scanner_configs(
+        [raw], "guardrails.yaml"
+    ) == (expected,)
+
+
+@pytest.mark.parametrize(
+    ("raw", "expected"),
+    [
+        (
+            {"type": "banSubstrings", "substrings": ["secret", None, "", 1]},
+            _ban_subs_cfg(),
+        ),
+        (
+            {"type": "regex", "patterns": ["a"], "is-blocked": None, "extra": True},
+            _regex_cfg(),
+        ),
+        (
+            {"type": "token-limit", "limit": True},
+            _token_limit_cfg(limit=True),
+        ),
+        (
+            {"type": "json", "requiredElements": True, "repair": None},
+            _json_cfg(required_elements=True),
+        ),
+        (
+            {"type": "readingTime", "maxTime": True, "truncate": None},
+            _reading_time_cfg(max_time=1.0),
+        ),
+        (
+            {"type": "secrets", "redact-mode": "PARTIAL"},
+            _secrets_cfg(redact_mode="partial"),
+        ),
+        (
+            {"type": "sensitive", "detectors": ["EMAIL", "", None, "email"]},
+            _sensitive_cfg(detectors=["email"]),
+        ),
+        (
+            {
+                "type": "regex",
+                "patterns": ["a"],
+                "isBlocked": False,
+                "is-blocked": True,
+            },
+            _regex_cfg(is_blocked=True),
+        ),
+    ],
+)
+def test_policy_adapter_preserves_fields_rejected_by_strict_parser(raw, expected):
+    assert output_guardrails_module._parse_policy_scanner_configs(
+        [raw], "guardrails.yaml"
+    ) == (expected,)
+
+
+@pytest.mark.parametrize("default_action", ["block", "redact"])
+@pytest.mark.parametrize("action", [None, "", 42, "unsupported"])
+def test_policy_adapter_invalid_actions_inherit_policy_default(
+    default_action, action, caplog
+):
+    parsed = output_guardrails_module._parse_policy_scanner_configs(
+        [{"type": "regex", "patterns": ["a"], "action": action}],
+        "guardrails.yaml",
+        default_action,
+    )
+    assert parsed == (_regex_cfg(action_on_hit=default_action),)
+    if action == "unsupported":
+        assert "output_guardrails_policy_invalid_action" in caplog.text
+
+
+@pytest.mark.parametrize(
+    "raw",
+    [
+        {"type": "ban_substrings", "substrings": []},
+        {"type": "regex", "patterns": ["["]},
+        {"type": "invisible_text", "unexpected": True},
+        {"type": "token_limit", "limit": 0},
+        {"type": "json", "repair": "yes"},
+        {"type": "reading_time", "max_time": -1},
+        {"type": "secrets", "redact_mode": "unknown"},
+        {"type": "sensitive", "detectors": ["unknown"]},
+    ],
+)
+def test_policy_adapter_logs_invalid_entries_and_keeps_valid_scanners(raw, caplog):
+    assert output_guardrails_module._parse_policy_scanner_configs(
+        [raw, {"type": "regex", "patterns": ["a"]}], "guardrails.yaml"
+    ) == (_regex_cfg(),)
+    assert "output_guardrails_policy_invalid_scanner_config" in caplog.text
+
+
 def test_parse_policy_scanner_configs_skips_unknown_and_invalid_schema():
     parsed = output_guardrails_module._parse_policy_scanner_configs(
         [
@@ -790,6 +902,59 @@ def test_parse_policy_scanner_configs_allows_non_redact_scanners_for_block(
 # ---------------------------------------------------------------------------
 # _build_scanners
 # ---------------------------------------------------------------------------
+
+
+@pytest.mark.parametrize("default_action", ["block", "redact"])
+@pytest.mark.parametrize("scanner_action", [None, "block", "redact"])
+@pytest.mark.parametrize(
+    ("raw", "content", "redacted"),
+    [
+        (
+            {"type": "ban_substrings", "substrings": ["secret"]},
+            "a secret",
+            "a [REDACTED]",
+        ),
+        ({"type": "regex", "patterns": ["secret"]}, "a secret", "a [REDACTED]"),
+        ({"type": "invisible_text"}, "a\u200bb", "ab"),
+        ({"type": "token_limit", "limit": 1}, "hello world", "hello"),
+        ({"type": "json", "required_elements": 1}, "not json", "not json"),
+        (
+            {"type": "reading_time", "max_time": 0.005, "truncate": True},
+            "hello world",
+            "hello",
+        ),
+        ({"type": "secrets"}, "AKIA1234567890ABCDEF", "******"),
+        ({"type": "sensitive"}, "alice@example.com", "<EMAIL>"),
+    ],
+)
+def test_shared_builder_preserves_all_scanner_actions(
+    raw, content, redacted, default_action, scanner_action, monkeypatch
+):
+    parsed = output_guardrails_module._parse_policy_scanner_configs(
+        [raw], "guardrails.yaml"
+    )[0]
+    parsed.action_on_hit = scanner_action
+    calls = []
+
+    def build(config, *, default_action):
+        calls.append((config, default_action))
+        return shared_scanner_config.build_scanner(
+            config, default_action=default_action
+        )
+
+    monkeypatch.setattr(output_guardrails_module, "build_scanner", build)
+    guardrails = OutputGuardrails(
+        enabled=True, action_on_hit=default_action, scanner_configs=(parsed,)
+    )
+    response = guardrails.guard_response(_make_response(content), {"messages": []})
+
+    assert calls == [(parsed, default_action)]
+    expected = (
+        DEFAULT_BLOCK_MESSAGE
+        if (scanner_action or default_action) == "block"
+        else redacted
+    )
+    assert response.choices[0].message.content == expected
 
 
 def test_build_scanners_supports_normalized_ban_substrings_type():

@@ -113,6 +113,8 @@ runs:
 
     # Cluster creation is started without waiting so it overlaps with the ACR setup
     # and image builds below; "Wait for cluster creation and attach ACR" blocks on it.
+    # --enable-aad: the Azure Policy CloudGov_KubernAuthN_AAD denies AKS clusters
+    # without Microsoft Entra ID integration.
     - name: Start cluster creation (karpenter)
       if: ${{ inputs.node_provisioner == 'azkarpenter' }}
       shell: bash
@@ -123,7 +125,7 @@ runs:
           --node-provisioning-mode Auto \
           --network-plugin azure --network-plugin-mode overlay --network-dataplane cilium \
           --enable-managed-identity --enable-oidc-issuer --enable-workload-identity \
-          --enable-blob-driver --no-wait -o none
+          --enable-aad --enable-blob-driver --no-wait -o none
       env:
         AZURE_RESOURCE_GROUP: ${{ env.CLUSTER_NAME }}
         AZURE_CLUSTER_NAME: ${{ env.CLUSTER_NAME }}
@@ -139,7 +141,7 @@ runs:
           --kubernetes-version "$AKS_K8S_VERSION" --generate-ssh-keys \
           --enable-managed-identity --enable-workload-identity --enable-oidc-issuer \
           --node-vm-size "$AZURE_NODE_VM_SIZE" \
-          --enable-blob-driver --no-wait -o none
+          --enable-aad --enable-blob-driver --no-wait -o none
       env:
         AZURE_RESOURCE_GROUP: ${{ env.CLUSTER_NAME }}
         AZURE_CLUSTER_NAME: ${{ env.CLUSTER_NAME }}
@@ -208,8 +210,8 @@ runs:
           --builder img-builder \
           --platform linux/amd64 \
           --build-arg VERSION=$VERSION \
-          --output type=image,name=$REGISTRY/kaito-base-vllm-cpu:$VERSION,push=true,compression=zstd \
-          -f ./docker/presets/models/vllm-cpu/Dockerfile .
+          --output type=image,name=$REGISTRY/kaito-base-cpu:$VERSION,push=true,compression=zstd \
+          -f ./docker/presets/models/cpu/Dockerfile .
 
     - name: Verify vLLM arch list is up-to-date
       shell: bash
@@ -226,10 +228,10 @@ runs:
           exit 1
         fi
 
-        ACTUAL=$(cat presets/workspace/models/vllm_model_arch_list.txt)
+        ACTUAL=$(cat pkg/catalog/vllm_model_arch_list.txt)
 
         if [ "$ACTUAL" != "$EXPECTED" ]; then
-          echo "ERROR: presets/workspace/models/vllm_model_arch_list.txt is out of date." >&2
+          echo "ERROR: pkg/catalog/vllm_model_arch_list.txt is out of date." >&2
           echo "Please regenerate it by running: make generate-vllm-arch-list" >&2
           echo "" >&2
           echo "--- actual (committed file) ---" >&2
@@ -249,12 +251,12 @@ runs:
 
           # Override base image properties for testing purposes.
           # The updated base_images.yaml will be read by the Workspace controller via
-          # go:embed in presets/workspace/models/metadata.go.
-          yq '(.images[] | select(.name == strenv(IMAGE_NAME)) | .registry) = "${{ env.REGISTRY }}"' -i presets/workspace/models/base_images.yaml
-          yq '(.images[] | select(.name == strenv(IMAGE_NAME)) | .tag) = "${{ env.VERSION }}"' -i presets/workspace/models/base_images.yaml
+          # go:embed in pkg/catalog/metadata.go.
+          yq '(.images[] | select(.name == strenv(IMAGE_NAME)) | .registry) = "${{ env.REGISTRY }}"' -i pkg/catalog/base_images.yaml
+          yq '(.images[] | select(.name == strenv(IMAGE_NAME)) | .tag) = "${{ env.VERSION }}"' -i pkg/catalog/base_images.yaml
         done
 
-        cat presets/workspace/models/base_images.yaml
+        cat pkg/catalog/base_images.yaml
 
     - name: build KAITO image
       if: ${{ inputs.isRelease == 'false' }}
@@ -294,7 +296,10 @@ runs:
           exit 1
         fi
         attach_acr_with_retry
-        az aks get-credentials --name "$AZURE_CLUSTER_NAME" --resource-group "$AZURE_RESOURCE_GROUP" --overwrite-existing
+        # --admin: on an Entra ID cluster the user credentials need kubelogin and a
+        # Kubernetes role; the local admin account keeps the access the suite has had.
+        az aks get-credentials --name "$AZURE_CLUSTER_NAME" --resource-group "$AZURE_RESOURCE_GROUP" \
+          --admin --overwrite-existing
       env:
         AZURE_ACR_NAME: ${{ env.CLUSTER_NAME }}
         AZURE_RESOURCE_GROUP: ${{ env.CLUSTER_NAME }}

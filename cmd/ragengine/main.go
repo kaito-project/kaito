@@ -42,14 +42,16 @@ import (
 
 	// Import all Kubernetes client auth plugins (e.g. Azure, GCP, OIDC, etc.)
 	// to ensure that exec-entrypoint and run can make use of them.
+	"github.com/kaito-project/kaito/api/env"
 	kaitov1alpha1 "github.com/kaito-project/kaito/api/v1alpha1"
 	kaitov1beta1 "github.com/kaito-project/kaito/api/v1beta1"
-	"github.com/kaito-project/kaito/pkg/k8sclient"
-	"github.com/kaito-project/kaito/pkg/ragengine/controllers"
-	"github.com/kaito-project/kaito/pkg/ragengine/webhooks"
+	"github.com/kaito-project/kaito/internal/controller/ragengine"
+	"github.com/kaito-project/kaito/internal/k8s/k8sclient"
+	karpenterutils "github.com/kaito-project/kaito/internal/k8s/karpenter"
+	"github.com/kaito-project/kaito/internal/runtimeenv"
+	"github.com/kaito-project/kaito/internal/version"
+	ragenginewebhook "github.com/kaito-project/kaito/internal/webhook/ragengine"
 	"github.com/kaito-project/kaito/pkg/sku"
-	karpenterutils "github.com/kaito-project/kaito/pkg/utils/karpenter"
-	"github.com/kaito-project/kaito/pkg/version"
 )
 
 const (
@@ -98,7 +100,7 @@ func main() {
 			"Enabling this will ensure there is only one active controller manager.")
 	flag.BoolVar(&enableWebhook, "webhook", true,
 		"Enable webhook for controller manager. Default is true.")
-	flag.StringVar(&featureGates, "feature-gates", "vLLM=true", "Enable Kaito feature gates. Default,	vLLM=true.")
+	flag.StringVar(&featureGates, "feature-gates", "", "Enable Kaito feature gates.")
 	flag.BoolVar(&printVersionAndExit, "version", false, "Print version and exit.")
 	opts := zap.Options{
 		Development: true,
@@ -127,6 +129,11 @@ func main() {
 	}
 	sku.DefaultSKUHandler = skuHandler
 
+	// The client is set once the manager exists; runnables and webhooks read
+	// the Env only after start.
+	runtimeEnv := runtimeenv.New(skuHandler)
+	ctx = env.WithEnv(ctx, runtimeEnv)
+
 	mgr, err := ctrl.NewManager(cfg, ctrl.Options{
 		Scheme: scheme,
 		Metrics: metricsserver.Options{
@@ -135,6 +142,7 @@ func main() {
 		HealthProbeBindAddress: probeAddr,
 		LeaderElection:         enableLeaderElection,
 		LeaderElectionID:       "ef60f9b1.io",
+		BaseContext:            runtimeEnv.BaseContext,
 		// LeaderElectionReleaseOnCancel defines if the leader should step down voluntarily
 		// when the Manager ends. This requires the binary to immediately end when the
 		// Manager is stopped, otherwise, this setting is unsafe. Setting this significantly
@@ -157,8 +165,9 @@ func main() {
 
 	k8sclient.SetGlobalClient(mgr.GetClient())
 	kClient := k8sclient.GetGlobalClient()
+	runtimeEnv.Client = mgr.GetClient()
 
-	ragengineReconciler := controllers.NewRAGEngineReconciler(
+	ragengineReconciler := ragengine.NewRAGEngineReconciler(
 		kClient,
 		mgr.GetScheme(),
 		log.Log.WithName("controllers").WithName("RAGEngine"),
@@ -194,7 +203,7 @@ func main() {
 		})
 		ctx = sharedmain.WithHealthProbesDisabled(ctx)
 		ctx = sharedmain.WithHADisabled(ctx)
-		go sharedmain.MainWithConfig(ctx, "webhook", ctrl.GetConfigOrDie(), webhooks.NewRAGEngineWebhooks()...)
+		go sharedmain.MainWithConfig(ctx, "webhook", ctrl.GetConfigOrDie(), ragenginewebhook.NewRAGEngineWebhooks(runtimeEnv)...)
 
 		// wait 2 seconds to allow reconciling webhookconfiguration and service endpoint.
 		time.Sleep(2 * time.Second)

@@ -37,7 +37,6 @@ securityContext:
     drop:
       - "ALL"
 featureGates:
-  vLLM: true
   disableNodeAutoProvisioning: false
   gatewayAPIInferenceExtension: false
   enableInferenceSetController: true

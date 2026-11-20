@@ -22,10 +22,9 @@ import (
 	corev1 "k8s.io/api/core/v1"
 
 	kaitov1beta1 "github.com/kaito-project/kaito/api/v1beta1"
+	"github.com/kaito-project/kaito/internal/featuregates"
 	"github.com/kaito-project/kaito/internal/manifests/builder"
-	"github.com/kaito-project/kaito/pkg/featuregates"
 	pkgmodel "github.com/kaito-project/kaito/pkg/model"
-	"github.com/kaito-project/kaito/pkg/utils/consts"
 )
 
 // cacheTestProvider simulates a streaming cache provider for integration tests.
@@ -169,8 +168,8 @@ func TestSetCacheMutations_FullPipeline(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			featuregates.FeatureGates[consts.FeatureFlagDistributedCache] = tt.featureGateEnabled
-			defer func() { featuregates.FeatureGates[consts.FeatureFlagDistributedCache] = false }()
+			featuregates.FeatureGates[featuregates.FeatureFlagDistributedCache] = tt.featureGateEnabled
+			defer func() { featuregates.FeatureGates[featuregates.FeatureFlagDistributedCache] = false }()
 
 			ctx := &builder.WorkspaceGeneratorContext{
 				Ctx:       context.Background(),
@@ -239,8 +238,8 @@ func TestSetCacheMutations_FullPipeline(t *testing.T) {
 // env vars are correctly injected for model weight caching.
 func TestApplyPresetCacheMutations_RunAIStreamerEnvVars(t *testing.T) {
 	setupCacheProvider()
-	featuregates.FeatureGates[consts.FeatureFlagDistributedCache] = true
-	defer func() { featuregates.FeatureGates[consts.FeatureFlagDistributedCache] = false }()
+	featuregates.FeatureGates[featuregates.FeatureFlagDistributedCache] = true
+	defer func() { featuregates.FeatureGates[featuregates.FeatureFlagDistributedCache] = false }()
 
 	ws := modelWeightsWorkspace(ModeOpportunistic)
 	ws.Inference = &kaitov1beta1.InferenceSpec{
@@ -286,8 +285,8 @@ func TestApplyPresetCacheMutations_RunAIStreamerEnvVars(t *testing.T) {
 // don't interfere with existing pod spec elements.
 func TestApplyPresetCacheMutations_PreservesExistingPodSpec(t *testing.T) {
 	setupCacheProvider()
-	featuregates.FeatureGates[consts.FeatureFlagDistributedCache] = true
-	defer func() { featuregates.FeatureGates[consts.FeatureFlagDistributedCache] = false }()
+	featuregates.FeatureGates[featuregates.FeatureFlagDistributedCache] = true
+	defer func() { featuregates.FeatureGates[featuregates.FeatureFlagDistributedCache] = false }()
 
 	ws := modelWeightsWorkspace(ModeRequired)
 	ws.Inference = &kaitov1beta1.InferenceSpec{
@@ -375,8 +374,8 @@ func TestApplyPresetCacheMutations_PreservesExistingPodSpec(t *testing.T) {
 // modifier applies provider labels to the pod template.
 func TestApplyPresetCacheMutations_AppliesPodTemplateLabels(t *testing.T) {
 	setupCacheProvider()
-	featuregates.FeatureGates[consts.FeatureFlagDistributedCache] = true
-	defer func() { featuregates.FeatureGates[consts.FeatureFlagDistributedCache] = false }()
+	featuregates.FeatureGates[featuregates.FeatureFlagDistributedCache] = true
+	defer func() { featuregates.FeatureGates[featuregates.FeatureFlagDistributedCache] = false }()
 
 	tests := []struct {
 		name        string

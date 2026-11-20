@@ -11,47 +11,15 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package consts
+package download
 
 import (
 	"fmt"
 
 	"k8s.io/apimachinery/pkg/api/resource"
-
-	kaitoconsts "github.com/kaito-project/kaito/pkg/utils/consts"
 )
 
 const (
-	// Finalizers
-	ModelMirrorFinalizer = "kaito.sh/model-mirror-cleanup"
-
-	// Annotations
-	AnnotationModelStreaming          = "kaito.sh/model-streaming"
-	AnnotationModelMirrorStorageClass = "kaito.sh/model-mirror-storage-class"
-	AnnotationStreamingServiceAccount = "kaito.sh/streaming-service-account"
-
-	// Conditions
-	ConditionTypeStorageReady = "StorageReady"
-	ConditionTypeReady        = "Ready"
-
-	// Condition reasons.
-	ReasonPVCBound          = "PVCBound"
-	ReasonPVCPending        = "PVCPending"
-	ReasonPVCCreateFailed   = "PVCCreateFailed"
-	ReasonJobCreateFailed   = "JobCreateFailed"
-	ReasonDownloadFailed    = kaitoconsts.ReasonDownloadFailed
-	ReasonDownloadOOMKilled = kaitoconsts.ReasonDownloadOOMKilled
-	ReasonDownloadEvicted   = "DownloadEvicted"
-	ReasonDownloadSucceeded = "DownloadSucceeded"
-	ReasonStaticMirror      = "StaticMirror"
-	ReasonInvalidSpec       = "InvalidSpec"
-
-	// Labels
-	LabelModelMirrorName = "kaito.sh/model-mirror-name"
-
-	// Downloader image
-	DownloaderImage = kaitoconsts.PythonHelperImage
-
 	// huggingface-hub version
 	HuggingFaceHubVersion = "2.3.0"
 

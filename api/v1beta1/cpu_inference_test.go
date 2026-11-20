@@ -19,11 +19,11 @@ import (
 	"github.com/stretchr/testify/assert"
 	corev1 "k8s.io/api/core/v1"
 
-	"github.com/kaito-project/kaito/pkg/utils/consts"
+	"github.com/kaito-project/kaito/pkg/consts"
 )
 
 func TestIsCPUInferenceTarget(t *testing.T) {
-	t.Setenv("CLOUD_PROVIDER", consts.AzureCloudName)
+	ctx := testCtx()
 	preset := &InferenceSpec{Preset: &PresetSpec{PresetMeta: PresetMeta{Name: "test-model"}}}
 	for _, tc := range []struct {
 		sku  string
@@ -34,20 +34,18 @@ func TestIsCPUInferenceTarget(t *testing.T) {
 		{"Standard_NC6s_v3", false}, {"Standard_ND999s_v9", false}, {"", false},
 		{"m6i.2xlarge", false}, {"unknown", false},
 	} {
-		t.Run(tc.sku, func(t *testing.T) { assert.Equal(t, tc.want, IsCPUInferenceTarget(preset, tc.sku)) })
+		t.Run(tc.sku, func(t *testing.T) { assert.Equal(t, tc.want, IsCPUInferenceTarget(ctx, preset, tc.sku)) })
 	}
-	assert.False(t, IsCPUInferenceTarget(nil, "Standard_D16s_v6"))
-	assert.False(t, IsCPUInferenceTarget(&InferenceSpec{Template: &corev1.PodTemplateSpec{}}, "Standard_D16s_v6"))
-	t.Setenv("CLOUD_PROVIDER", consts.AWSCloudName)
-	assert.False(t, IsCPUInferenceTarget(preset, "Standard_D16s_v6"))
+	assert.False(t, IsCPUInferenceTarget(ctx, nil, "Standard_D16s_v6"))
+	assert.False(t, IsCPUInferenceTarget(ctx, &InferenceSpec{Template: &corev1.PodTemplateSpec{}}, "Standard_D16s_v6"))
+	assert.False(t, IsCPUInferenceTarget(testCtx(withCloud(consts.AWSCloudName)), preset, "Standard_D16s_v6"))
 }
 
 func TestCPUInstanceTypeForNAPRejectsUnsupportedTargets(t *testing.T) {
-	t.Setenv("CLOUD_PROVIDER", consts.AzureCloudName)
+	ctx := testCtx()
 	for _, instanceType := range []string{"Standard_D16ps_v5", "Standard_D16ps", "Standard_NC6s_v3", "Standard_ND999s_v9", "m6i.2xlarge", "unknown", ""} {
-		t.Run(instanceType, func(t *testing.T) { assert.NotNil(t, ValidateCPUInstanceTypeForNAP(instanceType)) })
+		t.Run(instanceType, func(t *testing.T) { assert.NotNil(t, ValidateCPUInstanceTypeForNAP(ctx, instanceType)) })
 	}
-	assert.Nil(t, ValidateCPUInstanceTypeForNAP("Standard_D16s_v6"))
-	t.Setenv("CLOUD_PROVIDER", consts.AWSCloudName)
-	assert.NotNil(t, ValidateCPUInstanceTypeForNAP("Standard_D16s_v6"))
+	assert.Nil(t, ValidateCPUInstanceTypeForNAP(ctx, "Standard_D16s_v6"))
+	assert.NotNil(t, ValidateCPUInstanceTypeForNAP(testCtx(withCloud(consts.AWSCloudName)), "Standard_D16s_v6"))
 }

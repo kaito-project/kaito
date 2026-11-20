@@ -24,7 +24,7 @@ import (
 
 	kaitov1beta1 "github.com/kaito-project/kaito/api/v1beta1"
 	"github.com/kaito-project/kaito/internal/testutil"
-	"github.com/kaito-project/kaito/pkg/utils/consts"
+	"github.com/kaito-project/kaito/pkg/consts"
 )
 
 func TestCreateTemplateInferenceDoesNotSelectCPUPresetBehavior(t *testing.T) {
@@ -62,10 +62,10 @@ func TestCreateTemplateInferenceDoesNotSelectCPUPresetBehavior(t *testing.T) {
 	hasGPU := false
 	hasCPU := false
 	for _, toleration := range ss.Spec.Template.Spec.Tolerations {
-		if toleration.Key == consts.SKUString && toleration.Value == consts.GPUString {
+		if toleration.Key == kaitov1beta1.LabelSKU && toleration.Value == kaitov1beta1.SKUGPU {
 			hasGPU = true
 		}
-		if toleration.Key == consts.SKUString && toleration.Value == consts.CPUString {
+		if toleration.Key == kaitov1beta1.LabelSKU && toleration.Value == kaitov1beta1.SKUCPU {
 			hasCPU = true
 		}
 	}

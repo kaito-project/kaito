@@ -14,15 +14,15 @@
 package v1beta1
 
 import (
-	"os"
+	"context"
 	"regexp"
 	"strings"
 
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
-	"github.com/kaito-project/kaito/pkg/featuregates"
+	"github.com/kaito-project/kaito/api/env"
+	"github.com/kaito-project/kaito/pkg/consts"
 	"github.com/kaito-project/kaito/pkg/sku"
-	"github.com/kaito-project/kaito/pkg/utils/consts"
 )
 
 // Azure CPU names may be versioned or unversioned. The p suffix denotes ARM;
@@ -43,22 +43,22 @@ func isAzureCPUInstanceType(instanceType string) bool {
 // IsCPUInferenceTarget selects only presets with an explicit non-GPU, non-ARM
 // Azure instance type. Node labels and custom templates never imply CPU intent.
 // Runtime compatibility is checked by admission and workload generation.
-func IsCPUInferenceTarget(inference *InferenceSpec, instanceType string) bool {
-	return os.Getenv("CLOUD_PROVIDER") != consts.AWSCloudName && inference != nil &&
+func IsCPUInferenceTarget(ctx context.Context, inference *InferenceSpec, instanceType string) bool {
+	return env.FromContext(ctx).CloudProvider != consts.AWSCloudName && inference != nil &&
 		inference.Template == nil && inference.Preset != nil &&
 		isAzureCPUInstanceType(instanceType)
 }
 
-func IsCPUInferenceWorkspace(ws *Workspace) bool {
-	return ws != nil && IsCPUInferenceTarget(ws.Inference, ws.Resource.InstanceType)
+func IsCPUInferenceWorkspace(ctx context.Context, ws *Workspace) bool {
+	return ws != nil && IsCPUInferenceTarget(ctx, ws.Inference, ws.Resource.InstanceType)
 }
 
 // InferenceSetNodeSelector returns the node selector used by child Workspaces.
 // The top-level selector selects Workspaces; it is only a legacy node selector
 // fallback when automatic node provisioning is enabled.
-func InferenceSetNodeSelector(iObj *InferenceSet) *metav1.LabelSelector {
+func InferenceSetNodeSelector(ctx context.Context, iObj *InferenceSet) *metav1.LabelSelector {
 	selector := iObj.Spec.Template.Resource.LabelSelector
-	if IsEmptyLabelSelector(selector) && !featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning] {
+	if IsEmptyLabelSelector(selector) && env.FromContext(ctx).NodeProvisioner != env.NodeProvisionerBYO {
 		return iObj.Spec.Selector
 	}
 	return selector

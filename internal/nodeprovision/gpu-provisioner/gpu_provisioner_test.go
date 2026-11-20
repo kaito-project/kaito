@@ -31,7 +31,6 @@ import (
 	"github.com/kaito-project/kaito/internal/nodeprovision"
 	"github.com/kaito-project/kaito/internal/nodeprovision/resource"
 	"github.com/kaito-project/kaito/internal/testutil"
-	"github.com/kaito-project/kaito/pkg/utils/consts"
 )
 
 func newTestWorkspace() *kaitov1beta1.Workspace {
@@ -219,7 +218,7 @@ func TestAzureGPUProvisionerEnsureNodesReady(t *testing.T) {
 }
 
 func TestBuildNodeSelectorCPUUsesWorkspaceIsolation(t *testing.T) {
-	ws := &kaitov1beta1.Workspace{ObjectMeta: metav1.ObjectMeta{Name: "cpu-child", Namespace: "default", Labels: map[string]string{consts.WorkspaceCreatedByInferenceSetLabel: "parent"}}, Resource: kaitov1beta1.ResourceSpec{InstanceType: "Standard_D16s_v6"}, Inference: &kaitov1beta1.InferenceSpec{Template: &corev1.PodTemplateSpec{Spec: corev1.PodSpec{Containers: []corev1.Container{{Name: "cpu", Image: "cpu:v1"}}}}}}
+	ws := &kaitov1beta1.Workspace{ObjectMeta: metav1.ObjectMeta{Name: "cpu-child", Namespace: "default", Labels: map[string]string{kaitov1beta1.WorkspaceCreatedByInferenceSetLabel: "parent"}}, Resource: kaitov1beta1.ResourceSpec{InstanceType: "Standard_D16s_v6"}, Inference: &kaitov1beta1.InferenceSpec{Template: &corev1.PodTemplateSpec{Spec: corev1.PodSpec{Containers: []corev1.Container{{Name: "cpu", Image: "cpu:v1"}}}}}}
 	got := (&AzureGPUProvisioner{}).BuildNodeSelector(context.Background(), ws)
 	want := []corev1.NodeSelectorRequirement{{Key: kaitov1beta1.LabelWorkspaceName, Operator: corev1.NodeSelectorOpIn, Values: []string{ws.Name}}, {Key: kaitov1beta1.LabelWorkspaceNamespace, Operator: corev1.NodeSelectorOpIn, Values: []string{ws.Namespace}}}
 	if !reflect.DeepEqual(got, want) {

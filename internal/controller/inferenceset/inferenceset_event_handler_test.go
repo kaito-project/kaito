@@ -21,7 +21,6 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
 	"github.com/kaito-project/kaito/api/v1beta1"
-	"github.com/kaito-project/kaito/pkg/utils/consts"
 )
 
 func TestGetControllerKeyForWorkspace(t *testing.T) {
@@ -36,7 +35,7 @@ func TestGetControllerKeyForWorkspace(t *testing.T) {
 				ObjectMeta: metav1.ObjectMeta{
 					Namespace: "test-namespace",
 					Labels: map[string]string{
-						consts.WorkspaceCreatedByInferenceSetLabel: "test-name",
+						v1beta1.WorkspaceCreatedByInferenceSetLabel: "test-name",
 					},
 				},
 			},

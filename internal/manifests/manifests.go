@@ -33,12 +33,41 @@ import (
 
 	kaitov1alpha1 "github.com/kaito-project/kaito/api/v1alpha1"
 	kaitov1beta1 "github.com/kaito-project/kaito/api/v1beta1"
+	"github.com/kaito-project/kaito/internal/featuregates"
 	"github.com/kaito-project/kaito/internal/image"
 	"github.com/kaito-project/kaito/internal/manifests/builder"
-	"github.com/kaito-project/kaito/pkg/featuregates"
 	pkgmodel "github.com/kaito-project/kaito/pkg/model"
-	"github.com/kaito-project/kaito/pkg/utils"
-	"github.com/kaito-project/kaito/pkg/utils/consts"
+)
+
+const (
+	// PortInferenceServer is the default port for the inference server.
+	PortInferenceServer = int32(5000)
+
+	// PortKVCacheEvents is the default ZMQ port for vLLM KV cache events.
+	// See https://docs.vllm.ai/en/stable/api/vllm/config/kv_events/
+	PortKVCacheEvents = int32(5557)
+
+	// SpotInstanceKey and SpotInstanceValue are the AKS node label and taint
+	// that mark spot instances.
+	SpotInstanceKey   = "kubernetes.azure.com/scalesetpriority"
+	SpotInstanceValue = "spot"
+
+	// InferencePoolChartURL is the OCI registry URL for the llm-d router gateway chart.
+	// Migrated from GWIE inferencepool chart to llm-d-router-gateway which provides
+	// the same InferencePool deployment with advanced routing capabilities.
+	InferencePoolChartURL = "oci://ghcr.io/llm-d/charts/llm-d-router-gateway"
+
+	// InferencePoolChartVersion is the tag/version of the llm-d-router-gateway chart to deploy.
+	InferencePoolChartVersion = "v0.9.0"
+
+	// EPP (Endpoint Picker) image configuration.
+	// The llm-d-router chart composes the image as: {registry}/{repository}:{tag}
+	// Using llm-d router endpoint picker which provides advanced scheduling plugins
+	// (KV cache-aware routing, P/D disaggregation, pluggable filters/scorers).
+	// See: https://github.com/llm-d/llm-d-router
+	EPPImageRegistry   = "mcr.microsoft.com/oss/v2/llm-d"
+	EPPImageRepository = "llm-d-router-endpoint-picker"
+	EPPImageTag        = "v0.9.0"
 )
 
 func GenerateHeadlessServiceManifest(workspaceObj *kaitov1beta1.Workspace) *corev1.Service {
@@ -75,7 +104,7 @@ func GenerateServiceManifest(workspaceObj *kaitov1beta1.Workspace, serviceType c
 	// Traffic always targets PortInferenceServer (5000). On decode pods the routing
 	// sidecar listens on 5000 and forwards to vLLM on 5001; on prefill pods vLLM
 	// listens directly on 5000.
-	httpTargetPort := consts.PortInferenceServer
+	httpTargetPort := PortInferenceServer
 
 	ports := []corev1.ServicePort{
 		// HTTP API Port
@@ -109,8 +138,8 @@ func GenerateServiceManifest(workspaceObj *kaitov1beta1.Workspace, serviceType c
 		ports = append(ports, corev1.ServicePort{
 			Name:       "kv-events",
 			Protocol:   corev1.ProtocolTCP,
-			Port:       int32(consts.PortKVCacheEvents),
-			TargetPort: intstr.FromInt32(consts.PortKVCacheEvents),
+			Port:       int32(PortKVCacheEvents),
+			TargetPort: intstr.FromInt32(PortKVCacheEvents),
 		})
 	}
 
@@ -140,9 +169,9 @@ func GenerateStatefulSetManifest(revisionNum string, replicas int) func(*builder
 		}
 		// if workspaceObj.Labels contains "inferenceset.kaito.sh/created-by", add it to selector for VPA/HPA purpose
 		if ctx.Workspace.Labels != nil {
-			if createdBy, exists := ctx.Workspace.Labels[consts.WorkspaceCreatedByInferenceSetLabel]; exists {
-				klog.Infof("Adding label %s=%s to statefulset selector", consts.WorkspaceCreatedByInferenceSetLabel, createdBy)
-				selector[consts.WorkspaceCreatedByInferenceSetLabel] = createdBy
+			if createdBy, exists := ctx.Workspace.Labels[kaitov1beta1.WorkspaceCreatedByInferenceSetLabel]; exists {
+				klog.Infof("Adding label %s=%s to statefulset selector", kaitov1beta1.WorkspaceCreatedByInferenceSetLabel, createdBy)
+				selector[kaitov1beta1.WorkspaceCreatedByInferenceSetLabel] = createdBy
 			}
 			// Propagate MRI parent and inference-role labels to pod templates for InferencePool endpoint selection.
 			if parent, exists := ctx.Workspace.Labels[kaitov1alpha1.LabelMultiRoleInferenceParent]; exists {
@@ -256,7 +285,7 @@ func GeneratePullerContainers(wObj *kaitov1beta1.Workspace, adapters []kaitov1be
 		pullerContainer.VolumeMounts = volumeMounts
 
 		if len(source.ImagePullSecrets) > 0 {
-			volume, volumeMount := utils.ConfigImagePullSecretVolume(sourceName+"-inference-adapter", source.ImagePullSecrets)
+			volume, volumeMount := ConfigImagePullSecretVolume(sourceName+"-inference-adapter", source.ImagePullSecrets)
 			volumes = append(volumes, volume)
 			pullerContainer.VolumeMounts = append(pullerContainer.VolumeMounts, volumeMount)
 		}
@@ -300,10 +329,10 @@ func GenerateManifestWithPodTemplate(workspaceObj *kaitov1beta1.Workspace, toler
 
 	// if workspaceObj.Labels contains "inferenceset.kaito.sh/created-by", add it to selector for VPA/HPA purpose
 	if workspaceObj.Labels != nil {
-		if createdBy, exists := workspaceObj.Labels[consts.WorkspaceCreatedByInferenceSetLabel]; exists {
-			klog.Infof("Adding label %s=%s to statefulset selector", consts.WorkspaceCreatedByInferenceSetLabel, createdBy)
-			templateCopy.ObjectMeta.Labels[consts.WorkspaceCreatedByInferenceSetLabel] = createdBy
-			labelselector.MatchLabels[consts.WorkspaceCreatedByInferenceSetLabel] = createdBy
+		if createdBy, exists := workspaceObj.Labels[kaitov1beta1.WorkspaceCreatedByInferenceSetLabel]; exists {
+			klog.Infof("Adding label %s=%s to statefulset selector", kaitov1beta1.WorkspaceCreatedByInferenceSetLabel, createdBy)
+			templateCopy.ObjectMeta.Labels[kaitov1beta1.WorkspaceCreatedByInferenceSetLabel] = createdBy
+			labelselector.MatchLabels[kaitov1beta1.WorkspaceCreatedByInferenceSetLabel] = createdBy
 		}
 		// Propagate MRI parent and inference-role labels to pod templates for InferencePool endpoint selection.
 		if parent, exists := workspaceObj.Labels[kaitov1alpha1.LabelMultiRoleInferenceParent]; exists {
@@ -362,7 +391,7 @@ func GenerateManifestWithPodTemplate(workspaceObj *kaitov1beta1.Workspace, toler
 func GenerateInferencePoolOCIRepository(inferenceSetObj *kaitov1beta1.InferenceSet) *sourcev1.OCIRepository {
 	return &sourcev1.OCIRepository{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      utils.InferencePoolName(inferenceSetObj.Name),
+			Name:      InferencePoolName(inferenceSetObj.Name),
 			Namespace: inferenceSetObj.Namespace,
 			OwnerReferences: []metav1.OwnerReference{
 				*metav1.NewControllerRef(inferenceSetObj, kaitov1beta1.GroupVersion.WithKind("InferenceSet")),
@@ -370,10 +399,10 @@ func GenerateInferencePoolOCIRepository(inferenceSetObj *kaitov1beta1.InferenceS
 		},
 		Spec: sourcev1.OCIRepositorySpec{
 			// Chart source for llm-d router gateway;
-			// keep in sync with consts.InferencePoolChartVersion when upgrading.
-			URL: consts.InferencePoolChartURL,
+			// keep in sync with InferencePoolChartVersion when upgrading.
+			URL: InferencePoolChartURL,
 			Reference: &sourcev1.OCIRepositoryRef{
-				Tag: consts.InferencePoolChartVersion,
+				Tag: InferencePoolChartVersion,
 			},
 		},
 	}
@@ -383,12 +412,12 @@ func GenerateInferencePoolOCIRepository(inferenceSetObj *kaitov1beta1.InferenceS
 // Always PortInferenceServer (5000) — on decode pods the routing sidecar
 // listens on 5000; on prefill pods vLLM listens directly on 5000.
 func inferencePoolTargetPort() int32 {
-	return consts.PortInferenceServer
+	return PortInferenceServer
 }
 
 // GenerateInferencePoolHelmRelease generates a Flux HelmRelease for the inference pool.
 func GenerateInferencePoolHelmRelease(inferenceSetObj *kaitov1beta1.InferenceSet) (*helmv2.HelmRelease, error) {
-	inferencePoolName := utils.InferencePoolName(inferenceSetObj.Name)
+	inferencePoolName := InferencePoolName(inferenceSetObj.Name)
 	// llm-d-router-gateway v0.9.0 has no value for extending EPP pod labels.
 	eppPodLabelPatch, err := json.Marshal([]map[string]string{{
 		"op":   "copy",
@@ -399,7 +428,7 @@ func GenerateInferencePoolHelmRelease(inferenceSetObj *kaitov1beta1.InferenceSet
 		return nil, err
 	}
 	matchLabels := map[string]string{
-		consts.WorkspaceCreatedByInferenceSetLabel: inferenceSetObj.Name,
+		kaitov1beta1.WorkspaceCreatedByInferenceSetLabel: inferenceSetObj.Name,
 	}
 
 	// The Endpoint Picker (EPP) from llm-d router picks an endpoint that can serve traffic.
@@ -414,9 +443,9 @@ func GenerateInferencePoolHelmRelease(inferenceSetObj *kaitov1beta1.InferenceSet
 		"router": map[string]any{
 			"epp": map[string]any{
 				"image": map[string]string{
-					"registry":   consts.EPPImageRegistry,
-					"repository": consts.EPPImageRepository,
-					"tag":        consts.EPPImageTag,
+					"registry":   EPPImageRegistry,
+					"repository": EPPImageRepository,
+					"tag":        EPPImageTag,
 					"pullPolicy": string(corev1.PullIfNotPresent),
 				},
 				"resources": map[string]any{
@@ -448,7 +477,7 @@ func GenerateInferencePoolHelmRelease(inferenceSetObj *kaitov1beta1.InferenceSet
 			},
 		},
 	}
-	if featuregates.FeatureGates[consts.FeatureFlagEnableEPPFlowControl] {
+	if featuregates.FeatureGates[featuregates.FeatureFlagEnableEPPFlowControl] {
 		// The router chart treats pluginsCustomConfig as a complete
 		// EndpointPickerConfig rather than merging it with the built-in default.
 		// Preserve that default plugin stack here while adding the flowControl

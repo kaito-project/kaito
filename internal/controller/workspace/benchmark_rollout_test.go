@@ -39,12 +39,12 @@ import (
 
 	"github.com/kaito-project/kaito/api/v1alpha1"
 	"github.com/kaito-project/kaito/api/v1beta1"
+	"github.com/kaito-project/kaito/internal/featuregates"
 	"github.com/kaito-project/kaito/internal/inference"
+	"github.com/kaito-project/kaito/internal/k8s/k8sclient"
 	"github.com/kaito-project/kaito/internal/testutil"
 	"github.com/kaito-project/kaito/pkg/catalog"
-	"github.com/kaito-project/kaito/pkg/featuregates"
-	"github.com/kaito-project/kaito/pkg/k8sclient"
-	"github.com/kaito-project/kaito/pkg/utils/consts"
+	"github.com/kaito-project/kaito/pkg/consts"
 )
 
 func seedCompletedBenchmark(ws *v1beta1.Workspace) {
@@ -75,11 +75,9 @@ func TestBenchmarkResetOnSameRuntimeImageUpgrade(t *testing.T) {
 	t.Setenv("CLOUD_PROVIDER", consts.AzureCloudName)
 	t.Setenv("PRESET_REGISTRY_NAME", "mcr.microsoft.com/aks/kaito")
 	testutil.RegisterTestModel()
-	for _, gate := range []string{consts.FeatureFlagVLLM, consts.FeatureFlagDisableNodeAutoProvisioning} {
-		old := featuregates.FeatureGates[gate]
-		t.Cleanup(func() { featuregates.FeatureGates[gate] = old })
-		featuregates.FeatureGates[gate] = true
-	}
+	oldNAP := featuregates.FeatureGates[featuregates.FeatureFlagDisableNodeAutoProvisioning]
+	t.Cleanup(func() { featuregates.FeatureGates[featuregates.FeatureFlagDisableNodeAutoProvisioning] = oldNAP })
+	featuregates.FeatureGates[featuregates.FeatureFlagDisableNodeAutoProvisioning] = true
 	for _, tc := range []struct {
 		name       string
 		failUpdate bool

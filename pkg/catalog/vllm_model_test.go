@@ -22,12 +22,14 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"gopkg.in/yaml.v2"
+	corev1 "k8s.io/api/core/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
 	"github.com/kaito-project/kaito/pkg/catalog/hfgen"
+	"github.com/kaito-project/kaito/pkg/consts"
 	"github.com/kaito-project/kaito/pkg/model"
 	"github.com/kaito-project/kaito/pkg/sku"
-	"github.com/kaito-project/kaito/pkg/utils/consts"
 )
 
 func TestVLLMCompatibleModel_GetInferenceParameters(t *testing.T) {
@@ -1220,4 +1222,207 @@ func TestGetModelByName_Qwen35_4B_SpeculativeDecodingMTP(t *testing.T) {
 	assert.Equal(t, 1, params.SpeculativeDecoding.MTP.NumSpeculativeTokens)
 	assert.Equal(t, "", params.SpeculativeDecoding.MTP.Model,
 		"self-contained Qwen MTP should not inject a separate assistant model")
+}
+
+// TestGetModelByName_DeepSeekV41Flash1017_SpeculativeDecodingDSpark guards the
+// DSpark entry and its engine args through catalog resolution and registration.
+func TestGetModelByName_DeepSeekV41Flash1017_SpeculativeDecodingDSpark(t *testing.T) {
+	m, err := GetModelByNameWithToken(context.Background(), "deepseek-ai/DeepSeek-V4.1-Flash-1017", "")
+	assert.NoError(t, err)
+	if !assert.NotNil(t, m) {
+		return
+	}
+
+	params := m.GetInferenceParameters()
+	if !assert.NotNil(t, params.SpeculativeDecoding, "preset-tuned SpeculativeDecoding must survive registration") {
+		return
+	}
+	assert.Equal(t, "dspark", params.SpeculativeDecoding.Method)
+	if !assert.NotNil(t, params.SpeculativeDecoding.DSpark, "DSpark config must survive registration") {
+		return
+	}
+	assert.Equal(t, 5, params.SpeculativeDecoding.DSpark.NumSpeculativeTokens)
+	assert.True(t, params.SpeculativeDecoding.DSpark.EnableAdaptiveVerification)
+	assert.Equal(t, "256", params.SpeculativeDecoding.EngineArgs["max-num-seqs"])
+	assert.Equal(t, "4096", params.SpeculativeDecoding.EngineArgs["max-num-batched-tokens"])
+	_, inBaseParams := params.VLLM.ModelRunParams["max-num-seqs"]
+	assert.False(t, inBaseParams, "DSpark engine args must only apply when speculative decoding is enabled")
+}
+
+// TestGetModelByName_DeepSeekV4Flash0731_SpeculativeDecodingDSpark guards the
+// DeepSeek-V4-Flash-0731 DSpark entry through catalog resolution and registration.
+func TestGetModelByName_DeepSeekV4Flash0731_SpeculativeDecodingDSpark(t *testing.T) {
+	m, err := GetModelByNameWithToken(context.Background(), "deepseek-ai/DeepSeek-V4-Flash-0731", "")
+	assert.NoError(t, err)
+	if !assert.NotNil(t, m) {
+		return
+	}
+	params := m.GetInferenceParameters()
+	if !assert.NotNil(t, params.SpeculativeDecoding) || !assert.NotNil(t, params.SpeculativeDecoding.DSpark) {
+		return
+	}
+	assert.Equal(t, "dspark", params.SpeculativeDecoding.Method)
+	assert.Equal(t, 7, params.SpeculativeDecoding.DSpark.NumSpeculativeTokens)
+	assert.Equal(t, "probabilistic", params.SpeculativeDecoding.DSpark.DraftSampleMethod)
+	assert.False(t, params.SpeculativeDecoding.DSpark.EnableAdaptiveVerification)
+}
+
+// TestGetModelByName_CPUOffloadedWeightSize checks that the Engram tables
+// DeepSeek-V4.1-Flash keeps in CPU memory reach the memory estimators.
+func TestGetModelByName_CPUOffloadedWeightSize(t *testing.T) {
+	for name, want := range map[string]string{
+		"deepseek-ai/DeepSeek-V4.1-Flash-1017": "183.1Gi",
+		"deepseek-ai/DeepSeek-V4-Flash-0731":   "",
+	} {
+		m, err := GetModelByNameWithToken(context.Background(), name, "")
+		if !assert.NoError(t, err) {
+			continue
+		}
+		assert.Equal(t, want, m.GetInferenceParameters().CPUOffloadedWeightSize, name)
+	}
+}
+
+func TestGetModelByName_EngramOffloadOverride(t *testing.T) {
+	const name = "deepseek-ai/DeepSeek-V4.1-Flash-1017"
+	base, err := GetModelByNameWithToken(t.Context(), name, "")
+	require.NoError(t, err)
+	baseParams := base.GetInferenceParameters()
+
+	for _, tc := range []struct {
+		name        string
+		config      string
+		wantOffload string
+		wantError   string
+	}{
+		{"disabled", "vllm:\n  engram-config: '{\"cpu_offload\":false}'\n", "", ""},
+		{"enabled", "vllm:\n  engram-config: '{\"cpu_offload\":true}'\n", "183.1Gi", ""},
+		{"no override", "vllm:\n  max-model-len: 4096\n  enable-prefix-caching: true\n", "183.1Gi", ""},
+		{"empty config", "", "183.1Gi", ""},
+		{"empty Engram config", "vllm:\n  engram-config: '{}'\n", "", ""},
+		{"malformed YAML", "vllm: [", "", "parse inference config ConfigMap default/engram"},
+		{"malformed JSON", "vllm:\n  engram-config: '{'\n", "", "parse vllm.engram-config"},
+		{"invalid JSON type", "vllm:\n  engram-config: '[]'\n", "", "parse vllm.engram-config"},
+		{"invalid offload type", "vllm:\n  engram-config: '{\"cpu_offload\":\"no\"}'\n", "", "parse vllm.engram-config"},
+		{"non-string Engram config", "vllm:\n  engram-config:\n    cpu_offload: false\n", "", "vllm.engram-config must be a JSON string"},
+		{"null Engram config", "vllm:\n  engram-config: null\n", "", "vllm.engram-config must be a JSON string"},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			cm := &corev1.ConfigMap{
+				ObjectMeta: metav1.ObjectMeta{Name: "engram", Namespace: "default"},
+				Data:       map[string]string{model.ConfigfileNameVLLM: tc.config},
+			}
+			m, err := GetModelByName(t.Context(), name, cm.Name, "", cm.Namespace, fakeClientWith(cm))
+			if tc.wantError != "" {
+				require.ErrorContains(t, err, tc.wantError)
+				assert.Nil(t, m)
+			} else {
+				require.NoError(t, err)
+				params := m.GetInferenceParameters()
+				assert.Equal(t, tc.wantOffload, params.CPUOffloadedWeightSize)
+				assert.Equal(t, baseParams.TotalSafeTensorFileSize, params.TotalSafeTensorFileSize)
+				assert.Equal(t, baseParams.VLLM.ModelRunParams, params.VLLM.ModelRunParams)
+				assert.Equal(t, base.SupportDistributedInference(), m.SupportDistributedInference())
+				params.CPUOffloadedWeightSize = "1Gi"
+				assert.Equal(t, tc.wantOffload, m.GetInferenceParameters().CPUOffloadedWeightSize)
+			}
+			assert.Equal(t, baseParams, base.GetInferenceParameters(), "the shared preset must not be mutated")
+		})
+	}
+}
+
+func TestWithInferenceConfig_ConfigMapErrors(t *testing.T) {
+	m, err := GetModelByNameWithToken(t.Context(), "deepseek-ai/DeepSeek-V4.1-Flash-1017", "")
+	require.NoError(t, err)
+	t.Run("no client", func(t *testing.T) {
+		_, err := WithInferenceConfig(t.Context(), m, "engram", "default", nil)
+		require.ErrorContains(t, err, "no Kubernetes client")
+	})
+	t.Run("missing ConfigMap", func(t *testing.T) {
+		_, err := WithInferenceConfig(t.Context(), m, "engram", "default", fakeClientWith())
+		require.ErrorContains(t, err, "get inference config ConfigMap default/engram")
+	})
+	t.Run("missing runtime config", func(t *testing.T) {
+		cm := &corev1.ConfigMap{ObjectMeta: metav1.ObjectMeta{Name: "engram", Namespace: "default"}}
+		_, err := WithInferenceConfig(t.Context(), m, cm.Name, cm.Namespace, fakeClientWith(cm))
+		require.ErrorContains(t, err, `missing "inference_config.yaml"`)
+	})
+	t.Run("no inference config", func(t *testing.T) {
+		got, err := WithInferenceConfig(t.Context(), m, "", "default", nil)
+		require.NoError(t, err)
+		assert.Same(t, m, got)
+	})
+	t.Run("model without weight offload", func(t *testing.T) {
+		m, err := GetModelByNameWithToken(t.Context(), "deepseek-ai/DeepSeek-V4-Flash-0731", "")
+		require.NoError(t, err)
+		cm := &corev1.ConfigMap{
+			ObjectMeta: metav1.ObjectMeta{Name: "runtime", Namespace: "default"},
+			Data:       map[string]string{model.ConfigfileNameVLLM: "vllm: {}\n"},
+		}
+		got, err := WithInferenceConfig(t.Context(), m, cm.Name, cm.Namespace, fakeClientWith(cm))
+		require.NoError(t, err)
+		assert.Same(t, m, got)
+	})
+	t.Run("model without optional runtime config", func(t *testing.T) {
+		m, err := GetModelByNameWithToken(t.Context(), "deepseek-ai/DeepSeek-V4-Flash-0731", "")
+		require.NoError(t, err)
+		cm := &corev1.ConfigMap{ObjectMeta: metav1.ObjectMeta{Name: "runtime", Namespace: "default"}}
+		got, err := WithInferenceConfig(t.Context(), m, cm.Name, cm.Namespace, fakeClientWith(cm))
+		require.NoError(t, err)
+		assert.Same(t, m, got)
+	})
+}
+
+func TestWithInferenceConfig_GPUMemoryUtilization(t *testing.T) {
+	for _, name := range []string{"deepseek-ai/DeepSeek-V4.1-Flash-1017", "deepseek-ai/DeepSeek-V4-Flash-0731"} {
+		t.Run(name, func(t *testing.T) {
+			base, err := GetModelByNameWithToken(t.Context(), name, "")
+			require.NoError(t, err)
+			baseParams := base.GetInferenceParameters()
+			for _, tc := range []struct {
+				name           string
+				value          string
+				disableOffload bool
+				wantValue      string
+			}{
+				{"numeric", "0.70", false, "0.7"},
+				{"quoted", "'0.70'", false, "0.7"},
+				{"combined overrides", "0.70", true, "0.7"},
+				{"full memory", "1", false, "1"},
+				{"zero", "0", false, ""},
+				{"too large", "1.01", false, ""},
+				{"null", "null", false, ""},
+				{"boolean", "true", false, ""},
+				{"not a number", ".nan", false, ""},
+				{"infinite", ".inf", false, ""},
+			} {
+				t.Run(tc.name, func(t *testing.T) {
+					config := "vllm:\n  gpu-memory-utilization: " + tc.value + "\n"
+					if tc.disableOffload {
+						config += "  engram-config: '{\"cpu_offload\":false}'\n"
+					}
+					cm := &corev1.ConfigMap{
+						ObjectMeta: metav1.ObjectMeta{Name: "memory", Namespace: "default"},
+						Data:       map[string]string{model.ConfigfileNameVLLM: config},
+					}
+					m, err := GetModelByName(t.Context(), name, cm.Name, "", cm.Namespace, fakeClientWith(cm))
+					if tc.wantValue == "" {
+						require.ErrorContains(t, err, "gpu-memory-utilization")
+						assert.Nil(t, m)
+					} else {
+						require.NoError(t, err)
+						params := m.GetInferenceParameters()
+						assert.Equal(t, tc.wantValue, params.VLLM.ModelRunParams["gpu-memory-utilization"])
+						if tc.disableOffload {
+							assert.Empty(t, params.CPUOffloadedWeightSize)
+						} else {
+							assert.Equal(t, baseParams.CPUOffloadedWeightSize, params.CPUOffloadedWeightSize)
+						}
+						params.VLLM.ModelRunParams["gpu-memory-utilization"] = "0.1"
+						assert.Equal(t, tc.wantValue, m.GetInferenceParameters().VLLM.ModelRunParams["gpu-memory-utilization"])
+					}
+					assert.Equal(t, baseParams, base.GetInferenceParameters())
+				})
+			}
+		})
+	}
 }

@@ -16,13 +16,11 @@ package maxnumseqestimator
 import (
 	"strings"
 
-	"k8s.io/apimachinery/pkg/api/resource"
 	"k8s.io/klog/v2"
 
 	"github.com/kaito-project/kaito/pkg/estimator"
 	pkgmodel "github.com/kaito-project/kaito/pkg/model"
 	"github.com/kaito-project/kaito/pkg/sku"
-	"github.com/kaito-project/kaito/pkg/utils/consts"
 )
 
 const (
@@ -47,14 +45,14 @@ const (
 // vLLMDefaultMaxNumSeqs returns the max_num_seqs vLLM picks for the OpenAI API
 // server when the caller does not pass one, mirroring
 // get_batch_defaults in vllm/engine/arg_utils.py:
-// https://github.com/vllm-project/vllm/blob/v0.30.0/vllm/engine/arg_utils.py#L2701-L2759
+// https://github.com/vllm-project/vllm/blob/v0.32.0/vllm/engine/arg_utils.py#L2894-L2952
 // A100 is name-excluded from the large-GPU branch upstream because large batches
 // regress its throughput (vLLM PR #17885), so it keeps the smaller default even
 // though it clears the memory threshold.
 func vLLMDefaultMaxNumSeqs(gpuConfig *sku.GPUConfig) int {
 	memPerGPU := gpuConfig.GPUMem.Value() / int64(gpuConfig.GPUCount)
 	isA100 := strings.Contains(strings.ToLower(gpuConfig.GPUModel), "a100")
-	if memPerGPU >= int64(largeGPUMemThresholdGiB*consts.GiBToBytes) && !isA100 {
+	if memPerGPU >= int64(largeGPUMemThresholdGiB*sku.GiB) && !isA100 {
 		return largeGPUDefaultMaxNumSeqs
 	}
 	return defaultMaxNumSeqs
@@ -127,21 +125,16 @@ func (c *MaxNumSeqsEstimator) Estimate(req MaxNumSeqsEstimateRequest) (int, bool
 	if req.NumNodes > 1 {
 		return 0, false
 	}
-	weights, err := resource.ParseQuantity(params.TotalSafeTensorFileSize)
-	if err != nil || weights.IsZero() {
-		return 0, false
-	}
-
 	tp := gpuConfig.GPUCount
-	gpuMemPerGPU := float64(gpuConfig.GPUMem.Value() / int64(tp))
-	availGPUMem := gpuMemPerGPU * estimator.ResolveGPUMemoryUtilization(gpuConfig.GPUModel)
-	weightsPerGPU := float64(weights.Value()) * estimator.WeightExpansionFactor / float64(tp)
-	baseOverhead := estimator.ResolveBaseOverheadGiB(gpuConfig.GPUModel) * float64(consts.GiBToBytes)
 
 	// Memory vLLM has left for the unified KV cache / Mamba state pool after
 	// weights and fixed runtime overhead.
-	availPool := availGPUMem - weightsPerGPU - baseOverhead - estimator.OverheadWeightFactor*weightsPerGPU
-	if availPool <= 0 {
+	availPool, ok, err := estimator.KVHeadroomBytesPerGPU(params, gpuConfig, 1)
+	if err != nil {
+		klog.ErrorS(err, "Failed to estimate max-num-seqs", "workspace", req.WorkspaceName)
+		return 0, false
+	}
+	if !ok || availPool <= 0 {
 		return 0, false
 	}
 

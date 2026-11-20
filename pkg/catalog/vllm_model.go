@@ -16,10 +16,13 @@ package catalog
 import (
 	"context"
 	_ "embed"
+	"encoding/json"
 	"fmt"
+	"strconv"
 	"strings"
 	"time"
 
+	"gopkg.in/yaml.v2"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/resource"
 	"k8s.io/klog/v2"
@@ -120,17 +123,18 @@ func GetModelByNameWithToken(ctx context.Context, modelName, token string) (mode
 // GetModelByName returns a vLLM-compatible model for the given modelName.
 // The reserved name "custom" selects a bring-your-own model, resolved from the
 // configuration in the ConfigMap named by configMapName in secretNamespace.
+// Inference ConfigMap overrides are reflected in the GPU memory estimate.
 // If the modelName contains a "/", it fetches an access token from the
 // Kubernetes Secret identified by secretName and secretNamespace,
 // then generates a preset for the corresponding HuggingFace model.
 // Prefer GetModelByNameWithToken when the token has already been resolved by the caller.
-func GetModelByName(ctx context.Context, modelName, configMapName, secretName, secretNamespace string, kubeClient client.Client) (model.Model, error) {
+func GetModelByName(ctx context.Context, modelName, configMapName, secretName, secretNamespace string, kubeClient client.Reader) (model.Model, error) {
 	if model.IsCustomPreset(modelName) {
 		resolved, err := ResolveCustomModel(ctx, kubeClient, configMapName, secretNamespace)
 		if err != nil {
 			return nil, err
 		}
-		return resolved.Model, nil
+		return WithInferenceConfig(ctx, resolved.Model, configMapName, secretNamespace, kubeClient)
 	}
 	if model.IsReservedCustomModelName(modelName) {
 		return nil, fmt.Errorf("model name %q is reserved: select preset %q and supply the model configuration through 'inference.config'", modelName, model.PresetNameCustom)
@@ -138,7 +142,7 @@ func GetModelByName(ctx context.Context, modelName, configMapName, secretName, s
 	modelName = strings.ToLower(modelName)
 	modelName = model.ResolveHFModelID(modelName)
 	if m := model.KaitoModelRegister.MustGet(modelName); m != nil {
-		return m, nil
+		return WithInferenceConfig(ctx, m, configMapName, secretNamespace, kubeClient)
 	}
 	if !strings.Contains(modelName, "/") {
 		return nil, fmt.Errorf("model is not registered: %s", modelName)
@@ -149,7 +153,80 @@ func GetModelByName(ctx context.Context, modelName, configMapName, secretName, s
 		// only log the error here since token may not be required for public models
 		klog.ErrorS(err, "failed to get huggingface token from secret", "secretName", secretName, "secretNamespace", secretNamespace)
 	}
-	return generateHuggingFaceModel(modelName, token)
+	m, err := generateHuggingFaceModel(modelName, token)
+	if err != nil {
+		return nil, err
+	}
+	return WithInferenceConfig(ctx, m, configMapName, secretNamespace, kubeClient)
+}
+
+// WithInferenceConfig resolves memory overrides without mutating the cached model.
+func WithInferenceConfig(ctx context.Context, m model.Model, configMapName, namespace string, kubeClient client.Reader) (model.Model, error) {
+	params := m.GetInferenceParameters()
+	if configMapName == "" {
+		return m, nil
+	}
+	if kubeClient == nil {
+		return nil, fmt.Errorf("no Kubernetes client available to read inference config ConfigMap %s/%s", namespace, configMapName)
+	}
+	cm := &corev1.ConfigMap{}
+	if err := kubeClient.Get(ctx, client.ObjectKey{Name: configMapName, Namespace: namespace}, cm); err != nil {
+		return nil, fmt.Errorf("get inference config ConfigMap %s/%s: %w", namespace, configMapName, err)
+	}
+	content, ok := cm.Data[model.ConfigfileNameVLLM]
+	if !ok {
+		if params.CPUOffloadedWeightSize != "" {
+			return nil, fmt.Errorf("ConfigMap %s/%s missing %q", namespace, configMapName, model.ConfigfileNameVLLM)
+		}
+		return m, nil
+	}
+	var config struct {
+		VLLM map[string]interface{} `yaml:"vllm"`
+	}
+	if err := yaml.Unmarshal([]byte(content), &config); err != nil {
+		return nil, fmt.Errorf("parse inference config ConfigMap %s/%s: %w", namespace, configMapName, err)
+	}
+	rawEngram, engramOverridden := config.VLLM["engram-config"]
+	rawUtilization, utilizationOverridden := config.VLLM["gpu-memory-utilization"]
+	if !engramOverridden && !utilizationOverridden {
+		return m, nil
+	}
+	params = params.DeepCopy()
+	if utilizationOverridden {
+		utilization, err := model.ParseGPUMemoryUtilization(fmt.Sprint(rawUtilization))
+		if err != nil {
+			return nil, fmt.Errorf("inference config ConfigMap %s/%s: %w", namespace, configMapName, err)
+		}
+		if params.VLLM.ModelRunParams == nil {
+			params.VLLM.ModelRunParams = make(map[string]string)
+		}
+		params.VLLM.ModelRunParams["gpu-memory-utilization"] = strconv.FormatFloat(utilization, 'g', -1, 64)
+	}
+	if engramOverridden && params.CPUOffloadedWeightSize != "" {
+		value, ok := rawEngram.(string)
+		if !ok {
+			return nil, fmt.Errorf("inference config ConfigMap %s/%s: vllm.engram-config must be a JSON string", namespace, configMapName)
+		}
+		var engram struct {
+			CPUOffload bool `json:"cpu_offload"`
+		}
+		if err := json.Unmarshal([]byte(value), &engram); err != nil {
+			return nil, fmt.Errorf("parse vllm.engram-config in ConfigMap %s/%s: %w", namespace, configMapName, err)
+		}
+		if !engram.CPUOffload {
+			params.CPUOffloadedWeightSize = ""
+		}
+	}
+	return &inferenceConfiguredModel{Model: m, params: params}, nil
+}
+
+type inferenceConfiguredModel struct {
+	model.Model
+	params *model.PresetParam
+}
+
+func (m *inferenceConfiguredModel) GetInferenceParameters() *model.PresetParam {
+	return m.params.DeepCopy()
 }
 
 // generateHuggingFaceModel generates or retrieves a vLLM preset for modelName (which must
@@ -193,6 +270,7 @@ func (m *vLLMCompatibleModel) GetInferenceParameters() *model.PresetParam {
 		MambaStateBytesPerLayer: m.model.MambaStateBytesPerLayer,
 		NumFullAttnLayers:       m.model.NumFullAttnLayers,
 		NumLinearLayers:         m.model.NumLinearLayers,
+		CPUOffloadedWeightSize:  m.model.CPUOffloadedWeightSize,
 	}
 
 	runParamsVLLM := make(map[string]string)
@@ -293,7 +371,7 @@ func (m *vLLMCompatibleModel) SupportTuning() bool {
 // If secretNamespace is empty, it defaults to "default".
 // An error is returned if kubeClient is nil, the secret cannot be retrieved,
 // or the HF_TOKEN key is not present in the secret data.
-func GetHFTokenFromSecret(ctx context.Context, kubeClient client.Client, secretName, secretNamespace string) (string, error) {
+func GetHFTokenFromSecret(ctx context.Context, kubeClient client.Reader, secretName, secretNamespace string) (string, error) {
 	if secretName == "" {
 		return "", nil
 	}

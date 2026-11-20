@@ -34,7 +34,6 @@ import (
 	kaitov1alpha1 "github.com/kaito-project/kaito/api/v1alpha1"
 	kaitov1beta1 "github.com/kaito-project/kaito/api/v1beta1"
 	"github.com/kaito-project/kaito/internal/k8s/resources"
-	"github.com/kaito-project/kaito/pkg/utils/consts"
 )
 
 // UpdateStatusConditionIfNotMatch updates the inferenceset status condition if it doesn't match the current values
@@ -72,7 +71,7 @@ func ListWorkspaces(ctx context.Context, iObj *kaitov1beta1.InferenceSet, kubeCl
 	// We use label selector to find the workspaces.
 	// The label is "inferenceset.kaito.sh/created-by": <inferenceset-name>
 	ls := labels.Set{
-		consts.WorkspaceCreatedByInferenceSetLabel: iObj.Name,
+		kaitov1beta1.WorkspaceCreatedByInferenceSetLabel: iObj.Name,
 	}
 
 	err := retry.OnError(retry.DefaultBackoff, func(err error) bool {
@@ -94,7 +93,7 @@ func ListWorkspaces(ctx context.Context, iObj *kaitov1beta1.InferenceSet, kubeCl
 // It is the single source of truth for child-Workspace construction: the
 // InferenceSet controller and AutoUpgradeRunner create workspaces from it, and
 // the InferenceSet admission webhook validates the very object it produces.
-func NewWorkspaceForInferenceSet(iObj *kaitov1beta1.InferenceSet) *kaitov1beta1.Workspace {
+func NewWorkspaceForInferenceSet(ctx context.Context, iObj *kaitov1beta1.InferenceSet) *kaitov1beta1.Workspace {
 	annotations := maps.Clone(iObj.Spec.Template.Annotations)
 	if runtime := iObj.GetAnnotations()[kaitov1beta1.AnnotationWorkspaceRuntime]; runtime != "" {
 		if annotations == nil {
@@ -127,7 +126,7 @@ func NewWorkspaceForInferenceSet(iObj *kaitov1beta1.InferenceSet) *kaitov1beta1.
 	if iObj.Spec.Selector != nil {
 		maps.Copy(workspaceLabels, iObj.Spec.Selector.MatchLabels)
 	}
-	workspaceLabels[consts.WorkspaceCreatedByInferenceSetLabel] = iObj.Name
+	workspaceLabels[kaitov1beta1.WorkspaceCreatedByInferenceSetLabel] = iObj.Name
 
 	workspaceObj := &kaitov1beta1.Workspace{
 		ObjectMeta: metav1.ObjectMeta{
@@ -141,7 +140,7 @@ func NewWorkspaceForInferenceSet(iObj *kaitov1beta1.InferenceSet) *kaitov1beta1.
 		},
 		Resource: kaitov1beta1.ResourceSpec{
 			InstanceType:  iObj.Spec.Template.Resource.InstanceType,
-			LabelSelector: workspaceNodeSelector(iObj),
+			LabelSelector: kaitov1beta1.InferenceSetNodeSelector(ctx, iObj),
 			Partition:     iObj.Spec.Template.Resource.Partition,
 		},
 		Inference: iObj.Spec.Template.Inference.DeepCopy(),
@@ -157,20 +156,13 @@ const generatedNameSuffixLength = 5
 // Workspaces of the named InferenceSet. The InferenceSet name is truncated so
 // generated Workspace names stay within kaitov1beta1.MaxWorkspaceNameLength;
 // the full InferenceSet name remains on the
-// consts.WorkspaceCreatedByInferenceSetLabel label.
+// kaitov1beta1.WorkspaceCreatedByInferenceSetLabel label.
 func workspaceGenerateName(inferenceSetName string) string {
 	maxPrefixLength := kaitov1beta1.MaxWorkspaceNameLength - generatedNameSuffixLength - 1 // 1 for the dash separator
 	if len(inferenceSetName) > maxPrefixLength {
 		inferenceSetName = strings.TrimRight(inferenceSetName[:maxPrefixLength], "-")
 	}
 	return inferenceSetName + "-"
-}
-
-// workspaceNodeSelector returns the node selector for child Workspaces:
-// template.resource.labelSelector, or, for backward compatibility with node
-// auto-provisioning only, spec.labelSelector when the former is unset or empty.
-func workspaceNodeSelector(iObj *kaitov1beta1.InferenceSet) *metav1.LabelSelector {
-	return kaitov1beta1.InferenceSetNodeSelector(iObj)
 }
 
 // ValidateWorkspaceForInferenceSet validates the child Workspace the given
@@ -181,13 +173,13 @@ func workspaceNodeSelector(iObj *kaitov1beta1.InferenceSet) *metav1.LabelSelecto
 // Workspace projected from the baseline. Returned errors are rooted at the
 // InferenceSet. It is wired into api/v1beta1 at startup.
 func ValidateWorkspaceForInferenceSet(ctx context.Context, iObj *kaitov1beta1.InferenceSet) *apis.FieldError {
-	ws := NewWorkspaceForInferenceSet(iObj)
+	ws := NewWorkspaceForInferenceSet(ctx, iObj)
 	base, _ := apis.GetBaseline(ctx).(*kaitov1beta1.InferenceSet)
 	if base == nil {
 		return ws.ValidateCreate(ctx).ViaField("spec", "template")
 	}
 
-	oldWs := NewWorkspaceForInferenceSet(base)
+	oldWs := NewWorkspaceForInferenceSet(ctx, base)
 	// When both node selectors are inherited from spec.labelSelector, report a
 	// change only at spec.labelSelector instead of the projected template path.
 	if kaitov1beta1.IsEmptyLabelSelector(iObj.Spec.Template.Resource.LabelSelector) &&

@@ -11,27 +11,42 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package utils
+package model
 
 import (
 	"fmt"
+	"maps"
+	"math"
 	"net/url"
-	"os"
+	"slices"
+	"strconv"
 	"strings"
 
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-
-	"github.com/kaito-project/kaito/pkg/utils/consts"
 )
 
 const (
 	errInvalidModelVersionURL = "invalid model version URL: %s. Expected format: https://huggingface.co/<org>/<model>/commit/<revision>"
 )
 
-func BuildCmdStr(baseCommand string, runParams ...map[string]string) string {
+// ParseGPUMemoryUtilization validates vLLM's GPU memory budget fraction.
+func ParseGPUMemoryUtilization(value string) (float64, error) {
+	utilization, err := strconv.ParseFloat(strings.TrimSpace(value), 64)
+	if err != nil {
+		return 0, fmt.Errorf("invalid gpu-memory-utilization %q: %w", value, err)
+	}
+	if math.IsNaN(utilization) || utilization <= 0 || utilization > 1 {
+		return 0, fmt.Errorf("gpu-memory-utilization must be in (0, 1], got %q", value)
+	}
+	return utilization, nil
+}
+
+func buildCmdStr(baseCommand string, runParams ...map[string]string) string {
 	updatedBaseCommand := baseCommand
 	for _, runParam := range runParams {
-		for key, value := range runParam {
+		// Sort keys so the generated command is deterministic.
+		for _, key := range slices.Sorted(maps.Keys(runParam)) {
+			value := runParam[key]
 			if value == "" {
 				updatedBaseCommand = fmt.Sprintf("%s --%s", updatedBaseCommand, key)
 			} else {
@@ -43,34 +58,18 @@ func BuildCmdStr(baseCommand string, runParams ...map[string]string) string {
 	return updatedBaseCommand
 }
 
-func BuildIfElseCmdStr(condition string, trueCmd string, trueCmdParams map[string]string, falseCmd string, falseCmdParams map[string]string) string {
-	trueCmdStr := BuildCmdStr(trueCmd, trueCmdParams)
-	falseCmdStr := BuildCmdStr(falseCmd, falseCmdParams)
+func buildIfElseCmdStr(condition string, trueCmd string, trueCmdParams map[string]string, falseCmd string, falseCmdParams map[string]string) string {
+	trueCmdStr := buildCmdStr(trueCmd, trueCmdParams)
+	falseCmdStr := buildCmdStr(falseCmd, falseCmdParams)
 	return fmt.Sprintf("if %s; then %s; else %s; fi", condition, trueCmdStr, falseCmdStr)
 }
 
-func ShellCmd(command string) []string {
+func shellCmd(command string) []string {
 	return []string{
 		"/bin/sh",
 		"-c",
 		command,
 	}
-}
-
-func GetReleaseNamespace() (string, error) {
-	// Path to the namespace file inside a Kubernetes pod
-	namespaceFilePath := "/var/run/secrets/kubernetes.io/serviceaccount/namespace"
-
-	// Attempt to read the namespace from the file
-	if content, err := os.ReadFile(namespaceFilePath); err == nil {
-		return string(content), nil
-	}
-
-	// Fallback: Read the namespace from an environment variable
-	if namespace, exists := os.LookupEnv(consts.DefaultReleaseNamespaceEnvVar); exists {
-		return namespace, nil
-	}
-	return "", fmt.Errorf("failed to determine release namespace from file %s and env var %s", namespaceFilePath, consts.DefaultReleaseNamespaceEnvVar)
 }
 
 // ParseHuggingFaceModelVersion parses the model version in the format of https://huggingface.co/<org>/<model>/commit/<revision>
@@ -114,13 +113,8 @@ func ParseHuggingFaceModelVersion(version string) (repoId string, revision strin
 	return "", "", fmt.Errorf(errInvalidModelVersionURL, version)
 }
 
-// getRayLeaderHost constructs the leader host for the Ray cluster.
-func GetRayLeaderHost(meta metav1.ObjectMeta) string {
+// RayLeaderHost constructs the leader host for the Ray cluster.
+func RayLeaderHost(meta metav1.ObjectMeta) string {
 	return fmt.Sprintf("%s-0.%s-headless.%s.svc.cluster.local",
 		meta.Name, meta.Name, meta.Namespace)
-}
-
-// InferencePoolName returns the name of the inference pool for the given workspace.
-func InferencePoolName(workspaceName string) string {
-	return fmt.Sprintf("%s-inferencepool", workspaceName)
 }

@@ -28,7 +28,6 @@ import (
 	"github.com/kaito-project/kaito/internal/k8s/expectations"
 	"github.com/kaito-project/kaito/internal/k8s/nodeclaim"
 	"github.com/kaito-project/kaito/pkg/catalog"
-	"github.com/kaito-project/kaito/pkg/utils/consts"
 )
 
 type NodeClaimManager struct {
@@ -60,7 +59,7 @@ func (c *NodeClaimManager) GetNumNodeClaimsNeeded(ctx context.Context, wObj *kai
 	readyNodesWithoutNodeClaim := 0
 
 	for _, node := range readyNodes {
-		if _, ok := node.Labels[consts.LabelNodePool]; !ok {
+		if _, ok := node.Labels[karpenterv1.NodePoolLabelKey]; !ok {
 			readyNodesWithoutNodeClaim++
 		}
 	}
@@ -112,7 +111,7 @@ func (c *NodeClaimManager) CreateUpNodeClaims(ctx context.Context, wObj *kaitov1
 		var nodeClaim *karpenterv1.NodeClaim
 
 		err := retry.RetryOnConflict(retry.DefaultRetry, func() error {
-			nodeClaim = nodeclaim.GenerateNodeClaimManifestWithOptions(nodeOSDiskSize, wObj, nodeclaim.ManifestOptions{
+			nodeClaim = nodeclaim.GenerateNodeClaimManifestWithOptions(ctx, nodeOSDiskSize, wObj, nodeclaim.ManifestOptions{
 				DefaultNodeImageFamily: c.defaultNodeImageFamily,
 			})
 			return c.Client.Create(ctx, nodeClaim)

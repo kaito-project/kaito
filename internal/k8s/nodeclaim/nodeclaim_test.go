@@ -29,11 +29,12 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	karpenterv1 "sigs.k8s.io/karpenter/pkg/apis/v1"
 
+	"github.com/kaito-project/kaito/api/env"
 	kaitov1beta1 "github.com/kaito-project/kaito/api/v1beta1"
 	"github.com/kaito-project/kaito/internal/k8s/resources"
 	"github.com/kaito-project/kaito/internal/testutil"
 	"github.com/kaito-project/kaito/pkg/apis"
-	"github.com/kaito-project/kaito/pkg/utils/consts"
+	"github.com/kaito-project/kaito/pkg/consts"
 )
 
 func TestCreateNodeClaim(t *testing.T) {
@@ -65,7 +66,6 @@ func TestCreateNodeClaim(t *testing.T) {
 			tc.callMocks(mockClient)
 
 			mockNodeClaim := &testutil.MockNodeClaim
-			t.Setenv("CLOUD_PROVIDER", consts.AzureCloudName)
 			err := CreateNodeClaim(context.Background(), mockNodeClaim, mockClient)
 			if tc.expectedError == nil {
 				assert.Check(t, err == nil, "Not expected to return error")
@@ -165,17 +165,17 @@ func TestWaitForPendingNodeClaims(t *testing.T) {
 
 func TestGenerateNodeClaimManifest_OmitsInferenceSetLabel(t *testing.T) {
 	ws := testutil.MockWorkspaceWithPreset.DeepCopy()
-	ws.Labels = map[string]string{consts.WorkspaceCreatedByInferenceSetLabel: "cpu-set"}
+	ws.Labels = map[string]string{kaitov1beta1.WorkspaceCreatedByInferenceSetLabel: "cpu-set"}
 	ws.Resource.LabelSelector = &metav1.LabelSelector{MatchLabels: map[string]string{
-		consts.WorkspaceCreatedByInferenceSetLabel: "user-pool",
+		kaitov1beta1.WorkspaceCreatedByInferenceSetLabel: "user-pool",
 		"nodepool": "cpu",
 	}}
 
-	nc := GenerateNodeClaimManifestWithOptions("0", ws, ManifestOptions{})
+	nc := GenerateNodeClaimManifestWithOptions(env.WithEnv(context.Background(), &env.Env{CloudProvider: consts.AzureCloudName}), "0", ws, ManifestOptions{})
 	if nc == nil {
 		t.Fatalf("expected nodeclaim manifest")
 	}
-	if got := nc.Labels[consts.WorkspaceCreatedByInferenceSetLabel]; got != "" {
+	if got := nc.Labels[kaitov1beta1.WorkspaceCreatedByInferenceSetLabel]; got != "" {
 		t.Fatalf("expected workspace-only isolation without parent label propagation, got %q", got)
 	}
 	if got := nc.Labels["nodepool"]; got != "cpu" {
@@ -285,25 +285,24 @@ func TestGenerateNodeClaimManifest(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			t.Setenv("CLOUD_PROVIDER", tc.cloudProvider)
-
 			workspace := tc.workspace.DeepCopy()
 			if tc.name == "image family defaults to ubuntu when startup parameter is empty and workspace annotation missing" {
 				workspace.Annotations = nil
 			}
 
+			ctx := env.WithEnv(context.Background(), &env.Env{CloudProvider: env.CloudProvider(tc.cloudProvider)})
 			var nodeClaim *karpenterv1.NodeClaim
 			if tc.useOptions {
-				nodeClaim = GenerateNodeClaimManifestWithOptions("0", workspace, tc.options)
+				nodeClaim = GenerateNodeClaimManifestWithOptions(ctx, "0", workspace, tc.options)
 			} else {
-				nodeClaim = GenerateNodeClaimManifest("0", workspace)
+				nodeClaim = GenerateNodeClaimManifest(ctx, "0", workspace)
 			}
 
 			assert.Check(t, nodeClaim != nil, "NodeClaim must not be nil")
 			assert.Equal(t, nodeClaim.Namespace, workspace.Namespace, "NodeClaim must have same namespace as workspace")
 			assert.Equal(t, nodeClaim.Labels[kaitov1beta1.LabelWorkspaceName], workspace.Name, "label must have same workspace name as workspace")
 			assert.Equal(t, nodeClaim.Labels[kaitov1beta1.LabelWorkspaceNamespace], workspace.Namespace, "label must have same workspace namespace as workspace")
-			assert.Equal(t, nodeClaim.Labels[consts.LabelNodePool], consts.KaitoNodePoolName, "label must have same labels as workspace label selector")
+			assert.Equal(t, nodeClaim.Labels[karpenterv1.NodePoolLabelKey], kaitoNodePoolName, "label must have same labels as workspace label selector")
 			assert.Equal(t, nodeClaim.Annotations[karpenterv1.DoNotDisruptAnnotationKey], "true", "label must have do not disrupt annotation")
 			assert.Equal(t, len(nodeClaim.Spec.Requirements), 4, " NodeClaim must have 4 NodeSelector Requirements")
 			assert.Equal(t, nodeClaim.Spec.Requirements[1].Values[0], workspace.Resource.InstanceType, "NodeClaim must have same instance type as workspace")
@@ -312,12 +311,12 @@ func TestGenerateNodeClaimManifest(t *testing.T) {
 			assert.Equal(t, nodeClaim.Spec.NodeClassRef.Kind, tc.expectedNodeClassKind, "NodeClaim must have expected nodeclass kind")
 			assert.Equal(t, nodeClaim.Spec.NodeClassRef.Group, tc.expectedNodeClassGroup, "NodeClaim must have expected nodeclass group")
 			assert.Equal(t, 1, len(nodeClaim.Spec.Taints), "NodeClaim must have a dedicated sku taint")
-			assert.Equal(t, consts.SKUString, nodeClaim.Spec.Taints[0].Key, "NodeClaim taint key mismatch")
-			if kaitov1beta1.IsCPUInferenceWorkspace(workspace) {
-				assert.Equal(t, consts.CPUString, nodeClaim.Spec.Taints[0].Value, "CPU NodeClaim must use cpu taint")
-				assert.Equal(t, consts.CPUString, nodeClaim.Labels[consts.SKUString], "CPU NodeClaim must carry cpu sku label")
+			assert.Equal(t, kaitov1beta1.LabelSKU, nodeClaim.Spec.Taints[0].Key, "NodeClaim taint key mismatch")
+			if kaitov1beta1.IsCPUInferenceWorkspace(ctx, workspace) {
+				assert.Equal(t, kaitov1beta1.SKUCPU, nodeClaim.Spec.Taints[0].Value, "CPU NodeClaim must use cpu taint")
+				assert.Equal(t, kaitov1beta1.SKUCPU, nodeClaim.Labels[kaitov1beta1.LabelSKU], "CPU NodeClaim must carry cpu sku label")
 			} else {
-				assert.Equal(t, consts.GPUString, nodeClaim.Spec.Taints[0].Value, "GPU NodeClaim must use gpu taint")
+				assert.Equal(t, kaitov1beta1.SKUGPU, nodeClaim.Spec.Taints[0].Value, "GPU NodeClaim must use gpu taint")
 			}
 
 			imageFamily, found := nodeClaim.Annotations[kaitov1beta1.AnnotationNodeImageFamily]

@@ -24,13 +24,12 @@ import (
 	karpenterv1 "sigs.k8s.io/karpenter/pkg/apis/v1"
 
 	"github.com/kaito-project/kaito/api/v1beta1"
+	"github.com/kaito-project/kaito/internal/featuregates"
 	"github.com/kaito-project/kaito/internal/k8s/expectations"
 	byoprovisioner "github.com/kaito-project/kaito/internal/nodeprovision/byo-provisioner"
 	gpuprovisioner "github.com/kaito-project/kaito/internal/nodeprovision/gpu-provisioner"
 	"github.com/kaito-project/kaito/internal/nodeprovision/resource"
 	"github.com/kaito-project/kaito/internal/testutil"
-	"github.com/kaito-project/kaito/pkg/featuregates"
-	"github.com/kaito-project/kaito/pkg/utils/consts"
 )
 
 func TestGarbageCollectWorkspace(t *testing.T) {
@@ -169,9 +168,9 @@ func TestGarbageCollectWorkspace(t *testing.T) {
 			tc.callMocks(mockClient)
 
 			// Set the feature gate for this test case
-			featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning] = tc.disableNodeAutoProvisioning
+			featuregates.FeatureGates[featuregates.FeatureFlagDisableNodeAutoProvisioning] = tc.disableNodeAutoProvisioning
 			defer func() {
-				featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning] = false
+				featuregates.FeatureGates[featuregates.FeatureFlagDisableNodeAutoProvisioning] = false
 			}()
 
 			// Select provisioner based on feature gate (mirrors factory logic)
@@ -189,7 +188,7 @@ func TestGarbageCollectWorkspace(t *testing.T) {
 			}
 			ctx := context.Background()
 
-			testutil.MockWorkspaceDistributedModel.SetFinalizers([]string{consts.WorkspaceFinalizer})
+			testutil.MockWorkspaceDistributedModel.SetFinalizers([]string{workspaceFinalizer})
 
 			_, err := reconciler.garbageCollectWorkspace(ctx, testutil.MockWorkspaceDistributedModel)
 			if tc.expectedError == nil {

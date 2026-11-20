@@ -45,6 +45,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/log/zap"
 	metricsserver "sigs.k8s.io/controller-runtime/pkg/metrics/server"
 
+	"github.com/kaito-project/kaito/api/env"
 	kaitov1alpha1 "github.com/kaito-project/kaito/api/v1alpha1"
 	kaitov1beta1 "github.com/kaito-project/kaito/api/v1beta1"
 	"github.com/kaito-project/kaito/internal/cache"
@@ -54,17 +55,17 @@ import (
 	modelmirrorcontroller "github.com/kaito-project/kaito/internal/controller/modelmirror"
 	"github.com/kaito-project/kaito/internal/controller/multiroleinference"
 	"github.com/kaito-project/kaito/internal/controller/workspace"
+	"github.com/kaito-project/kaito/internal/featuregates"
 	"github.com/kaito-project/kaito/internal/inference/modelstreaming"
 	"github.com/kaito-project/kaito/internal/inference/modelstreaming/registry"
+	"github.com/kaito-project/kaito/internal/k8s/k8sclient"
 	karpenterutils "github.com/kaito-project/kaito/internal/k8s/karpenter"
+	"github.com/kaito-project/kaito/internal/modelmirror/download"
 	nodeprovisionmanager "github.com/kaito-project/kaito/internal/nodeprovision/manager"
+	"github.com/kaito-project/kaito/internal/runtimeenv"
 	"github.com/kaito-project/kaito/internal/version"
 	workspacewebhook "github.com/kaito-project/kaito/internal/webhook/workspace"
-	"github.com/kaito-project/kaito/pkg/featuregates"
-	"github.com/kaito-project/kaito/pkg/k8sclient"
-	mmconsts "github.com/kaito-project/kaito/pkg/modelmirror/consts"
 	"github.com/kaito-project/kaito/pkg/sku"
-	"github.com/kaito-project/kaito/pkg/utils/consts"
 )
 
 const (
@@ -129,7 +130,7 @@ func main() {
 			"Enabling this will ensure there is only one active controller manager.")
 	flag.BoolVar(&enableWebhook, "webhook", true,
 		"Enable webhook for controller manager. Default is true.")
-	flag.StringVar(&featureGates, "feature-gates", "vLLM=true,disableNodeAutoProvisioning=false", "Enable Kaito feature gates. Default: vLLM=true,disableNodeAutoProvisioning=false.")
+	flag.StringVar(&featureGates, "feature-gates", "disableNodeAutoProvisioning=false", "Enable Kaito feature gates. Default: disableNodeAutoProvisioning=false.")
 	flag.StringVar(&defaultNodeImageFamily, "default-node-image-family", "", "Default node image family annotation for generated NodeClaims. Supported values: azurelinux, ubuntu. Empty means ubuntu. Unsupported values cause startup failure.")
 	flag.StringVar(&nodeProvisionerType, "node-provisioner", "azure-gpu-provisioner", "Node provisioner type. Supported values: azure-gpu-provisioner, karpenter, byo. Default: azure-gpu-provisioner.")
 	flag.StringVar(&karpenterNodeClassGroup, "karpenter-node-class-group", "karpenter.azure.com", "Karpenter NodeClass API group. Only used when node-provisioner=karpenter.")
@@ -156,7 +157,7 @@ func main() {
 	}
 	klog.Info("version: ", version.VersionInfo())
 
-	downloadResources, err := mmconsts.ResolveDownloadJobResources(
+	downloadResources, err := download.ResolveDownloadJobResources(
 		modelMirrorDownloadCPU,
 		modelMirrorDownloadMemory,
 		modelMirrorDownloadCPULimit,
@@ -180,32 +181,32 @@ func main() {
 	sku.DefaultSKUHandler = skuHandler
 
 	// ModelStreaming requires ModelMirror
-	if featuregates.FeatureGates[consts.FeatureFlagModelStreaming] && !featuregates.FeatureGates[consts.FeatureFlagModelMirror] {
+	if featuregates.FeatureGates[featuregates.FeatureFlagModelStreaming] && !featuregates.FeatureGates[featuregates.FeatureFlagModelMirror] {
 		klog.ErrorS(fmt.Errorf("ModelStreaming feature gate requires ModelMirror to be enabled"),
 			"set --feature-gates=ModelMirror=true,ModelStreaming=true")
 		exitWithErrorFunc()
 	}
 
 	// Expose the resolved provisioner type for downstream scheduling logic.
-	consts.ActiveNodeProvisioner = nodeProvisionerType
+	featuregates.NodeProvisioner = nodeProvisionerType
 
 	// Sync feature gate internal state based on --node-provisioner for downstream consumers.
 	switch nodeProvisionerType {
-	case consts.NodeProvisionerBYO:
-		featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning] = true
-	case consts.NodeProvisionerKarpenter:
-		featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning] = false
-	case consts.NodeProvisionerAzureGPU:
-		featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning] = false
+	case featuregates.NodeProvisionerBYO:
+		featuregates.FeatureGates[featuregates.FeatureFlagDisableNodeAutoProvisioning] = true
+	case featuregates.NodeProvisionerKarpenter:
+		featuregates.FeatureGates[featuregates.FeatureFlagDisableNodeAutoProvisioning] = false
+	case featuregates.NodeProvisionerAzureGPU:
+		featuregates.FeatureGates[featuregates.FeatureFlagDisableNodeAutoProvisioning] = false
 	default:
 		klog.ErrorS(fmt.Errorf("unsupported node provisioner type %q", nodeProvisionerType), "unable to set --node-provisioner")
 		exitWithErrorFunc()
 	}
 
 	if defaultNodeImageFamily == "" {
-		defaultNodeImageFamily = consts.NodeImageFamilyUbuntu
+		defaultNodeImageFamily = kaitov1beta1.NodeImageFamilyUbuntu
 	} else {
-		normalizedNodeImageFamily, valid := consts.NormalizeSupportedNodeImageFamily(defaultNodeImageFamily)
+		normalizedNodeImageFamily, valid := kaitov1beta1.NormalizeSupportedNodeImageFamily(defaultNodeImageFamily)
 		if !valid {
 			klog.ErrorS(fmt.Errorf("unsupported node image family %q", defaultNodeImageFamily), "unable to set `default-node-image-family` flag")
 			exitWithErrorFunc()
@@ -216,6 +217,11 @@ func main() {
 	ctrl.SetLogger(zap.New(zap.UseFlagOptions(&opts)))
 
 	ctx := withShutdownSignal(context.Background())
+
+	// The client is set once the manager exists; runnables and webhooks read
+	// the Env only after start.
+	runtimeEnv := runtimeenv.New(skuHandler)
+	ctx = env.WithEnv(ctx, runtimeEnv)
 
 	cfg := ctrl.GetConfigOrDie()
 	cfg.UserAgent = workspaceController
@@ -229,6 +235,7 @@ func main() {
 		HealthProbeBindAddress: probeAddr,
 		LeaderElection:         enableLeaderElection,
 		LeaderElectionID:       "ef60f9b0.io",
+		BaseContext:            runtimeEnv.BaseContext,
 		// LeaderElectionReleaseOnCancel defines if the leader should step down voluntarily
 		// when the Manager ends. This requires the binary to immediately end when the
 		// Manager is stopped, otherwise, this setting is unsafe. Setting this significantly
@@ -251,6 +258,7 @@ func main() {
 
 	k8sclient.SetGlobalClient(mgr.GetClient())
 	kClient := k8sclient.GetGlobalClient()
+	runtimeEnv.Client = mgr.GetClient()
 
 	kubeClient, err := kubernetes.NewForConfig(cfg)
 	if err != nil {
@@ -283,7 +291,7 @@ func main() {
 		NodeClassVersion:       karpenterNodeClassVersion,
 		NodeClassResourceName:  karpenterNodeClassResourceName,
 	}
-	if nodeProvisionerType == consts.NodeProvisionerKarpenter {
+	if nodeProvisionerType == featuregates.NodeProvisionerKarpenter {
 		nodeClasses, nodeClassNames, ncErr := nodeprovisionmanager.ParseNodeClasses(karpenterNodeClasses)
 		if ncErr != nil {
 			klog.ErrorS(ncErr, "invalid NodeClass configuration")
@@ -302,7 +310,7 @@ func main() {
 	}
 
 	// Set streaming defaults once at startup (read by the modelstreaming package via StreamingDefaults).
-	if featuregates.FeatureGates[consts.FeatureFlagModelStreaming] {
+	if featuregates.FeatureGates[featuregates.FeatureFlagModelStreaming] {
 		streamer, streamerErr := registry.GetModelStreamer(os.Getenv("CLOUD_PROVIDER"))
 		if streamerErr != nil {
 			klog.ErrorS(streamerErr, "unable to resolve model streamer")
@@ -327,7 +335,7 @@ func main() {
 	}
 
 	// Cache controller — monitors provider readiness.
-	if featuregates.FeatureGates[consts.FeatureFlagDistributedCache] {
+	if featuregates.FeatureGates[featuregates.FeatureFlagDistributedCache] {
 		cacheController := cache.NewController(kClient, mgr.GetEventRecorderFor("KAITO-Cache-controller"))
 		if err = cacheController.SetupWithManager(mgr); err != nil {
 			klog.ErrorS(err, "unable to create controller", "controller", "Cache")
@@ -335,7 +343,7 @@ func main() {
 		}
 	}
 
-	if featuregates.FeatureGates[consts.FeatureFlagEnableInferenceSetController] {
+	if featuregates.FeatureGates[featuregates.FeatureFlagEnableInferenceSetController] {
 		inferenceSetReconciler := inferenceset.NewInferenceSetReconciler(
 			kClient,
 			mgr.GetScheme(),
@@ -348,7 +356,7 @@ func main() {
 			exitWithErrorFunc()
 		}
 
-		if consts.IsKarpenterProvisioner() {
+		if featuregates.IsKarpenterProvisioner() {
 			driftReconciler := drift.NewDriftReconciler(
 				kClient,
 				mgr.GetScheme(),
@@ -362,7 +370,7 @@ func main() {
 		}
 
 		// Register AutoUpgradeRunner for automatic base image upgrades.
-		if featuregates.FeatureGates[consts.FeatureFlagEnableBaseImageAutoUpgrade] {
+		if featuregates.FeatureGates[featuregates.FeatureFlagEnableBaseImageAutoUpgrade] {
 			if err = mgr.Add(&autoupgrade.AutoUpgradeRunner{
 				Client:   kClient,
 				Interval: autoupgrade.DefaultInterval,
@@ -374,13 +382,13 @@ func main() {
 	}
 
 	// MultiRoleInference controller — requires enableMultiRoleInferenceController.
-	if featuregates.FeatureGates[consts.FeatureFlagEnableMultiRoleInferenceController] {
+	if featuregates.FeatureGates[featuregates.FeatureFlagEnableMultiRoleInferenceController] {
 		mriReconciler := multiroleinference.NewMultiRoleInferenceReconciler(
 			kClient,
 			mgr.GetScheme(),
 			log.Log.WithName("controllers").WithName("MultiRoleInference"),
 			mgr.GetEventRecorderFor("KAITO-MultiRoleInference-controller"),
-			featuregates.FeatureGates[consts.FeatureFlagGatewayAPIInferenceExtension],
+			featuregates.FeatureGates[featuregates.FeatureFlagGatewayAPIInferenceExtension],
 		)
 		if err = mriReconciler.SetupWithManager(mgr); err != nil {
 			klog.ErrorS(err, "unable to create controller", "controller", "MultiRoleInference")
@@ -389,7 +397,7 @@ func main() {
 	}
 
 	// ModelMirror controller — requires ModelMirror feature gate.
-	if featuregates.FeatureGates[consts.FeatureFlagModelMirror] {
+	if featuregates.FeatureGates[featuregates.FeatureFlagModelMirror] {
 		mmReconciler := modelmirrorcontroller.NewModelMirrorReconciler(
 			kClient,
 			mgr.GetAPIReader(),
@@ -427,7 +435,7 @@ func main() {
 		})
 		ctx = sharedmain.WithHealthProbesDisabled(ctx)
 		ctx = sharedmain.WithHADisabled(ctx)
-		go sharedmain.MainWithConfig(ctx, "webhook", ctrl.GetConfigOrDie(), workspacewebhook.NewControllerWebhooks()...)
+		go sharedmain.MainWithConfig(ctx, "webhook", ctrl.GetConfigOrDie(), workspacewebhook.NewControllerWebhooks(runtimeEnv)...)
 
 		// wait 2 seconds to allow reconciling webhookconfiguration and service endpoint.
 		time.Sleep(2 * time.Second)

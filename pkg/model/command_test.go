@@ -11,7 +11,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package utils
+package model
 
 import (
 	"strings"
@@ -19,13 +19,28 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	appsv1 "k8s.io/api/apps/v1"
-	"k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"sigs.k8s.io/controller-runtime/pkg/client"
-
-	"github.com/kaito-project/kaito/pkg/utils/consts"
 )
+
+func TestParseGPUMemoryUtilization(t *testing.T) {
+	for _, tc := range []struct {
+		value string
+		want  float64
+	}{
+		{"0.70", 0.7},
+		{" 0.7 ", 0.7},
+		{"7e-1", 0.7},
+		{"1", 1},
+	} {
+		got, err := ParseGPUMemoryUtilization(tc.value)
+		require.NoError(t, err)
+		assert.Equal(t, tc.want, got)
+	}
+	for _, value := range []string{"", "zero", "0", "-0.1", "1.01", "NaN", "+Inf", "-Inf"} {
+		_, err := ParseGPUMemoryUtilization(value)
+		require.ErrorContains(t, err, "gpu-memory-utilization", value)
+	}
+}
 
 func TestParseHuggingFaceModelVersion(t *testing.T) {
 	tests := []struct {
@@ -132,6 +147,41 @@ func TestParseHuggingFaceModelVersion(t *testing.T) {
 				require.NoError(t, err)
 				assert.Equal(t, tt.expectedRepoId, repoId)
 				assert.Equal(t, tt.expectedRevision, revision)
+			}
+		})
+	}
+}
+
+func TestBuildCmdStr(t *testing.T) {
+	tests := []struct {
+		name      string
+		runParams []map[string]string
+		expected  string
+	}{
+		{
+			name:      "keys within a map are sorted",
+			runParams: []map[string]string{{"b": "2", "a": "1", "flag": ""}},
+			expected:  "base --a=1 --b=2 --flag",
+		},
+		{
+			name: "map order is kept and each map is sorted",
+			runParams: []map[string]string{
+				{"z": "1", "y": "", "x": "3"},
+				{"c": "", "b": "2", "a": "1"},
+			},
+			expected: "base --x=3 --y --z=1 --a=1 --b=2 --c",
+		},
+		{
+			name:      "empty map returns base command",
+			runParams: []map[string]string{{}},
+			expected:  "base",
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			// Go randomizes map iteration, so repeat to catch order dependence.
+			for range 20 {
+				assert.Equal(t, tt.expected, buildCmdStr("base", tt.runParams...))
 			}
 		})
 	}
@@ -253,13 +303,13 @@ func TestBuildIfElseCmdStr(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			actual := BuildIfElseCmdStr(tt.condition, tt.trueCmd, tt.trueCmdParams, tt.falseCmd, tt.falseCmdParams)
+			actual := buildIfElseCmdStr(tt.condition, tt.trueCmd, tt.trueCmdParams, tt.falseCmd, tt.falseCmdParams)
 			assert.Equal(t, tt.expected, actual)
 		})
 	}
 }
 
-func TestGetRayLeaderHost(t *testing.T) {
+func TestRayLeaderHost(t *testing.T) {
 	tests := []struct {
 		name         string
 		meta         metav1.ObjectMeta
@@ -301,44 +351,13 @@ func TestGetRayLeaderHost(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			actualHost := GetRayLeaderHost(tt.meta)
+			actualHost := RayLeaderHost(tt.meta)
 			assert.Equal(t, tt.expectedHost, actualHost)
 		})
 	}
 }
 
-func TestInferencePoolName(t *testing.T) {
-	tests := []struct {
-		workspaceName string
-		expected      string
-	}{
-		{"foo", "foo-inferencepool"},
-		{"bar123", "bar123-inferencepool"},
-		{"test-workspace", "test-workspace-inferencepool"},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.workspaceName, func(t *testing.T) {
-			actual := InferencePoolName(tt.workspaceName)
-			assert.Equal(t, tt.expected, actual)
-		})
-	}
-}
-
 func TestShellCmd(t *testing.T) {
-	cmd := ShellCmd("echo hello")
+	cmd := shellCmd("echo hello")
 	assert.Equal(t, []string{"/bin/sh", "-c", "echo hello"}, cmd)
 }
-
-func TestGetReleaseNamespace(t *testing.T) {
-	t.Run("reads from env var", func(t *testing.T) {
-		t.Setenv(consts.DefaultReleaseNamespaceEnvVar, "my-namespace")
-		ns, err := GetReleaseNamespace()
-		assert.NoError(t, err)
-		assert.Equal(t, "my-namespace", ns)
-	})
-}
-
-var _ = appsv1.Deployment{}
-var _ = resource.Quantity{}
-var _ client.Object = nil

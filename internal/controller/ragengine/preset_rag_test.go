@@ -27,10 +27,11 @@ import (
 	ctrlclientfake "sigs.k8s.io/controller-runtime/pkg/client/fake"
 
 	"github.com/kaito-project/kaito/api/v1beta1"
+	"github.com/kaito-project/kaito/internal/k8s/k8sclient"
 	"github.com/kaito-project/kaito/internal/k8s/nodes"
 	"github.com/kaito-project/kaito/internal/rag"
 	"github.com/kaito-project/kaito/internal/testutil"
-	"github.com/kaito-project/kaito/pkg/utils/consts"
+	"github.com/kaito-project/kaito/pkg/consts"
 )
 
 func TestConfigStorageVolumeMountPath(t *testing.T) {
@@ -264,7 +265,7 @@ func TestGPUConfigLogic(t *testing.T) {
 }
 
 func TestCreatePresetRAGGuardrailsUsesDefaultTemplate(t *testing.T) {
-	t.Setenv(consts.DefaultReleaseNamespaceEnvVar, "kaito-system")
+	t.Setenv(k8sclient.DefaultReleaseNamespaceEnvVar, "kaito-system")
 	t.Setenv("CLOUD_PROVIDER", consts.AzureCloudName)
 	testutil.RegisterTestModel()
 

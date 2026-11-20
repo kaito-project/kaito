@@ -17,7 +17,6 @@ import (
 	"context"
 	"fmt"
 	"net/url"
-	"os"
 	"path"
 	"regexp"
 	"strings"
@@ -30,11 +29,10 @@ import (
 	"knative.dev/pkg/apis"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
+	"github.com/kaito-project/kaito/api/env"
 	"github.com/kaito-project/kaito/api/internal/validation"
-	"github.com/kaito-project/kaito/pkg/k8sclient"
+	"github.com/kaito-project/kaito/pkg/consts"
 	"github.com/kaito-project/kaito/pkg/sku"
-	"github.com/kaito-project/kaito/pkg/utils"
-	"github.com/kaito-project/kaito/pkg/utils/consts"
 )
 
 func (w *RAGEngine) SupportedVerbs() []admissionregistrationv1.OperationType {
@@ -49,22 +47,22 @@ func (w *RAGEngine) Validate(ctx context.Context) (errs *apis.FieldError) {
 	if base == nil {
 		klog.InfoS("Validate creation", "ragengine", fmt.Sprintf("%s/%s", w.Namespace, w.Name))
 		errs = errs.Also(
-			w.validateCreate().ViaField("spec"),
+			w.validateCreate(ctx).ViaField("spec"),
 			w.validateGuardrails(ctx).ViaField("spec.guardrails"),
 		)
 	} else {
 		klog.InfoS("Validate update", "ragengine", fmt.Sprintf("%s/%s", w.Namespace, w.Name))
 		old := base.(*RAGEngine)
 		errs = errs.Also(
-			w.validateCreate().ViaField("spec"),
+			w.validateCreate(ctx).ViaField("spec"),
 			w.validateGuardrails(ctx).ViaField("spec.guardrails"),
-			w.validateUpdate(old).ViaField("resource"),
+			w.validateUpdate(ctx, old).ViaField("resource"),
 		)
 	}
 	return errs
 }
 
-func (w *RAGEngine) validateCreate() (errs *apis.FieldError) {
+func (w *RAGEngine) validateCreate(ctx context.Context) (errs *apis.FieldError) {
 	if w.Spec.InferenceService != nil {
 		errs = errs.Also(w.Spec.InferenceService.validateCreate())
 	}
@@ -81,7 +79,7 @@ func (w *RAGEngine) validateCreate() (errs *apis.FieldError) {
 	}
 
 	if w.Spec.Compute != nil {
-		errs = errs.Also(w.Spec.Compute.validateRAGCreate())
+		errs = errs.Also(w.Spec.Compute.validateRAGCreate(ctx))
 	}
 	if w.Spec.Storage != nil {
 		errs = errs.Also(w.Spec.Storage.validate().ViaField("storage"))
@@ -130,8 +128,10 @@ func (w *RAGEngine) validateGuardrails(ctx context.Context) (errs *apis.FieldErr
 	if !guardrails.Enabled {
 		return nil
 	}
-	if k8sclient.Client == nil {
-		return apis.ErrGeneric("Failed to obtain client from context.Context")
+	e := env.FromContext(ctx)
+	c, err := e.RequireClient()
+	if err != nil {
+		return apis.ErrGeneric(err.Error())
 	}
 
 	cmName := DefaultGuardrailsPolicyConfigMapName
@@ -142,7 +142,7 @@ func (w *RAGEngine) validateGuardrails(ctx context.Context) (errs *apis.FieldErr
 		usesDefaultPolicy = false
 		cmName = guardrails.ConfigMapRef.Name
 	} else {
-		releaseNamespace, err := utils.GetReleaseNamespace()
+		releaseNamespace, err := e.RequireReleaseNamespace()
 		if err != nil {
 			return apis.ErrGeneric(
 				fmt.Sprintf("guardrails is enabled, but the default policy release namespace could not be determined: %v", err),
@@ -154,7 +154,7 @@ func (w *RAGEngine) validateGuardrails(ctx context.Context) (errs *apis.FieldErr
 	}
 
 	var cm corev1.ConfigMap
-	err := k8sclient.Client.Get(ctx, client.ObjectKey{Name: cmName, Namespace: cmNamespace}, &cm)
+	err = c.Get(ctx, client.ObjectKey{Name: cmName, Namespace: cmNamespace}, &cm)
 	if err != nil {
 		if errors.IsNotFound(err) {
 			if usesDefaultPolicy {
@@ -191,7 +191,7 @@ func validateGuardrailsPolicyConfigMap(cm *corev1.ConfigMap) *apis.FieldError {
 	return nil
 }
 
-func (w *RAGEngine) validateUpdate(old *RAGEngine) (errs *apis.FieldError) {
+func (w *RAGEngine) validateUpdate(ctx context.Context, old *RAGEngine) (errs *apis.FieldError) {
 	if w.Spec.Compute != nil && old.Spec.Compute == nil {
 		errs = errs.Also(apis.ErrGeneric("Compute resources cannot be added after creation", "compute"))
 	}
@@ -199,24 +199,24 @@ func (w *RAGEngine) validateUpdate(old *RAGEngine) (errs *apis.FieldError) {
 		errs = errs.Also(apis.ErrGeneric("Compute resources cannot be removed after creation", "compute"))
 	}
 	if w.Spec.Compute != nil && old.Spec.Compute != nil {
-		errs = errs.Also(w.Spec.Compute.validateUpdate(old.Spec.Compute).ViaField("resource"))
+		errs = errs.Also(w.Spec.Compute.validateUpdate(ctx, old.Spec.Compute).ViaField("resource"))
 	}
 	return errs
 }
 
-func (r *ResourceSpec) validateRAGCreate() (errs *apis.FieldError) {
+func (r *ResourceSpec) validateRAGCreate(ctx context.Context) (errs *apis.FieldError) {
 	instanceType := string(r.InstanceType)
 
-	skuHandler, err := sku.GetSKUHandler()
+	e := env.FromContext(ctx)
+	skuHandler, err := e.RequireSKUHandler()
 	if err != nil {
 		errs = errs.Also(apis.ErrGeneric(fmt.Sprintf("Failed to get SKU handler: %v", err), "instanceType"))
 		return errs
 	}
 
 	if skuConfig := skuHandler.GetGPUConfigBySKU(instanceType); skuConfig == nil {
-		provider := os.Getenv("CLOUD_PROVIDER")
 		// Check for other instance types pattern matches if cloud provider is Azure
-		if provider != consts.AzureCloudName || !sku.HasSKUNamePrefix(instanceType, N_SERIES_PREFIX, D_SERIES_PREFIX) {
+		if e.CloudProvider != consts.AzureCloudName || !sku.HasSKUNamePrefix(instanceType, N_SERIES_PREFIX, D_SERIES_PREFIX) {
 			errs = errs.Also(apis.ErrInvalidValue(fmt.Sprintf("Unsupported instance type %s. Supported SKUs: %s", instanceType, skuHandler.GetSupportedSKUs()), "instanceType"))
 		}
 	}

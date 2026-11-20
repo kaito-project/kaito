@@ -24,8 +24,7 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
 	kaitov1alpha1 "github.com/kaito-project/kaito/api/v1alpha1"
-	mmconsts "github.com/kaito-project/kaito/pkg/modelmirror/consts"
-	kaitoconsts "github.com/kaito-project/kaito/pkg/utils/consts"
+	"github.com/kaito-project/kaito/internal/image"
 )
 
 func newTestModelMirror() *kaitov1alpha1.ModelMirror {
@@ -53,10 +52,10 @@ func TestBuildDownloadJobResources(t *testing.T) {
 	}{
 		{
 			name:            "defaults",
-			wantCPU:         mmconsts.DefaultDownloadJobCPU,
-			wantMemory:      mmconsts.DefaultDownloadJobMemory,
-			wantCPULimit:    mmconsts.DefaultDownloadJobCPULimit,
-			wantMemoryLimit: mmconsts.DefaultDownloadJobMemoryLimit,
+			wantCPU:         DefaultDownloadJobCPU,
+			wantMemory:      DefaultDownloadJobMemory,
+			wantCPULimit:    DefaultDownloadJobCPULimit,
+			wantMemoryLimit: DefaultDownloadJobMemoryLimit,
 		},
 		{
 			name:            "separate requests and limits",
@@ -73,7 +72,7 @@ func TestBuildDownloadJobResources(t *testing.T) {
 
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
-			resources := mmconsts.DefaultDownloadJobResources()
+			resources := DefaultDownloadJobResources()
 			if tc.cpu != "" {
 				resources.CPU = tc.cpu
 			}
@@ -107,7 +106,7 @@ func TestBuildDownloadJobResources(t *testing.T) {
 
 func TestBuildDownloadJobScript(t *testing.T) {
 	cr := newTestModelMirror()
-	job := BuildDownloadJob(cr, mmconsts.DefaultDownloadJobResources(), nil)
+	job := BuildDownloadJob(cr, DefaultDownloadJobResources(), nil)
 	script := job.Spec.Template.Spec.Containers[0].Args[0]
 
 	t.Run("does not install or enable hf_transfer", func(t *testing.T) {
@@ -122,7 +121,7 @@ func TestBuildDownloadJobScript(t *testing.T) {
 	})
 
 	t.Run("pins pip before installing dependencies", func(t *testing.T) {
-		pinIdx := strings.Index(script, kaitoconsts.PipBootstrapCommand)
+		pinIdx := strings.Index(script, image.PipBootstrapCommand)
 		require.NotEqual(t, -1, pinIdx)
 		assert.Less(t, pinIdx, strings.Index(script, `pip install -q "huggingface-hub==`))
 	})
@@ -144,7 +143,7 @@ func TestBuildDownloadJobXetTrust(t *testing.T) {
 		t.Run("accessSecret="+secretName, func(t *testing.T) {
 			cr := newTestModelMirror()
 			cr.Spec.Source.AccessSecretName = secretName
-			job := BuildDownloadJob(cr, mmconsts.DefaultDownloadJobResources(), nil)
+			job := BuildDownloadJob(cr, DefaultDownloadJobResources(), nil)
 			require.Len(t, job.Spec.Template.Spec.Containers, 1)
 			require.Len(t, job.Spec.Template.Spec.InitContainers, 1)
 
@@ -162,7 +161,7 @@ func TestBuildDownloadJobXetTrust(t *testing.T) {
 					require.Len(t, tc.container.Args, 1)
 					script := tc.container.Args[0]
 					assert.Contains(t, script, `"huggingface-hub==2.3.0"`)
-					install := strings.Index(script, `"certifi==`+mmconsts.CertifiVersion+`"`)
+					install := strings.Index(script, `"certifi==`+CertifiVersion+`"`)
 					resolve := strings.Index(script, `SSL_CERT_FILE="$(python3 -m certifi)"`)
 					export := strings.Index(script, "export SSL_CERT_FILE")
 					client := strings.Index(script, tc.client)
@@ -185,7 +184,7 @@ func TestBuildDownloadJobXetTrust(t *testing.T) {
 func TestBuildDownloadJobServiceAccount(t *testing.T) {
 	t.Run("empty SA leaves default SA and applies no labels", func(t *testing.T) {
 		cr := newTestModelMirror() // ServiceAccountName unset
-		job := BuildDownloadJob(cr, mmconsts.DefaultDownloadJobResources(), map[string]string{"azure.workload.identity/use": "true"})
+		job := BuildDownloadJob(cr, DefaultDownloadJobResources(), map[string]string{"azure.workload.identity/use": "true"})
 
 		assert.Empty(t, job.Spec.Template.Spec.ServiceAccountName, "no ServiceAccount should be set")
 		assert.NotContains(t, job.Spec.Template.Labels, "azure.workload.identity/use",
@@ -195,7 +194,7 @@ func TestBuildDownloadJobServiceAccount(t *testing.T) {
 	t.Run("set SA stamps SA and applies provider pod labels", func(t *testing.T) {
 		cr := newTestModelMirror()
 		cr.Spec.ServiceAccountName = "kaito-model-streamer"
-		job := BuildDownloadJob(cr, mmconsts.DefaultDownloadJobResources(), map[string]string{"azure.workload.identity/use": "true"})
+		job := BuildDownloadJob(cr, DefaultDownloadJobResources(), map[string]string{"azure.workload.identity/use": "true"})
 
 		assert.Equal(t, "kaito-model-streamer", job.Spec.Template.Spec.ServiceAccountName)
 		assert.Equal(t, "true", job.Spec.Template.Labels["azure.workload.identity/use"],
@@ -205,7 +204,7 @@ func TestBuildDownloadJobServiceAccount(t *testing.T) {
 	t.Run("set SA with nil labels stamps SA but adds no labels", func(t *testing.T) {
 		cr := newTestModelMirror()
 		cr.Spec.ServiceAccountName = "kaito-model-streamer"
-		job := BuildDownloadJob(cr, mmconsts.DefaultDownloadJobResources(), nil)
+		job := BuildDownloadJob(cr, DefaultDownloadJobResources(), nil)
 
 		assert.Equal(t, "kaito-model-streamer", job.Spec.Template.Spec.ServiceAccountName)
 		assert.Empty(t, job.Spec.Template.Labels, "no pod labels expected when provider supplies none (non-Azure cloud)")
@@ -216,7 +215,7 @@ func TestDownloadJobStillCompletesWithSidecar(t *testing.T) {
 	cr := &kaitov1alpha1.ModelMirror{}
 	cr.Name = "mirror-abc123"
 	cr.Spec.Source = &kaitov1alpha1.ModelMirrorSource{ModelID: "some/model"}
-	job := BuildDownloadJob(cr, mmconsts.DefaultDownloadJobResources(), nil)
+	job := BuildDownloadJob(cr, DefaultDownloadJobResources(), nil)
 
 	// The sampler must be an initContainer with restartPolicy Always. If it were
 	// a regular container it would run forever and the Job would hang at 0/1.

@@ -34,8 +34,8 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/client/fake"
 
+	"github.com/kaito-project/kaito/internal/k8s/k8sclient"
 	"github.com/kaito-project/kaito/internal/testutil"
-	"github.com/kaito-project/kaito/pkg/utils/consts"
 )
 
 func int32Ptr(i int32) *int32 {
@@ -52,7 +52,7 @@ func TestCheckResourceStatus(t *testing.T) {
 		hr := &helmv2.HelmRelease{
 			Status: helmv2.HelmReleaseStatus{
 				Conditions: []metav1.Condition{{
-					Type:   consts.ConditionReady,
+					Type:   ConditionReady,
 					Status: metav1.ConditionTrue,
 				}},
 			},
@@ -77,7 +77,7 @@ func TestCheckResourceStatus(t *testing.T) {
 		oci := &sourcev1.OCIRepository{
 			Status: sourcev1.OCIRepositoryStatus{
 				Conditions: []metav1.Condition{{
-					Type:   consts.ConditionReady,
+					Type:   ConditionReady,
 					Status: metav1.ConditionTrue,
 				}},
 			},
@@ -415,7 +415,7 @@ func TestEnsureInferenceConfigMap(t *testing.T) {
 	for name, tc := range testcases {
 		t.Run(name, func(t *testing.T) {
 			if tc.releaseNamespace != "" {
-				t.Setenv(consts.DefaultReleaseNamespaceEnvVar, tc.releaseNamespace)
+				t.Setenv(k8sclient.DefaultReleaseNamespaceEnvVar, tc.releaseNamespace)
 			}
 
 			mockClient := testutil.NewClient()
@@ -551,7 +551,7 @@ func TestEnsureInferenceConfigMapForceRefresh(t *testing.T) {
 	for name, tc := range testcases {
 		t.Run(name, func(t *testing.T) {
 			if tc.releaseNamespace != "" {
-				t.Setenv(consts.DefaultReleaseNamespaceEnvVar, tc.releaseNamespace)
+				t.Setenv(k8sclient.DefaultReleaseNamespaceEnvVar, tc.releaseNamespace)
 			}
 
 			mockClient := testutil.NewClient()

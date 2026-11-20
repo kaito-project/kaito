@@ -22,7 +22,7 @@ import (
 	corev1 "k8s.io/api/core/v1"
 
 	kaitov1alpha1 "github.com/kaito-project/kaito/api/v1alpha1"
-	mmconsts "github.com/kaito-project/kaito/pkg/modelmirror/consts"
+	"github.com/kaito-project/kaito/internal/image"
 )
 
 func TestSamplerSidecar(t *testing.T) {
@@ -31,7 +31,7 @@ func TestSamplerSidecar(t *testing.T) {
 	cr.Namespace = "kaito-workspace"
 	cr.Spec.Source = &kaitov1alpha1.ModelMirrorSource{ModelID: "meta-llama/Llama-3.1-8B-Instruct"}
 
-	job := BuildDownloadJob(cr, mmconsts.DefaultDownloadJobResources(), nil)
+	job := BuildDownloadJob(cr, DefaultDownloadJobResources(), nil)
 
 	// A native sidecar is an initContainer with restartPolicy: Always. A plain
 	// second container would run forever and the Job would never reach Succeeded.
@@ -40,7 +40,7 @@ func TestSamplerSidecar(t *testing.T) {
 
 	require.NotNil(t, sc.RestartPolicy)
 	assert.Equal(t, corev1.ContainerRestartPolicyAlways, *sc.RestartPolicy)
-	assert.Equal(t, mmconsts.DownloaderImage, sc.Image)
+	assert.Equal(t, image.PythonHelperImage, sc.Image)
 
 	t.Run("mounts the model PVC read-only", func(t *testing.T) {
 		require.Len(t, sc.VolumeMounts, 1)
@@ -100,7 +100,7 @@ func TestSamplerSidecarHFToken(t *testing.T) {
 		AccessSecretName: "hf-token",
 	}
 
-	job := BuildDownloadJob(cr, mmconsts.DefaultDownloadJobResources(), nil)
+	job := BuildDownloadJob(cr, DefaultDownloadJobResources(), nil)
 	sc := job.Spec.Template.Spec.InitContainers[0]
 
 	// The total-size lookup hits the Hub API, which needs the token for gated repos.

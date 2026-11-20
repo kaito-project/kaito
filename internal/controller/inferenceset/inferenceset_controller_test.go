@@ -44,13 +44,14 @@ import (
 	"github.com/kaito-project/kaito/api/v1beta1"
 	"github.com/kaito-project/kaito/internal/cache"
 	"github.com/kaito-project/kaito/internal/controller/workspace"
+	"github.com/kaito-project/kaito/internal/featuregates"
 	"github.com/kaito-project/kaito/internal/inference"
 	inferencesetpkg "github.com/kaito-project/kaito/internal/inferenceset"
+	"github.com/kaito-project/kaito/internal/k8s/resources"
 	"github.com/kaito-project/kaito/internal/manifests"
 	"github.com/kaito-project/kaito/internal/testutil"
-	"github.com/kaito-project/kaito/pkg/featuregates"
+	"github.com/kaito-project/kaito/pkg/consts"
 	"github.com/kaito-project/kaito/pkg/model"
-	"github.com/kaito-project/kaito/pkg/utils/consts"
 )
 
 func TestRepairInvalidWorkspaceCapacityType(t *testing.T) {
@@ -65,9 +66,9 @@ func TestRepairInvalidWorkspaceCapacityType(t *testing.T) {
 		{
 			name:        "repair invalid value to spot",
 			current:     "reserved",
-			desired:     consts.KarpenterCapacityTypeSpot,
+			desired:     v1beta1.CapacityTypeSpot,
 			wantChanged: true,
-			wantValue:   consts.KarpenterCapacityTypeSpot,
+			wantValue:   v1beta1.CapacityTypeSpot,
 			wantPresent: true,
 		},
 		{
@@ -77,9 +78,9 @@ func TestRepairInvalidWorkspaceCapacityType(t *testing.T) {
 		},
 		{
 			name:        "do not mutate valid value",
-			current:     consts.KarpenterCapacityTypeSpot,
-			desired:     consts.KarpenterCapacityTypeOnDemand,
-			wantValue:   consts.KarpenterCapacityTypeSpot,
+			current:     v1beta1.CapacityTypeSpot,
+			desired:     v1beta1.CapacityTypeOnDemand,
+			wantValue:   v1beta1.CapacityTypeSpot,
 			wantPresent: true,
 		},
 		{
@@ -200,7 +201,7 @@ func TestInferenceSetSyncControllerRevision(t *testing.T) {
 				revisions := &appsv1.ControllerRevisionList{}
 				jsonData, _ := json.Marshal(testutil.MockInferenceSetWithUpdatedDeployment)
 
-				for i := 0; i <= consts.MaxRevisionHistoryLimit; i++ {
+				for i := 0; i <= resources.MaxRevisionHistoryLimit; i++ {
 					revision := &appsv1.ControllerRevision{
 						ObjectMeta: v1.ObjectMeta{
 							Name: fmt.Sprintf("revision-%d", i),
@@ -248,7 +249,7 @@ func TestInferenceSetSyncControllerRevision(t *testing.T) {
 				revisions := &appsv1.ControllerRevisionList{}
 				jsonData, _ := json.Marshal(testutil.MockInferenceSetWithUpdatedDeployment)
 
-				for i := 0; i <= consts.MaxRevisionHistoryLimit; i++ {
+				for i := 0; i <= resources.MaxRevisionHistoryLimit; i++ {
 					revision := &appsv1.ControllerRevision{
 						ObjectMeta: v1.ObjectMeta{
 							Name: fmt.Sprintf("revision-%d", i),
@@ -355,11 +356,11 @@ func TestEnsureGatewayAPIInferenceExtension(t *testing.T) {
 				c.On("Get", mock.Anything, mock.Anything, mock.IsType(&helmv2.HelmRelease{}), mock.Anything).Return(nil)
 
 				ociRepository := manifests.GenerateInferencePoolOCIRepository(testutil.MockInferenceSetWithPresetVLLM)
-				ociRepository.Status.Conditions = []v1.Condition{{Type: consts.ConditionReady, Status: v1.ConditionTrue}}
+				ociRepository.Status.Conditions = []v1.Condition{{Type: resources.ConditionReady, Status: v1.ConditionTrue}}
 				c.CreateOrUpdateObjectInMap(ociRepository)
 
 				helmRelease, _ := manifests.GenerateInferencePoolHelmRelease(testutil.MockInferenceSetWithPresetVLLM)
-				helmRelease.Status.Conditions = []v1.Condition{{Type: consts.ConditionReady, Status: v1.ConditionTrue}}
+				helmRelease.Status.Conditions = []v1.Condition{{Type: resources.ConditionReady, Status: v1.ConditionTrue}}
 				c.CreateOrUpdateObjectInMap(helmRelease)
 
 				// Mock Update call for HelmRelease (in case specs are not equal)
@@ -382,10 +383,10 @@ func TestEnsureGatewayAPIInferenceExtension(t *testing.T) {
 
 	for name, tc := range testcases {
 		t.Run(name, func(t *testing.T) {
-			originalFeatureGate := featuregates.FeatureGates[consts.FeatureFlagGatewayAPIInferenceExtension]
-			featuregates.FeatureGates[consts.FeatureFlagGatewayAPIInferenceExtension] = tc.featureGate
+			originalFeatureGate := featuregates.FeatureGates[featuregates.FeatureFlagGatewayAPIInferenceExtension]
+			featuregates.FeatureGates[featuregates.FeatureFlagGatewayAPIInferenceExtension] = tc.featureGate
 			defer func() {
-				featuregates.FeatureGates[consts.FeatureFlagGatewayAPIInferenceExtension] = originalFeatureGate
+				featuregates.FeatureGates[featuregates.FeatureFlagGatewayAPIInferenceExtension] = originalFeatureGate
 			}()
 
 			iObj := testutil.MockInferenceSetWithPresetVLLM.DeepCopy()
@@ -429,9 +430,9 @@ func TestEnsureGatewayAPIInferenceExtension(t *testing.T) {
 
 func TestReconcileExistingWorkspaceMetadata(t *testing.T) {
 	t.Run("updates speculative decoding without clobbering runtime or unrelated child annotations", func(t *testing.T) {
-		prevProvisioner := consts.ActiveNodeProvisioner
-		consts.ActiveNodeProvisioner = consts.NodeProvisionerKarpenter
-		defer func() { consts.ActiveNodeProvisioner = prevProvisioner }()
+		prevProvisioner := featuregates.NodeProvisioner
+		featuregates.NodeProvisioner = featuregates.NodeProvisionerKarpenter
+		defer func() { featuregates.NodeProvisioner = prevProvisioner }()
 
 		iObj := testutil.MockInferenceSetWithPresetVLLM.DeepCopy()
 		iObj.Labels = map[string]string{
@@ -445,10 +446,10 @@ func TestReconcileExistingWorkspaceMetadata(t *testing.T) {
 		}
 		iObj.Spec.Template.Annotations = map[string]string{
 			v1beta1.AnnotationEnableSpeculativeDecoding: "true",
-			v1beta1.AnnotationCapacityType:              consts.KarpenterCapacityTypeSpot,
+			v1beta1.AnnotationCapacityType:              v1beta1.CapacityTypeSpot,
 		}
 
-		desired := inferencesetpkg.NewWorkspaceForInferenceSet(iObj)
+		desired := inferencesetpkg.NewWorkspaceForInferenceSet(context.Background(), iObj)
 		ws := testutil.MockWorkspaceWithPresetVLLM.DeepCopy()
 		ws.Labels = map[string]string{
 			"team":  "old-team",
@@ -469,11 +470,11 @@ func TestReconcileExistingWorkspaceMetadata(t *testing.T) {
 		assert.True(t, updated)
 		assert.Equal(t, "serving", ws.Labels["team"])
 		assert.Equal(t, "prefill", ws.Labels[v1beta1.LabelInferenceRole])
-		assert.Equal(t, iObj.Name, ws.Labels[consts.WorkspaceCreatedByInferenceSetLabel])
+		assert.Equal(t, iObj.Name, ws.Labels[v1beta1.WorkspaceCreatedByInferenceSetLabel])
 		assert.Equal(t, "keep-me", ws.Labels["extra"], "non-InferenceSet labels should remain additive")
 		assert.Equal(t, "true", ws.Annotations[v1beta1.AnnotationEnableSpeculativeDecoding])
 		assert.Equal(t, string(model.RuntimeNameVLLM), ws.Annotations[v1beta1.AnnotationWorkspaceRuntime])
-		assert.Equal(t, consts.KarpenterCapacityTypeSpot, ws.Annotations[v1beta1.AnnotationCapacityType])
+		assert.Equal(t, v1beta1.CapacityTypeSpot, ws.Annotations[v1beta1.AnnotationCapacityType])
 		assert.Equal(t, "hash", ws.Annotations["workspace.kaito.io/hash"])
 		assert.Equal(t, "3", ws.Annotations["workspace.kaito.io/revision"])
 		assert.Equal(t, "ts", ws.Annotations["kaito.sh/upgrade-start-time"])
@@ -484,7 +485,7 @@ func TestReconcileExistingWorkspaceMetadata(t *testing.T) {
 
 	t.Run("removes speculative decoding annotation when no longer desired", func(t *testing.T) {
 		iObj := testutil.MockInferenceSetWithPresetVLLM.DeepCopy()
-		desired := inferencesetpkg.NewWorkspaceForInferenceSet(iObj)
+		desired := inferencesetpkg.NewWorkspaceForInferenceSet(context.Background(), iObj)
 		ws := testutil.MockWorkspaceWithPresetVLLM.DeepCopy()
 		ws.Annotations = map[string]string{
 			v1beta1.AnnotationEnableSpeculativeDecoding: "true",
@@ -514,7 +515,7 @@ func TestReconcileExistingWorkspaceMetadataPreservesRuntime(t *testing.T) {
 			if tc.initialRuntime != "" {
 				iObj.Annotations[v1beta1.AnnotationWorkspaceRuntime] = tc.initialRuntime
 			}
-			ws := inferencesetpkg.NewWorkspaceForInferenceSet(iObj)
+			ws := inferencesetpkg.NewWorkspaceForInferenceSet(context.Background(), iObj)
 			original := ws.DeepCopy()
 			if tc.initialRuntime != "" {
 				assert.Equal(t, tc.initialRuntime, ws.Annotations[v1beta1.AnnotationWorkspaceRuntime], "new Workspaces must inherit runtime selection")
@@ -527,7 +528,7 @@ func TestReconcileExistingWorkspaceMetadataPreservesRuntime(t *testing.T) {
 			} else {
 				iObj.Annotations[v1beta1.AnnotationWorkspaceRuntime] = tc.updatedRuntime
 			}
-			desired := inferencesetpkg.NewWorkspaceForInferenceSet(iObj)
+			desired := inferencesetpkg.NewWorkspaceForInferenceSet(context.Background(), iObj)
 			assert.False(t, reconcileExistingWorkspaceMetadata(ws, desired), "parent runtime edits must not trigger child metadata updates")
 			assert.Equal(t, original, ws, "existing Workspaces must retain their runtime selection")
 			if tc.updatedRuntime != "" {
@@ -686,7 +687,7 @@ func TestInferenceSetScaleFromZeroRetriesPendingExpectations(t *testing.T) {
 	ctx := context.Background()
 	inferenceSet := testutil.MockInferenceSetWithPreset.DeepCopy()
 	inferenceSet.Spec.Replicas = lo.ToPtr(int32(1))
-	workspace := inferencesetpkg.NewWorkspaceForInferenceSet(inferenceSet)
+	workspace := inferencesetpkg.NewWorkspaceForInferenceSet(context.Background(), inferenceSet)
 	workspace.Name = inferenceSet.Name + "-initial"
 	workspace.GenerateName = ""
 
@@ -741,10 +742,10 @@ func TestInferenceSetReadyIgnoresDeletingWorkspaces(t *testing.T) {
 
 	objs := []client.Object{inferenceSet}
 	for i := range 3 {
-		ws := inferencesetpkg.NewWorkspaceForInferenceSet(inferenceSet)
+		ws := inferencesetpkg.NewWorkspaceForInferenceSet(context.Background(), inferenceSet)
 		ws.Name = fmt.Sprintf("%s-%d", inferenceSet.Name, i)
 		ws.GenerateName = ""
-		ws.Finalizers = []string{consts.WorkspaceFinalizer}
+		ws.Finalizers = []string{"workspace.finalizer.kaito.sh"}
 		ws.Status.Conditions = []v1.Condition{{Type: string(v1beta1.WorkspaceConditionTypeSucceeded),
 			Status: v1.ConditionTrue, Reason: "workspaceSucceeded"}}
 		objs = append(objs, ws)
@@ -774,7 +775,7 @@ func assertWorkspaceCount(t *testing.T, ctx context.Context, cl client.Client, i
 	workspaceList := &v1beta1.WorkspaceList{}
 	err := cl.List(ctx, workspaceList,
 		client.InNamespace(inferenceSet.Namespace),
-		client.MatchingLabels{consts.WorkspaceCreatedByInferenceSetLabel: inferenceSet.Name})
+		client.MatchingLabels{v1beta1.WorkspaceCreatedByInferenceSetLabel: inferenceSet.Name})
 	assert.NoError(t, err)
 	assert.Len(t, workspaceList.Items, expected)
 }
@@ -783,7 +784,7 @@ func TestSelectWorkspacesToDelete(t *testing.T) {
 	ctx := context.Background()
 	const ns = "default"
 	iObj := testutil.MockInferenceSetWithPresetVLLM.DeepCopy()
-	desiredImage, err := inference.GetDesiredInferenceImageName(inferencesetpkg.NewWorkspaceForInferenceSet(iObj))
+	desiredImage, err := inference.GetDesiredInferenceImageName(context.Background(), inferencesetpkg.NewWorkspaceForInferenceSet(context.Background(), iObj))
 	require.NoError(t, err)
 	oldImage := desiredImage + "-old"
 
@@ -1142,10 +1143,10 @@ func TestAnalyzeNotReadyWorkspaces(t *testing.T) {
 }
 
 func TestAddOrUpdateInferenceSet_PropagatesCacheAnnotationToWorkspace(t *testing.T) {
-	originalFeatureGate := featuregates.FeatureGates[consts.FeatureFlagGatewayAPIInferenceExtension]
-	featuregates.FeatureGates[consts.FeatureFlagGatewayAPIInferenceExtension] = false
+	originalFeatureGate := featuregates.FeatureGates[featuregates.FeatureFlagGatewayAPIInferenceExtension]
+	featuregates.FeatureGates[featuregates.FeatureFlagGatewayAPIInferenceExtension] = false
 	defer func() {
-		featuregates.FeatureGates[consts.FeatureFlagGatewayAPIInferenceExtension] = originalFeatureGate
+		featuregates.FeatureGates[featuregates.FeatureFlagGatewayAPIInferenceExtension] = originalFeatureGate
 	}()
 
 	replicas := int32(1)
@@ -1183,7 +1184,7 @@ func TestSelectWorkspacesToDelete_UsesRuntimeAwareDesiredImageForCPU(t *testing.
 
 	iObj := testutil.MockInferenceSetWithPresetVLLM.DeepCopy()
 	iObj.Spec.Template.Resource.InstanceType = "Standard_D8s_v5"
-	desiredImage, err := inference.GetDesiredInferenceImageName(inferencesetpkg.NewWorkspaceForInferenceSet(iObj))
+	desiredImage, err := inference.GetDesiredInferenceImageName(context.Background(), inferencesetpkg.NewWorkspaceForInferenceSet(context.Background(), iObj))
 	require.NoError(t, err)
 	// Exercise an ordinary CPU image version upgrade, not GPU-to-CPU migration.
 	oldCPUImage := desiredImage[:strings.LastIndex(desiredImage, ":")+1] + "old-version"
@@ -1211,12 +1212,11 @@ func TestSelectWorkspacesToDelete_UsesRuntimeAwareDesiredImageForCPU(t *testing.
 }
 
 func TestEnsureGatewayAPIInferenceExtensionDeclaredCPU(t *testing.T) {
-	t.Setenv("CLOUD_PROVIDER", consts.AzureCloudName)
-	old := featuregates.FeatureGates[consts.FeatureFlagGatewayAPIInferenceExtension]
-	t.Cleanup(func() { featuregates.FeatureGates[consts.FeatureFlagGatewayAPIInferenceExtension] = old })
-	featuregates.FeatureGates[consts.FeatureFlagGatewayAPIInferenceExtension] = true
+	old := featuregates.FeatureGates[featuregates.FeatureFlagGatewayAPIInferenceExtension]
+	t.Cleanup(func() { featuregates.FeatureGates[featuregates.FeatureFlagGatewayAPIInferenceExtension] = old })
+	featuregates.FeatureGates[featuregates.FeatureFlagGatewayAPIInferenceExtension] = true
 	iObj := testutil.MockInferenceSetWithPresetVLLM.DeepCopy()
-	ws := inferencesetpkg.NewWorkspaceForInferenceSet(iObj)
+	ws := inferencesetpkg.NewWorkspaceForInferenceSet(context.Background(), iObj)
 	ws.Resource.InstanceType = "Standard_D16s_v6"
 	c := testutil.NewClient()
 	c.On("List", mock.Anything, mock.IsType(&v1beta1.WorkspaceList{}), mock.Anything).Run(func(args mock.Arguments) { args.Get(1).(*v1beta1.WorkspaceList).Items = []v1beta1.Workspace{*ws} }).Return(nil).Once()

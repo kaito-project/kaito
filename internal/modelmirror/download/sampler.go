@@ -21,8 +21,7 @@ import (
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/utils/ptr"
 
-	mmconsts "github.com/kaito-project/kaito/pkg/modelmirror/consts"
-	kaitoconsts "github.com/kaito-project/kaito/pkg/utils/consts"
+	"github.com/kaito-project/kaito/internal/image"
 )
 
 // samplerScript computes download speed and ETA and serves them as Prometheus
@@ -52,17 +51,17 @@ trap 'exit 0' TERM
 pip install -q "huggingface-hub==%s" "prometheus-client==%s" "certifi==%s"
 SSL_CERT_FILE="$(python3 -m certifi)"
 export SSL_CERT_FILE
-exec python3 -c "$SAMPLER_SCRIPT"`, kaitoconsts.PipBootstrapCommand, mmconsts.HuggingFaceHubVersion, mmconsts.PrometheusClientVersion, mmconsts.CertifiVersion)
+exec python3 -c "$SAMPLER_SCRIPT"`, image.PipBootstrapCommand, HuggingFaceHubVersion, PrometheusClientVersion, CertifiVersion)
 
 	env := append([]corev1.EnvVar{}, envVars...)
 	env = append(env,
-		corev1.EnvVar{Name: "EXCLUDE_PATTERNS", Value: strings.Join(mmconsts.DownloadExcludePatterns, ",")},
+		corev1.EnvVar{Name: "EXCLUDE_PATTERNS", Value: strings.Join(DownloadExcludePatterns, ",")},
 		corev1.EnvVar{Name: "SAMPLER_SCRIPT", Value: samplerScript},
 	)
 
 	return corev1.Container{
 		Name:          "sampler",
-		Image:         mmconsts.DownloaderImage,
+		Image:         image.PythonHelperImage,
 		RestartPolicy: ptr.To(corev1.ContainerRestartPolicyAlways),
 		Command:       []string{"/bin/sh", "-c"},
 		Args:          []string{shell},

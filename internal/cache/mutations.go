@@ -31,7 +31,6 @@ import (
 
 	kaitov1beta1 "github.com/kaito-project/kaito/api/v1beta1"
 	pkgmodel "github.com/kaito-project/kaito/pkg/model"
-	"github.com/kaito-project/kaito/pkg/utils"
 )
 
 const (
@@ -141,7 +140,7 @@ func ApplyPresetCacheMutations(ctx context.Context, ws *kaitov1beta1.Workspace, 
 		if params != nil {
 			modelName = params.Name
 			if params.Version != "" {
-				_, revision, err := utils.ParseHuggingFaceModelVersion(params.Version)
+				_, revision, err := pkgmodel.ParseHuggingFaceModelVersion(params.Version)
 				if err == nil {
 					modelRevision = revision
 				}

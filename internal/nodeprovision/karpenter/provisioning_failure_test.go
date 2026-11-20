@@ -34,7 +34,7 @@ import (
 
 	kaitov1beta1 "github.com/kaito-project/kaito/api/v1beta1"
 	"github.com/kaito-project/kaito/internal/k8s/nodeclaim"
-	"github.com/kaito-project/kaito/pkg/utils/consts"
+	"github.com/kaito-project/kaito/pkg/consts"
 )
 
 const (
@@ -74,9 +74,9 @@ func newWorkspaceNodeClaim(name string, conds ...status.Condition) *karpenterv1.
 			Name: name,
 			UID:  types.UID(name + "-uid"),
 			Labels: map[string]string{
-				karpenterv1.NodePoolLabelKey:          testPoolName,
-				consts.KarpenterWorkspaceNameKey:      "ws1",
-				consts.KarpenterWorkspaceNamespaceKey: "default",
+				karpenterv1.NodePoolLabelKey:                  testPoolName,
+				kaitov1beta1.LabelKarpenterWorkspaceName:      "ws1",
+				kaitov1beta1.LabelKarpenterWorkspaceNamespace: "default",
 			},
 			OwnerReferences: []metav1.OwnerReference{
 				{APIVersion: "karpenter.sh/v1", Kind: "NodePool", Name: testPoolName, UID: testPoolUID},

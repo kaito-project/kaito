@@ -17,7 +17,6 @@ import (
 	"context"
 	"fmt"
 	"net/url"
-	"os"
 	"regexp"
 
 	admissionregistrationv1 "k8s.io/api/admissionregistration/v1"
@@ -25,9 +24,10 @@ import (
 	"k8s.io/klog/v2"
 	"knative.dev/pkg/apis"
 
+	"github.com/kaito-project/kaito/api/env"
 	"github.com/kaito-project/kaito/api/internal/validation"
+	"github.com/kaito-project/kaito/pkg/consts"
 	"github.com/kaito-project/kaito/pkg/sku"
-	"github.com/kaito-project/kaito/pkg/utils/consts"
 )
 
 func (w *RAGEngine) SupportedVerbs() []admissionregistrationv1.OperationType {
@@ -42,13 +42,13 @@ func (w *RAGEngine) Validate(ctx context.Context) (errs *apis.FieldError) {
 	if base == nil {
 		klog.InfoS("Validate creation", "ragengine", fmt.Sprintf("%s/%s", w.Namespace, w.Name))
 		errs = errs.Also(
-			w.validateCreate().ViaField("spec"),
+			w.validateCreate(ctx).ViaField("spec"),
 		)
 	} else {
 		klog.InfoS("Validate update", "ragengine", fmt.Sprintf("%s/%s", w.Namespace, w.Name))
 		old := base.(*RAGEngine)
 		errs = errs.Also(
-			w.validateCreate().ViaField("spec"),
+			w.validateCreate(ctx).ViaField("spec"),
 			w.validateUpdate(old).ViaField("resource"),
 		)
 	}
@@ -68,7 +68,7 @@ func (w *RAGEngine) validateUpdate(old *RAGEngine) (errs *apis.FieldError) {
 	return errs
 }
 
-func (w *RAGEngine) validateCreate() (errs *apis.FieldError) {
+func (w *RAGEngine) validateCreate(ctx context.Context) (errs *apis.FieldError) {
 	if w.Spec.InferenceService != nil {
 		errs = errs.Also(w.Spec.InferenceService.validateCreate())
 	}
@@ -85,7 +85,7 @@ func (w *RAGEngine) validateCreate() (errs *apis.FieldError) {
 	}
 
 	if w.Spec.Compute != nil {
-		errs = errs.Also(w.Spec.Compute.validateRAGCreate())
+		errs = errs.Also(w.Spec.Compute.validateRAGCreate(ctx))
 	}
 
 	if w.Spec.Embedding.Local != nil {
@@ -98,19 +98,19 @@ func (w *RAGEngine) validateCreate() (errs *apis.FieldError) {
 	return errs
 }
 
-func (r *ResourceSpec) validateRAGCreate() (errs *apis.FieldError) {
+func (r *ResourceSpec) validateRAGCreate(ctx context.Context) (errs *apis.FieldError) {
 	instanceType := string(r.InstanceType)
+	e := env.FromContext(ctx)
 
-	skuHandler, err := sku.GetSKUHandler()
+	skuHandler, err := e.RequireSKUHandler()
 	if err != nil {
 		errs = errs.Also(apis.ErrGeneric(fmt.Sprintf("Failed to get SKU handler: %v", err), "instanceType"))
 		return errs
 	}
 
 	if skuConfig := skuHandler.GetGPUConfigBySKU(instanceType); skuConfig == nil {
-		provider := os.Getenv("CLOUD_PROVIDER")
 		// Check for other instance types pattern matches if cloud provider is Azure
-		if provider != consts.AzureCloudName || !sku.HasSKUNamePrefix(instanceType, N_SERIES_PREFIX, D_SERIES_PREFIX) {
+		if e.CloudProvider != consts.AzureCloudName || !sku.HasSKUNamePrefix(instanceType, N_SERIES_PREFIX, D_SERIES_PREFIX) {
 			errs = errs.Also(apis.ErrInvalidValue(fmt.Sprintf("Unsupported instance type %s. Supported SKUs: %s", instanceType, skuHandler.GetSupportedSKUs()), "instanceType"))
 		}
 	}

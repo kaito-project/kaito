@@ -21,9 +21,7 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
 	"github.com/kaito-project/kaito/api/v1beta1"
-	"github.com/kaito-project/kaito/pkg/featuregates"
-	mmconsts "github.com/kaito-project/kaito/pkg/modelmirror/consts"
-	"github.com/kaito-project/kaito/pkg/utils/consts"
+	"github.com/kaito-project/kaito/internal/featuregates"
 )
 
 func TestModelStreamingEnabled(t *testing.T) {
@@ -37,22 +35,17 @@ func TestModelStreamingEnabled(t *testing.T) {
 		{"feature gate off", false, nil, "", false},
 		{"feature gate on, nil annotations, vllm default", true, nil, "", true},
 		{"feature gate on, empty annotations", true, map[string]string{}, "", true},
-		{"feature gate on, annotation disabled", true, map[string]string{mmconsts.AnnotationModelStreaming: "disabled"}, "", false},
-		{"feature gate on, annotation empty", true, map[string]string{mmconsts.AnnotationModelStreaming: ""}, "", true},
+		{"feature gate on, annotation disabled", true, map[string]string{v1beta1.AnnotationModelStreaming: "disabled"}, "", false},
+		{"feature gate on, annotation empty", true, map[string]string{v1beta1.AnnotationModelStreaming: ""}, "", true},
 		{"feature gate on, explicit vllm runtime", true, nil, "vllm", true},
 		{"feature gate on, transformers runtime", true, nil, "transformers", false},
 	}
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
-			origStream := featuregates.FeatureGates[consts.FeatureFlagModelStreaming]
-			featuregates.FeatureGates[consts.FeatureFlagModelStreaming] = tc.featureGateOn
-			// GetWorkspaceRuntimeName returns transformers when the vLLM gate is OFF,
-			// so this test must force the vLLM gate ON to exercise the runtime annotation.
-			origVLLM := featuregates.FeatureGates[consts.FeatureFlagVLLM]
-			featuregates.FeatureGates[consts.FeatureFlagVLLM] = true
+			origStream := featuregates.FeatureGates[featuregates.FeatureFlagModelStreaming]
+			featuregates.FeatureGates[featuregates.FeatureFlagModelStreaming] = tc.featureGateOn
 			t.Cleanup(func() {
-				featuregates.FeatureGates[consts.FeatureFlagModelStreaming] = origStream
-				featuregates.FeatureGates[consts.FeatureFlagVLLM] = origVLLM
+				featuregates.FeatureGates[featuregates.FeatureFlagModelStreaming] = origStream
 			})
 
 			anns := tc.annotations
@@ -139,7 +132,7 @@ func TestResolveStreamingServiceAccount(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			ws := &v1beta1.Workspace{ObjectMeta: metav1.ObjectMeta{Annotations: map[string]string{}}}
 			if tc.annotation != "" {
-				ws.Annotations[mmconsts.AnnotationStreamingServiceAccount] = tc.annotation
+				ws.Annotations[v1beta1.AnnotationStreamingServiceAccount] = tc.annotation
 			}
 			sa, err := ResolveStreamingServiceAccount(ws, tc.defaultSA)
 			if tc.wantErr {
@@ -169,7 +162,7 @@ func TestResolveStorageClass(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			ws := &v1beta1.Workspace{ObjectMeta: metav1.ObjectMeta{Annotations: map[string]string{}}}
 			if tc.annotation != "" {
-				ws.Annotations[mmconsts.AnnotationModelMirrorStorageClass] = tc.annotation
+				ws.Annotations[v1beta1.AnnotationModelMirrorStorageClass] = tc.annotation
 			}
 			got, err := ResolveStorageClass(ws, tc.defaultSC)
 			if tc.wantErr {

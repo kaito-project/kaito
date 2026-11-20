@@ -42,8 +42,7 @@ import (
 	kaitov1alpha1 "github.com/kaito-project/kaito/api/v1alpha1"
 	kaitov1beta1 "github.com/kaito-project/kaito/api/v1beta1"
 	"github.com/kaito-project/kaito/internal/k8s/resources"
-	"github.com/kaito-project/kaito/pkg/utils"
-	"github.com/kaito-project/kaito/pkg/utils/consts"
+	"github.com/kaito-project/kaito/internal/manifests"
 )
 
 const (
@@ -581,9 +580,9 @@ func defaultPDPluginsConfig() string {
 }
 
 // inferencePoolName returns the name of the InferencePool resources for the MRI.
-// Delegates to the shared utils.InferencePoolName helper.
+// Delegates to the shared manifests.InferencePoolName helper.
 func inferencePoolName(mriName string) string {
-	return utils.InferencePoolName(mriName)
+	return manifests.InferencePoolName(mriName)
 }
 
 // reconcileInferencePool creates or updates the Flux OCIRepository and HelmRelease
@@ -607,10 +606,10 @@ func (r *MultiRoleInferenceReconciler) reconcileInferencePool(
 			return err
 		}
 		ociRepo.Spec = sourcev1.OCIRepositorySpec{
-			URL:      consts.InferencePoolChartURL,
+			URL:      manifests.InferencePoolChartURL,
 			Interval: metav1.Duration{Duration: 10 * time.Minute},
 			Reference: &sourcev1.OCIRepositoryRef{
-				Tag: consts.InferencePoolChartVersion,
+				Tag: manifests.InferencePoolChartVersion,
 			},
 		}
 		return nil
@@ -637,9 +636,9 @@ func (r *MultiRoleInferenceReconciler) reconcileInferencePool(
 	// Build EPP extension values with llm-d image and P/D plugins config.
 	eppValues := map[string]any{
 		"image": map[string]string{
-			"registry":   consts.EPPImageRegistry,
-			"repository": consts.EPPImageRepository,
-			"tag":        consts.EPPImageTag,
+			"registry":   manifests.EPPImageRegistry,
+			"repository": manifests.EPPImageRepository,
+			"tag":        manifests.EPPImageTag,
 			"pullPolicy": string(corev1.PullIfNotPresent),
 		},
 	}
@@ -666,7 +665,7 @@ func (r *MultiRoleInferenceReconciler) reconcileInferencePool(
 	// sidecar listens on 5000 and transparently proxies /metrics to vLLM on 5001.
 	// This keeps a single metrics port across roles, avoiding per-role EPP config.
 	eppValues["flags"] = map[string]string{
-		"model-server-metrics-port": fmt.Sprintf("%d", consts.PortInferenceServer),
+		"model-server-metrics-port": fmt.Sprintf("%d", manifests.PortInferenceServer),
 	}
 	eppValues["resources"] = map[string]any{
 		"requests": map[string]string{
@@ -690,7 +689,7 @@ func (r *MultiRoleInferenceReconciler) reconcileInferencePool(
 			"modelServers": map[string]any{
 				"matchLabels": matchLabels,
 				"targetPorts": []map[string]any{
-					{"number": consts.PortInferenceServer}, // sidecar (decode) or vLLM (prefill) on port 5000
+					{"number": manifests.PortInferenceServer}, // sidecar (decode) or vLLM (prefill) on port 5000
 				},
 			},
 		},
@@ -747,7 +746,7 @@ func (r *MultiRoleInferenceReconciler) isInferencePoolReady(ctx context.Context,
 		return false
 	}
 	for _, cond := range hr.Status.Conditions {
-		if cond.Type == consts.ConditionReady && cond.Status == metav1.ConditionTrue &&
+		if cond.Type == resources.ConditionReady && cond.Status == metav1.ConditionTrue &&
 			hr.Status.ObservedGeneration >= hr.Generation {
 			return true
 		}

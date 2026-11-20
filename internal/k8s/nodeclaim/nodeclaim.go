@@ -17,8 +17,8 @@ import (
 	"context"
 	"crypto/sha256"
 	"encoding/hex"
+	"errors"
 	"fmt"
-	"os"
 	"reflect"
 	"regexp"
 	"strconv"
@@ -42,11 +42,19 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 	karpenterv1 "sigs.k8s.io/karpenter/pkg/apis/v1"
 
+	"github.com/kaito-project/kaito/api/env"
 	kaitov1beta1 "github.com/kaito-project/kaito/api/v1beta1"
 	"github.com/kaito-project/kaito/internal/k8s/nodes"
 	"github.com/kaito-project/kaito/internal/k8s/resources"
 	"github.com/kaito-project/kaito/pkg/apis"
-	"github.com/kaito-project/kaito/pkg/utils/consts"
+	"github.com/kaito-project/kaito/pkg/consts"
+)
+
+const (
+	// kaitoNodePoolName is a fake nodepool name that prevents Karpenter from scaling up.
+	kaitoNodePoolName             = "kaito"
+	nodeClassName                 = "default"
+	errorInstanceTypesUnavailable = "all requested instance types were unavailable during launch"
 )
 
 var (
@@ -61,7 +69,7 @@ var (
 
 	KarpenterWorkspaceSelector, _ = metav1.LabelSelectorAsSelector(&metav1.LabelSelector{
 		MatchExpressions: []metav1.LabelSelectorRequirement{
-			{Key: consts.KarpenterWorkspaceNameKey, Operator: metav1.LabelSelectorOpExists},
+			{Key: kaitov1beta1.LabelKarpenterWorkspaceName, Operator: metav1.LabelSelectorOpExists},
 		},
 	})
 
@@ -129,12 +137,12 @@ type ManifestOptions struct {
 }
 
 // GenerateNodeClaimManifest generates a nodeClaim object from the given workspace or RAGEngine.
-func GenerateNodeClaimManifest(storageRequirement string, obj client.Object) *karpenterv1.NodeClaim {
-	return GenerateNodeClaimManifestWithOptions(storageRequirement, obj, ManifestOptions{})
+func GenerateNodeClaimManifest(ctx context.Context, storageRequirement string, obj client.Object) *karpenterv1.NodeClaim {
+	return GenerateNodeClaimManifestWithOptions(ctx, storageRequirement, obj, ManifestOptions{})
 }
 
 // GenerateNodeClaimManifestWithOptions generates a nodeClaim object from the given workspace or RAGEngine with explicit options.
-func GenerateNodeClaimManifestWithOptions(storageRequirement string, obj client.Object, options ManifestOptions) *karpenterv1.NodeClaim {
+func GenerateNodeClaimManifestWithOptions(ctx context.Context, storageRequirement string, obj client.Object, options ManifestOptions) *karpenterv1.NodeClaim {
 	klog.InfoS("GenerateNodeClaimManifest", "object", obj)
 
 	// Determine the type of the input object and extract relevant fields
@@ -147,9 +155,9 @@ func GenerateNodeClaimManifestWithOptions(storageRequirement string, obj client.
 	nodeClaimName := GenerateNodeClaimName(obj)
 
 	nodeClaimLabels := map[string]string{
-		consts.LabelNodePool: consts.KaitoNodePoolName, // Fake nodepool name to prevent Karpenter from scaling up.
-		nameLabel:            name,
-		namespaceLabel:       namespace,
+		karpenterv1.NodePoolLabelKey: kaitoNodePoolName, // Fake nodepool name to prevent Karpenter from scaling up.
+		nameLabel:                    name,
+		namespaceLabel:               namespace,
 	}
 	if sanitized := kaitov1beta1.SanitizedMatchLabels(labelSelector); len(sanitized) != 0 {
 		nodeClaimLabels = lo.Assign(nodeClaimLabels, sanitized)
@@ -160,21 +168,21 @@ func GenerateNodeClaimManifestWithOptions(storageRequirement string, obj client.
 	}
 
 	if options.DefaultNodeImageFamily == "" {
-		nodeClaimAnnotations[kaitov1beta1.AnnotationNodeImageFamily] = consts.NodeImageFamilyUbuntu
-	} else if defaultNodeImageFamily, ok := consts.NormalizeSupportedNodeImageFamily(options.DefaultNodeImageFamily); ok {
+		nodeClaimAnnotations[kaitov1beta1.AnnotationNodeImageFamily] = kaitov1beta1.NodeImageFamilyUbuntu
+	} else if defaultNodeImageFamily, ok := kaitov1beta1.NormalizeSupportedNodeImageFamily(options.DefaultNodeImageFamily); ok {
 		nodeClaimAnnotations[kaitov1beta1.AnnotationNodeImageFamily] = defaultNodeImageFamily
 	}
 
 	if nodeImageFamily, ok := obj.GetAnnotations()[kaitov1beta1.AnnotationNodeImageFamily]; ok {
-		if normalizedNodeImageFamily, valid := consts.NormalizeSupportedNodeImageFamily(nodeImageFamily); valid {
+		if normalizedNodeImageFamily, valid := kaitov1beta1.NormalizeSupportedNodeImageFamily(nodeImageFamily); valid {
 			nodeClaimAnnotations[kaitov1beta1.AnnotationNodeImageFamily] = normalizedNodeImageFamily
 		}
 	}
 
-	cloudName := os.Getenv("CLOUD_PROVIDER")
+	cloudName := string(env.FromContext(ctx).CloudProvider)
 	isCPUWorkspace := false
 	if workspaceObj, ok := obj.(*kaitov1beta1.Workspace); ok {
-		isCPUWorkspace = kaitov1beta1.IsCPUInferenceWorkspace(workspaceObj)
+		isCPUWorkspace = kaitov1beta1.IsCPUInferenceWorkspace(ctx, workspaceObj)
 	}
 
 	var nodeClassRefKind string
@@ -198,15 +206,15 @@ func GenerateNodeClaimManifestWithOptions(storageRequirement string, obj client.
 		},
 		Spec: karpenterv1.NodeClaimSpec{
 			NodeClassRef: &karpenterv1.NodeClassReference{
-				Name:  consts.NodeClassName,
+				Name:  nodeClassName,
 				Kind:  nodeClassRefKind,
 				Group: nodeClassRefGroup,
 			},
 			Requirements: []karpenterv1.NodeSelectorRequirementWithMinValues{
 				{
-					Key:      consts.LabelNodePool,
+					Key:      karpenterv1.NodePoolLabelKey,
 					Operator: corev1.NodeSelectorOpIn,
-					Values:   []string{consts.KaitoNodePoolName},
+					Values:   []string{kaitoNodePoolName},
 				},
 				{
 					Key:      corev1.LabelInstanceTypeStable,
@@ -228,16 +236,16 @@ func GenerateNodeClaimManifestWithOptions(storageRequirement string, obj client.
 	}
 
 	if isCPUWorkspace {
-		nodeClaimLabels[consts.SKUString] = consts.CPUString
+		nodeClaimLabels[kaitov1beta1.LabelSKU] = kaitov1beta1.SKUCPU
 		nodeClaimObj.Spec.Taints = []corev1.Taint{{
-			Key:    consts.SKUString,
-			Value:  consts.CPUString,
+			Key:    kaitov1beta1.LabelSKU,
+			Value:  kaitov1beta1.SKUCPU,
 			Effect: corev1.TaintEffectNoSchedule,
 		}}
 	} else {
 		nodeClaimObj.Spec.Taints = []corev1.Taint{{
-			Key:    consts.SKUString,
-			Value:  consts.GPUString,
+			Key:    kaitov1beta1.LabelSKU,
+			Value:  kaitov1beta1.SKUGPU,
 			Effect: corev1.TaintEffectNoSchedule,
 		}}
 	}
@@ -382,11 +390,11 @@ func CheckNodeClaimStatus(ctx context.Context, nodeClaimObj *karpenterv1.NodeCla
 			// if SKU is not available, then no need to retry.
 			_, conditionFound := lo.Find(nodeClaimObj.GetConditions(), func(condition status.Condition) bool {
 				return condition.Type == karpenterv1.ConditionTypeLaunched &&
-					condition.Status == metav1.ConditionFalse && strings.Contains(condition.Message, consts.ErrorInstanceTypesUnavailable)
+					condition.Status == metav1.ConditionFalse && strings.Contains(condition.Message, errorInstanceTypesUnavailable)
 			})
 			if conditionFound {
-				klog.Error(consts.ErrorInstanceTypesUnavailable, "reconcile will not continue")
-				return reconcile.TerminalError(fmt.Errorf(consts.ErrorInstanceTypesUnavailable))
+				klog.Error(errorInstanceTypesUnavailable, "reconcile will not continue")
+				return reconcile.TerminalError(errors.New(errorInstanceTypesUnavailable))
 			}
 
 			// if nodeClaim is not ready, then continue.

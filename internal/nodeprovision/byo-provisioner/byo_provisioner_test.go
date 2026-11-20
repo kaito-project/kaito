@@ -27,7 +27,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client/fake"
 
 	kaitov1beta1 "github.com/kaito-project/kaito/api/v1beta1"
-	"github.com/kaito-project/kaito/pkg/utils/consts"
+	"github.com/kaito-project/kaito/pkg/accelerator/nvidia"
 )
 
 // readyGPUNode builds a Ready node with allocatable GPU capacity and the nvidia.com
@@ -39,9 +39,9 @@ func readyGPUNode(name, instanceType string, perGPUMemMiB, gpuCount int) *corev1
 			Name: name,
 			Labels: map[string]string{
 				corev1.LabelInstanceTypeStable: instanceType,
-				consts.NvidiaGPUProduct:        "Tesla-" + instanceType,
-				consts.NvidiaGPUCount:          strconv.Itoa(gpuCount),
-				consts.NvidiaGPUMemory:         strconv.Itoa(perGPUMemMiB),
+				nvidia.LabelGPUProduct:         "Tesla-" + instanceType,
+				nvidia.LabelGPUCount:           strconv.Itoa(gpuCount),
+				nvidia.LabelGPUMemory:          strconv.Itoa(perGPUMemMiB),
 			},
 		},
 		Status: corev1.NodeStatus{

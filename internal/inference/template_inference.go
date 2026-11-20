@@ -21,17 +21,16 @@ import (
 
 	kaitov1beta1 "github.com/kaito-project/kaito/api/v1beta1"
 	"github.com/kaito-project/kaito/internal/cache"
+	"github.com/kaito-project/kaito/internal/featuregates"
 	"github.com/kaito-project/kaito/internal/k8s/resources"
 	"github.com/kaito-project/kaito/internal/manifests"
 	"github.com/kaito-project/kaito/internal/nodeprovision"
-	"github.com/kaito-project/kaito/pkg/featuregates"
-	"github.com/kaito-project/kaito/pkg/utils/consts"
 )
 
 // GenerateTemplateInference builds the StatefulSet for a workspace whose inference
 // workload is defined by a custom pod template.
 func GenerateTemplateInference(ctx context.Context, workspaceObj *kaitov1beta1.Workspace, kubeClient client.Client, provisioner nodeprovision.NodeProvisioner) (*appsv1.StatefulSet, error) {
-	ssObj := manifests.GenerateManifestWithPodTemplate(workspaceObj, defaultTolerations(workspaceObj))
+	ssObj := manifests.GenerateManifestWithPodTemplate(workspaceObj, defaultTolerations(ctx, workspaceObj))
 	// Pin the pod to nodes provisioned for this workspace. Without this, a
 	// custom-template pod could schedule onto a sibling workspace's node when
 	// they share the same user label selector (e.g. InferenceSet replicas).
@@ -39,9 +38,10 @@ func GenerateTemplateInference(ctx context.Context, workspaceObj *kaitov1beta1.W
 		return nil, err
 	}
 
-	if featuregates.FeatureGates[consts.FeatureFlagDistributedCache] && cache.HasAttachment(workspaceObj) {
-		if err := cache.ApplyTemplateCacheMutations(ctx, workspaceObj, kubeClient, ssObj); err != nil {
-			return nil, err
+	// Apply cache mutations for template-based workspaces.
+	if featuregates.FeatureGates[featuregates.FeatureFlagDistributedCache] && cache.HasAttachment(workspaceObj) {
+		if cacheErr := cache.ApplyTemplateCacheMutations(ctx, workspaceObj, kubeClient, ssObj); cacheErr != nil {
+			return nil, cacheErr
 		}
 	}
 	if revision, ok := workspaceObj.Annotations[kaitov1beta1.WorkspaceRevisionAnnotation]; ok {

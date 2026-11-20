@@ -37,11 +37,12 @@ import (
 	karpenterv1 "sigs.k8s.io/karpenter/pkg/apis/v1"
 
 	kaitov1beta1 "github.com/kaito-project/kaito/api/v1beta1"
+	"github.com/kaito-project/kaito/internal/featuregates"
 	"github.com/kaito-project/kaito/internal/k8s/nodeclaim"
 	"github.com/kaito-project/kaito/internal/k8s/nodes"
 	"github.com/kaito-project/kaito/internal/nodeprovision"
 	"github.com/kaito-project/kaito/internal/nodeprovision/resource"
-	"github.com/kaito-project/kaito/pkg/utils/consts"
+	"github.com/kaito-project/kaito/pkg/consts"
 )
 
 // NodeClassSpec is one entry of the --karpenter-node-classes flag. Spec is an opaque
@@ -145,7 +146,7 @@ func (p *KarpenterProvisioner) Start(ctx context.Context) error {
 	}
 	// The allowlist a Workspace may select from via the node-class-name annotation.
 	// Held here because the admission webhook cannot import this package.
-	consts.SetAllowedNodeClassNames(p.nodeClassConfig.NodeClassNames)
+	featuregates.SetAllowedNodeClassNames(p.nodeClassConfig.NodeClassNames)
 
 	// Wait for the default NodeClass to be ready.
 	if err := p.waitForNodeClassReady(ctx, p.nodeClassConfig.DefaultName); err != nil {
@@ -398,7 +399,7 @@ func (p *KarpenterProvisioner) countCoveredNodes(ctx context.Context, ws *kaitov
 		// Skip nodes provisioned for a different workspace that shares this
 		// workspace's label selector (e.g. an InferenceSet sibling replica).
 		// BYO nodes carry neither ownership label and remain in scope.
-		if name, ok := node.Labels[consts.KarpenterWorkspaceNameKey]; ok && name != ws.Name {
+		if name, ok := node.Labels[kaitov1beta1.LabelKarpenterWorkspaceName]; ok && name != ws.Name {
 			continue
 		}
 		if name, ok := node.Labels[kaitov1beta1.LabelWorkspaceName]; ok && name != ws.Name {
@@ -406,7 +407,7 @@ func (p *KarpenterProvisioner) countCoveredNodes(ctx context.Context, ws *kaitov
 		}
 		readyWithInstanceType++
 		// BYO nodes: ready, correct instance type, no karpenter label, no legacy label.
-		_, isKarpenter := node.Labels[consts.KarpenterWorkspaceNameKey]
+		_, isKarpenter := node.Labels[kaitov1beta1.LabelKarpenterWorkspaceName]
 		_, isLegacy := node.Labels[kaitov1beta1.LabelWorkspaceName]
 		if !isKarpenter && !isLegacy {
 			byoCount++
@@ -473,7 +474,7 @@ func (p *KarpenterProvisioner) ProvisionNodes(ctx context.Context, ws *kaitov1be
 		if err != nil {
 			return err
 		}
-		np := generateNodePool(ws, p.nodeClassConfig, nodeClassName, capacityType)
+		np := generateNodePool(ctx, ws, p.nodeClassConfig, nodeClassName, capacityType)
 		np.Spec.Replicas = lo.ToPtr(desiredReplicas)
 		if err := p.client.Create(ctx, np); err != nil {
 			if apierrors.IsAlreadyExists(err) {
@@ -908,12 +909,12 @@ func findCondition(conditions []status.Condition, conditionType string) *status.
 func (p *KarpenterProvisioner) BuildNodeSelector(ctx context.Context, ws *kaitov1beta1.Workspace) []corev1.NodeSelectorRequirement {
 	return []corev1.NodeSelectorRequirement{
 		{
-			Key:      consts.KarpenterWorkspaceNameKey,
+			Key:      kaitov1beta1.LabelKarpenterWorkspaceName,
 			Operator: corev1.NodeSelectorOpIn,
 			Values:   []string{ws.Name},
 		},
 		{
-			Key:      consts.KarpenterWorkspaceNamespaceKey,
+			Key:      kaitov1beta1.LabelKarpenterWorkspaceNamespace,
 			Operator: corev1.NodeSelectorOpIn,
 			Values:   []string{ws.Namespace},
 		},

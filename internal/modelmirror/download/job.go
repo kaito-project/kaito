@@ -23,20 +23,19 @@ import (
 	"k8s.io/utils/ptr"
 
 	kaitov1alpha1 "github.com/kaito-project/kaito/api/v1alpha1"
-	mmconsts "github.com/kaito-project/kaito/pkg/modelmirror/consts"
-	kaitoconsts "github.com/kaito-project/kaito/pkg/utils/consts"
+	"github.com/kaito-project/kaito/internal/image"
 )
 
 // BuildDownloadJob constructs the Job that downloads model files to the PVC.
 // resources sets the CPU/memory requests and limits on the downloader container.
 // podLabels are applied to the Job pod template when a ServiceAccount is set (e.g. the
 // cloud workload-identity label); pass nil to add none.
-func BuildDownloadJob(cr *kaitov1alpha1.ModelMirror, resources mmconsts.DownloadJobResources, podLabels map[string]string) *batchv1.Job {
+func BuildDownloadJob(cr *kaitov1alpha1.ModelMirror, resources DownloadJobResources, podLabels map[string]string) *batchv1.Job {
 	modelID := cr.Spec.Source.ModelID
 
 	// Build --exclude flags from DownloadExcludePatterns
 	excludeFlags := ""
-	for _, pattern := range mmconsts.DownloadExcludePatterns {
+	for _, pattern := range DownloadExcludePatterns {
 		excludeFlags += fmt.Sprintf("\n  --exclude %q \\", pattern)
 	}
 
@@ -68,9 +67,9 @@ hf download "${MODEL_ID}" \
 # zero-byte objects that cause RunAI model streamer to fail with FileExistsError.
 rm -rf "/models/${MODEL_ID}/.cache" 2>/dev/null || true
 find "/models/${MODEL_ID}/" -mindepth 1 -type d -exec rm -rf {} + 2>/dev/null || true`,
-		kaitoconsts.PipBootstrapCommand,
-		mmconsts.HuggingFaceHubVersion,
-		mmconsts.CertifiVersion,
+		image.PipBootstrapCommand,
+		HuggingFaceHubVersion,
+		CertifiVersion,
 		excludeFlags,
 	)
 
@@ -95,7 +94,7 @@ find "/models/${MODEL_ID}/" -mindepth 1 -type d -exec rm -rf {} + 2>/dev/null ||
 
 	container := corev1.Container{
 		Name:    "downloader",
-		Image:   mmconsts.DownloaderImage,
+		Image:   image.PythonHelperImage,
 		Command: []string{"/bin/sh", "-c"},
 		Args:    []string{script},
 		Env:     envVars,
@@ -119,7 +118,7 @@ find "/models/${MODEL_ID}/" -mindepth 1 -type d -exec rm -rf {} + 2>/dev/null ||
 			GenerateName: cr.Name + "-download-",
 			Namespace:    cr.Namespace,
 			Labels: map[string]string{
-				mmconsts.LabelModelMirrorName: cr.Name,
+				kaitov1alpha1.LabelModelMirrorName: cr.Name,
 			},
 		},
 		Spec: batchv1.JobSpec{

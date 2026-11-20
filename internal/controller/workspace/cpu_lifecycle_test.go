@@ -26,21 +26,18 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client/fake"
 
 	"github.com/kaito-project/kaito/api/v1beta1"
+	"github.com/kaito-project/kaito/internal/featuregates"
 	"github.com/kaito-project/kaito/internal/testutil"
-	"github.com/kaito-project/kaito/pkg/featuregates"
-	"github.com/kaito-project/kaito/pkg/utils/consts"
+	"github.com/kaito-project/kaito/pkg/consts"
 )
 
 func TestCPUInferenceCreateAndUnchangedReconcile(t *testing.T) {
 	t.Setenv("CLOUD_PROVIDER", consts.AzureCloudName)
 	t.Setenv("PRESET_REGISTRY_NAME", "mcr.microsoft.com/aks/kaito")
 	testutil.RegisterTestModel()
-	for _, gate := range []string{consts.FeatureFlagVLLM, consts.FeatureFlagDisableNodeAutoProvisioning} {
-		old := featuregates.FeatureGates[gate]
-		t.Cleanup(func() { featuregates.FeatureGates[gate] = old })
-	}
-	featuregates.FeatureGates[consts.FeatureFlagVLLM] = true
-	featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning] = false
+	oldNAP := featuregates.FeatureGates[featuregates.FeatureFlagDisableNodeAutoProvisioning]
+	t.Cleanup(func() { featuregates.FeatureGates[featuregates.FeatureFlagDisableNodeAutoProvisioning] = oldNAP })
+	featuregates.FeatureGates[featuregates.FeatureFlagDisableNodeAutoProvisioning] = false
 	for _, runtimeName := range []string{"vllm"} {
 		t.Run(runtimeName, func(t *testing.T) {
 			ws := testutil.MockWorkspaceWithPresetVLLM.DeepCopy()
@@ -88,12 +85,9 @@ func TestInferenceMatchingRevisionPreservesReplicaDrift(t *testing.T) {
 	t.Setenv("CLOUD_PROVIDER", consts.AzureCloudName)
 	t.Setenv("PRESET_REGISTRY_NAME", "mcr.microsoft.com/aks/kaito")
 	testutil.RegisterTestModel()
-	for _, gate := range []string{consts.FeatureFlagVLLM, consts.FeatureFlagDisableNodeAutoProvisioning} {
-		old := featuregates.FeatureGates[gate]
-		t.Cleanup(func() { featuregates.FeatureGates[gate] = old })
-	}
-	featuregates.FeatureGates[consts.FeatureFlagVLLM] = true
-	featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning] = false
+	oldNAP := featuregates.FeatureGates[featuregates.FeatureFlagDisableNodeAutoProvisioning]
+	t.Cleanup(func() { featuregates.FeatureGates[featuregates.FeatureFlagDisableNodeAutoProvisioning] = oldNAP })
+	featuregates.FeatureGates[featuregates.FeatureFlagDisableNodeAutoProvisioning] = false
 	for _, tc := range []struct {
 		name, instanceType string
 	}{

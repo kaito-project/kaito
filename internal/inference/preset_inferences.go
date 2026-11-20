@@ -18,13 +18,11 @@ import (
 	"encoding/json"
 	"fmt"
 	"math"
-	"strconv"
 	"strings"
 	"time"
 
 	"github.com/distribution/reference"
 	"github.com/samber/lo"
-	"gopkg.in/yaml.v2"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	storagev1 "k8s.io/api/storage/v1"
@@ -38,6 +36,8 @@ import (
 
 	kaitov1alpha1 "github.com/kaito-project/kaito/api/v1alpha1"
 	"github.com/kaito-project/kaito/api/v1beta1"
+	"github.com/kaito-project/kaito/internal/featuregates"
+	"github.com/kaito-project/kaito/internal/image"
 	"github.com/kaito-project/kaito/internal/inference/modelstreaming"
 	"github.com/kaito-project/kaito/internal/inference/modelstreaming/registry"
 	"github.com/kaito-project/kaito/internal/k8s/nodes"
@@ -47,12 +47,10 @@ import (
 	"github.com/kaito-project/kaito/pkg/accelerator/nvidia"
 	"github.com/kaito-project/kaito/pkg/catalog"
 	"github.com/kaito-project/kaito/pkg/catalog/hfgen"
+	"github.com/kaito-project/kaito/pkg/estimator"
 	"github.com/kaito-project/kaito/pkg/estimator/maxnumseqestimator"
-	"github.com/kaito-project/kaito/pkg/featuregates"
 	pkgmodel "github.com/kaito-project/kaito/pkg/model"
 	"github.com/kaito-project/kaito/pkg/sku"
-	"github.com/kaito-project/kaito/pkg/utils"
-	"github.com/kaito-project/kaito/pkg/utils/consts"
 )
 
 // SpecDecoDecision tracks which branch the speculative decoding injection took.
@@ -72,7 +70,18 @@ const (
 	// was injected. Kept as a distinct decision so telemetry / events can
 	// distinguish "preset-tuned" from "universal fallback" injections.
 	SpecDecoInjectedNGramFallback
+	// SpecDecoSkippedLowGPUMemory means the speculative decoding config was not
+	// injected because the GPUs would have too little memory left after the
+	// weights; the workload runs without speculative decoding.
+	SpecDecoSkippedLowGPUMemory
 )
+
+// minDSparkKVHeadroomGiB is the estimated per-GPU memory, after weights and
+// runtime overhead, that a node needs before KAITO injects a preset's DSpark
+// config. DSpark's draft head and its KV cache come out of this memory, and on
+// tighter nodes they can shrink the context vLLM fits from hundreds of
+// thousands of tokens to a few thousand.
+const minDSparkKVHeadroomGiB = 16
 
 // PresetInferenceResult wraps the generated workload object.
 type PresetInferenceResult struct {
@@ -97,13 +106,48 @@ const (
 	// defaultCudaHomePath is the default location to install CUDA toolkit and used as
 	// CUDA_HOME.
 	defaultCudaHomePath = "/opt/kaito/cuda/129"
+
+	localNVMeStorageClass = "kaito-local-nvme-disk"
+
+	// Routing sidecar for P/D disaggregation on decode workspaces.
+	// The sidecar listens on port 5000 (manifests.PortInferenceServer) so the Service
+	// can target port 5000 uniformly across prefill and decode pods.
+	// vLLM on decode pods is moved to port 5001 (portDecodeVLLM).
+	// See: https://github.com/llm-d/llm-d-routing-sidecar
+	routingSidecarImage = "mcr.microsoft.com/oss/v2/llm-d/llm-d-routing-sidecar"
+	routingSidecarTag   = "v0.8.0"
+
+	// portDecodeVLLM is the port vLLM listens on in decode pods.
+	// The routing sidecar occupies port 5000 (manifests.PortInferenceServer), so vLLM
+	// is moved to 5001. The sidecar forwards traffic to this port.
+	portDecodeVLLM = int32(5001)
+
+	// inferenceRoleEnvName is the environment variable name used to pass the
+	// inference role (prefill/decode) to the model container in P/D disaggregated serving.
+	inferenceRoleEnvName = "KAITO_INFERENCE_ROLE"
+
+	// vllmUseFlashInferSamplerEnvName toggles vLLM's FlashInfer-based sampler.
+	// KAITO does not support FlashInfer, so it is set to "0" to keep vLLM on the
+	// Torch-native sampling path and avoid runtime JIT kernel compilation, which
+	// requires a CUDA toolchain (nvcc) that the base image does not ship.
+	vllmUseFlashInferSamplerEnvName = "VLLM_USE_FLASHINFER_SAMPLER"
+
+	// vllmUseDeepGEMMEnvName toggles vLLM's DeepGEMM FP8 kernels. vLLM 0.22.1
+	// defaults this on and reports DeepGEMM as available (it finds the vendored
+	// wrapper module), but the native FP8 GEMM backend is not present in the base
+	// image, so the FP8 warmup hard-fails with "DeepGEMM backend is not available".
+	// Set to "0" to keep FP8 models on their non-DeepGEMM kernel path.
+	vllmUseDeepGEMMEnvName = "VLLM_USE_DEEP_GEMM"
+
+	// vllmWSL2EnablePinMemoryEnvName enables pinned memory when vLLM detects WSL2.
+	vllmWSL2EnablePinMemoryEnvName = "VLLM_WSL2_ENABLE_PIN_MEMORY"
 )
 
 var (
 	containerPorts = []corev1.ContainerPort{
 		{
 			Name:          "http",
-			ContainerPort: int32(consts.PortInferenceServer),
+			ContainerPort: int32(manifests.PortInferenceServer),
 		},
 	}
 
@@ -112,7 +156,7 @@ var (
 	// this endpoint, so advertising it there would be misleading.
 	vllmKVEventsContainerPort = corev1.ContainerPort{
 		Name:          "kv-events",
-		ContainerPort: int32(consts.PortKVCacheEvents),
+		ContainerPort: int32(manifests.PortKVCacheEvents),
 	}
 
 	// defaultLivenessProbe has no initial delay because the startup probe ensures
@@ -120,7 +164,7 @@ var (
 	defaultLivenessProbe = &corev1.Probe{
 		ProbeHandler: corev1.ProbeHandler{
 			HTTPGet: &corev1.HTTPGetAction{
-				Port: intstr.FromInt32(consts.PortInferenceServer),
+				Port: intstr.FromInt32(manifests.PortInferenceServer),
 				Path: ProbePath,
 			},
 		},
@@ -132,7 +176,7 @@ var (
 	defaultReadinessProbe = &corev1.Probe{
 		ProbeHandler: corev1.ProbeHandler{
 			HTTPGet: &corev1.HTTPGetAction{
-				Port: intstr.FromInt32(consts.PortInferenceServer),
+				Port: intstr.FromInt32(manifests.PortInferenceServer),
 				Path: ProbePath,
 			},
 		},
@@ -146,8 +190,8 @@ func defaultTolerationsForTarget(isCPUInference bool) []corev1.Toleration {
 	if isCPUInference {
 		tolerations = append(tolerations, corev1.Toleration{
 			Effect:   corev1.TaintEffectNoSchedule,
-			Value:    consts.CPUString,
-			Key:      consts.SKUString,
+			Value:    v1beta1.SKUCPU,
+			Key:      v1beta1.LabelSKU,
 			Operator: corev1.TolerationOpEqual,
 		})
 	} else {
@@ -159,8 +203,8 @@ func defaultTolerationsForTarget(isCPUInference bool) []corev1.Toleration {
 			},
 			corev1.Toleration{
 				Effect:   corev1.TaintEffectNoSchedule,
-				Value:    consts.GPUString,
-				Key:      consts.SKUString,
+				Value:    v1beta1.SKUGPU,
+				Key:      v1beta1.LabelSKU,
 				Operator: corev1.TolerationOpEqual,
 			},
 		)
@@ -169,17 +213,17 @@ func defaultTolerationsForTarget(isCPUInference bool) []corev1.Toleration {
 	if sku.IsAzureCloudProvider() {
 		tolerations = append(tolerations, corev1.Toleration{
 			Effect:   corev1.TaintEffectNoSchedule,
-			Key:      consts.SpotInstanceKey,
+			Key:      manifests.SpotInstanceKey,
 			Operator: corev1.TolerationOpEqual,
-			Value:    consts.SpotInstanceValue,
+			Value:    manifests.SpotInstanceValue,
 		})
 	}
 
 	return tolerations
 }
 
-func defaultTolerations(ws *v1beta1.Workspace) []corev1.Toleration {
-	return defaultTolerationsForTarget(v1beta1.IsCPUInferenceWorkspace(ws))
+func defaultTolerations(ctx context.Context, ws *v1beta1.Workspace) []corev1.Toleration {
+	return defaultTolerationsForTarget(v1beta1.IsCPUInferenceWorkspace(ctx, ws))
 }
 
 func GetInferenceImageInfo(ctx context.Context, workspaceObj *v1beta1.Workspace) []corev1.LocalObjectReference {
@@ -212,7 +256,7 @@ func GenerateModelWeightsCacheVolume(ctx context.Context, workspaceObj *v1beta1.
 		},
 		Spec: corev1.PersistentVolumeClaimSpec{
 			AccessModes:      []corev1.PersistentVolumeAccessMode{corev1.ReadWriteOnce},
-			StorageClassName: &consts.LocalNVMeStorageClass,
+			StorageClassName: ptr.To(localNVMeStorageClass),
 			Resources: corev1.VolumeResourceRequirements{
 				Requests: corev1.ResourceList{
 					// place model files in this volume
@@ -356,7 +400,7 @@ func GeneratePresetInference(ctx context.Context, workspaceObj *v1beta1.Workspac
 // getGPUConfig resolves the inference target once per generation. A nil config with
 // no error denotes CPU; every successful GPU path returns a non-nil config.
 func getGPUConfig(ctx *builder.WorkspaceGeneratorContext) (*sku.GPUConfig, error) {
-	if v1beta1.IsCPUInferenceWorkspace(ctx.Workspace) {
+	if v1beta1.IsCPUInferenceWorkspace(ctx.Ctx, ctx.Workspace) {
 		if v1beta1.GetWorkspaceRuntimeName(ctx.Workspace) != pkgmodel.RuntimeNameVLLM {
 			return nil, fmt.Errorf("CPU preset inference supports only vllm")
 		}
@@ -366,13 +410,13 @@ func getGPUConfig(ctx *builder.WorkspaceGeneratorContext) (*sku.GPUConfig, error
 	partition := ctx.Workspace.Resource.Partition
 
 	// Partition path: build GPU config from the partition spec (MIG mode).
-	if featuregates.FeatureGates[consts.FeatureFlagEnableMIG] && partition != nil &&
+	if featuregates.FeatureGates[featuregates.FeatureFlagEnableMIG] && partition != nil &&
 		partition.Mode == v1beta1.PartitionModeMIG {
 		return sku.MIGGPUConfig(partition.Profile)
 	}
 
 	// NAP is enabled - try to get GPU config from known SKU
-	if !featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning] {
+	if !featuregates.FeatureGates[featuregates.FeatureFlagDisableNodeAutoProvisioning] {
 		return sku.GetGPUConfigBySKU(ctx.Workspace.Resource.InstanceType)
 	}
 
@@ -393,7 +437,7 @@ func getGPUConfig(ctx *builder.WorkspaceGeneratorContext) (*sku.GPUConfig, error
 	// Accelerator partition: rescale the node's config down to Count whole GPUs so
 	// resource requests, vLLM parallelism, and node sizing reflect the partition
 	// rather than the full node.
-	if featuregates.FeatureGates[consts.FeatureFlagEnableAccelerator] && partition != nil &&
+	if featuregates.FeatureGates[featuregates.FeatureFlagEnableAccelerator] && partition != nil &&
 		partition.Mode == v1beta1.PartitionModeAccelerator {
 		return sku.ScaleGPUConfigToCount(gpuConfig, *partition.Count)
 	}
@@ -420,7 +464,7 @@ func checkIfNVMeAvailable(ctx context.Context, gpuConfig *sku.GPUConfig, kubeCli
 
 	// Check if the required NVMe storage class exists
 	storageClass := &storagev1.StorageClass{}
-	err := kubeClient.Get(ctx, client.ObjectKey{Name: consts.LocalNVMeStorageClass}, storageClass)
+	err := kubeClient.Get(ctx, client.ObjectKey{Name: localNVMeStorageClass}, storageClass)
 	if err != nil {
 		if client.IgnoreNotFound(err) == nil {
 			return false
@@ -432,31 +476,27 @@ func checkIfNVMeAvailable(ctx context.Context, gpuConfig *sku.GPUConfig, kubeCli
 
 // getDistributedInferenceProbe returns a container probe configuration for the distributed inference workload.
 func getDistributedInferenceProbe(probeType probeType, wObj *v1beta1.Workspace, initialDelaySeconds, periodSeconds, timeoutSeconds, failureThreshold int32, vllmPort ...int32) *corev1.Probe {
-	port := consts.PortInferenceServer
+	port := manifests.PortInferenceServer
 	if len(vllmPort) > 0 && vllmPort[0] > 0 {
 		port = vllmPort[0]
 	}
-	args := map[string]string{
-		"leader-address": utils.GetRayLeaderHost(wObj.ObjectMeta),
-	}
+	var portFlag string
 	switch probeType {
 	case probeTypeLiveness:
-		args["ray-port"] = strconv.Itoa(pkgmodel.PortRayCluster)
+		portFlag = fmt.Sprintf("--ray-port=%d", pkgmodel.PortRayCluster)
 	case probeTypeReadiness:
-		args["vllm-port"] = strconv.FormatInt(int64(port), 10)
+		portFlag = fmt.Sprintf("--vllm-port=%d", port)
 	}
 
 	// for distributed inference, we cannot use the default http probe since only the leader pod
 	// exposes the health check endpoint. We need to use presets/workspace/inference/vllm/multi-node-health-check.py
 	// to check the health of both the leader and worker pods.
-	cmd := utils.BuildCmdStr(
-		fmt.Sprintf("%s %s", DefaultVLLMMultiNodeHealthCheckCommand, probeType),
-		args,
-	)
+	cmd := fmt.Sprintf("%s %s --leader-address=%s %s",
+		DefaultVLLMMultiNodeHealthCheckCommand, probeType, pkgmodel.RayLeaderHost(wObj.ObjectMeta), portFlag)
 	probe := &corev1.Probe{
 		ProbeHandler: corev1.ProbeHandler{
 			Exec: &corev1.ExecAction{
-				Command: utils.ShellCmd(cmd),
+				Command: []string{"/bin/sh", "-c", cmd},
 			},
 		},
 		InitialDelaySeconds: initialDelaySeconds,
@@ -473,7 +513,7 @@ func getDistributedInferenceProbe(probeType probeType, wObj *v1beta1.Workspace, 
 
 func buildStartupProbe(timeout time.Duration, port ...int32) *corev1.Probe {
 	const periodSeconds = 10
-	probePort := consts.PortInferenceServer
+	probePort := manifests.PortInferenceServer
 	if len(port) > 0 && port[0] > 0 {
 		probePort = port[0]
 	}
@@ -535,7 +575,7 @@ func buildBenchmarkStartupProbe(timeout time.Duration, wObj *v1beta1.Workspace, 
 		// Workers exit 0 immediately — they don't serve traffic and don't need to
 		// wait for the leader. This prevents rolling update deadlocks.
 		cmd := `if [ "$POD_INDEX" = "0" ]; then python3 /workspace/vllm/benchmark_entrypoint.py; else true; fi`
-		command = utils.ShellCmd(cmd)
+		command = []string{"/bin/sh", "-c", cmd}
 	}
 
 	return &corev1.Probe{
@@ -552,7 +592,7 @@ func buildBenchmarkStartupProbe(timeout time.Duration, wObj *v1beta1.Workspace, 
 
 // GetBaseImageName returns the full image reference for the selected base image.
 func GetBaseImageName(baseImage pkgmodel.Metadata) string {
-	return utils.GetPresetImageName(baseImage.Registry, baseImage.Name, baseImage.Tag)
+	return image.PresetImageName(baseImage.Registry, baseImage.Name, baseImage.Tag)
 }
 
 // GetBaseImageTag returns the selected base image's catalog tag, unchanged,
@@ -604,8 +644,8 @@ func getPresetInferenceBaseImage(runtimeName pkgmodel.RuntimeName, isCPU bool) p
 }
 
 // GetDesiredInferenceImageName returns the image for the declared preset target.
-func GetDesiredInferenceImageName(ws *v1beta1.Workspace) (string, error) {
-	baseImage, err := GetDesiredInferenceBaseImage(ws)
+func GetDesiredInferenceImageName(ctx context.Context, ws *v1beta1.Workspace) (string, error) {
+	baseImage, err := GetDesiredInferenceBaseImage(ctx, ws)
 	if err != nil {
 		return "", err
 	}
@@ -613,8 +653,8 @@ func GetDesiredInferenceImageName(ws *v1beta1.Workspace) (string, error) {
 }
 
 // GetDesiredInferenceBaseImage keeps image and upgrade-tag selection consistent.
-func GetDesiredInferenceBaseImage(ws *v1beta1.Workspace) (pkgmodel.Metadata, error) {
-	if !v1beta1.IsCPUInferenceWorkspace(ws) {
+func GetDesiredInferenceBaseImage(ctx context.Context, ws *v1beta1.Workspace) (pkgmodel.Metadata, error) {
+	if !v1beta1.IsCPUInferenceWorkspace(ctx, ws) {
 		return catalog.MustGet("base"), nil
 	}
 	if v1beta1.GetWorkspaceRuntimeName(ws) != pkgmodel.RuntimeNameVLLM {
@@ -665,7 +705,7 @@ func GenerateInferencePodSpec(gpuConfig *sku.GPUConfig, numNodes int, streamingM
 		// no config volume is mounted and the runtime falls back to its built-in defaults.
 		var cmVolumeMountRef *corev1.VolumeMount
 		if userConfig := ctx.Workspace.Inference.Config; userConfig != "" {
-			cmVolume, cmVolumeMount := utils.InferenceConfigCMVolume(userConfig)
+			cmVolume, cmVolumeMount := inferenceConfigCMVolume(userConfig)
 			volumes = append(volumes, cmVolume)
 			volumeMounts = append(volumeMounts, cmVolumeMount)
 			cmVolumeMountRef = &cmVolumeMount
@@ -683,7 +723,7 @@ func GenerateInferencePodSpec(gpuConfig *sku.GPUConfig, numNodes int, streamingM
 			ctx.Model, isCPUInference, volumes, volumeMounts)
 
 		// add share memory for cross process communication
-		shmVolume, shmVolumeMount := utils.ConfigSHMVolume()
+		shmVolume, shmVolumeMount := manifests.ConfigSHMVolume()
 		volumes = append(volumes, shmVolume)
 		volumeMounts = append(volumeMounts, shmVolumeMount)
 
@@ -723,16 +763,17 @@ func GenerateInferencePodSpec(gpuConfig *sku.GPUConfig, numNodes int, streamingM
 		runtimeName := v1beta1.GetWorkspaceRuntimeName(ctx.Workspace)
 
 		// --- Speculative decoding injection ---
-		userConfigHasSpeculativeOverride := false
+		var userConfig map[string]any
 		if runtimeName == pkgmodel.RuntimeNameVLLM &&
 			ctx.Workspace.Annotations[v1beta1.AnnotationEnableSpeculativeDecoding] == "true" {
-			override, err := loadUserSpeculativeConfig(ctx.Ctx, ctx.KubeClient, ctx.Workspace)
+			config, err := loadUserSpeculativeConfig(ctx.Ctx, ctx.KubeClient, ctx.Workspace)
 			if err != nil {
 				return fmt.Errorf("speculative decoding: %w", err)
 			}
-			userConfigHasSpeculativeOverride = override
+			userConfig = config
 		}
-		_, err := applySpeculativeDecoding(ctx.Workspace, runtimeName, inferenceParam, userConfigHasSpeculativeOverride)
+		_, err := applySpeculativeDecoding(ctx.Workspace, runtimeName, inferenceParam, userConfig,
+			shouldUseDistributedInference(ctx, numNodes), gpuConfig, numNodes)
 		if err != nil {
 			return fmt.Errorf("speculative decoding: %w", err)
 		}
@@ -754,7 +795,7 @@ func GenerateInferencePodSpec(gpuConfig *sku.GPUConfig, numNodes int, streamingM
 		isSidecarNeeded := needsRoutingSidecar(ctx.Workspace)
 		var vllmPort int32
 		if isSidecarNeeded {
-			vllmPort = consts.PortDecodeVLLM
+			vllmPort = portDecodeVLLM
 		}
 
 		// Hybrid Mamba/Gated-DeltaNet models need max-num-seqs capped to the Mamba
@@ -853,11 +894,11 @@ func configureModelWeightsVolumes(streamingModelPath, localModelWeightsPath stri
 	// PVC on NVMe or an emptyDir — is attached by the caller). Streaming reads from
 	// az:// and explicit hostpaths load from their own mount, so neither needs it.
 	if streamingModelPath == "" && localModelWeightsPath == "" {
-		volumeMounts = append(volumeMounts, utils.DefaultModelWeightsVolumeMount)
+		volumeMounts = append(volumeMounts, manifests.DefaultModelWeightsVolumeMount)
 	}
 
 	if localModelWeightsPath != "" {
-		vol, mount := utils.HostPathVolume("model-weights-hostpath", localModelWeightsPath)
+		vol, mount := hostPathVolume("model-weights-hostpath", localModelWeightsPath)
 		volumes = append(volumes, vol)
 		volumeMounts = append(volumeMounts, mount)
 	}
@@ -914,7 +955,7 @@ func buildMainContainerEnv(runtimeName pkgmodel.RuntimeName, inferenceParam *pkg
 	// runtime (the base image ships no CUDA toolchain/nvcc).
 	if runtimeName == pkgmodel.RuntimeNameVLLM {
 		env = append(env, corev1.EnvVar{
-			Name:  consts.VLLMUseFlashInferSamplerEnvName,
+			Name:  vllmUseFlashInferSamplerEnvName,
 			Value: "0",
 		})
 		// Disable vLLM's DeepGEMM FP8 kernels by default. vLLM 0.22.1 enables them
@@ -928,12 +969,12 @@ func buildMainContainerEnv(runtimeName pkgmodel.RuntimeName, inferenceParam *pkg
 			deepGEMMValue = "1"
 		}
 		env = append(env, corev1.EnvVar{
-			Name:  consts.VLLMUseDeepGEMMEnvName,
+			Name:  vllmUseDeepGEMMEnvName,
 			Value: deepGEMMValue,
 		})
 		// vLLM scans the pod hostname for "microsoft" and can falsely detect WSL2.
 		env = append(env, corev1.EnvVar{
-			Name:  consts.VLLMWSL2EnablePinMemoryEnvName,
+			Name:  vllmWSL2EnablePinMemoryEnvName,
 			Value: "1",
 		})
 		for _, arch := range inferenceParam.Architectures {
@@ -950,19 +991,6 @@ func buildMainContainerEnv(runtimeName pkgmodel.RuntimeName, inferenceParam *pkg
 				break
 			}
 		}
-		if gpuConfig != nil && strings.Contains(strings.ToLower(gpuConfig.GPUModel), "a100") {
-			for _, arch := range inferenceParam.Architectures {
-				if arch == "Qwen4ExpForCausalLM" || arch == "Qwen4ExpForConditionalGeneration" {
-					// Ampere cannot run Qwen4Exp's pinned-host FP8 PLE lookup
-					// kernel. Keep the FP8 table resident on-device instead.
-					env = append(env, corev1.EnvVar{
-						Name:  "VLLM_PLE_CPU_OFFLOAD",
-						Value: "0",
-					})
-					break
-				}
-			}
-		}
 	}
 
 	// A bring-your-own model is sized and configured from an operator-supplied
@@ -971,7 +999,7 @@ func buildMainContainerEnv(runtimeName pkgmodel.RuntimeName, inferenceParam *pkg
 	// than discovering the mismatch as an out-of-memory failure during load.
 	if digest, ok := pkgmodel.CustomModelDigest(inferenceParam.Metadata.Name); ok {
 		env = append(env, corev1.EnvVar{
-			Name:  consts.ModelConfigSHA256EnvName,
+			Name:  modelstreaming.ModelConfigSHA256EnvName,
 			Value: digest,
 		})
 	}
@@ -1117,7 +1145,7 @@ func SetAdapterPuller(ctx *builder.WorkspaceGeneratorContext, spec *corev1.PodSp
 
 	// Handle image-based adapters (existing flow: EmptyDir + puller init containers)
 	if len(imageAdapters) > 0 {
-		adapterVolume, adapterVolumeMount := utils.ConfigAdapterVolume(nil)
+		adapterVolume, adapterVolumeMount := configAdapterVolume(nil)
 		spec.Volumes = append(spec.Volumes, adapterVolume)
 		spec.Containers[mainIdx].VolumeMounts = append(spec.Containers[mainIdx].VolumeMounts, adapterVolumeMount)
 
@@ -1133,7 +1161,7 @@ func SetAdapterPuller(ctx *builder.WorkspaceGeneratorContext, spec *corev1.PodSp
 	for _, adapter := range volumeAdapters {
 		sourceName := adapter.Source.Name
 		volumeName := fmt.Sprintf("adapter-volume-%s", sourceName)
-		mountPath := fmt.Sprintf("%s/%s", utils.DefaultAdapterVolumePath, sourceName)
+		mountPath := fmt.Sprintf("%s/%s", defaultAdapterVolumePath, sourceName)
 
 		volume := corev1.Volume{
 			Name:         volumeName,
@@ -1195,7 +1223,7 @@ func SetDistributedInferenceProbe(ctx *builder.WorkspaceGeneratorContext, spec *
 	// Determine vLLM port: decode pods use PortDecodeVLLM, others use default.
 	var vllmPort int32
 	if needsRoutingSidecar(ctx.Workspace) {
-		vllmPort = consts.PortDecodeVLLM
+		vllmPort = portDecodeVLLM
 	}
 
 	// 60 seconds initial delay for liveness probe to allow workers to join the cluster
@@ -1223,7 +1251,7 @@ func SetDistributedInferenceProbe(ctx *builder.WorkspaceGeneratorContext, spec *
 }
 
 func SetDefaultModelWeightsVolume(ctx *builder.WorkspaceGeneratorContext, spec *corev1.PodSpec) error {
-	spec.Volumes = append(spec.Volumes, utils.DefaultModelWeightsVolume)
+	spec.Volumes = append(spec.Volumes, manifests.DefaultModelWeightsVolume)
 	return nil
 }
 
@@ -1323,7 +1351,7 @@ func applyInferenceRoleEnv(labels map[string]string, containerName string, spec 
 	for i := range spec.Containers {
 		if spec.Containers[i].Name == containerName {
 			spec.Containers[i].Env = append(spec.Containers[i].Env, corev1.EnvVar{
-				Name:  consts.InferenceRoleEnvName,
+				Name:  inferenceRoleEnvName,
 				Value: role,
 			})
 			// VLLM_NIXL_SIDE_CHANNEL_HOST is required for NIXL KV transfer
@@ -1353,22 +1381,22 @@ func injectRoutingSidecar(spec *corev1.PodSpec) {
 
 	// Rewrite the main vLLM container port declaration from 5000 to 5001.
 	for i := range spec.Containers[0].Ports {
-		if spec.Containers[0].Ports[i].ContainerPort == consts.PortInferenceServer {
-			spec.Containers[0].Ports[i].ContainerPort = consts.PortDecodeVLLM
+		if spec.Containers[0].Ports[i].ContainerPort == manifests.PortInferenceServer {
+			spec.Containers[0].Ports[i].ContainerPort = portDecodeVLLM
 		}
 	}
 
 	// Append the routing sidecar that listens on 5000 and proxies to vLLM on 5001.
 	spec.Containers = append(spec.Containers, corev1.Container{
 		Name:  "llm-d-routing-sidecar",
-		Image: fmt.Sprintf("%s:%s", consts.RoutingSidecarImage, consts.RoutingSidecarTag),
+		Image: fmt.Sprintf("%s:%s", routingSidecarImage, routingSidecarTag),
 		Args: []string{
-			fmt.Sprintf("--port=%d", consts.PortInferenceServer),
-			fmt.Sprintf("--vllm-port=%d", consts.PortDecodeVLLM),
+			fmt.Sprintf("--port=%d", manifests.PortInferenceServer),
+			fmt.Sprintf("--vllm-port=%d", portDecodeVLLM),
 			"--secure-proxy=false",
 		},
 		Ports: []corev1.ContainerPort{
-			{ContainerPort: consts.PortInferenceServer, Name: "sidecar", Protocol: corev1.ProtocolTCP},
+			{ContainerPort: manifests.PortInferenceServer, Name: "sidecar", Protocol: corev1.ProtocolTCP},
 		},
 		Env: []corev1.EnvVar{
 			{
@@ -1429,8 +1457,10 @@ func applyGeneratorRuntimeOverrides(params *pkgmodel.PresetParam, gpuConfig *sku
 	if params.VLLM.ModelRunParams == nil {
 		params.VLLM.ModelRunParams = make(map[string]string)
 	}
-	params.VLLM.ModelRunParams["gpu-memory-utilization"] =
-		hfgen.ResolveGPUMemoryUtilization(gpuConfig.GPUModel)
+	if _, configured := params.VLLM.ModelRunParams["gpu-memory-utilization"]; !configured {
+		params.VLLM.ModelRunParams["gpu-memory-utilization"] =
+			hfgen.ResolveGPUMemoryUtilization(gpuConfig.GPUModel)
+	}
 	if _, configured := params.VLLM.ModelRunParams["compilation-config.cudagraph_mode"]; !configured {
 		if mode, ok := hfgen.ResolveCUDAGraphMode(params.VLLM.ModelName, gpuConfig.GPUModel); ok {
 			params.VLLM.ModelRunParams["compilation-config.cudagraph_mode"] = mode
@@ -1443,6 +1473,9 @@ func applyGeneratorRuntimeOverrides(params *pkgmodel.PresetParam, gpuConfig *sku
 	}
 	if dtype, ok := hfgen.ResolveIndexerKVDtype(params.Architectures, gpuConfig.GPUModel); ok {
 		params.VLLM.ModelRunParams["attention-config.indexer_kv_dtype"] = dtype
+	}
+	if config, ok := hfgen.ResolveEngramConfig(params.Architectures, gpuConfig.GPUModel); ok {
+		params.VLLM.ModelRunParams["engram-config"] = config
 	}
 }
 
@@ -1478,68 +1511,96 @@ func defaultFallbackNGramConfig() *pkgmodel.SpeculativeDecodingConfig {
 	}
 }
 
-type rawInferenceConfig struct {
-	VLLM map[string]any `yaml:"vllm"`
-}
-
-// loadUserSpeculativeConfig returns true when the user-provided inference
-// ConfigMap already sets vllm.speculative-config. Callers should only invoke it
-// on the vLLM + annotation=true path so unrelated workloads do not gain a new
-// dependency on ConfigMap readability/parsing.
-func loadUserSpeculativeConfig(ctx context.Context, kubeClient client.Client, ws *v1beta1.Workspace) (bool, error) {
+// loadUserSpeculativeConfig reads overrides only on the opted-in vLLM path.
+func loadUserSpeculativeConfig(ctx context.Context, kubeClient client.Client, ws *v1beta1.Workspace) (map[string]any, error) {
 	if ws == nil || ws.Inference == nil || ws.Inference.Config == "" {
-		return false, nil
+		return nil, nil
 	}
 	if kubeClient == nil {
-		return false, fmt.Errorf("kube client is required to read inference config %q", ws.Inference.Config)
+		return nil, fmt.Errorf("kube client is required to read inference config %q", ws.Inference.Config)
 	}
 
 	var cm corev1.ConfigMap
 	if err := kubeClient.Get(ctx, client.ObjectKey{Name: ws.Inference.Config, Namespace: ws.Namespace}, &cm); err != nil {
-		return false, fmt.Errorf("get inference config ConfigMap %s/%s: %w", ws.Namespace, ws.Inference.Config, err)
+		return nil, fmt.Errorf("get inference config ConfigMap %s/%s: %w", ws.Namespace, ws.Inference.Config, err)
 	}
 
 	inferenceConfigYAML, ok := cm.Data[pkgmodel.ConfigfileNameVLLM]
 	if !ok {
-		return false, fmt.Errorf("ConfigMap %s/%s missing %q", ws.Namespace, ws.Inference.Config, pkgmodel.ConfigfileNameVLLM)
+		return nil, fmt.Errorf("ConfigMap %s/%s missing %q", ws.Namespace, ws.Inference.Config, pkgmodel.ConfigfileNameVLLM)
 	}
 
-	var cfg rawInferenceConfig
-	if err := yaml.Unmarshal([]byte(inferenceConfigYAML), &cfg); err != nil {
-		return false, fmt.Errorf("parse %s/%s %q: %w", ws.Namespace, ws.Inference.Config, pkgmodel.ConfigfileNameVLLM, err)
+	cfg, err := parseInferenceRuntimeConfig(inferenceConfigYAML)
+	if err != nil {
+		return nil, fmt.Errorf("parse %s/%s %q: %w", ws.Namespace, ws.Inference.Config, pkgmodel.ConfigfileNameVLLM, err)
 	}
-	if cfg.VLLM == nil {
-		return false, nil
-	}
-	_, ok = cfg.VLLM["speculative-config"]
-	return ok, nil
+	return cfg.VLLM, nil
 }
 
 // applySpeculativeDecoding evaluates the speculative-decoding annotation and,
 // when applicable, mutates inferenceParam.VLLM.ModelRunParams to include the
-// --speculative-config flag. The decision is returned so callers (and tests)
-// can assert the reason without inspecting the ModelRunParams map.
-func applySpeculativeDecoding(ws *v1beta1.Workspace, runtimeName pkgmodel.RuntimeName, inferenceParam *pkgmodel.PresetParam, userConfigHasSpeculativeOverride bool) (SpecDecoDecision, error) {
+// --speculative-config flag and any engine args the config requires.
+// pipelineParallel reports whether the workload spans nodes with pipeline
+// parallelism; gpuConfig and numNodes describe the GPUs the weights shard
+// across. The decision is returned so callers (and tests) can assert the
+// reason without inspecting the ModelRunParams map.
+func applySpeculativeDecoding(ws *v1beta1.Workspace, runtimeName pkgmodel.RuntimeName, inferenceParam *pkgmodel.PresetParam, userConfig map[string]any, pipelineParallel bool, gpuConfig *sku.GPUConfig, numNodes int) (SpecDecoDecision, error) {
 	if runtimeName != pkgmodel.RuntimeNameVLLM ||
 		ws.Annotations[v1beta1.AnnotationEnableSpeculativeDecoding] != "true" {
 		return SpecDecoSkip, nil
 	}
-	if userConfigHasSpeculativeOverride {
+	if _, overridden := userConfig["speculative-config"]; overridden {
 		return SpecDecoConfigMapOverride, nil
 	}
 
-	// Current reachable injected methods in this PR are only preset-tuned mtp
-	// and the universal ngram fallback; both are allowed under pipeline
-	// parallelism. If KAITO later wires a method that is not PP-safe, add an
-	// explicit guard here before injection.
-	// Preset-tuned entry wins when present (e.g. mtp for DeepSeek R1/V3/V3.2). Otherwise
-	// fall back to the universal ngram default so any preset the user opts into
-	// still gets a working speculative-config injection.
+	// Preset-tuned entry wins when present (e.g. mtp for DeepSeek R1/V3/V3.2,
+	// dspark for DeepSeek-V4.1-Flash). Otherwise fall back to the universal
+	// ngram default so any preset the user opts into still gets a working
+	// speculative-config injection. mtp, ngram and dspark run under pipeline
+	// parallelism, but dspark's adaptive verification needs full CUDA graphs
+	// and a pipeline-parallel size of one
+	// (https://github.com/vllm-project/vllm/blob/v0.30.0/vllm/config/vllm.py#L2934-L2943),
+	// after resolving user overrides.
 	sdCfg := inferenceParam.SpeculativeDecoding
 	fallback := false
 	if sdCfg == nil {
 		sdCfg = defaultFallbackNGramConfig()
 		fallback = true
+	}
+	if sdCfg.DSpark != nil && sdCfg.DSpark.EnableAdaptiveVerification {
+		compatible, graphModeOverride, err := adaptiveVerificationSupported(inferenceParam, userConfig, pipelineParallel, gpuConfig)
+		if err != nil {
+			return SpecDecoNotEvaluated, err
+		}
+		if graphModeOverride != "" {
+			if inferenceParam.VLLM.ModelRunParams == nil {
+				inferenceParam.VLLM.ModelRunParams = make(map[string]string)
+			}
+			// Preserve JSON graph-mode overrides when vLLM merges dotted flags last.
+			inferenceParam.VLLM.ModelRunParams["compilation-config.cudagraph_mode"] = graphModeOverride
+		}
+		if !compatible {
+			cfg := *sdCfg
+			dspark := *sdCfg.DSpark
+			dspark.EnableAdaptiveVerification = false
+			cfg.DSpark = &dspark
+			sdCfg = &cfg
+		}
+	}
+	// DSpark's draft head needs memory beyond the weights. When the estimate is
+	// unavailable (unknown model size or GPU memory), keep the user's opt-in.
+	if sdCfg.DSpark != nil {
+		headroom, known, err := estimator.KVHeadroomBytesPerGPU(inferenceParam, gpuConfig, numNodes)
+		if err != nil {
+			return SpecDecoNotEvaluated, err
+		}
+		if known && headroom < minDSparkKVHeadroomGiB*float64(sku.GiB) {
+			klog.InfoS("Not injecting speculative decoding: too little GPU memory left after model weights",
+				"workspace", klog.KObj(ws), "method", sdCfg.Method,
+				"estimatedHeadroomGiBPerGPU", fmt.Sprintf("%.1f", headroom/float64(sku.GiB)),
+				"requiredGiBPerGPU", minDSparkKVHeadroomGiB)
+			return SpecDecoSkippedLowGPUMemory, nil
+		}
 	}
 	blob, err := vllmFormat(sdCfg)
 	if err != nil {
@@ -1549,6 +1610,9 @@ func applySpeculativeDecoding(ws *v1beta1.Workspace, runtimeName pkgmodel.Runtim
 		inferenceParam.VLLM.ModelRunParams = map[string]string{}
 	}
 	inferenceParam.VLLM.ModelRunParams["speculative-config"] = shellSingleQuote(blob)
+	for flag, value := range sdCfg.EngineArgs {
+		inferenceParam.VLLM.ModelRunParams[flag] = value
+	}
 	if fallback {
 		return SpecDecoInjectedNGramFallback, nil
 	}
@@ -1558,25 +1622,48 @@ func applySpeculativeDecoding(ws *v1beta1.Workspace, runtimeName pkgmodel.Runtim
 // vllmFormat converts a typed SpeculativeDecodingConfig into the JSON shape
 // vLLM expects for --speculative-config.
 func vllmFormat(sd *pkgmodel.SpeculativeDecodingConfig) (string, error) {
+	const (
+		methodKey                     = "method"
+		modelKey                      = "model"
+		numSpeculativeTokensKey       = "num_speculative_tokens"
+		promptLookupMaxKey            = "prompt_lookup_max"
+		draftSampleMethodKey          = "draft_sample_method"
+		rejectionSampleMethodKey      = "rejection_sample_method"
+		enableAdaptiveVerificationKey = "enable_adaptive_verification"
+	)
 	if sd == nil {
 		return "", fmt.Errorf("vllmFormat: SpeculativeDecodingConfig is nil")
 	}
-	m := map[string]any{"method": sd.Method}
+	m := map[string]any{methodKey: sd.Method}
 	switch sd.Method {
 	case "mtp":
 		if sd.MTP == nil {
 			return "", fmt.Errorf("method=mtp requires mtp config")
 		}
-		m["num_speculative_tokens"] = sd.MTP.NumSpeculativeTokens
+		m[numSpeculativeTokensKey] = sd.MTP.NumSpeculativeTokens
 		if sd.MTP.Model != "" {
-			m["model"] = sd.MTP.Model
+			m[modelKey] = sd.MTP.Model
 		}
 	case "ngram":
 		if sd.NGram == nil {
 			return "", fmt.Errorf("method=ngram requires ngram config")
 		}
-		m["num_speculative_tokens"] = sd.NGram.NumSpeculativeTokens
-		m["prompt_lookup_max"] = sd.NGram.PromptLookupMax
+		m[numSpeculativeTokensKey] = sd.NGram.NumSpeculativeTokens
+		m[promptLookupMaxKey] = sd.NGram.PromptLookupMax
+	case "dspark":
+		if sd.DSpark == nil {
+			return "", fmt.Errorf("method=dspark requires dspark config")
+		}
+		m[numSpeculativeTokensKey] = sd.DSpark.NumSpeculativeTokens
+		if sd.DSpark.DraftSampleMethod != "" {
+			m[draftSampleMethodKey] = sd.DSpark.DraftSampleMethod
+		}
+		if sd.DSpark.RejectionSampleMethod != "" {
+			m[rejectionSampleMethodKey] = sd.DSpark.RejectionSampleMethod
+		}
+		if sd.DSpark.EnableAdaptiveVerification {
+			m[enableAdaptiveVerificationKey] = true
+		}
 	default:
 		return "", fmt.Errorf("unsupported speculative decoding method %q", sd.Method)
 	}

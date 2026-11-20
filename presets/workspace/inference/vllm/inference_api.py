@@ -13,6 +13,7 @@
 
 import argparse
 import collections
+import json
 import logging
 import os
 import socket
@@ -110,6 +111,26 @@ class KAITOArgumentParser(argparse.ArgumentParser):
             help="Disable the queue-depth rate limit guard (which otherwise returns HTTP 429 when the waiting queue exceeds max-num-seqs).",
         )
         self.add_argument(
+            "--kaito-preload",
+            action="store_true",
+            default=False,
+            help="Run vllm preload with the same model args instead of serving, "
+            "so a server started with --load-format ipc_cache can map the weights "
+            "it keeps on the GPU.",
+        )
+        self.add_argument(
+            "--kaito-preload-socket-dir",
+            type=str,
+            default=None,
+            help="Directory for the preload daemon sockets. Used with --kaito-preload.",
+        )
+        self.add_argument(
+            "--kaito-preload-health-port",
+            type=int,
+            default=None,
+            help="Port for the preload daemon /health endpoint. Used with --kaito-preload.",
+        )
+        self.add_argument(
             "--kaito-disable-benchmark-control",
             action="store_true",
             default=False,
@@ -166,9 +187,12 @@ class KAITOArgumentParser(argparse.ArgumentParser):
             # Despite its name, this is also the native CPU memory budget.
             # vLLM 0.25.1's 0.92 default can exceed available RAM; leave OS and
             # startup headroom without overriding explicit CLI/YAML settings.
-            vllm_args.gpu_memory_utilization = (
-                0.8 if is_cpu_runtime(vllm_args) else get_max_gpu_memory_utilization()
-            )
+            if is_cpu_runtime(vllm_args):
+                vllm_args.gpu_memory_utilization = 0.8
+            else:
+                vllm_args.gpu_memory_utilization = get_max_gpu_memory_utilization(
+                    preload_extra_config=_preload_extra_config(vllm_args)
+                )
         # This is a GPU-to-host offload default, not a native CPU KV cache
         # budget. Apply it after config merging, and only for GPU inference.
         if (
@@ -441,8 +465,53 @@ _GPU_MEM_INFO_SNIPPET = (
     "print(f'KAITO_MEM_INFO {free} {total}')"
 )
 
+# Snippet executed in a throwaway subprocess to read how much GPU memory the
+# vllm preload daemon holds for its weights on a device. vLLM counts those
+# shared weights toward the server's gpu_memory_utilization budget, so the
+# probe adds them back to the free memory. Unreachable daemon reads as 0, the
+# same as vLLM assumes before it falls back to loading from disk.
+_PRELOAD_DAEMON_MEM_SNIPPET = (
+    "import json, sys, torch; "
+    "from vllm.config.load import LoadConfig; "
+    "from vllm.model_executor.model_loader.weight_cache.ipc_loader import IpcModelLoader; "
+    "torch.cuda.set_device(int(sys.argv[1])); "
+    "cfg = LoadConfig(load_format='ipc_cache', model_loader_extra_config=json.loads(sys.argv[2])); "
+    "print(f'KAITO_PRELOAD_MEM {IpcModelLoader(cfg)._daemon_memory()}')"
+)
+
 # Fallback gpu_memory_utilization used when the GPU memory probe fails.
 _DEFAULT_GPU_MEMORY_UTILIZATION = 0.84
+
+
+def _preload_extra_config(vllm_args: argparse.Namespace) -> dict | None:
+    """Return the ipc_cache loader config when the server loads from preload."""
+    if getattr(vllm_args, "load_format", None) != "ipc_cache":
+        return None
+    extra = getattr(vllm_args, "model_loader_extra_config", None) or {}
+    if isinstance(extra, str):
+        extra = json.loads(extra)
+    return dict(extra)
+
+
+def _query_preload_daemon_memory(device_index: int, extra_config: dict) -> int:
+    """Return the bytes the preload daemon holds on *device_index*, 0 if unknown."""
+    result = subprocess.run(
+        [
+            sys.executable,
+            "-c",
+            _PRELOAD_DAEMON_MEM_SNIPPET,
+            str(device_index),
+            json.dumps(extra_config),
+        ],
+        capture_output=True,
+        text=True,
+        timeout=600,
+        check=True,
+    )
+    for line in result.stdout.splitlines():
+        if line.startswith("KAITO_PRELOAD_MEM"):
+            return int(line.split()[1])
+    raise RuntimeError(f"unexpected preload daemon output: {result.stdout!r}")
 
 
 def _query_gpu_mem_info(device_index: int) -> tuple[int, int]:
@@ -466,7 +535,9 @@ def _query_gpu_mem_info(device_index: int) -> tuple[int, int]:
     raise RuntimeError(f"unexpected GPU mem-info output: {result.stdout!r}")
 
 
-def get_max_gpu_memory_utilization(device_index: int = 0) -> float:
+def get_max_gpu_memory_utilization(
+    device_index: int = 0, preload_extra_config: dict | None = None
+) -> float:
     # Calculate gpu_memory_utilization based on available GPU memory.
     # This ensures vLLM only uses currently free memory to avoid OOM errors.
     # See https://github.com/kaito-project/kaito/issues/1374.
@@ -482,6 +553,22 @@ def get_max_gpu_memory_utilization(device_index: int = 0) -> float:
         )
         return _DEFAULT_GPU_MEMORY_UTILIZATION
 
+    if preload_extra_config is not None:
+        try:
+            daemon_bytes = _query_preload_daemon_memory(
+                device_index, preload_extra_config
+            )
+        except Exception as exc:
+            logger.warning(
+                "Could not query the preload daemon (%s); assuming it holds no weights",
+                exc,
+            )
+            daemon_bytes = 0
+        logger.info(
+            f"Preload daemon holds {daemon_bytes} bytes on device {device_index}"
+        )
+        free_bytes += daemon_bytes
+
     # Reserve an additional 600MiB for pytorch memory fragments, calculated based on profiling
     free_memory = free_bytes - 600 * 1024**2
 
@@ -493,6 +580,37 @@ def get_max_gpu_memory_utilization(device_index: int = 0) -> float:
 
     logger.info(f"Set default gpu_memory_utilization to {gpu_memory_utilization}")
     return gpu_memory_utilization
+
+
+def run_preload(args: argparse.Namespace) -> None:
+    """Run vllm preload with the model args the server is started with.
+
+    Parsing goes through the same KAITO parser and config file as the server,
+    so the daemon's weights carry the fingerprint the server expects.
+    """
+    if getattr(args, "load_format", None) in ("ipc_cache", "peer_cache"):
+        raise ValueError(
+            "--kaito-preload loads the weights itself; drop --load-format "
+            f"{args.load_format}"
+        )
+
+    from vllm.entrypoints.cli.preload import PreloadSubcommand
+
+    defaults = vars(_preload_defaults())
+    merged = dict(defaults)
+    merged.update({k: v for k, v in vars(args).items() if k in defaults})
+    merged["weight_cache_socket_dir"] = args.kaito_preload_socket_dir
+    merged["weight_cache_health_port"] = args.kaito_preload_health_port
+    PreloadSubcommand.cmd(argparse.Namespace(**merged))
+
+
+def _preload_defaults() -> argparse.Namespace:
+    """Return the default values of every vllm preload argument."""
+    from vllm.entrypoints.cli.preload import PreloadSubcommand
+
+    parser = FlexibleArgumentParser(add_help=False)
+    PreloadSubcommand.add_cli_args(parser)
+    return parser.parse_args([])
 
 
 def configure_middlewares(args: argparse.Namespace) -> None:
@@ -534,6 +652,10 @@ def _wrap_build_and_serve(hook):
 if __name__ == "__main__":
     parser = KAITOArgumentParser(description="KAITO wrapper of vLLM serving server")
     args = parser.parse_args()
+
+    if args.kaito_preload:
+        run_preload(args)
+        sys.exit(0)
 
     # set LoRA adapters
     if args.lora_modules is None:

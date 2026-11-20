@@ -955,3 +955,47 @@ func TestGetInferenceCommandVLLMMaxNumSeqsTighterCapWins(t *testing.T) {
 		})
 	}
 }
+
+func TestGetInferenceCommandVLLMPreload(t *testing.T) {
+	newParam := func() *PresetParam {
+		return &PresetParam{
+			Metadata: Metadata{
+				Version: "https://huggingface.co/microsoft/Phi-3-mini-4k-instruct/commit/abc123",
+			},
+			RuntimeParam: RuntimeParam{
+				VLLM: VLLMParam{
+					BaseCommand:    "python3 /workspace/vllm/inference_api.py",
+					ModelRunParams: map[string]string{"load_format": "mistral"},
+				},
+			},
+		}
+	}
+	rc := RuntimeContext{RuntimeName: RuntimeNameVLLM, SKUNumGPUs: 1, NumNodes: 1}
+
+	rc.VLLMPreload = VLLMPreloadDaemon
+	daemon := newParam().GetInferenceCommand(rc)
+	require.Len(t, daemon, 3)
+	assert.True(t, strings.HasPrefix(daemon[2], "nvidia-smi --query-gpu=uuid"))
+	assert.Contains(t, daemon[2], `export CUDA_VISIBLE_DEVICES="$(cat /var/run/kaito-preload/gpus)" && exec python3 /workspace/vllm/inference_api.py`)
+	assert.Contains(t, daemon[2], "--kaito-preload ")
+	assert.Contains(t, daemon[2], "--kaito-preload-socket-dir=/var/run/kaito-preload")
+	assert.Contains(t, daemon[2], "--kaito-preload-health-port=5003")
+	assert.Contains(t, daemon[2], "--model=microsoft/Phi-3-mini-4k-instruct")
+	assert.Contains(t, daemon[2], "--load_format=mistral")
+	assert.NotContains(t, daemon[2], "ipc_cache")
+
+	rc.VLLMPreload = VLLMPreloadServer
+	server := newParam().GetInferenceCommand(rc)
+	require.Len(t, server, 3)
+	assert.True(t, strings.HasPrefix(server[2], `export CUDA_VISIBLE_DEVICES="$(cat /var/run/kaito-preload/gpus)" && exec python3 /workspace/vllm/inference_api.py`))
+	assert.Contains(t, server[2], "--load-format=ipc_cache")
+	assert.Contains(t, server[2], `--model-loader-extra-config='{"socket_dir": "/var/run/kaito-preload"}'`)
+	assert.Contains(t, server[2], "--model=microsoft/Phi-3-mini-4k-instruct")
+	assert.NotContains(t, server[2], "load_format")
+	assert.NotContains(t, server[2], "kaito-preload ")
+
+	rc.VLLMPreload = ""
+	plain := newParam().GetInferenceCommand(rc)
+	assert.NotContains(t, plain[2], "kaito-preload")
+	assert.NotContains(t, plain[2], "CUDA_VISIBLE_DEVICES")
+}

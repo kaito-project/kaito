@@ -111,6 +111,12 @@ const (
 	// skipping the HuggingFace download entirely.
 	AnnotationUseLocalWeights = KAITOPrefix + "use-local-weights"
 
+	// AnnotationEnableVLLMPreload keeps the model weights resident on the GPU in a
+	// vllm preload daemon, so a restart of the inference container maps them over
+	// CUDA IPC (--load-format ipc_cache) instead of reloading them from disk. Set
+	// it to "true" to enable. Only "true" and "false" are valid values.
+	AnnotationEnableVLLMPreload = KAITOPrefix + "enable-vllm-preload"
+
 	// LocalWeightsHostPathPrefix is the node directory under which baked model
 	// weights live, one subdirectory per preset (see GetLocalWeightsPath). Used
 	// when kaito.sh/use-local-weights is enabled.
@@ -262,6 +268,15 @@ func UseLocalWeights(ws *Workspace) bool {
 		return false
 	}
 	return ws.Annotations[AnnotationUseLocalWeights] == "true"
+}
+
+// UseVLLMPreload reports whether the workspace opts into the vllm preload daemon
+// (kaito.sh/enable-vllm-preload: "true").
+func UseVLLMPreload(ws *Workspace) bool {
+	if ws == nil {
+		return false
+	}
+	return ws.Annotations[AnnotationEnableVLLMPreload] == "true"
 }
 
 // GetLocalWeightsPath returns the node directory holding baked model weights for

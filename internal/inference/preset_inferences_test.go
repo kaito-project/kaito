@@ -2740,7 +2740,7 @@ func TestGeneratePresetInference_CapturedTarget(t *testing.T) {
 			readsAtCapture := reads
 			inventoryAvailable = false
 			spec := &corev1.PodSpec{}
-			require.NoError(t, GenerateInferencePodSpec(config, 1, "", "", "", &lmCacheResolvedConfig{})(gctx, spec))
+			require.NoError(t, GenerateInferencePodSpec(config, 1, "", "", "", &lmCacheResolvedConfig{}, &vllmPreloadResolvedConfig{})(gctx, spec))
 			require.Equal(t, readsAtCapture, reads, "pod generation must reuse the captured target")
 			require.Equal(t, getPresetInferenceImageName(pkgmodel.RuntimeNameVLLM, cpu), spec.Containers[0].Image)
 			_, hasGPU := spec.Containers[0].Resources.Limits[corev1.ResourceName("nvidia.com/gpu")]

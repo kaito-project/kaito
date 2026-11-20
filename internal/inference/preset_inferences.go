@@ -310,8 +310,9 @@ func GeneratePresetInference(ctx context.Context, workspaceObj *v1beta1.Workspac
 	localModelWeightsPath := v1beta1.GetLocalWeightsPath(workspaceObj)
 
 	lmCacheConfig := &lmCacheResolvedConfig{}
+	preloadConfig := &vllmPreloadResolvedConfig{}
 	podOpts := []builder.TypedManifestModifier[builder.WorkspaceGeneratorContext, corev1.PodSpec]{
-		GenerateInferencePodSpec(gpuConfig, numNodes, streamingModelPath, streamingLoadFormat, localModelWeightsPath, lmCacheConfig),
+		GenerateInferencePodSpec(gpuConfig, numNodes, streamingModelPath, streamingLoadFormat, localModelWeightsPath, lmCacheConfig, preloadConfig),
 		SetProvisionerNodeSelector,
 		SetHFToken,
 	}
@@ -341,6 +342,8 @@ func GeneratePresetInference(ctx context.Context, workspaceObj *v1beta1.Workspac
 		podOpts = append(podOpts, SetBenchmarkConfig(distributed))
 	}
 	podOpts = append(podOpts, ConfigureLMCacheSidecar(lmCacheConfig))
+	// Last, so the preload sidecar copies the main container's final mounts and env.
+	podOpts = append(podOpts, ConfigureVLLMPreloadSidecar(preloadConfig))
 
 	ssOpts := []builder.TypedManifestModifier[builder.WorkspaceGeneratorContext, appsv1.StatefulSet]{
 		manifests.GenerateStatefulSetManifest(revisionNum, numNodes),
@@ -694,7 +697,7 @@ func GetPresetQuantization(presetName string) string {
 
 // GenerateInferencePodSpec reuses the captured target: nil gpuConfig denotes CPU.
 func GenerateInferencePodSpec(gpuConfig *sku.GPUConfig, numNodes int, streamingModelPath, streamingLoadFormat,
-	localModelWeightsPath string, lmCacheConfig *lmCacheResolvedConfig,
+	localModelWeightsPath string, lmCacheConfig *lmCacheResolvedConfig, preloadConfig *vllmPreloadResolvedConfig,
 ) func(*builder.WorkspaceGeneratorContext, *corev1.PodSpec) error {
 	return func(ctx *builder.WorkspaceGeneratorContext, spec *corev1.PodSpec) error {
 		// additional volume
@@ -807,7 +810,7 @@ func GenerateInferencePodSpec(gpuConfig *sku.GPUConfig, numNodes int, streamingM
 		if gpuConfig != nil {
 			skuNumGPUs = gpuConfig.GPUCount
 		}
-		commands := inferenceParam.GetInferenceCommand(pkgmodel.RuntimeContext{
+		runtimeContext := pkgmodel.RuntimeContext{
 			RuntimeName:          runtimeName,
 			GPUConfig:            gpuConfig,
 			ConfigVolume:         cmVolumeMountRef,
@@ -826,7 +829,28 @@ func GenerateInferencePodSpec(gpuConfig *sku.GPUConfig, numNodes int, streamingM
 				LocalModelWeightsPath: localModelWeightsPath,
 				TargetCPU:             isCPUInference,
 			},
-		})
+		}
+		// Use the model's ReadinessTimeout if specified; otherwise fall back to the
+		// default. containerStatuses[].started is reliable for downstream.
+		readinessTimeout := inferenceParam.ReadinessTimeout
+		if readinessTimeout <= 0 {
+			readinessTimeout = defaultStartupProbeTimeout
+		}
+
+		preloadEligible, preloadReason := isVLLMPreloadEligible(ctx.Workspace, runtimeName, isCPUInference,
+			shouldUseDistributedInference(ctx, numNodes), streamingModelPath)
+		if preloadEligible {
+			// The daemon command is built from a copy so it gets the same model
+			// args as the server without the server-side load format.
+			daemonContext := runtimeContext
+			daemonContext.VLLMPreload = pkgmodel.VLLMPreloadDaemon
+			preloadConfig.command = inferenceParam.DeepCopy().GetInferenceCommand(daemonContext)
+			preloadConfig.readinessTimeout = readinessTimeout
+			runtimeContext.VLLMPreload = pkgmodel.VLLMPreloadServer
+		} else if v1beta1.UseVLLMPreload(ctx.Workspace) {
+			klog.InfoS("vLLM preload disabled", "workspace", klog.KObj(ctx.Workspace), "reason", preloadReason)
+		}
+		commands := inferenceParam.GetInferenceCommand(runtimeContext)
 		lmCacheConfig.runtimeName = runtimeName
 		lmCacheConfig.runParams = inferenceParam.VLLM.ModelRunParams
 		lmCacheConfig.targetCPU = isCPUInference
@@ -836,13 +860,6 @@ func GenerateInferencePodSpec(gpuConfig *sku.GPUConfig, numNodes int, streamingM
 		appendRequiredNodeSelectorRequirements(spec, nodeRequirements)
 		applyCPUDedicatedPlacement(ctx.Workspace, spec, isCPUInference)
 		spec.ImagePullSecrets = GetInferenceImageInfo(ctx.Ctx, ctx.Workspace)
-
-		// Use the model's ReadinessTimeout if specified; otherwise fall back to the
-		// default. containerStatuses[].started is reliable for downstream.
-		readinessTimeout := inferenceParam.ReadinessTimeout
-		if readinessTimeout <= 0 {
-			readinessTimeout = defaultStartupProbeTimeout
-		}
 
 		mainContainerEnv := buildMainContainerEnv(runtimeName, inferenceParam, gpuConfig, cudaHome, localModelWeightsPath)
 

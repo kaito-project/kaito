@@ -56,6 +56,24 @@ const (
 	PortRayCluster = 6379
 
 	vllmShutdownTimeoutSeconds = "50"
+
+	// VLLMPreloadSocketDir holds the vllm preload daemon sockets and the GPU list
+	// the daemon runs on. It is an emptyDir shared by the daemon and the server.
+	VLLMPreloadSocketDir = "/var/run/kaito-preload"
+	// VLLMPreloadGPUsFile lists the GPU UUIDs the daemon runs on, in CUDA order.
+	VLLMPreloadGPUsFile = VLLMPreloadSocketDir + "/gpus"
+	// VLLMPreloadHealthPort serves the daemon's /health once every rank is cached.
+	VLLMPreloadHealthPort = 5003
+)
+
+// VLLMPreloadRole picks which side of vllm preload a command is built for.
+type VLLMPreloadRole string
+
+const (
+	// VLLMPreloadDaemon runs vllm preload with the server's model args.
+	VLLMPreloadDaemon VLLMPreloadRole = "daemon"
+	// VLLMPreloadServer serves with --load-format ipc_cache from the daemon.
+	VLLMPreloadServer VLLMPreloadRole = "server"
 )
 
 // Metadata defines the metadata for a model.
@@ -433,6 +451,10 @@ type RuntimeContextExtraArguments struct {
 
 	// TargetCPU switches the vLLM preset command line to CPU execution.
 	TargetCPU bool
+
+	// VLLMPreload builds the single-node vLLM command for the preload daemon or
+	// for the server that maps the daemon's weights. Empty means no preload.
+	VLLMPreload VLLMPreloadRole
 }
 
 func (p *PresetParam) GetInferenceCommand(rc RuntimeContext) []string {
@@ -612,12 +634,44 @@ func (p *PresetParam) buildVLLMInferenceCommand(rc RuntimeContext) []string {
 		if _, configured := p.VLLM.ModelRunParams["shutdown-timeout"]; !configured {
 			p.VLLM.ModelRunParams["shutdown-timeout"] = vllmShutdownTimeoutSeconds
 		}
+		switch rc.VLLMPreload {
+		case VLLMPreloadDaemon:
+			return p.buildVLLMPreloadDaemonCommand()
+		case VLLMPreloadServer:
+			return p.buildVLLMPreloadServerCommand()
+		}
 		modelCommand := buildCmdStr(p.VLLM.BaseCommand, p.VLLM.ModelRunParams)
 		return shellCmd("exec " + modelCommand)
 	}
 
 	// Multi-node path: set up a Ray cluster for cross-node parallelism.
 	return p.buildMultiNodeRayCommand(rc)
+}
+
+// buildVLLMPreloadDaemonCommand runs the vLLM entrypoint in preload mode with
+// the same model args as the server, so the cached weights match its config.
+// It records the GPU UUIDs it runs on and pins CUDA to that order, so the
+// server can use the same GPUs in the same order.
+func (p *PresetParam) buildVLLMPreloadDaemonCommand() []string {
+	p.VLLM.ModelRunParams["kaito-preload"] = ""
+	p.VLLM.ModelRunParams["kaito-preload-socket-dir"] = VLLMPreloadSocketDir
+	p.VLLM.ModelRunParams["kaito-preload-health-port"] = strconv.Itoa(VLLMPreloadHealthPort)
+	modelCommand := buildCmdStr(p.VLLM.BaseCommand, p.VLLM.ModelRunParams)
+	return shellCmd(fmt.Sprintf(
+		`nvidia-smi --query-gpu=uuid --format=csv,noheader | paste -sd, - > %[1]s.tmp && mv %[1]s.tmp %[1]s && `+
+			`export CUDA_VISIBLE_DEVICES="$(cat %[1]s)" && exec %[2]s`,
+		VLLMPreloadGPUsFile, modelCommand))
+}
+
+// buildVLLMPreloadServerCommand serves with --load-format ipc_cache on the GPUs
+// the preload daemon runs on. If the daemon is gone or its weights don't match,
+// vLLM falls back to loading from disk.
+func (p *PresetParam) buildVLLMPreloadServerCommand() []string {
+	p.VLLM.ModelRunParams["load-format"] = "ipc_cache"
+	delete(p.VLLM.ModelRunParams, "load_format")
+	p.VLLM.ModelRunParams["model-loader-extra-config"] = fmt.Sprintf(`'{"socket_dir": "%s"}'`, VLLMPreloadSocketDir)
+	modelCommand := buildCmdStr(p.VLLM.BaseCommand, p.VLLM.ModelRunParams)
+	return shellCmd(fmt.Sprintf(`export CUDA_VISIBLE_DEVICES="$(cat %s)" && exec %s`, VLLMPreloadGPUsFile, modelCommand))
 }
 
 // configureParallelism sets the vLLM parallelism parameters according to a

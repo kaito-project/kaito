@@ -95,11 +95,11 @@ func PrepareOutputDir(outputDir string) (string, error) {
 		return DefaultOutputVolumePath, nil
 	}
 	cleanPath := outputDir
-	if !strings.HasPrefix(cleanPath, DefaultBaseDir) {
+	if outputDir != DefaultBaseDir && !strings.HasPrefix(outputDir, DefaultBaseDir+"/") {
 		cleanPath = path.Join(DefaultBaseDir, outputDir)
 	}
 	cleanPath = path.Clean(cleanPath)
-	if cleanPath == DefaultBaseDir || !strings.HasPrefix(cleanPath, DefaultBaseDir) {
+	if cleanPath == DefaultBaseDir || !strings.HasPrefix(cleanPath, DefaultBaseDir+"/") {
 		klog.InfoS("Invalid output_dir specified, must be a directory, using default", "outputDir", outputDir, "defaultOutputDir", DefaultOutputVolumePath)
 		return DefaultOutputVolumePath, fmt.Errorf("invalid output_dir specified: '%s', must be a directory", outputDir)
 	}

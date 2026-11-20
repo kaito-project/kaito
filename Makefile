@@ -397,7 +397,7 @@ docker-build-adapter: docker-buildx ## Build Docker images for adapters.
 .PHONY: docker-build-dataset
 docker-build-dataset: docker-buildx ## Build Docker images for datasets.
 	docker buildx build \
-		--build-arg ADAPTER_PATH=test/fixtures/datasets/dataset1 \
+		--build-arg DATASET_PATH=test/fixtures/datasets/dataset1 \
 		--file ./test/fixtures/datasets/Dockerfile \
 		--output=$(OUTPUT_TYPE) \
 		--platform="linux/$(ARCH)" \
@@ -405,7 +405,7 @@ docker-build-dataset: docker-buildx ## Build Docker images for datasets.
 		$(BUILD_FLAGS) \
 		--tag $(REGISTRY)/e2e-dataset:0.0.1 .
 	docker buildx build \
-		--build-arg ADAPTER_PATH=test/fixtures/datasets/dataset2 \
+		--build-arg DATASET_PATH=test/fixtures/datasets/dataset2 \
 		--file ./test/fixtures/datasets/Dockerfile \
 		--output=$(OUTPUT_TYPE) \
 		--platform="linux/$(ARCH)" \

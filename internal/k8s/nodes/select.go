@@ -24,42 +24,29 @@ import (
 // SelectNodes sorts qualified nodes by preferred, previously used, and
 // provisioner-created, then returns the first count.
 func SelectNodes(qualified []*corev1.Node, preferred []string, previous []string, count int) []*corev1.Node {
-	sort.Slice(qualified, func(i, j int) bool {
-		iPreferred := slices.Contains(preferred, qualified[i].Name)
-		jPreferred := slices.Contains(preferred, qualified[j].Name)
-
-		if iPreferred && !jPreferred {
-			return true
-		} else if !iPreferred && jPreferred {
-			return false
-		} else { // either all are preferred, or none is preferred
-			iPrevious := slices.Contains(previous, qualified[i].Name)
-			jPrevious := slices.Contains(previous, qualified[j].Name)
-
-			if iPrevious && !jPrevious {
-				return true
-			} else if !iPrevious && jPrevious {
-				return false
-			} else { // either all are previous, or none is previous
-				var iCreatedByGPUProvisioner, jCreatedByGPUProvisioner bool
-				_, iCreatedByGPUProvisioner = qualified[i].Labels[labelGPUProvisionerCustom]
-				_, jCreatedByGPUProvisioner = qualified[j].Labels[labelGPUProvisionerCustom]
-				// Choose node created by gpu-provisioner and karpenter since it is more likely to be empty to use.
-				var iCreatedByKarpenter, jCreatedByKarpenter bool
-				_, iCreatedByKarpenter = qualified[i].Labels[karpenterv1.NodePoolLabelKey]
-				_, jCreatedByKarpenter = qualified[j].Labels[karpenterv1.NodePoolLabelKey]
-
-				if (iCreatedByGPUProvisioner && !jCreatedByGPUProvisioner) ||
-					(iCreatedByKarpenter && !jCreatedByKarpenter) {
-					return true
-				} else if (!iCreatedByGPUProvisioner && jCreatedByGPUProvisioner) ||
-					(!iCreatedByKarpenter && jCreatedByKarpenter) {
-					return false
-				} else {
-					return qualified[i].Name < qualified[j].Name
-				}
-			}
+	priority := func(node *corev1.Node) int {
+		if slices.Contains(preferred, node.Name) {
+			return 4
 		}
+		if slices.Contains(previous, node.Name) {
+			return 3
+		}
+		if _, createdByGPUProvisioner := node.Labels[labelGPUProvisionerCustom]; createdByGPUProvisioner {
+			return 2
+		}
+		if _, createdByKarpenter := node.Labels[karpenterv1.NodePoolLabelKey]; createdByKarpenter {
+			return 1
+		}
+		return 0
+	}
+
+	sort.Slice(qualified, func(i, j int) bool {
+		iPriority := priority(qualified[i])
+		jPriority := priority(qualified[j])
+		if iPriority != jPriority {
+			return iPriority > jPriority
+		}
+		return qualified[i].Name < qualified[j].Name
 	})
 
 	if len(qualified) <= count {

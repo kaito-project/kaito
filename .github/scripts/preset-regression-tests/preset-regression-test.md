@@ -21,7 +21,7 @@ Shared matrix and infrastructure policy lives in `.github/preset-regression-conf
 The default safety factor covers modest runtime overhead. Use `minimumGPUsOverrides`
 only for measured model/GPU combinations that need more memory than this estimate.
 
-Correctness configuration is in `benchmarks/gsm8k/config.yaml`. It controls the dataset revision, evaluator version, sample selection, generation profiles, concurrency, retries, timeouts, and allowed accuracy regression. Model-specific execution and generation overrides are resolved before evaluation.
+Correctness configuration is in `test/benchmarks/gsm8k/config.yaml`. It controls the dataset revision, evaluator version, sample selection, generation profiles, concurrency, retries, timeouts, and allowed accuracy regression. Model-specific execution and generation overrides are resolved before evaluation.
 
 ## Run locally
 
@@ -80,7 +80,7 @@ $$
 
 Update baselines only after reviewing successful artifacts and confirming that the environment and runtime represent the intended release. Recollect affected correctness baselines after changing the dataset revision, evaluator, sample selection, prompt/generation profile, or model behavior.
 
-The promotion CLI accepts artifact directories, individual `gsm8k-summary.json` files, and aggregate results JSON files. The baseline path defaults to `benchmarks/gsm8k/baselines.yaml`.
+The promotion CLI accepts artifact directories, individual `gsm8k-summary.json` files, and aggregate results JSON files. The baseline path defaults to `test/benchmarks/gsm8k/baselines.yaml`.
 
 Preview all candidates without modifying files:
 
@@ -100,7 +100,7 @@ python3 .github/scripts/preset-regression-tests/update_preset_regression_baselin
   --artifacts /path/to/preset-regression-h100
 ```
 
-The CLI ignores failed summaries, validates metric ranges, deduplicates by deployment identity, preserves unaffected targets, and sorts the resulting manifest. Always inspect `git diff -- benchmarks/gsm8k/baselines.yaml` before committing.
+The CLI ignores failed summaries, validates metric ranges, deduplicates by deployment identity, preserves unaffected targets, and sorts the resulting manifest. Always inspect `git diff -- test/benchmarks/gsm8k/baselines.yaml` before committing.
 Historical deployment identities may remain in the manifest after the matrix changes.
 Coverage validation requires baselines for active targets but ignores these stale entries
 until replacement measurements have been collected and reviewed.

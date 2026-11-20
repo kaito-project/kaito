@@ -7,10 +7,10 @@ RUN groupadd -r mtbench && useradd -r -g mtbench -d /app mtbench
 
 WORKDIR /app
 
-COPY benchmarks/mt_bench/requirements.txt .
+COPY test/benchmarks/mt_bench/requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-COPY benchmarks/mt_bench/mt_bench_eval.py .
+COPY test/benchmarks/mt_bench/mt_bench_eval.py .
 
 RUN mkdir -p /app/data && chown mtbench:mtbench /app/data
 RUN mkdir /results && chown mtbench:mtbench /results

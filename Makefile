@@ -311,7 +311,7 @@ docker-buildx: ## Build and push docker image for the manager for cross-platform
 docker-build-workspace: ARCH = amd64,linux/arm64
 docker-build-workspace: docker-buildx ## Build Docker image for workspace.
 	docker buildx build \
-		--file ./docker/workspace/Dockerfile \
+		--file ./build/workspace/Dockerfile \
 		--output=$(OUTPUT_TYPE) \
 		--platform="linux/$(ARCH)" \
 		--build-arg VERSION=$(GIT_VERSION) \
@@ -323,7 +323,7 @@ docker-build-workspace: docker-buildx ## Build Docker image for workspace.
 .PHONY: docker-build-ragengine
 docker-build-ragengine: docker-buildx ## Build Docker image for RAG Engine.
 	docker buildx build \
-		--file ./docker/ragengine/Dockerfile \
+		--file ./build/ragengine/Dockerfile \
 		--output=$(OUTPUT_TYPE) \
 		--platform="linux/$(ARCH)" \
 		--build-arg VERSION=$(GIT_VERSION) \
@@ -370,24 +370,24 @@ docker-build-ragservice: docker-buildx ## Build Docker image for RAG Engine serv
 .PHONY: docker-build-adapter
 docker-build-adapter: docker-buildx ## Build Docker images for adapters.
 	docker buildx build \
-		--build-arg ADAPTER_PATH=docker/adapters/adapter1 \
-		--file ./docker/adapters/Dockerfile \
+		--build-arg ADAPTER_PATH=test/fixtures/adapters/adapter1 \
+		--file ./test/fixtures/adapters/Dockerfile \
 		--output=$(OUTPUT_TYPE) \
 		--platform="linux/$(ARCH)" \
 		--pull \
 		$(BUILD_FLAGS) \
 		--tag $(REGISTRY)/e2e-adapter:0.0.1 .
 	docker buildx build \
-		--build-arg ADAPTER_PATH=docker/adapters/adapter2 \
-		--file ./docker/adapters/Dockerfile \
+		--build-arg ADAPTER_PATH=test/fixtures/adapters/adapter2 \
+		--file ./test/fixtures/adapters/Dockerfile \
 		--output=$(OUTPUT_TYPE) \
 		--platform="linux/$(ARCH)" \
 		--pull \
 		$(BUILD_FLAGS) \
 		--tag $(REGISTRY)/e2e-adapter2:0.0.1 .
 	docker buildx build \
-		--build-arg ADAPTER_PATH=docker/adapters/adapter-phi-3-mini-pycoder \
-		--file ./docker/adapters/Dockerfile \
+		--build-arg ADAPTER_PATH=test/fixtures/adapters/adapter-phi-3-mini-pycoder \
+		--file ./test/fixtures/adapters/Dockerfile \
 		--output=$(OUTPUT_TYPE) \
 		--platform="linux/$(ARCH)" \
 		--pull \
@@ -397,16 +397,16 @@ docker-build-adapter: docker-buildx ## Build Docker images for adapters.
 .PHONY: docker-build-dataset
 docker-build-dataset: docker-buildx ## Build Docker images for datasets.
 	docker buildx build \
-		--build-arg ADAPTER_PATH=docker/datasets/dataset1 \
-		--file ./docker/datasets/Dockerfile \
+		--build-arg ADAPTER_PATH=test/fixtures/datasets/dataset1 \
+		--file ./test/fixtures/datasets/Dockerfile \
 		--output=$(OUTPUT_TYPE) \
 		--platform="linux/$(ARCH)" \
 		--pull \
 		$(BUILD_FLAGS) \
 		--tag $(REGISTRY)/e2e-dataset:0.0.1 .
 	docker buildx build \
-		--build-arg ADAPTER_PATH=docker/datasets/dataset2 \
-		--file ./docker/datasets/Dockerfile \
+		--build-arg ADAPTER_PATH=test/fixtures/datasets/dataset2 \
+		--file ./test/fixtures/datasets/Dockerfile \
 		--output=$(OUTPUT_TYPE) \
 		--platform="linux/$(ARCH)" \
 		--pull \
@@ -415,7 +415,7 @@ docker-build-dataset: docker-buildx ## Build Docker images for datasets.
 .PHONY: docker-build-mt-bench
 docker-build-mt-bench: docker-buildx ## Build Docker image for MT-Bench evaluation.
 	docker buildx build \
-		--file ./benchmarks/mt_bench/Dockerfile \
+		--file ./test/benchmarks/mt_bench/Dockerfile \
 		--output=$(OUTPUT_TYPE) \
 		--platform="linux/$(ARCH)" \
 		--pull \
@@ -683,7 +683,7 @@ release-manifest: ## Update manifest and Helm charts for release.
 .PHONY: post-release-doc-update
 post-release-doc-update:
 	@sed -i '' -e 's/export KAITO_WORKSPACE_VERSION=.*/export KAITO_WORKSPACE_VERSION=${IMG_TAG}/' ./website/docs/installation.md
-	@sed -i '' -e 's/$(shell grep 'default' ./terraform/variables.tf | sort | uniq -c | sort -nr | head -n1 | sed -E 's/^[ ]*[0-9]+[ ]+//')/default     = \"${IMG_TAG}\"/' ./terraform/variables.tf
+	@sed -i '' -e 's/$(shell grep 'default' ./examples/terraform/variables.tf | sort | uniq -c | sort -nr | head -n1 | sed -E 's/^[ ]*[0-9]+[ ]+//')/default     = \"${IMG_TAG}\"/' ./examples/terraform/variables.tf
 
 
 ## --------------------------------------

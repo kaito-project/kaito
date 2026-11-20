@@ -10,14 +10,14 @@ updates:
 
   - package-ecosystem: docker
     directories:
-      - "/docker/adapters"
-      - "/docker/datasets"
+      - "/test/fixtures/adapters"
+      - "/test/fixtures/datasets"
       - "/docker/examples/custom-model-integration"
       - "/docker/presets/models/tfs-onnx"
       - "/docker/presets/models/tfs"
-      - "/docker/ragengine"
+      - "/build/ragengine"
       - "/docker/ragengine/service"
-      - "/docker/workspace"
+      - "/build/workspace"
     schedule:
       interval: daily
     open-pull-requests-limit: 1

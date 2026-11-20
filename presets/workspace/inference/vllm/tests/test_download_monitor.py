@@ -546,6 +546,131 @@ class TestGpuMemoryUtilization:
         ):
             inference_api._query_gpu_mem_info(0)
 
+    def test_adds_preload_daemon_weights_back(self):
+        # The daemon's resident weights count toward vLLM's budget, so they
+        # must not shrink the utilization the probe hands to the server.
+        free = 4 * self.GiB
+        total = 24 * self.GiB
+        daemon = 16 * self.GiB
+        with (
+            patch.object(
+                inference_api, "_query_gpu_mem_info", return_value=(free, total)
+            ),
+            patch.object(
+                inference_api, "_query_preload_daemon_memory", return_value=daemon
+            ) as mock_daemon,
+        ):
+            util = inference_api.get_max_gpu_memory_utilization(
+                0, preload_extra_config={"socket_dir": "/run/kaito-preload"}
+            )
+        expected = (((free + daemon - 600 * MB) * 100) // total) / 100
+        assert util == expected
+        mock_daemon.assert_called_once_with(0, {"socket_dir": "/run/kaito-preload"})
+
+    def test_unreachable_preload_daemon_counts_as_zero(self):
+        free = 20 * self.GiB
+        total = 24 * self.GiB
+        with (
+            patch.object(
+                inference_api, "_query_gpu_mem_info", return_value=(free, total)
+            ),
+            patch.object(
+                inference_api,
+                "_query_preload_daemon_memory",
+                side_effect=RuntimeError("no daemon"),
+            ),
+        ):
+            util = inference_api.get_max_gpu_memory_utilization(
+                0, preload_extra_config={}
+            )
+        assert util == (((free - 600 * MB) * 100) // total) / 100
+
+    def test_skips_daemon_query_without_preload(self):
+        with (
+            patch.object(
+                inference_api,
+                "_query_gpu_mem_info",
+                return_value=(20 * self.GiB, 24 * self.GiB),
+            ),
+            patch.object(inference_api, "_query_preload_daemon_memory") as mock_daemon,
+        ):
+            inference_api.get_max_gpu_memory_utilization(0)
+        mock_daemon.assert_not_called()
+
+    def test_preload_query_parses_sentinel_line(self):
+        completed = MagicMock()
+        completed.stdout = "warning\nKAITO_PRELOAD_MEM 789\n"
+        with patch.object(
+            inference_api.subprocess, "run", return_value=completed
+        ) as mock_run:
+            assert (
+                inference_api._query_preload_daemon_memory(2, {"socket_dir": "/s"})
+                == 789
+            )
+        argv = mock_run.call_args[0][0]
+        assert argv[-2] == "2"
+        assert argv[-1] == '{"socket_dir": "/s"}'
+
+
+class TestPreloadExtraConfig:
+    def test_none_unless_ipc_cache(self):
+        args = argparse.Namespace(load_format="auto", model_loader_extra_config={})
+        assert inference_api._preload_extra_config(args) is None
+
+    def test_returns_loader_config_for_ipc_cache(self):
+        args = argparse.Namespace(
+            load_format="ipc_cache",
+            model_loader_extra_config={"socket_dir": "/run/kaito-preload"},
+        )
+        assert inference_api._preload_extra_config(args) == {
+            "socket_dir": "/run/kaito-preload"
+        }
+
+    def test_parses_json_string_config(self):
+        args = argparse.Namespace(
+            load_format="ipc_cache",
+            model_loader_extra_config='{"fallback": false}',
+        )
+        assert inference_api._preload_extra_config(args) == {"fallback": False}
+
+
+class TestRunPreload:
+    def test_rejects_ipc_load_format(self):
+        args = argparse.Namespace(load_format="ipc_cache")
+        with pytest.raises(ValueError):
+            inference_api.run_preload(args)
+
+    def test_passes_server_args_and_socket_dir(self):
+        defaults = argparse.Namespace(
+            model="default",
+            tensor_parallel_size=1,
+            weight_cache_socket_dir=None,
+            weight_cache_health_port=None,
+        )
+        args = argparse.Namespace(
+            model="/workspace/vllm/weights",
+            tensor_parallel_size=4,
+            load_format="auto",
+            port=5000,
+            kaito_preload_socket_dir="/run/kaito-preload",
+            kaito_preload_health_port=5003,
+        )
+        preload_cmd = MagicMock()
+        preload_module = ModuleType("vllm.entrypoints.cli.preload")
+        preload_module.PreloadSubcommand = SimpleNamespace(cmd=preload_cmd)
+        with (
+            patch.dict(sys.modules, {"vllm.entrypoints.cli.preload": preload_module}),
+            patch.object(inference_api, "_preload_defaults", return_value=defaults),
+        ):
+            inference_api.run_preload(args)
+        passed = preload_cmd.call_args[0][0]
+        assert passed.model == "/workspace/vllm/weights"
+        assert passed.tensor_parallel_size == 4
+        assert passed.weight_cache_socket_dir == "/run/kaito-preload"
+        assert passed.weight_cache_health_port == 5003
+        # Server-only args are not passed to the preload command.
+        assert not hasattr(passed, "port")
+
 
 class TestConfigureMiddlewares:
     def test_server_hooks_target_launcher_entry_module(self):

@@ -50,6 +50,7 @@ const sidebars = {
                 'keda-autoscaler-inference',
                 'multi-gpu-instance',
                 'bring-your-own-weights',
+                'vllm-preload',
                 'tuning',
                 'lora-adapters',
                 'custom-model',

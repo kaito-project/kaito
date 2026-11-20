@@ -2107,6 +2107,21 @@ func TestWorkspaceValidatePerformanceModeAnnotation(t *testing.T) {
 			annotations: map[string]string{AnnotationUseLocalWeights: "yes"},
 			wantErr:     true,
 		},
+		{
+			name:        "vllm preload true is valid",
+			annotations: map[string]string{AnnotationEnableVLLMPreload: "true"},
+			wantErr:     false,
+		},
+		{
+			name:        "vllm preload false is valid",
+			annotations: map[string]string{AnnotationEnableVLLMPreload: "false"},
+			wantErr:     false,
+		},
+		{
+			name:        "vllm preload non-boolean is invalid",
+			annotations: map[string]string{AnnotationEnableVLLMPreload: "on"},
+			wantErr:     true,
+		},
 	}
 
 	for _, tt := range tests {

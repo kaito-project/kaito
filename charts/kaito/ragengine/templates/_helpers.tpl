@@ -50,3 +50,15 @@ Selector labels
 app.kubernetes.io/name: {{ include "kaito.name" . }}
 app.kubernetes.io/instance: {{ .Release.Name }}
 {{- end }}
+
+{{/*
+toYamlStrMap function
+*/}}
+{{- define "utils.toYamlStrMap" -}}
+{{- $anyMap := . -}}
+{{- $strMap := dict -}}
+{{- range $key, $val := $anyMap -}}
+{{- $_ := set $strMap $key (toString $val) -}}
+{{- end -}}
+{{- toYaml $strMap -}}
+{{- end -}}

@@ -765,7 +765,7 @@ func GenerateInferencePodSpec(gpuConfig *sku.GPUConfig, numNodes int, streamingM
 				StreamingModelPath:    streamingModelPath,
 				StreamingLoadFormat:   streamingLoadFormat,
 				LocalModelWeightsPath: localModelWeightsPath,
-				TargetCPU:             isCPUInference,
+				Accelerator:           driver.Type(),
 			},
 		})
 		lmCacheConfig.runtimeName = runtimeName

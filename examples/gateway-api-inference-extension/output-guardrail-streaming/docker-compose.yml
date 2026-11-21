@@ -1,0 +1,41 @@
+# Streaming ext_proc guardrail PoC harness (issue #2358).
+#
+#   docker compose up -d --build
+#   python scripts/run_experiments.py
+#
+# Services:
+#   envoy   plain Envoy (:18080) with FULL_DUPLEX_STREAMED ext_proc filter
+#   extproc buildable gRPC guard server, reachable only on the compose network
+#   mock    stdlib OpenAI-compatible SSE backend on {mock}:8080
+services:
+  envoy:
+    image: envoyproxy/envoy:v1.35.0
+    command: ["envoy", "-c", "/etc/envoy/bootstrap.yaml", "--log-level", "info"]
+    depends_on:
+      - extproc
+      - mock
+    ports:
+      - "18080:18080"   # downstream client
+      - "9901:9901"     # envoy admin
+    volumes:
+      - ./envoy/bootstrap.yaml:/etc/envoy/bootstrap.yaml:ro
+
+  extproc:
+    build:
+      context: ./extproc
+    environment:
+      KAI_GUARD_PORT: "9000"
+      KAI_GUARD_POLICY: /etc/kaito/guardrails/policy.yaml
+      KAI_GUARD_RUNTIME: /config/stream_guard.json
+      KAI_GUARD_LOG: DEBUG
+    volumes:
+      - ./extproc-config/policy.yaml:/etc/kaito/guardrails/policy.yaml:ro
+      - ./extproc-config/stream_guard.json:/config/stream_guard.json:rw
+
+  mock:
+    image: python:3.11-slim
+    command: ["python", "/app/mock_stream_backend.py"]
+    ports:
+      - "18081:8080"    # direct-to-mock control path, not through envoy
+    volumes:
+      - ./mock/mock_stream_backend.py:/app/mock_stream_backend.py:ro

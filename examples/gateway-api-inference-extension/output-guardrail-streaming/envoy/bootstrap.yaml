@@ -1,0 +1,83 @@
+# Plain-Envoy reproduction of the Gateway-API ext_proc guardrail pipeline
+# (issue #2358, Experiment harness).  Equivalent EnvoyFilter config for an
+# Istio gateway is in the README; FULL_DUPLEX_STREAMED behaviour is Envoy
+# native, so this harness exercises exactly the same ext_proc path.
+#
+# Response body mode: FULL_DUPLEX_STREAMED + response_trailer_mode SEND
+# (required for full-duplex per the ext_proc docs).  message_timeout is raised
+# aggressively: the default 200ms kills holdback windows while the server
+# deliberately holds response bytes.
+static_resources:
+  listeners:
+    - name: main_18080
+      address:
+        socket_address: { address: 0.0.0.0, port_value: 18080 }
+      filter_chains:
+        - filters:
+            - name: envoy.filters.network.http_connection_manager
+              typed_config:
+                "@type": type.googleapis.com/envoy.extensions.filters.network.http_connection_manager.v3.HttpConnectionManager
+                stat_prefix: edge
+                codec_type: AUTO
+                access_log:
+                  - name: envoy.access_loggers.stdout
+                    typed_config:
+                      "@type": type.googleapis.com/envoy.extensions.access_loggers.stream.v3.StdoutAccessLog
+                      log_format:
+                        text_format_source:
+                          inline_string: "[%START_TIME%] \"%REQ(:METHOD)% %REQ(:PATH)%\" %RESPONSE_CODE% dur=%DURATION%ms\n"
+                route_config:
+                  name: local_route
+                  virtual_hosts:
+                    - name: api
+                      domains: ["*"]
+                      routes:
+                        - match: { prefix: "/v1/chat/completions" }
+                          route:
+                            cluster: mock_backend
+                            timeout: 0s
+                http_filters:
+                  - name: envoy.filters.http.ext_proc
+                    typed_config:
+                      "@type": type.googleapis.com/envoy.extensions.filters.http.ext_proc.v3.ExternalProcessor
+                      grpc_service:
+                        envoy_grpc:
+                          cluster_name: ext_proc
+                        timeout: 5s
+                      processing_mode:
+                        request_header_mode: SKIP
+                        response_header_mode: SKIP
+                        response_body_mode: FULL_DUPLEX_STREAMED
+                        response_trailer_mode: SEND
+                      failure_mode_allow: false
+                      message_timeout: 60s
+                  - name: envoy.filters.http.router
+                    typed_config:
+                      "@type": type.googleapis.com/envoy.extensions.filters.http.router.v3.Router
+
+  clusters:
+    - name: mock_backend
+      connect_timeout: 5s
+      type: STRICT_DNS
+      lb_policy: ROUND_ROBIN
+      load_assignment:
+        cluster_name: mock_backend
+        endpoints:
+          - lb_endpoints:
+              - endpoint:
+                  address: { socket_address: { address: mock, port_value: 8080 } }
+
+    - name: ext_proc
+      connect_timeout: 5s
+      type: STRICT_DNS
+      lb_policy: ROUND_ROBIN
+      http2_protocol_options: {}
+      load_assignment:
+        cluster_name: ext_proc
+        endpoints:
+          - lb_endpoints:
+              - endpoint:
+                  address: { socket_address: { address: extproc, port_value: 9000 } }
+
+admin:
+  address: { socket_address: { address: 0.0.0.0, port_value: 9901 } }

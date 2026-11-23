@@ -341,7 +341,7 @@ var _ = Describe("Workspace Preset on vllm runtime", func() {
 
 	It("should serve a public preset GPU workspace with no cache mutations when no cache is installed", utils.GinkgoLabelFastCheck, func() {
 		numOfNode := 1
-		workspaceObj := createQwen3_8_27BWorkspaceWithPresetPublicModeAndVLLM(numOfNode)
+		workspaceObj := createGPTOss20BWorkspaceWithPresetPublicModeAndVLLM(numOfNode)
 
 		defer cleanupResources(workspaceObj)
 		time.Sleep(30 * time.Second)

@@ -78,6 +78,7 @@ class HybridRetriever(BaseRetriever):
         vector_weight: float = 0.7,
         text_weight: float = 0.3,
         metadata_filter: dict | None = None,
+        filters_in_vector_store: bool = True,
     ) -> None:
         """
         Args:
@@ -87,6 +88,8 @@ class HybridRetriever(BaseRetriever):
             vector_weight: Weight for vector similarity scores.
             text_weight: Weight for BM25 keyword scores.
             metadata_filter: Optional {key: value} dict for metadata filtering.
+            filters_in_vector_store: False if the vector store cannot apply
+                metadata filters itself (FAISS); the filter is then applied here.
         """
         total = vector_weight + text_weight
         self._vector_weight = vector_weight / total
@@ -98,8 +101,48 @@ class HybridRetriever(BaseRetriever):
         self._candidate_pool_size = int(max_results * self._candidate_multiplier)
         self._metadata_filter = metadata_filter
         self._llama_filters = _build_metadata_filters(metadata_filter)
+        self._filters_in_vector_store = filters_in_vector_store
 
         super().__init__()
+
+    def _vector_retriever(self, pool_size: int) -> BaseRetriever:
+        """The vector retriever for the candidate pool.
+
+        A store that cannot filter by metadata is asked for every node and
+        filtered here (`_vector_candidates`), so a selective filter still
+        finds the closest matching nodes rather than only those among the
+        closest `pool_size`. A flat FAISS index compares the query with every
+        vector anyway.
+        """
+        if self._metadata_filter and not self._filters_in_vector_store:
+            return self._index.as_retriever(
+                similarity_top_k=max(pool_size, len(self._index.docstore.docs))
+            )
+        return self._index.as_retriever(
+            similarity_top_k=pool_size,
+            filters=self._llama_filters,
+        )
+
+    def _vector_candidates(
+        self, vector_nodes: list[NodeWithScore], pool_size: int
+    ) -> list[NodeWithScore]:
+        """The vector candidates, filtered here if the store could not."""
+        if self._metadata_filter and not self._filters_in_vector_store:
+            return self._matching(vector_nodes)[:pool_size]
+        return vector_nodes
+
+    def _matching(self, nodes: list[NodeWithScore]) -> list[NodeWithScore]:
+        """The nodes whose metadata has every key/value of the filter."""
+        if not self._metadata_filter:
+            return nodes
+        return [
+            n
+            for n in nodes
+            if all(
+                (n.node.metadata or {}).get(k) == v
+                for k, v in self._metadata_filter.items()
+            )
+        ]
 
     def _build_bm25_retriever(self, top_k: int) -> "BM25Retriever | None":
         """Build a fresh BM25Retriever from the current index docstore.
@@ -170,11 +213,9 @@ class HybridRetriever(BaseRetriever):
         pool_size = self._candidate_pool_size
 
         # Vector retriever
-        vector_retriever = self._index.as_retriever(
-            similarity_top_k=pool_size,
-            filters=self._llama_filters,
+        vector_nodes = self._vector_candidates(
+            self._vector_retriever(pool_size).retrieve(query_bundle), pool_size
         )
-        vector_nodes = vector_retriever.retrieve(query_bundle)
 
         # BM25 retriever (fresh each time — fast, avoids stale cache)
         bm25_retriever = self._build_bm25_retriever(pool_size)
@@ -190,15 +231,7 @@ class HybridRetriever(BaseRetriever):
         )
 
         # Apply metadata filter to keyword results (BM25 doesn't support native filtering)
-        if self._metadata_filter:
-            keyword_nodes = [
-                n
-                for n in keyword_nodes
-                if all(
-                    (n.node.metadata or {}).get(k) == v
-                    for k, v in self._metadata_filter.items()
-                )
-            ]
+        keyword_nodes = self._matching(keyword_nodes)
 
         return self._fuse(vector_nodes, keyword_nodes)
 
@@ -206,11 +239,9 @@ class HybridRetriever(BaseRetriever):
         """Async hybrid retrieval (falls back to vector-only if BM25 unavailable)."""
         pool_size = self._candidate_pool_size
 
-        vector_retriever = self._index.as_retriever(
-            similarity_top_k=pool_size,
-            filters=self._llama_filters,
+        vector_nodes = self._vector_candidates(
+            await self._vector_retriever(pool_size).aretrieve(query_bundle), pool_size
         )
-        vector_nodes = await vector_retriever.aretrieve(query_bundle)
 
         bm25_retriever = self._build_bm25_retriever(pool_size)
         if bm25_retriever is None:
@@ -224,14 +255,6 @@ class HybridRetriever(BaseRetriever):
             f"{len(keyword_nodes)} BM25 candidates"
         )
 
-        if self._metadata_filter:
-            keyword_nodes = [
-                n
-                for n in keyword_nodes
-                if all(
-                    (n.node.metadata or {}).get(k) == v
-                    for k, v in self._metadata_filter.items()
-                )
-            ]
+        keyword_nodes = self._matching(keyword_nodes)
 
         return self._fuse(vector_nodes, keyword_nodes)

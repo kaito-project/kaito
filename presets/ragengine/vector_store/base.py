@@ -881,6 +881,11 @@ class BaseVectorStore(ABC):
             logger.error(f"Failed to load index {index_name}. Error: {str(e)}")
             raise HTTPException(status_code=500, detail=f"Loading failed: {str(e)}")
 
+    def _filters_in_vector_store(self, index_name: str) -> bool:
+        """Whether the index's vector store applies metadata filters itself.
+        If not, HybridRetriever filters the vector results."""
+        return True
+
     async def retrieve(
         self,
         index_name: str,
@@ -925,6 +930,7 @@ class BaseVectorStore(ABC):
                     index=self.index_map[index_name],
                     max_results=top_k,
                     metadata_filter=metadata_filter,
+                    filters_in_vector_store=self._filters_in_vector_store(index_name),
                 )
 
             start_time = time.time()

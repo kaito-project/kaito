@@ -1,6 +1,6 @@
 FROM busybox:latest
 
-ARG DATASET_PATH=docker/datasets/dataset1
+ARG DATASET_PATH=test/fixtures/datasets/dataset1
 
 RUN mkdir -p /data
 

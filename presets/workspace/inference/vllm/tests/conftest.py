@@ -125,3 +125,9 @@ except (ImportError, Exception):
     peft_helper_mod = types.ModuleType("vllm.lora.peft_helper")
     peft_helper_mod.PEFTHelper = PEFTHelper
     sys.modules["vllm.lora.peft_helper"] = peft_helper_mod
+else:
+    # Some test modules stub vllm submodules such as vllm.v1 in sys.modules,
+    # which breaks later imports of real vllm modules that depend on them.
+    # Load the real modules inference_api needs before any test is collected.
+    import vllm.config.lora  # noqa: F401
+    import vllm.lora.peft_helper  # noqa: F401

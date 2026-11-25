@@ -492,14 +492,28 @@ var (
 		{architecture: "Qwen3_5MoeForConditionalGeneration", gpuModel: nvidia.GPUModelH100}: {},
 	}
 
+	// gpuMemoryUtilizationByModelAndGPU overrides the GPU default for exact
+	// model names.
+	gpuMemoryUtilizationByModelAndGPU = map[modelGPUKey]string{
+		// vLLM does not reserve FlashMLA's sparse decode scratch, which
+		// GLM-5.3 allocates per mixed prefill/decode step (2 GiB on 2x8 H100 80 GB,
+		// TP8 x PP2). At 0.92 under 2 GiB is left free and the engine dies under
+		// load; 0.90 is only enough together with FULL_DECODE_ONLY below.
+		{modelName: "glm-5.3", gpuModel: nvidia.GPUModelH100}: "0.90",
+	}
+
 	// cudagraphModeByModelAndGPU overrides vLLM's default graph mode for known
-	// incompatibilities using model name prefixes. An empty GPU model applies to
-	// every GPU; the longest matching prefix wins within each GPU scope.
+	// incompatibilities using exact model names. An empty GPU model applies to
+	// every GPU; a GPU-specific entry wins over it.
 	cudagraphModeByModelAndGPU = map[modelGPUKey]string{
 		{modelName: "nvidia-nemotron-nano-9b-v2", gpuModel: nvidia.GPUModelA10}:     "FULL_DECODE_ONLY",
 		{modelName: "nvidia-nemotron-3-nano-4b-bf16", gpuModel: nvidia.GPUModelA10}: "FULL_DECODE_ONLY",
 		{modelName: "deepseek-v4-flash-0731"}:                                       "NONE",
-		{modelName: "deepseek-v4.1-flash", gpuModel: nvidia.GPUModelH100}:           "FULL_DECODE_ONLY",
+		{modelName: "deepseek-v4.1-flash-1017", gpuModel: nvidia.GPUModelH100}:      "FULL_DECODE_ONLY",
+		// With mixed prefill/decode batches running eagerly, GLM-5.3's FlashMLA
+		// sparse decode scratch fits at 0.90 utilization; with piecewise graphs
+		// it does not (validated on 2x8 H100 80 GB, vLLM 0.32.0).
+		{modelName: "glm-5.3", gpuModel: nvidia.GPUModelH100}: "FULL_DECODE_ONLY",
 	}
 
 	// linearBackendByModelAndGPU overrides vLLM's default linear backend.
@@ -543,26 +557,29 @@ func SupportsMaxNumSeqsEstimate(architectures []string, gpuModel string) bool {
 }
 
 // ResolveGPUMemoryUtilization returns the vLLM GPU memory utilization for the
-// target GPU.
-func ResolveGPUMemoryUtilization(gpuModel string) string {
-	if utilization, ok := nvidia.GPUMemoryUtilization(nvidia.CanonicalGPUModel(gpuModel)); ok {
+// model on the target GPU, falling back to the GPU default.
+func ResolveGPUMemoryUtilization(modelName, gpuModel string) string {
+	canonicalGPUModel := nvidia.CanonicalGPUModel(gpuModel)
+	if utilization, ok := gpuMemoryUtilizationByModelAndGPU[modelGPUKey{
+		modelName: modelName,
+		gpuModel:  canonicalGPUModel,
+	}]; ok {
+		return utilization
+	}
+	if utilization, ok := nvidia.GPUMemoryUtilization(canonicalGPUModel); ok {
 		return utilization
 	}
 	return defaultGPUMemoryUtilization
 }
 
-// ResolveCUDAGraphMode uses the longest model name prefix for the target GPU,
-// falling back to prefixes that apply to every GPU.
+// ResolveCUDAGraphMode returns the graph mode for the exact model name on the
+// target GPU, falling back to the model's entry for every GPU.
 func ResolveCUDAGraphMode(modelName, gpuModel string) (string, bool) {
-	canonicalGPUModel := nvidia.CanonicalGPUModel(gpuModel)
-	for _, targetGPUModel := range []string{canonicalGPUModel, ""} {
-		prefixes := make(map[string]string)
-		for key, mode := range cudagraphModeByModelAndGPU {
-			if key.gpuModel == targetGPUModel {
-				prefixes[key.modelName] = mode
-			}
-		}
-		if mode, ok := longestPrefixMatch(modelName, prefixes); ok {
+	for _, targetGPUModel := range []string{nvidia.CanonicalGPUModel(gpuModel), ""} {
+		if mode, ok := cudagraphModeByModelAndGPU[modelGPUKey{
+			modelName: modelName,
+			gpuModel:  targetGPUModel,
+		}]; ok {
 			return mode, true
 		}
 	}

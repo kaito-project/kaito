@@ -18,6 +18,7 @@ import (
 
 	"k8s.io/apimachinery/pkg/api/resource"
 
+	"github.com/kaito-project/kaito/pkg/accelerator/nvidia"
 	"github.com/kaito-project/kaito/pkg/catalog/hfgen"
 	pkgmodel "github.com/kaito-project/kaito/pkg/model"
 	"github.com/kaito-project/kaito/pkg/sku"
@@ -36,7 +37,7 @@ const (
 	// overhead: non-torch allocations such as the CUDA context and NCCL buffers
 	// (~0.6 GiB) plus a baseline for small-model activations and CUDA graphs
 	// (~1.7 GiB). Larger models add to this via OverheadWeightFactor below.
-	// Overridden per GPU model in baseOverheadGiBByGPUModel.
+	// Overridden per GPU model by nvidia.BaseOverheadGiB.
 	BaseOverheadGiB = 2.3
 
 	// OverheadWeightFactor scales the runtime overhead with the per-GPU model
@@ -47,15 +48,6 @@ const (
 	// profile_cudagraph_memory(). We approximate at best effort here.
 	OverheadWeightFactor = 0.05
 )
-
-// baseOverheadGiBByGPUModel overrides BaseOverheadGiB for specific GPU models.
-// The 24 GiB A10 measures less fixed runtime overhead in practice than the
-// default reserve assumes, so a lower value lets ~16-17 GiB models fit a single
-// A10 instead of being pushed to an extra node. Keyed by
-// sku.GPUConfig.GPUModel (e.g. "NVIDIA A10").
-var baseOverheadGiBByGPUModel = map[string]float64{
-	"NVIDIA A10": 1.5,
-}
 
 // ResolveGPUMemoryUtilization resolves an explicit setting before the GPU default.
 func ResolveGPUMemoryUtilization(gpuModel string, params *pkgmodel.PresetParam) (float64, error) {
@@ -70,7 +62,7 @@ func ResolveGPUMemoryUtilization(gpuModel string, params *pkgmodel.PresetParam) 
 
 // ResolveBaseOverheadGiB returns the fixed per-GPU overhead reserve for the GPU model.
 func ResolveBaseOverheadGiB(gpuModel string) float64 {
-	if v, ok := baseOverheadGiBByGPUModel[gpuModel]; ok {
+	if v, ok := nvidia.BaseOverheadGiB(gpuModel); ok {
 		return v
 	}
 	return BaseOverheadGiB

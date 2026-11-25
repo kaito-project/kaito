@@ -19,6 +19,7 @@ import (
 
 	"k8s.io/apimachinery/pkg/api/resource"
 
+	"github.com/kaito-project/kaito/pkg/accelerator"
 	"github.com/kaito-project/kaito/pkg/consts"
 )
 
@@ -29,6 +30,7 @@ type CloudSKUHandler interface {
 
 type GPUConfig struct {
 	SKU                   string
+	Accelerator           accelerator.Type
 	GPUCount              int
 	GPUMem                resource.Quantity
 	GPUModel              string
@@ -41,6 +43,11 @@ type GPUConfig struct {
 func (cfg *GPUConfig) String() string {
 	return fmt.Sprintf("SKU: %s, GPUCount: %d, GPUMem: %s, GPUModel: %s, NVMeDiskEnabled: %t, CUDAComputeCapability: %.1f",
 		cfg.SKU, cfg.GPUCount, cfg.GPUMem.String(), cfg.GPUModel, cfg.NVMeDiskEnabled, cfg.CUDAComputeCapability)
+}
+
+// CanonicalGPUModel returns the GPU model name used in compatibility rules.
+func (cfg *GPUConfig) CanonicalGPUModel() string {
+	return vendorFor(cfg.Accelerator).CanonicalModel(cfg.GPUModel)
 }
 
 // SupportsBFloat16 returns true if the GPU supports bfloat16 (requires CUDA compute capability >= 8.0).

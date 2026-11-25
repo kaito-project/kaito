@@ -18,6 +18,7 @@ import (
 
 	"k8s.io/apimachinery/pkg/api/resource"
 
+	"github.com/kaito-project/kaito/pkg/accelerator"
 	"github.com/kaito-project/kaito/pkg/accelerator/nvidia"
 )
 
@@ -29,9 +30,10 @@ func MIGGPUConfig(migProfile string) (*GPUConfig, error) {
 		return nil, fmt.Errorf("invalid MIG profile: %w", err)
 	}
 	return &GPUConfig{
-		SKU:      "unknown",
-		GPUCount: 1,
-		GPUMem:   resource.MustParse(fmt.Sprintf("%dGi", memGB)),
-		IsMIG:    true,
+		SKU:         "unknown",
+		Accelerator: accelerator.TypeNVIDIA,
+		GPUCount:    1,
+		GPUMem:      resource.MustParse(fmt.Sprintf("%dGi", memGB)),
+		IsMIG:       true,
 	}, nil
 }

@@ -25,6 +25,7 @@ import (
 	"k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
+	"github.com/kaito-project/kaito/pkg/accelerator"
 	"github.com/kaito-project/kaito/pkg/sku"
 )
 
@@ -431,8 +432,9 @@ type RuntimeContextExtraArguments struct {
 	// No HuggingFace download is performed. Mutually exclusive with StreamingModelPath.
 	LocalModelWeightsPath string // e.g. "/opt/kaito/models/deepseekv4flash"
 
-	// TargetCPU switches the vLLM preset command line to CPU execution.
-	TargetCPU bool
+	// Accelerator selects device-specific vLLM arguments; TypeCPU switches the
+	// preset command line to CPU execution.
+	Accelerator accelerator.Type
 }
 
 func (p *PresetParam) GetInferenceCommand(rc RuntimeContext) []string {
@@ -499,7 +501,7 @@ func (p *PresetParam) buildVLLMInferenceCommand(rc RuntimeContext) []string {
 	} else if rc.MaxModelLen > 0 {
 		p.VLLM.ModelRunParams["max-model-len"] = strconv.Itoa(rc.MaxModelLen)
 	}
-	if rc.TargetCPU {
+	if rc.Accelerator == accelerator.TypeCPU {
 		delete(p.VLLM.ModelRunParams, "gpu-memory-utilization")
 	}
 
@@ -634,7 +636,7 @@ func (p *PresetParam) buildVLLMInferenceCommand(rc RuntimeContext) []string {
 //  3. Multi-node (PP + TP): If the model exceeds a single node's capacity, we use
 //     pipeline parallelism across nodes, with tensor parallelism within each node.
 func (p *PresetParam) configureParallelism(rc RuntimeContext) {
-	if rc.TargetCPU {
+	if rc.Accelerator == accelerator.TypeCPU {
 		return
 	}
 

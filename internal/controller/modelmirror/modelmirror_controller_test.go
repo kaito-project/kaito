@@ -38,7 +38,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/log/zap"
 
 	kaitov1alpha1 "github.com/kaito-project/kaito/api/v1alpha1"
-	mmconsts "github.com/kaito-project/kaito/pkg/modelmirror/consts"
+	"github.com/kaito-project/kaito/internal/modelmirror/download"
 )
 
 // testScheme builds the scheme used by every test in this package.
@@ -54,7 +54,7 @@ func testScheme() *runtime.Scheme {
 // newTestReconciler builds a reconciler over the given client, matching how the
 // production code constructs it.
 func newTestReconciler(c client.Client) *ModelMirrorReconciler {
-	return NewModelMirrorReconciler(c, c, zap.New(zap.UseDevMode(true)), mmconsts.DefaultDownloadJobResources())
+	return NewModelMirrorReconciler(c, c, zap.New(zap.UseDevMode(true)), download.DefaultDownloadJobResources())
 }
 
 // newManagedTestCR returns a Managed-mode ModelMirror CR with the minimum spec
@@ -112,7 +112,7 @@ func TestReconcile_OwnsPVC(t *testing.T) {
 	}
 
 	client := fake.NewClientBuilder().WithScheme(scheme).WithObjects(cr).Build()
-	r := NewModelMirrorReconciler(client, client, zap.New(zap.UseDevMode(true)), mmconsts.DefaultDownloadJobResources())
+	r := NewModelMirrorReconciler(client, client, zap.New(zap.UseDevMode(true)), download.DefaultDownloadJobResources())
 
 	if _, err := r.Reconcile(context.Background(), ctrl.Request{
 		NamespacedName: types.NamespacedName{Name: "abc123", Namespace: "default"},
@@ -148,7 +148,7 @@ func TestReconcile_AddsCleanupFinalizer(t *testing.T) {
 
 	got := &kaitov1alpha1.ModelMirror{}
 	require.NoError(t, c.Get(context.Background(), key, got))
-	assert.Contains(t, got.Finalizers, mmconsts.ModelMirrorFinalizer)
+	assert.Contains(t, got.Finalizers, kaitov1alpha1.ModelMirrorFinalizer)
 }
 
 func TestJobRetryInterval(t *testing.T) {
@@ -175,7 +175,7 @@ func TestReconcile_Static_SetsReadyNoProvision(t *testing.T) {
 		},
 	}
 	client := fake.NewClientBuilder().WithScheme(scheme).WithObjects(cr).WithStatusSubresource(cr).Build()
-	r := NewModelMirrorReconciler(client, client, zap.New(zap.UseDevMode(true)), mmconsts.DefaultDownloadJobResources())
+	r := NewModelMirrorReconciler(client, client, zap.New(zap.UseDevMode(true)), download.DefaultDownloadJobResources())
 
 	_, err := r.Reconcile(context.Background(), ctrl.Request{NamespacedName: types.NamespacedName{Name: "abc123", Namespace: "default"}})
 	assert.NoError(t, err)
@@ -187,16 +187,16 @@ func TestReconcile_Static_SetsReadyNoProvision(t *testing.T) {
 	assert.Empty(t, got.Status.ModelPath)
 
 	// Both conditions must be True for a static mirror.
-	condStatus := func(condType string) metav1.ConditionStatus {
+	condStatus := func(condType kaitov1alpha1.ConditionType) metav1.ConditionStatus {
 		for _, c := range got.Status.Conditions {
-			if c.Type == condType {
+			if c.Type == string(condType) {
 				return c.Status
 			}
 		}
 		return ""
 	}
-	assert.Equal(t, metav1.ConditionTrue, condStatus(mmconsts.ConditionTypeReady), "Ready condition must be True")
-	assert.Equal(t, metav1.ConditionTrue, condStatus(mmconsts.ConditionTypeStorageReady), "StorageReady condition must be True")
+	assert.Equal(t, metav1.ConditionTrue, condStatus(kaitov1alpha1.ModelMirrorConditionTypeReady), "Ready condition must be True")
+	assert.Equal(t, metav1.ConditionTrue, condStatus(kaitov1alpha1.ModelMirrorConditionTypeStorageReady), "StorageReady condition must be True")
 
 	pvcs := &corev1.PersistentVolumeClaimList{}
 	_ = client.List(context.Background(), pvcs)
@@ -227,10 +227,10 @@ func TestEnsurePVC_PendingSetsStorageReadyFalse(t *testing.T) {
 
 	require.NoError(t, r.ensurePVC(context.Background(), cr))
 
-	cond := meta.FindStatusCondition(cr.Status.Conditions, mmconsts.ConditionTypeStorageReady)
+	cond := meta.FindStatusCondition(cr.Status.Conditions, string(kaitov1alpha1.ModelMirrorConditionTypeStorageReady))
 	require.NotNil(t, cond, "a pending PVC must set StorageReady, not stay silent")
 	assert.Equal(t, metav1.ConditionFalse, cond.Status)
-	assert.Equal(t, mmconsts.ReasonPVCPending, cond.Reason)
+	assert.Equal(t, kaitov1alpha1.ModelMirrorReasonPVCPending, cond.Reason)
 	assert.Contains(t, cond.Message, "Pending")
 }
 
@@ -251,9 +251,9 @@ func TestEnsurePVC_CreateFailureSetsConditionAndReturnsError(t *testing.T) {
 	err := r.ensurePVC(context.Background(), cr)
 
 	assert.Error(t, err, "the error must still propagate so reconcile requeues")
-	cond := meta.FindStatusCondition(cr.Status.Conditions, mmconsts.ConditionTypeStorageReady)
+	cond := meta.FindStatusCondition(cr.Status.Conditions, string(kaitov1alpha1.ModelMirrorConditionTypeStorageReady))
 	require.NotNil(t, cond)
-	assert.Equal(t, mmconsts.ReasonPVCCreateFailed, cond.Reason)
+	assert.Equal(t, kaitov1alpha1.ModelMirrorReasonPVCCreateFailed, cond.Reason)
 }
 
 // mirrorOwnerRef builds the controller ownerReference a ModelMirror stamps on its PVC.
@@ -273,7 +273,7 @@ func TestFinalizeMirror_HoldsCRWhileChildrenSurvive(t *testing.T) {
 	now := metav1.Now()
 	cr := newManagedTestCR("mirror-1")
 	cr.UID = "live-uid"
-	cr.Finalizers = []string{mmconsts.ModelMirrorFinalizer}
+	cr.Finalizers = []string{kaitov1alpha1.ModelMirrorFinalizer}
 	cr.DeletionTimestamp = &now
 	pvc := &corev1.PersistentVolumeClaim{
 		ObjectMeta: metav1.ObjectMeta{
@@ -294,7 +294,7 @@ func TestFinalizeMirror_HoldsCRWhileChildrenSurvive(t *testing.T) {
 
 	got := &kaitov1alpha1.ModelMirror{}
 	require.NoError(t, c.Get(context.Background(), key, got), "the CR must outlive its PVC")
-	assert.Contains(t, got.Finalizers, mmconsts.ModelMirrorFinalizer)
+	assert.Contains(t, got.Finalizers, kaitov1alpha1.ModelMirrorFinalizer)
 
 	stale := &corev1.PersistentVolumeClaim{}
 	require.NoError(t, c.Get(context.Background(), key, stale))
@@ -306,7 +306,7 @@ func TestFinalizeMirror_ReleasesCROnceChildrenAreGone(t *testing.T) {
 	now := metav1.Now()
 	cr := newManagedTestCR("mirror-1")
 	cr.UID = "live-uid"
-	cr.Finalizers = []string{mmconsts.ModelMirrorFinalizer}
+	cr.Finalizers = []string{kaitov1alpha1.ModelMirrorFinalizer}
 	cr.DeletionTimestamp = &now
 	c := fake.NewClientBuilder().WithScheme(testScheme()).
 		WithObjects(cr).WithStatusSubresource(cr).Build()
@@ -339,7 +339,7 @@ func TestClassifyDownloadFailure(t *testing.T) {
 					}},
 				}},
 			},
-			wantReason:  mmconsts.ReasonDownloadOOMKilled,
+			wantReason:  kaitov1alpha1.ModelMirrorReasonDownloadOOMKilled,
 			wantMessage: "download container was OOMKilled (exit code 137); increase modelMirrorDownloadMemoryLimit if the model requires more memory",
 		},
 		{
@@ -349,7 +349,7 @@ func TestClassifyDownloadFailure(t *testing.T) {
 				Reason:  "Evicted",
 				Message: "The node was low on resource: ephemeral-storage. Threshold quantity: 2Gi, available: 1536Mi. ",
 			},
-			wantReason: mmconsts.ReasonDownloadEvicted,
+			wantReason: kaitov1alpha1.ModelMirrorReasonDownloadEvicted,
 		},
 		{
 			name: "evicted, container exceeded local ephemeral storage limit",
@@ -358,7 +358,7 @@ func TestClassifyDownloadFailure(t *testing.T) {
 				Reason:  "Evicted",
 				Message: `Container downloader exceeded its local ephemeral storage limit "8Gi". `,
 			},
-			wantReason: mmconsts.ReasonDownloadEvicted,
+			wantReason: kaitov1alpha1.ModelMirrorReasonDownloadEvicted,
 		},
 		{
 			name: "evicted, pod ephemeral storage usage exceeds total limit",
@@ -367,7 +367,7 @@ func TestClassifyDownloadFailure(t *testing.T) {
 				Reason:  "Evicted",
 				Message: "Pod ephemeral local storage usage exceeds the total limit of containers 8Gi. ",
 			},
-			wantReason: mmconsts.ReasonDownloadEvicted,
+			wantReason: kaitov1alpha1.ModelMirrorReasonDownloadEvicted,
 		},
 		{
 			name: "evicted for memory pressure, not disk",
@@ -376,7 +376,7 @@ func TestClassifyDownloadFailure(t *testing.T) {
 				Reason:  "Evicted",
 				Message: "The node was low on resource: memory. Container downloader was using 9Gi, request is 8Gi, has larger consumption of memory. ",
 			},
-			wantReason: mmconsts.ReasonDownloadEvicted,
+			wantReason: kaitov1alpha1.ModelMirrorReasonDownloadEvicted,
 		},
 		{
 			name: "generic exit 1 is not attributable",
@@ -454,7 +454,7 @@ func TestClassifyDownloadFailure_NewestAttemptWins(t *testing.T) {
 		r := newTestReconciler(c)
 
 		reason, _ := r.classifyDownloadFailure(context.Background(), cr, "mirror-1-download")
-		require.Equal(t, mmconsts.ReasonDownloadEvicted, reason,
+		require.Equal(t, kaitov1alpha1.ModelMirrorReasonDownloadEvicted, reason,
 			"the newest attempt's cause must win on every run")
 	}
 }
@@ -509,7 +509,7 @@ func TestCheckJobStatus_FailedJobSetsReadyFalse(t *testing.T) {
 			Name:              "mm-failed-download-abcde",
 			Namespace:         "default",
 			CreationTimestamp: metav1.Now(),
-			Labels:            map[string]string{mmconsts.LabelModelMirrorName: cr.Name},
+			Labels:            map[string]string{kaitov1alpha1.LabelModelMirrorName: cr.Name},
 			OwnerReferences:   []metav1.OwnerReference{*metav1.NewControllerRef(cr, kaitov1alpha1.GroupVersion.WithKind("ModelMirror"))},
 		},
 		Status: batchv1.JobStatus{
@@ -533,10 +533,10 @@ func TestCheckJobStatus_FailedJobSetsReadyFalse(t *testing.T) {
 	got := &kaitov1alpha1.ModelMirror{}
 	require.NoError(t, c.Get(context.Background(), client.ObjectKeyFromObject(cr), got))
 
-	cond := meta.FindStatusCondition(got.Status.Conditions, mmconsts.ConditionTypeReady)
+	cond := meta.FindStatusCondition(got.Status.Conditions, string(kaitov1alpha1.ModelMirrorConditionTypeReady))
 	require.NotNil(t, cond, "a failed download Job must surface a Ready condition")
 	assert.Equal(t, metav1.ConditionFalse, cond.Status)
-	assert.Equal(t, mmconsts.ReasonDownloadFailed, cond.Reason)
+	assert.Equal(t, kaitov1alpha1.ModelMirrorReasonDownloadFailed, cond.Reason)
 	assert.Contains(t, cond.Message, "Job has reached the specified backoff limit")
 	assert.Contains(t, got.Status.FailureMessage, "Job has reached the specified backoff limit")
 }

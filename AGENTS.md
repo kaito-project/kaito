@@ -40,7 +40,7 @@ Target top-level directories are split by deployable unit, then by domain. Only 
 | `test/` | e2e suites, fixtures such as LoRA adapters and datasets, and benchmarks. |
 | `examples/`, `docs/`, `website/`, `hack/`, `plugins/` | Samples and quickstarts, proposals, user docs, developer scripts, and the agent plugin. |
 
-- Imports point one way: `cmd/` → `internal/` → `api/` → `pkg/`. Code never imports a directory to its left.
+- Imports point one way: `cmd/` → `internal/` → `api/` → `pkg/`. Code never imports a directory to its left. `depguard` in [.golangci.yaml](.golangci.yaml) enforces this.
 - `api/` reads runtime state (Kubernetes client, feature gates, node provisioner, cloud provider, release namespace) from the request context, never from package-level globals or environment variables.
 - Do not create new packages named `utils`, `common`, `helpers`, or `misc`. Name a package for what it provides and place it beside its main user.
 - Put cloud-specific code in a `<cloud>/` subpackage of the feature it serves, such as `modelstreaming/azure/`. GPU SKU tables stay in `pkg/sku/`, and each SKU row names its accelerator type.

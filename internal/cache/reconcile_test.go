@@ -27,7 +27,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
 	kaitov1beta1 "github.com/kaito-project/kaito/api/v1beta1"
-	"github.com/kaito-project/kaito/pkg/featuregates"
+	"github.com/kaito-project/kaito/internal/featuregates"
 )
 
 type statefulSetGetErrorClient struct {

@@ -42,3 +42,10 @@ func TestFromContextDefault(t *testing.T) {
 		})
 	}
 }
+
+func TestRequireSKUHandlerErrors(t *testing.T) {
+	_, err := (&Env{}).RequireSKUHandler()
+	assert.ErrorContains(t, err, "CLOUD_PROVIDER environment variable must be set")
+	_, err = (&Env{CloudProvider: "gcp"}).RequireSKUHandler()
+	assert.ErrorContains(t, err, "Unsupported cloud provider gcp")
+}

@@ -34,8 +34,8 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/client/fake"
 
+	"github.com/kaito-project/kaito/internal/k8s/k8sclient"
 	"github.com/kaito-project/kaito/internal/testutil"
-	"github.com/kaito-project/kaito/pkg/k8sclient"
 )
 
 func int32Ptr(i int32) *int32 {

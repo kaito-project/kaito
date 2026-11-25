@@ -46,6 +46,11 @@ GPU_PROVISIONER_NAME ?= gpu-provisioner
 KAITO_NAMESPACE ?= kaito-workspace
 KAITO_RAGENGINE_NAMESPACE ?= kaito-ragengine
 GPU_PROVISIONER_MSI_NAME ?= gpuprovisionerIdentity
+# Set to true where an Azure Policy requires Microsoft Entra ID on AKS clusters (for example,
+# CloudGov_KubernAuthN_AAD in Microsoft-internal subscriptions). The create-aks-cluster* targets
+# then pass --enable-aad and fetch the local admin kubeconfig, because Entra ID user credentials
+# need kubelogin and a Kubernetes role.
+AKS_ENABLE_AAD ?= false
 
 ## Azure Karpenter parameters
 KARPENTER_NAMESPACE ?= karpenter
@@ -212,22 +217,27 @@ kaito-ragengine-e2e-test: $(RAGENGINE_E2E_TEST) $(GINKGO) ## Run e2e tests for K
 create-rg: ## Create Azure resource group.
 	az group create --name $(AZURE_RESOURCE_GROUP) --location $(AZURE_LOCATION) -o none
 
+ifeq ($(AKS_ENABLE_AAD),true)
+AKS_CREATE_AAD_ARGS := --enable-aad
+AKS_CREDENTIALS_AAD_ARGS := --admin
+endif
+
 .PHONY: create-aks-cluster
-create-aks-cluster: ## Create an AKS cluster with MSI, OIDC, and workload identity enabled.
+create-aks-cluster: ## Create an AKS cluster with MSI, OIDC, and workload identity enabled; AKS_ENABLE_AAD=true adds Microsoft Entra ID.
 	az aks create  --name $(AZURE_CLUSTER_NAME) --resource-group $(AZURE_RESOURCE_GROUP) \
 	--location $(AZURE_LOCATION) --attach-acr $(AZURE_ACR_NAME) \
 	--kubernetes-version $(AKS_K8S_VERSION) --generate-ssh-keys  \
-	--enable-managed-identity --enable-workload-identity --enable-oidc-issuer --node-vm-size Standard_D4d_v4 -o none
-	az aks get-credentials --name $(AZURE_CLUSTER_NAME) --resource-group $(AZURE_RESOURCE_GROUP) --overwrite-existing
+	--enable-managed-identity --enable-workload-identity --enable-oidc-issuer $(AKS_CREATE_AAD_ARGS) --node-vm-size Standard_D4d_v4 -o none
+	az aks get-credentials --name $(AZURE_CLUSTER_NAME) --resource-group $(AZURE_RESOURCE_GROUP) $(AKS_CREDENTIALS_AAD_ARGS) --overwrite-existing
 
 .PHONY: create-aks-cluster-for-karpenter
-create-aks-cluster-for-karpenter: ## Create an AKS cluster with MSI, Cillium, OIDC, and workload identity enabled.
+create-aks-cluster-for-karpenter: ## Create an AKS cluster with MSI, Cilium, OIDC, and workload identity enabled; AKS_ENABLE_AAD=true adds Microsoft Entra ID.
 	az aks create --name $(AZURE_CLUSTER_NAME) --resource-group $(AZURE_RESOURCE_GROUP) \
     --location $(AZURE_LOCATION) --attach-acr $(AZURE_ACR_NAME) --node-vm-size "Standard_D4d_v4" \
     --kubernetes-version $(AKS_K8S_VERSION) --generate-ssh-keys \
     --network-plugin azure --network-plugin-mode overlay --network-dataplane cilium \
-    --enable-managed-identity --enable-oidc-issuer --enable-workload-identity -o none
-	az aks get-credentials --name $(AZURE_CLUSTER_NAME) --resource-group $(AZURE_RESOURCE_GROUP) --overwrite-existing
+    --enable-managed-identity --enable-oidc-issuer --enable-workload-identity $(AKS_CREATE_AAD_ARGS) -o none
+	az aks get-credentials --name $(AZURE_CLUSTER_NAME) --resource-group $(AZURE_RESOURCE_GROUP) $(AKS_CREDENTIALS_AAD_ARGS) --overwrite-existing
 
 ## --------------------------------------
 ## AWS Setup
@@ -444,9 +454,11 @@ prepare-kaito-addon-identity: ## Create Azure identity and federated credential 
     -g "$(AZURE_RESOURCE_GROUP)" --issuer $$AKS_OIDC_ISSUER \
     --subject system:serviceaccount:"$(KAITO_NAMESPACE):kaito-gpu-provisioner" --audience api://AzureADTokenExchange
 
+# --admin: the e2e clusters have Microsoft Entra ID enabled, whose user credentials
+# need kubelogin and a Kubernetes role; the local admin account needs neither.
 .PHONY: az-patch-install-helm
 az-patch-install-helm: ## Install KAITO workspace Helm chart and set Azure client env vars and settings in Helm values.
-	az aks get-credentials --name $(AZURE_CLUSTER_NAME) --resource-group $(AZURE_RESOURCE_GROUP)
+	az aks get-credentials --name $(AZURE_CLUSTER_NAME) --resource-group $(AZURE_RESOURCE_GROUP) --admin
 
 	yq -i '(.image.repository)                                              = "$(REGISTRY)/workspace"'                    ./charts/kaito/workspace/values.yaml
 	yq -i '(.image.tag)                                                     = "$(IMG_TAG)"'                               ./charts/kaito/workspace/values.yaml
@@ -457,7 +469,7 @@ az-patch-install-helm: ## Install KAITO workspace Helm chart and set Azure clien
 
 .PHONY: az-patch-install-ragengine-helm
 az-patch-install-ragengine-helm: ## Install KAITO RAG Engine Helm chart and set Azure client env vars and settings in Helm values.
-	az aks get-credentials --name $(AZURE_CLUSTER_NAME) --resource-group $(AZURE_RESOURCE_GROUP)
+	az aks get-credentials --name $(AZURE_CLUSTER_NAME) --resource-group $(AZURE_RESOURCE_GROUP) --admin
 
 	yq -i '(.image.repository)                                              = "$(REGISTRY)/ragengine"'                    ./charts/kaito/ragengine/values.yaml
 	yq -i '(.image.tag)                                                     = "$(IMG_TAG)"'                               ./charts/kaito/ragengine/values.yaml
@@ -467,7 +479,7 @@ az-patch-install-ragengine-helm: ## Install KAITO RAG Engine Helm chart and set 
 
 .PHONY: az-patch-install-ragengine-helm-e2e
 az-patch-install-ragengine-helm-e2e: ## Install KAITO RAG Engine Helm chart for e2e tests and set Azure client env vars and settings in Helm values.
-	az aks get-credentials --name $(AZURE_CLUSTER_NAME) --resource-group $(AZURE_RESOURCE_GROUP)
+	az aks get-credentials --name $(AZURE_CLUSTER_NAME) --resource-group $(AZURE_RESOURCE_GROUP) --admin
 
 	yq -i '(.image.repository)                                              = "$(REGISTRY)/ragengine"'                    ./charts/kaito/ragengine/values.yaml
 	yq -i '(.image.tag)                                                     = "$(IMG_TAG)"'                               ./charts/kaito/ragengine/values.yaml

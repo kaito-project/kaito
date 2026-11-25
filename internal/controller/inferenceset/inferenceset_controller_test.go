@@ -44,13 +44,13 @@ import (
 	"github.com/kaito-project/kaito/api/v1beta1"
 	"github.com/kaito-project/kaito/internal/cache"
 	"github.com/kaito-project/kaito/internal/controller/workspace"
+	"github.com/kaito-project/kaito/internal/featuregates"
 	"github.com/kaito-project/kaito/internal/inference"
 	inferencesetpkg "github.com/kaito-project/kaito/internal/inferenceset"
 	"github.com/kaito-project/kaito/internal/k8s/resources"
 	"github.com/kaito-project/kaito/internal/manifests"
 	"github.com/kaito-project/kaito/internal/testutil"
 	"github.com/kaito-project/kaito/pkg/consts"
-	"github.com/kaito-project/kaito/pkg/featuregates"
 	"github.com/kaito-project/kaito/pkg/model"
 )
 
@@ -449,7 +449,7 @@ func TestReconcileExistingWorkspaceMetadata(t *testing.T) {
 			v1beta1.AnnotationCapacityType:              v1beta1.CapacityTypeSpot,
 		}
 
-		desired := inferencesetpkg.NewWorkspaceForInferenceSet(iObj)
+		desired := inferencesetpkg.NewWorkspaceForInferenceSet(context.Background(), iObj)
 		ws := testutil.MockWorkspaceWithPresetVLLM.DeepCopy()
 		ws.Labels = map[string]string{
 			"team":  "old-team",
@@ -485,7 +485,7 @@ func TestReconcileExistingWorkspaceMetadata(t *testing.T) {
 
 	t.Run("removes speculative decoding annotation when no longer desired", func(t *testing.T) {
 		iObj := testutil.MockInferenceSetWithPresetVLLM.DeepCopy()
-		desired := inferencesetpkg.NewWorkspaceForInferenceSet(iObj)
+		desired := inferencesetpkg.NewWorkspaceForInferenceSet(context.Background(), iObj)
 		ws := testutil.MockWorkspaceWithPresetVLLM.DeepCopy()
 		ws.Annotations = map[string]string{
 			v1beta1.AnnotationEnableSpeculativeDecoding: "true",
@@ -515,7 +515,7 @@ func TestReconcileExistingWorkspaceMetadataPreservesRuntime(t *testing.T) {
 			if tc.initialRuntime != "" {
 				iObj.Annotations[v1beta1.AnnotationWorkspaceRuntime] = tc.initialRuntime
 			}
-			ws := inferencesetpkg.NewWorkspaceForInferenceSet(iObj)
+			ws := inferencesetpkg.NewWorkspaceForInferenceSet(context.Background(), iObj)
 			original := ws.DeepCopy()
 			if tc.initialRuntime != "" {
 				assert.Equal(t, tc.initialRuntime, ws.Annotations[v1beta1.AnnotationWorkspaceRuntime], "new Workspaces must inherit runtime selection")
@@ -528,7 +528,7 @@ func TestReconcileExistingWorkspaceMetadataPreservesRuntime(t *testing.T) {
 			} else {
 				iObj.Annotations[v1beta1.AnnotationWorkspaceRuntime] = tc.updatedRuntime
 			}
-			desired := inferencesetpkg.NewWorkspaceForInferenceSet(iObj)
+			desired := inferencesetpkg.NewWorkspaceForInferenceSet(context.Background(), iObj)
 			assert.False(t, reconcileExistingWorkspaceMetadata(ws, desired), "parent runtime edits must not trigger child metadata updates")
 			assert.Equal(t, original, ws, "existing Workspaces must retain their runtime selection")
 			if tc.updatedRuntime != "" {
@@ -687,7 +687,7 @@ func TestInferenceSetScaleFromZeroRetriesPendingExpectations(t *testing.T) {
 	ctx := context.Background()
 	inferenceSet := testutil.MockInferenceSetWithPreset.DeepCopy()
 	inferenceSet.Spec.Replicas = lo.ToPtr(int32(1))
-	workspace := inferencesetpkg.NewWorkspaceForInferenceSet(inferenceSet)
+	workspace := inferencesetpkg.NewWorkspaceForInferenceSet(context.Background(), inferenceSet)
 	workspace.Name = inferenceSet.Name + "-initial"
 	workspace.GenerateName = ""
 
@@ -742,7 +742,7 @@ func TestInferenceSetReadyIgnoresDeletingWorkspaces(t *testing.T) {
 
 	objs := []client.Object{inferenceSet}
 	for i := range 3 {
-		ws := inferencesetpkg.NewWorkspaceForInferenceSet(inferenceSet)
+		ws := inferencesetpkg.NewWorkspaceForInferenceSet(context.Background(), inferenceSet)
 		ws.Name = fmt.Sprintf("%s-%d", inferenceSet.Name, i)
 		ws.GenerateName = ""
 		ws.Finalizers = []string{"workspace.finalizer.kaito.sh"}
@@ -784,7 +784,7 @@ func TestSelectWorkspacesToDelete(t *testing.T) {
 	ctx := context.Background()
 	const ns = "default"
 	iObj := testutil.MockInferenceSetWithPresetVLLM.DeepCopy()
-	desiredImage, err := inference.GetDesiredInferenceImageName(inferencesetpkg.NewWorkspaceForInferenceSet(iObj))
+	desiredImage, err := inference.GetDesiredInferenceImageName(context.Background(), inferencesetpkg.NewWorkspaceForInferenceSet(context.Background(), iObj))
 	require.NoError(t, err)
 	oldImage := desiredImage + "-old"
 
@@ -1184,7 +1184,7 @@ func TestSelectWorkspacesToDelete_UsesRuntimeAwareDesiredImageForCPU(t *testing.
 
 	iObj := testutil.MockInferenceSetWithPresetVLLM.DeepCopy()
 	iObj.Spec.Template.Resource.InstanceType = "Standard_D8s_v5"
-	desiredImage, err := inference.GetDesiredInferenceImageName(inferencesetpkg.NewWorkspaceForInferenceSet(iObj))
+	desiredImage, err := inference.GetDesiredInferenceImageName(context.Background(), inferencesetpkg.NewWorkspaceForInferenceSet(context.Background(), iObj))
 	require.NoError(t, err)
 	// Exercise an ordinary CPU image version upgrade, not GPU-to-CPU migration.
 	oldCPUImage := desiredImage[:strings.LastIndex(desiredImage, ":")+1] + "old-version"
@@ -1212,12 +1212,11 @@ func TestSelectWorkspacesToDelete_UsesRuntimeAwareDesiredImageForCPU(t *testing.
 }
 
 func TestEnsureGatewayAPIInferenceExtensionDeclaredCPU(t *testing.T) {
-	t.Setenv("CLOUD_PROVIDER", consts.AzureCloudName)
 	old := featuregates.FeatureGates[featuregates.FeatureFlagGatewayAPIInferenceExtension]
 	t.Cleanup(func() { featuregates.FeatureGates[featuregates.FeatureFlagGatewayAPIInferenceExtension] = old })
 	featuregates.FeatureGates[featuregates.FeatureFlagGatewayAPIInferenceExtension] = true
 	iObj := testutil.MockInferenceSetWithPresetVLLM.DeepCopy()
-	ws := inferencesetpkg.NewWorkspaceForInferenceSet(iObj)
+	ws := inferencesetpkg.NewWorkspaceForInferenceSet(context.Background(), iObj)
 	ws.Resource.InstanceType = "Standard_D16s_v6"
 	c := testutil.NewClient()
 	c.On("List", mock.Anything, mock.IsType(&v1beta1.WorkspaceList{}), mock.Anything).Run(func(args mock.Arguments) { args.Get(1).(*v1beta1.WorkspaceList).Items = []v1beta1.Workspace{*ws} }).Return(nil).Once()

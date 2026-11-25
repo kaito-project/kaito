@@ -56,6 +56,7 @@ import (
 	kaitov1beta1 "github.com/kaito-project/kaito/api/v1beta1"
 	"github.com/kaito-project/kaito/internal/cache"
 	"github.com/kaito-project/kaito/internal/estimator/nodesestimator"
+	"github.com/kaito-project/kaito/internal/featuregates"
 	"github.com/kaito-project/kaito/internal/image"
 	"github.com/kaito-project/kaito/internal/inference"
 	"github.com/kaito-project/kaito/internal/inference/modelstreaming"
@@ -70,9 +71,7 @@ import (
 	"github.com/kaito-project/kaito/pkg/catalog"
 	"github.com/kaito-project/kaito/pkg/consts"
 	"github.com/kaito-project/kaito/pkg/estimator"
-	"github.com/kaito-project/kaito/pkg/featuregates"
 	pkgmodel "github.com/kaito-project/kaito/pkg/model"
-	mmconsts "github.com/kaito-project/kaito/pkg/modelmirror/consts"
 )
 
 const (
@@ -368,7 +367,7 @@ func (c *WorkspaceReconciler) validateExistingModelMirror(wObj *kaitov1beta1.Wor
 			reason: reasonModelMirrorCreateFailed,
 			err: fmt.Errorf("ModelMirror %s in namespace %s uses StorageClass %q but this workspace requires %q; "+
 				"delete the existing ModelMirror or align the %s annotation",
-				crName, existing.Namespace, got, want, mmconsts.AnnotationModelMirrorStorageClass),
+				crName, existing.Namespace, got, want, v1beta1.AnnotationModelMirrorStorageClass),
 		}
 	}
 	return nil
@@ -1413,7 +1412,7 @@ func (c *WorkspaceReconciler) collectTuningStatusSnapshot(ctx context.Context, w
 const reasonModelMirrorPending = consts.ReasonModelMirrorPending
 
 func modelMirrorPendingReason(cr *kaitov1alpha1.ModelMirror) string {
-	cond := meta.FindStatusCondition(cr.Status.Conditions, mmconsts.ConditionTypeReady)
+	cond := meta.FindStatusCondition(cr.Status.Conditions, string(kaitov1alpha1.ModelMirrorConditionTypeReady))
 	if cond == nil || cond.Status == metav1.ConditionTrue || cond.Reason == "" {
 		return reasonModelMirrorPending
 	}
@@ -1745,7 +1744,7 @@ func (c *WorkspaceReconciler) UpdateWorkspaceTargetNodeCount(ctx context.Context
 	var err error
 	targetNodeCount := int32(1)
 	if wObj.Status.TargetNodeCount == 0 {
-		isCPU := kaitov1beta1.IsCPUInferenceWorkspace(wObj)
+		isCPU := kaitov1beta1.IsCPUInferenceWorkspace(ctx, wObj)
 		if isCPU && wObj.Inference.Preset != nil {
 			if err := resources.UpdateStatusWithRetry(ctx, c.Client, client.ObjectKey{Namespace: wObj.Namespace, Name: wObj.Name}, func(obj *kaitov1beta1.Workspace) error {
 				status := &obj.Status

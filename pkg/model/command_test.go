@@ -152,6 +152,41 @@ func TestParseHuggingFaceModelVersion(t *testing.T) {
 	}
 }
 
+func TestBuildCmdStr(t *testing.T) {
+	tests := []struct {
+		name      string
+		runParams []map[string]string
+		expected  string
+	}{
+		{
+			name:      "keys within a map are sorted",
+			runParams: []map[string]string{{"b": "2", "a": "1", "flag": ""}},
+			expected:  "base --a=1 --b=2 --flag",
+		},
+		{
+			name: "map order is kept and each map is sorted",
+			runParams: []map[string]string{
+				{"z": "1", "y": "", "x": "3"},
+				{"c": "", "b": "2", "a": "1"},
+			},
+			expected: "base --x=3 --y --z=1 --a=1 --b=2 --c",
+		},
+		{
+			name:      "empty map returns base command",
+			runParams: []map[string]string{{}},
+			expected:  "base",
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			// Go randomizes map iteration, so repeat to catch order dependence.
+			for range 20 {
+				assert.Equal(t, tt.expected, buildCmdStr("base", tt.runParams...))
+			}
+		})
+	}
+}
+
 func TestBuildIfElseCmdStr(t *testing.T) {
 	tests := []struct {
 		name           string

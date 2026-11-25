@@ -111,7 +111,7 @@ func (c *NodeClaimManager) CreateUpNodeClaims(ctx context.Context, wObj *kaitov1
 		var nodeClaim *karpenterv1.NodeClaim
 
 		err := retry.RetryOnConflict(retry.DefaultRetry, func() error {
-			nodeClaim = nodeclaim.GenerateNodeClaimManifestWithOptions(nodeOSDiskSize, wObj, nodeclaim.ManifestOptions{
+			nodeClaim = nodeclaim.GenerateNodeClaimManifestWithOptions(ctx, nodeOSDiskSize, wObj, nodeclaim.ManifestOptions{
 				DefaultNodeImageFamily: c.defaultNodeImageFamily,
 			})
 			return c.Client.Create(ctx, nodeClaim)

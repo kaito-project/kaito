@@ -28,11 +28,8 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client/fake"
 	"sigs.k8s.io/controller-runtime/pkg/client/interceptor"
 
-	"github.com/kaito-project/kaito/pkg/consts"
-	"github.com/kaito-project/kaito/pkg/featuregates"
-	"github.com/kaito-project/kaito/pkg/k8sclient"
+	"github.com/kaito-project/kaito/api/env"
 	"github.com/kaito-project/kaito/pkg/model"
-	mmconsts "github.com/kaito-project/kaito/pkg/modelmirror/consts"
 )
 
 const DefaultReleaseNamespace = "kaito-workspace"
@@ -872,18 +869,11 @@ func TestResourceSpecValidateCreate(t *testing.T) {
 		},
 	}
 
-	t.Setenv("CLOUD_PROVIDER", consts.AzureCloudName)
-
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
-			// Set up BYO feature gate if needed
+			var mods []func(*env.Env)
 			if tc.useFeatureGate {
-				// Enable BYO mode by setting the feature gate
-				originalFeatureGate := featuregates.FeatureGates[featuregates.FeatureFlagDisableNodeAutoProvisioning]
-				featuregates.FeatureGates[featuregates.FeatureFlagDisableNodeAutoProvisioning] = true
-				defer func() {
-					featuregates.FeatureGates[featuregates.FeatureFlagDisableNodeAutoProvisioning] = originalFeatureGate
-				}()
+				mods = append(mods, withNodeProvisioner(env.NodeProvisionerBYO))
 			}
 
 			// Set up fake client with test nodes if provided
@@ -899,7 +889,7 @@ func TestResourceSpecValidateCreate(t *testing.T) {
 				}
 
 				client := fake.NewClientBuilder().WithScheme(scheme).WithRuntimeObjects(objects...).Build()
-				k8sclient.SetGlobalClient(client)
+				mods = append(mods, withClient(client))
 			}
 
 			if tc.validateTuning {
@@ -941,7 +931,7 @@ func TestResourceSpecValidateCreate(t *testing.T) {
 				totalSafeTensorFileSize = tc.totalSafeTensorFileSize
 				perGPUMemoryRequirement = tc.modelPerGPUMemory
 
-				errs := tc.resourceSpec.validateCreateWithInference(context.TODO(), &spec, false, tc.runtime, "")
+				errs := tc.resourceSpec.validateCreateWithInference(testCtx(mods...), &spec, false, tc.runtime, "")
 				hasErrs := errs != nil
 				if hasErrs != tc.expectErrs {
 					t.Errorf("validateCreate() errors = %v, expectErrs %v", errs, tc.expectErrs)
@@ -961,20 +951,13 @@ func TestResourceSpecValidateCreate(t *testing.T) {
 
 func TestValidateMIGModelFit(t *testing.T) {
 	RegisterValidationTestModels()
-	t.Setenv("CLOUD_PROVIDER", consts.AzureCloudName)
-
-	origMIG := featuregates.FeatureGates[featuregates.FeatureFlagEnableMIG]
-	origNAP := featuregates.FeatureGates[featuregates.FeatureFlagDisableNodeAutoProvisioning]
-	featuregates.FeatureGates[featuregates.FeatureFlagEnableMIG] = true
-	featuregates.FeatureGates[featuregates.FeatureFlagDisableNodeAutoProvisioning] = true
-	defer func() {
-		featuregates.FeatureGates[featuregates.FeatureFlagEnableMIG] = origMIG
-		featuregates.FeatureGates[featuregates.FeatureFlagDisableNodeAutoProvisioning] = origNAP
-	}()
-
 	scheme := runtime.NewScheme()
 	_ = v1.AddToScheme(scheme)
-	k8sclient.SetGlobalClient(fake.NewClientBuilder().WithScheme(scheme).Build())
+	ctx := testCtx(
+		withClient(fake.NewClientBuilder().WithScheme(scheme).Build()),
+		withNodeProvisioner(env.NodeProvisionerBYO),
+		withFeatures(env.Features{EnableMIG: true}),
+	)
 
 	tests := []struct {
 		name                    string
@@ -1021,7 +1004,7 @@ func TestValidateMIGModelFit(t *testing.T) {
 				Preset: &PresetSpec{PresetMeta: PresetMeta{Name: ModelName(tc.presetName)}},
 			}
 
-			errs := resourceSpec.validateCreateWithInference(context.TODO(), spec, tc.bypass, model.RuntimeNameVLLM, "")
+			errs := resourceSpec.validateCreateWithInference(ctx, spec, tc.bypass, model.RuntimeNameVLLM, "")
 			hasErrs := errs != nil
 			if hasErrs != tc.expectErrs {
 				t.Errorf("validateCreateWithInference() errors = %v, expectErrs %v", errs, tc.expectErrs)
@@ -1034,14 +1017,7 @@ func TestValidateMIGModelFit(t *testing.T) {
 }
 
 func TestValidatePartition(t *testing.T) {
-	origMIG := featuregates.FeatureGates[featuregates.FeatureFlagEnableMIG]
-	origAccel := featuregates.FeatureGates[featuregates.FeatureFlagEnableAccelerator]
-	featuregates.FeatureGates[featuregates.FeatureFlagEnableMIG] = true
-	featuregates.FeatureGates[featuregates.FeatureFlagEnableAccelerator] = true
-	defer func() {
-		featuregates.FeatureGates[featuregates.FeatureFlagEnableMIG] = origMIG
-		featuregates.FeatureGates[featuregates.FeatureFlagEnableAccelerator] = origAccel
-	}()
+	ctx := testCtx(withFeatures(env.Features{EnableMIG: true, EnableAccelerator: true}))
 
 	tests := []struct {
 		name       string
@@ -1088,7 +1064,7 @@ func TestValidatePartition(t *testing.T) {
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
 			r := &ResourceSpec{Partition: tc.partition}
-			errs := r.validatePartition()
+			errs := r.validatePartition(ctx)
 			hasErrs := errs != nil
 			if hasErrs != tc.expectErrs {
 				t.Errorf("validatePartition() errors = %v, expectErrs %v", errs, tc.expectErrs)
@@ -1106,8 +1082,8 @@ func TestResourceSpecValidateUpdate(t *testing.T) {
 		name        string
 		newResource *ResourceSpec
 		oldResource *ResourceSpec
-		disableNAP  bool   // Whether to disable Node Auto-Provisioning
-		errContent  string // Content expected error to include, if any
+		provisioner env.NodeProvisioner // NodeProvisionerBYO disables node auto-provisioning
+		errContent  string              // Content expected error to include, if any
 		expectErrs  bool
 	}{
 		{
@@ -1132,9 +1108,9 @@ func TestResourceSpecValidateUpdate(t *testing.T) {
 				InstanceType: "old_type",
 				Count:        pointerToInt(1),
 			},
-			disableNAP: false, // NAP enabled
-			errContent: "instanceType cannot be changed once set when node auto-provisioning is enabled",
-			expectErrs: true,
+			provisioner: env.NodeProvisionerAzureGPU,
+			errContent:  "instanceType cannot be changed once set when node auto-provisioning is enabled",
+			expectErrs:  true,
 		},
 		{
 			name: "NAP enabled - clear instanceType (invalid)",
@@ -1146,9 +1122,9 @@ func TestResourceSpecValidateUpdate(t *testing.T) {
 				InstanceType: "Standard_NV36ads_A10_v5",
 				Count:        pointerToInt(1),
 			},
-			disableNAP: false, // NAP enabled
-			errContent: "instanceType is required when node auto-provisioning is enabled",
-			expectErrs: true,
+			provisioner: env.NodeProvisionerAzureGPU,
+			errContent:  "instanceType is required when node auto-provisioning is enabled",
+			expectErrs:  true,
 		},
 		{
 			name: "NAP enabled - set instanceType initially (valid)",
@@ -1160,9 +1136,9 @@ func TestResourceSpecValidateUpdate(t *testing.T) {
 				InstanceType: "", // Was empty
 				Count:        pointerToInt(1),
 			},
-			disableNAP: false, // NAP enabled
-			errContent: "",
-			expectErrs: false,
+			provisioner: env.NodeProvisionerAzureGPU,
+			errContent:  "",
+			expectErrs:  false,
 		},
 		{
 			name: "NAP enabled - keep same instanceType (valid)",
@@ -1174,9 +1150,9 @@ func TestResourceSpecValidateUpdate(t *testing.T) {
 				InstanceType: "same_type",
 				Count:        pointerToInt(1),
 			},
-			disableNAP: false, // NAP enabled
-			errContent: "",
-			expectErrs: false,
+			provisioner: env.NodeProvisionerAzureGPU,
+			errContent:  "",
+			expectErrs:  false,
 		},
 		// NAP Disabled Cases
 		{
@@ -1195,9 +1171,9 @@ func TestResourceSpecValidateUpdate(t *testing.T) {
 					MatchLabels: map[string]string{"gpu": "v100"}, // Same labelSelector
 				},
 			},
-			disableNAP: true, // NAP disabled (BYO mode)
-			errContent: "",
-			expectErrs: false,
+			provisioner: env.NodeProvisionerBYO, // NAP disabled (BYO mode)
+			errContent:  "",
+			expectErrs:  false,
 		},
 		{
 			name: "NAP disabled - keep instanceType set (backward compatibility)",
@@ -1209,8 +1185,8 @@ func TestResourceSpecValidateUpdate(t *testing.T) {
 				InstanceType: "Standard_NV36ads_A10_v5", // Had instanceType from v0.7
 				Count:        pointerToInt(1),
 			},
-			disableNAP: true, // NAP disabled (BYO mode)
-			expectErrs: false,
+			provisioner: env.NodeProvisionerBYO, // NAP disabled (BYO mode)
+			expectErrs:  false,
 		},
 		{
 			name: "NAP disabled - change to different instanceType (invalid, immutable once set)",
@@ -1222,9 +1198,9 @@ func TestResourceSpecValidateUpdate(t *testing.T) {
 				InstanceType: "old_type",
 				Count:        pointerToInt(1),
 			},
-			disableNAP: true,
-			errContent: "instanceType cannot be changed once set",
-			expectErrs: true,
+			provisioner: env.NodeProvisionerBYO,
+			errContent:  "instanceType cannot be changed once set",
+			expectErrs:  true,
 		},
 		{
 			name: "NAP disabled - instanceType already empty (valid)",
@@ -1242,9 +1218,9 @@ func TestResourceSpecValidateUpdate(t *testing.T) {
 					MatchLabels: map[string]string{"gpu": "v100"},
 				},
 			},
-			disableNAP: true, // NAP disabled (BYO mode)
-			errContent: "",
-			expectErrs: false,
+			provisioner: env.NodeProvisionerBYO, // NAP disabled (BYO mode)
+			errContent:  "",
+			expectErrs:  false,
 		},
 		{
 			name: "NAP disabled - add instanceType on update (valid, immutable-once-set allows adding)",
@@ -1256,9 +1232,9 @@ func TestResourceSpecValidateUpdate(t *testing.T) {
 				InstanceType: "",
 				Count:        pointerToInt(1),
 			},
-			disableNAP: true,
-			errContent: "",
-			expectErrs: false,
+			provisioner: env.NodeProvisionerBYO,
+			errContent:  "",
+			expectErrs:  false,
 		},
 		// LabelSelector immutability
 		{
@@ -1284,23 +1260,16 @@ func TestResourceSpecValidateUpdate(t *testing.T) {
 				InstanceType:  "same_type",
 				LabelSelector: &metav1.LabelSelector{MatchLabels: map[string]string{"key": "value"}},
 			},
-			disableNAP: false, // NAP enabled
-			errContent: "",
-			expectErrs: false,
+			provisioner: env.NodeProvisionerAzureGPU,
+			errContent:  "",
+			expectErrs:  false,
 		},
 	}
 
 	// Run the tests
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
-			// Set or reset the feature gate if specified
-			originalFeatureGate := featuregates.FeatureGates[featuregates.FeatureFlagDisableNodeAutoProvisioning]
-			featuregates.FeatureGates[featuregates.FeatureFlagDisableNodeAutoProvisioning] = tc.disableNAP
-			defer func() {
-				featuregates.FeatureGates[featuregates.FeatureFlagDisableNodeAutoProvisioning] = originalFeatureGate
-			}()
-
-			errs := tc.newResource.validateUpdate(tc.oldResource)
+			errs := tc.newResource.validateUpdate(testCtx(withNodeProvisioner(tc.provisioner)), tc.oldResource)
 			hasErrs := errs != nil
 			if hasErrs != tc.expectErrs {
 				t.Errorf("validateUpdate() errors = %v, expectErrs %v", errs, tc.expectErrs)
@@ -1319,11 +1288,6 @@ func TestResourceSpecValidateUpdate(t *testing.T) {
 
 func TestInferenceSpecValidateCreate(t *testing.T) {
 	RegisterValidationTestModels()
-	ctx := context.Background()
-
-	// Set environment variables
-	t.Setenv("CLOUD_PROVIDER", consts.AzureCloudName)
-	t.Setenv(k8sclient.DefaultReleaseNamespaceEnvVar, DefaultReleaseNamespace)
 
 	// Create fake client with default ConfigMap
 	scheme := runtime.NewScheme()
@@ -1349,7 +1313,7 @@ func TestInferenceSpecValidateCreate(t *testing.T) {
 			},
 		},
 	).Build()
-	k8sclient.SetGlobalClient(client)
+	ctx := testCtx(withClient(client))
 
 	tests := []struct {
 		name          string
@@ -1617,8 +1581,6 @@ func TestInferenceSpecValidateCreate(t *testing.T) {
 
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
-			// Set CLOUD_PROVIDER environment variable for all test cases
-			t.Setenv("CLOUD_PROVIDER", consts.AzureCloudName)
 			// If the test expects an error, setup defer function to catch the panic.
 			if tc.expectErrs {
 				defer func() {
@@ -1969,7 +1931,7 @@ func TestWorkspaceValidateCreate(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			errs := tt.workspace.validateCreate()
+			errs := tt.workspace.validateCreate(testCtx())
 			if (errs != nil) != tt.wantErr {
 				t.Errorf("validateCreate() error = %v, wantErr %v", errs, tt.wantErr)
 			}
@@ -1983,17 +1945,13 @@ func TestWorkspaceValidateCreate(t *testing.T) {
 func TestWorkspaceValidateName(t *testing.T) {
 	RegisterValidationTestModels()
 
-	// Set environment variables
-	t.Setenv("CLOUD_PROVIDER", consts.AzureCloudName)
-	t.Setenv(k8sclient.DefaultReleaseNamespaceEnvVar, DefaultReleaseNamespace)
-
 	// Create fake client with default ConfigMap
 	scheme := runtime.NewScheme()
 	_ = v1.AddToScheme(scheme)
 	client := fake.NewClientBuilder().WithScheme(scheme).WithRuntimeObjects(
 		defaultInferenceConfigMapManifest(),
 	).Build()
-	k8sclient.SetGlobalClient(client)
+	ctx := testCtx(withClient(client))
 
 	testWorkspace := &Workspace{
 		ObjectMeta: metav1.ObjectMeta{
@@ -2061,7 +2019,7 @@ func TestWorkspaceValidateName(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			workspace := testWorkspace.DeepCopy()
 			workspace.Name = tt.workspaceName
-			ctx := context.Background()
+			ctx := ctx
 			if tt.update {
 				ctx = apis.WithinUpdate(ctx, workspace.DeepCopy())
 			}
@@ -2079,15 +2037,12 @@ func TestWorkspaceValidateName(t *testing.T) {
 func TestWorkspaceValidatePerformanceModeAnnotation(t *testing.T) {
 	RegisterValidationTestModels()
 
-	t.Setenv("CLOUD_PROVIDER", consts.AzureCloudName)
-	t.Setenv(k8sclient.DefaultReleaseNamespaceEnvVar, DefaultReleaseNamespace)
-
 	scheme := runtime.NewScheme()
 	_ = v1.AddToScheme(scheme)
 	client := fake.NewClientBuilder().WithScheme(scheme).WithRuntimeObjects(
 		defaultInferenceConfigMapManifest(),
 	).Build()
-	k8sclient.SetGlobalClient(client)
+	ctx := testCtx(withClient(client))
 
 	baseWorkspace := &Workspace{
 		ObjectMeta: metav1.ObjectMeta{
@@ -2158,7 +2113,7 @@ func TestWorkspaceValidatePerformanceModeAnnotation(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			ws := baseWorkspace.DeepCopy()
 			ws.Annotations = tt.annotations
-			errs := ws.Validate(context.Background())
+			errs := ws.Validate(ctx)
 			if (errs != nil) != tt.wantErr {
 				t.Errorf("Validate() error = %v, wantErr %v", errs, tt.wantErr)
 			}
@@ -2169,24 +2124,15 @@ func TestWorkspaceValidatePerformanceModeAnnotation(t *testing.T) {
 func TestWorkspaceValidateNodeClassNameAnnotation(t *testing.T) {
 	RegisterValidationTestModels()
 
-	t.Setenv("CLOUD_PROVIDER", consts.AzureCloudName)
-	t.Setenv(k8sclient.DefaultReleaseNamespaceEnvVar, DefaultReleaseNamespace)
-
 	scheme := runtime.NewScheme()
 	_ = v1.AddToScheme(scheme)
 	client := fake.NewClientBuilder().WithScheme(scheme).WithRuntimeObjects(
 		defaultInferenceConfigMapManifest(),
 	).Build()
-	k8sclient.SetGlobalClient(client)
-
-	oldProvisioner := featuregates.NodeProvisioner
-	oldAllowed := featuregates.AllowedNodeClassNames()
-	featuregates.NodeProvisioner = featuregates.NodeProvisionerKarpenter
-	featuregates.SetAllowedNodeClassNames([]string{"image-family-azure-linux", "image-family-ubuntu"})
-	t.Cleanup(func() {
-		featuregates.NodeProvisioner = oldProvisioner
-		featuregates.SetAllowedNodeClassNames(oldAllowed)
-	})
+	nodeClasses := func(e *env.Env) {
+		e.NodeClassNames = func() []string { return []string{"image-family-azure-linux", "image-family-ubuntu"} }
+	}
+	ctx := testCtx(withClient(client), withNodeProvisioner(env.NodeProvisionerKarpenter), nodeClasses)
 
 	baseWorkspace := &Workspace{
 		ObjectMeta: metav1.ObjectMeta{
@@ -2237,7 +2183,7 @@ func TestWorkspaceValidateNodeClassNameAnnotation(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			ws := baseWorkspace.DeepCopy()
 			ws.Annotations = tt.annotations
-			errs := ws.Validate(context.Background())
+			errs := ws.Validate(ctx)
 			if (errs != nil) != tt.wantErr {
 				t.Errorf("Validate() error = %v, wantErr %v", errs, tt.wantErr)
 			}
@@ -2247,12 +2193,11 @@ func TestWorkspaceValidateNodeClassNameAnnotation(t *testing.T) {
 	// The annotation is inert unless karpenter is provisioning nodes, so it must not
 	// block Workspaces on other provisioners.
 	t.Run("annotation is ignored when the provisioner is not karpenter", func(t *testing.T) {
-		featuregates.NodeProvisioner = featuregates.NodeProvisionerBYO
-		defer func() { featuregates.NodeProvisioner = featuregates.NodeProvisionerKarpenter }()
+		byoCtx := testCtx(withClient(client), withNodeProvisioner(env.NodeProvisionerBYO), nodeClasses)
 
 		ws := baseWorkspace.DeepCopy()
 		ws.Annotations = map[string]string{AnnotationNodeClassName: "someone-elses-nodeclass"}
-		if errs := ws.Validate(context.Background()); errs != nil {
+		if errs := ws.Validate(byoCtx); errs != nil {
 			t.Errorf("Validate() unexpected error for non-karpenter provisioner: %v", errs)
 		}
 	})
@@ -2263,7 +2208,7 @@ func TestWorkspaceValidateNodeClassNameAnnotation(t *testing.T) {
 		old := baseWorkspace.DeepCopy()
 		old.Annotations = map[string]string{AnnotationNodeClassName: "legacy-nodeclass"}
 		ws := old.DeepCopy()
-		errs := ws.Validate(apis.WithinUpdate(context.Background(), old))
+		errs := ws.Validate(apis.WithinUpdate(ctx, old))
 		if errs != nil {
 			t.Errorf("Validate() unexpected error for unchanged annotation: %v", errs)
 		}
@@ -2273,7 +2218,7 @@ func TestWorkspaceValidateNodeClassNameAnnotation(t *testing.T) {
 		old := baseWorkspace.DeepCopy()
 		ws := old.DeepCopy()
 		ws.Annotations = map[string]string{AnnotationNodeClassName: "someone-elses-nodeclass"}
-		errs := ws.Validate(apis.WithinUpdate(context.Background(), old))
+		errs := ws.Validate(apis.WithinUpdate(ctx, old))
 		if errs == nil || !strings.Contains(errs.Error(), AnnotationNodeClassName) {
 			t.Errorf("Validate() expected a %s error when the annotation changes to a disallowed value, got %v",
 				AnnotationNodeClassName, errs)
@@ -2282,15 +2227,13 @@ func TestWorkspaceValidateNodeClassNameAnnotation(t *testing.T) {
 }
 
 func TestWorkspaceCapacityTypeAnnotation(t *testing.T) {
-	originalProvisioner := featuregates.NodeProvisioner
-	featuregates.NodeProvisioner = featuregates.NodeProvisionerKarpenter
-	t.Cleanup(func() { featuregates.NodeProvisioner = originalProvisioner })
+	ctx := testCtx(withNodeProvisioner(env.NodeProvisionerKarpenter))
 
 	for _, value := range []string{"", CapacityTypeOnDemand, CapacityTypeSpot} {
 		ws := &Workspace{ObjectMeta: metav1.ObjectMeta{
 			Annotations: map[string]string{AnnotationCapacityType: value},
 		}}
-		if errs := ws.validateCapacityTypeAnnotation(); errs != nil {
+		if errs := ws.validateCapacityTypeAnnotation(ctx); errs != nil {
 			t.Errorf("validateCapacityTypeAnnotation() rejected %q: %v", value, errs)
 		}
 	}
@@ -2298,7 +2241,7 @@ func TestWorkspaceCapacityTypeAnnotation(t *testing.T) {
 	invalid := &Workspace{ObjectMeta: metav1.ObjectMeta{
 		Annotations: map[string]string{AnnotationCapacityType: "reserved"},
 	}}
-	if errs := invalid.validateCapacityTypeAnnotation(); errs == nil {
+	if errs := invalid.validateCapacityTypeAnnotation(ctx); errs == nil {
 		t.Fatal("validateCapacityTypeAnnotation() accepted an unsupported value")
 	}
 
@@ -2308,7 +2251,7 @@ func TestWorkspaceCapacityTypeAnnotation(t *testing.T) {
 		}}
 		updated := old.DeepCopy()
 		updated.Annotations[AnnotationCapacityType] = CapacityTypeSpot
-		if errs := updated.validateCapacityTypeAnnotationUpdate(old); errs == nil {
+		if errs := updated.validateCapacityTypeAnnotationUpdate(ctx, old); errs == nil {
 			t.Fatal("validateCapacityTypeAnnotationUpdate() allowed a valid capacity type to change")
 		}
 	})
@@ -2317,15 +2260,13 @@ func TestWorkspaceCapacityTypeAnnotation(t *testing.T) {
 		old := invalid.DeepCopy()
 		updated := old.DeepCopy()
 		updated.Annotations[AnnotationCapacityType] = CapacityTypeOnDemand
-		if errs := updated.validateCapacityTypeAnnotationUpdate(old); errs != nil {
+		if errs := updated.validateCapacityTypeAnnotationUpdate(ctx, old); errs != nil {
 			t.Errorf("validateCapacityTypeAnnotationUpdate() rejected legacy repair: %v", errs)
 		}
 	})
 
 	t.Run("annotation is inert outside karpenter", func(t *testing.T) {
-		featuregates.NodeProvisioner = featuregates.NodeProvisionerBYO
-		defer func() { featuregates.NodeProvisioner = featuregates.NodeProvisionerKarpenter }()
-		if errs := invalid.validateCapacityTypeAnnotation(); errs != nil {
+		if errs := invalid.validateCapacityTypeAnnotation(testCtx(withNodeProvisioner(env.NodeProvisionerBYO))); errs != nil {
 			t.Errorf("validateCapacityTypeAnnotation() rejected inert annotation: %v", errs)
 		}
 	})
@@ -2334,22 +2275,17 @@ func TestWorkspaceCapacityTypeAnnotation(t *testing.T) {
 func TestWorkspaceValidateNAPFeatureGate(t *testing.T) {
 	RegisterValidationTestModels()
 
-	// Set environment variables
-	t.Setenv("CLOUD_PROVIDER", consts.AzureCloudName)
-	t.Setenv(k8sclient.DefaultReleaseNamespaceEnvVar, DefaultReleaseNamespace)
-
 	// Create fake client with default ConfigMap
 	scheme := runtime.NewScheme()
 	_ = v1.AddToScheme(scheme)
 	client := fake.NewClientBuilder().WithScheme(scheme).WithRuntimeObjects(
 		defaultInferenceConfigMapManifest(),
 	).Build()
-	k8sclient.SetGlobalClient(client)
 
 	tests := []struct {
 		name        string
 		workspace   *Workspace
-		disableNAP  bool // Whether to disable Node Auto-Provisioning
+		provisioner env.NodeProvisioner // NodeProvisionerBYO disables node auto-provisioning
 		expectErrs  bool
 		errContains string
 	}{
@@ -2372,7 +2308,7 @@ func TestWorkspaceValidateNAPFeatureGate(t *testing.T) {
 					},
 				},
 			},
-			disableNAP:  false, // NAP enabled
+			provisioner: env.NodeProvisionerAzureGPU,
 			expectErrs:  true,
 			errContains: "instanceType is required when node auto-provisioning is enabled",
 		},
@@ -2395,7 +2331,7 @@ func TestWorkspaceValidateNAPFeatureGate(t *testing.T) {
 					},
 				},
 			},
-			disableNAP:  false, // NAP enabled
+			provisioner: env.NodeProvisionerAzureGPU,
 			expectErrs:  false,
 			errContains: "",
 		},
@@ -2423,7 +2359,7 @@ func TestWorkspaceValidateNAPFeatureGate(t *testing.T) {
 					},
 				},
 			},
-			disableNAP:  true,
+			provisioner: env.NodeProvisionerBYO,
 			expectErrs:  false,
 			errContains: "",
 		},
@@ -2451,7 +2387,7 @@ func TestWorkspaceValidateNAPFeatureGate(t *testing.T) {
 					},
 				},
 			},
-			disableNAP:  true, // NAP disabled (BYO mode)
+			provisioner: env.NodeProvisionerBYO, // NAP disabled (BYO mode)
 			expectErrs:  false,
 			errContains: "",
 		},
@@ -2459,15 +2395,10 @@ func TestWorkspaceValidateNAPFeatureGate(t *testing.T) {
 
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
-			// Set or reset the feature gate
-			originalFeatureGate := featuregates.FeatureGates[featuregates.FeatureFlagDisableNodeAutoProvisioning]
-			featuregates.FeatureGates[featuregates.FeatureFlagDisableNodeAutoProvisioning] = tc.disableNAP
-			defer func() {
-				featuregates.FeatureGates[featuregates.FeatureFlagDisableNodeAutoProvisioning] = originalFeatureGate
-			}()
+			ctx := testCtx(withClient(client), withNodeProvisioner(tc.provisioner))
 
 			// For BYO scenarios, set up fake nodes if needed
-			if tc.disableNAP && tc.workspace.Resource.LabelSelector != nil {
+			if tc.provisioner == env.NodeProvisionerBYO && tc.workspace.Resource.LabelSelector != nil {
 				// Create a test node that matches the label selector
 				testNode := v1.Node{
 					ObjectMeta: metav1.ObjectMeta{
@@ -2488,11 +2419,11 @@ func TestWorkspaceValidateNAPFeatureGate(t *testing.T) {
 					defaultInferenceConfigMapManifest(),
 					&testNode,
 				).Build()
-				k8sclient.SetGlobalClient(client)
+				ctx = testCtx(withClient(client), withNodeProvisioner(tc.provisioner))
 			}
 
 			// Call the full Validate method
-			errs := tc.workspace.Validate(context.Background())
+			errs := tc.workspace.Validate(ctx)
 			hasErrs := errs != nil
 
 			if hasErrs != tc.expectErrs {
@@ -2531,23 +2462,18 @@ func TestWorkspaceValidateDeletingSkipsValidation(t *testing.T) {
 func TestWorkspaceValidateUpdate(t *testing.T) {
 	RegisterValidationTestModels()
 
-	// Set environment variables
-	t.Setenv("CLOUD_PROVIDER", consts.AzureCloudName)
-	t.Setenv(k8sclient.DefaultReleaseNamespaceEnvVar, DefaultReleaseNamespace)
-
 	// Create fake client
 	scheme := runtime.NewScheme()
 	_ = v1.AddToScheme(scheme)
 	client := fake.NewClientBuilder().WithScheme(scheme).WithRuntimeObjects(
 		defaultInferenceConfigMapManifest(),
 	).Build()
-	k8sclient.SetGlobalClient(client)
 
 	tests := []struct {
 		name         string
 		oldWorkspace *Workspace
 		newWorkspace *Workspace
-		disableNAP   bool // Whether to disable Node Auto-Provisioning
+		provisioner  env.NodeProvisioner // NodeProvisionerBYO disables node auto-provisioning
 		expectErrs   bool
 		errFields    []string // Fields we expect to have errors
 		errContent   string
@@ -2660,25 +2586,15 @@ func TestWorkspaceValidateUpdate(t *testing.T) {
 					},
 				},
 			},
-			disableNAP: true,  // Upgrading to v0.8 with disableNAP=true
-			expectErrs: false, // Should NOT fail during UPDATE when clearing instanceType
+			provisioner: env.NodeProvisionerBYO, // Upgrading to v0.8 with disableNAP=true
+			expectErrs:  false,                  // Should NOT fail during UPDATE when clearing instanceType
 		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			// Set or reset the feature gate if specified
-			if tt.disableNAP {
-				originalFeatureGate := featuregates.FeatureGates[featuregates.FeatureFlagDisableNodeAutoProvisioning]
-				featuregates.FeatureGates[featuregates.FeatureFlagDisableNodeAutoProvisioning] = true
-				defer func() {
-					featuregates.FeatureGates[featuregates.FeatureFlagDisableNodeAutoProvisioning] = originalFeatureGate
-				}()
-			}
-
 			// Call Validate with baseline to simulate UPDATE operation
-			ctx := context.Background()
-			ctx = apis.WithinUpdate(ctx, tt.oldWorkspace)
+			ctx := apis.WithinUpdate(testCtx(withClient(client), withNodeProvisioner(tt.provisioner)), tt.oldWorkspace)
 			errs := tt.newWorkspace.Validate(ctx)
 			hasErrs := errs != nil
 
@@ -2702,16 +2618,12 @@ func TestWorkspaceValidateUpdate(t *testing.T) {
 
 func TestTuningSpecValidateCreate(t *testing.T) {
 	RegisterValidationTestModels()
-	// Set ReleaseNamespace Env
-	t.Setenv(k8sclient.DefaultReleaseNamespaceEnvVar, DefaultReleaseNamespace)
 
 	// Create fake client with default ConfigMap
 	scheme := runtime.NewScheme()
 	_ = v1.AddToScheme(scheme)
 	client := fake.NewClientBuilder().WithScheme(scheme).WithRuntimeObjects(defaultConfigMapManifest(), qloraConfigMapManifest()).Build()
-	k8sclient.SetGlobalClient(client)
-	// Include client in ctx
-	ctx := context.Background()
+	ctx := testCtx(withClient(client))
 
 	tests := []struct {
 		name       string
@@ -3253,11 +3165,6 @@ func TestDataDestinationValidateUpdate(t *testing.T) {
 
 func TestInferenceConfigMapValidation(t *testing.T) {
 	RegisterValidationTestModels()
-	ctx := context.Background()
-
-	// Set environment variables
-	t.Setenv("CLOUD_PROVIDER", consts.AzureCloudName)
-	t.Setenv(k8sclient.DefaultReleaseNamespaceEnvVar, DefaultReleaseNamespace)
 
 	// Create fake client with test ConfigMaps
 	scheme := runtime.NewScheme()
@@ -3292,7 +3199,7 @@ vllm:
 			},
 		},
 	).Build()
-	k8sclient.SetGlobalClient(client)
+	ctx := testCtx(withClient(client))
 
 	tests := []struct {
 		name       string
@@ -3368,21 +3275,13 @@ vllm:
 
 func TestWorkspaceValidateStreamingCSIDriver(t *testing.T) {
 	RegisterValidationTestModels()
-	t.Setenv("CLOUD_PROVIDER", consts.AzureCloudName)
-
-	// Force ModelStreaming on so the check runs.
-	origStream := featuregates.FeatureGates[featuregates.FeatureFlagModelStreaming]
-	featuregates.FeatureGates[featuregates.FeatureFlagModelStreaming] = true
-	defer func() {
-		featuregates.FeatureGates[featuregates.FeatureFlagModelStreaming] = origStream
-	}()
 
 	// Fake client with NO CSIDriver object -> streaming (vllm) workspaces should be rejected,
 	// transformers/disabled workspaces should pass (they short-circuit before the lookup).
 	scheme := runtime.NewScheme()
 	_ = storagev1.AddToScheme(scheme)
 	cl := fake.NewClientBuilder().WithScheme(scheme).Build()
-	k8sclient.SetGlobalClient(cl)
+	ctx := testCtx(withClient(cl), withFeatures(env.Features{ModelStreaming: true}))
 
 	presetSpec := &InferenceSpec{Preset: &PresetSpec{PresetMeta: PresetMeta{Name: ModelName("test-validation")}}}
 
@@ -3400,13 +3299,13 @@ func TestWorkspaceValidateStreamingCSIDriver(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			anns := map[string]string{AnnotationWorkspaceRuntime: tc.runtimeAnn}
 			if tc.streamingAnn != "" {
-				anns[mmconsts.AnnotationModelStreaming] = tc.streamingAnn
+				anns[AnnotationModelStreaming] = tc.streamingAnn
 			}
 			w := &Workspace{
 				ObjectMeta: metav1.ObjectMeta{Name: "ws", Namespace: "default", Annotations: anns},
 				Inference:  presetSpec,
 			}
-			err := w.validateStreamingCSIDriver(context.Background())
+			err := w.validateStreamingCSIDriver(ctx)
 			if (err != nil) != tc.wantErr {
 				t.Errorf("validateStreamingCSIDriver() err=%v wantErr=%v", err, tc.wantErr)
 			}
@@ -3541,16 +3440,11 @@ func TestValidateCreate_InvalidSpeculativeDecodingValueReportedOnce(t *testing.T
 // Existing label-only workloads must not depend on the admission-time node inventory
 // for metadata changes or ordinary same-runtime image upgrades.
 func TestValidateUpdateLabelOnlyDoesNotRevalidateNodeInventory(t *testing.T) {
-	oldNAP, oldClient := featuregates.FeatureGates[featuregates.FeatureFlagDisableNodeAutoProvisioning], k8sclient.Client
-	t.Cleanup(func() {
-		featuregates.FeatureGates[featuregates.FeatureFlagDisableNodeAutoProvisioning], k8sclient.Client = oldNAP, oldClient
-	})
-	featuregates.FeatureGates[featuregates.FeatureFlagDisableNodeAutoProvisioning] = true
 	scheme := runtime.NewScheme()
 	if err := v1.AddToScheme(scheme); err != nil {
 		t.Fatal(err)
 	}
-	k8sclient.Client = fake.NewClientBuilder().WithScheme(scheme).WithInterceptorFuncs(interceptor.Funcs{List: func(ctx context.Context, c client.WithWatch, list client.ObjectList, opts ...client.ListOption) error {
+	kubeClient := fake.NewClientBuilder().WithScheme(scheme).WithInterceptorFuncs(interceptor.Funcs{List: func(ctx context.Context, c client.WithWatch, list client.ObjectList, opts ...client.ListOption) error {
 		if _, ok := list.(*v1.NodeList); ok {
 			t.Error("update must not list nodes for create-time CPU validation")
 		}
@@ -3568,9 +3462,36 @@ func TestValidateUpdateLabelOnlyDoesNotRevalidateNodeInventory(t *testing.T) {
 			if !preset {
 				updated.Inference.Template.Spec.Containers[0].Image = "example.com/cpu:v2"
 			}
-			if errs := updated.ValidateUpdate(context.Background(), old); errs != nil {
+			if errs := updated.ValidateUpdate(testCtx(withClient(kubeClient), withNodeProvisioner(env.NodeProvisionerBYO)), old); errs != nil {
 				t.Fatalf("ordinary CPU update rejected: %v", errs)
 			}
 		})
+	}
+}
+
+func TestTuningSpecValidateCreateUnknownReleaseNamespace(t *testing.T) {
+	scheme := runtime.NewScheme()
+	_ = v1.AddToScheme(scheme)
+	ctx := testCtx(
+		withClient(fake.NewClientBuilder().WithScheme(scheme).Build()),
+		func(e *env.Env) { e.ReleaseNamespace = "" },
+	)
+	spec := &TuningSpec{Method: TuningMethodLora}
+	errs := spec.validateCreate(ctx, "default")
+	if errs == nil || !strings.Contains(errs.Error(), "Failed to determine release namespace") {
+		t.Fatalf("validateCreate() error = %v, want release namespace error", errs)
+	}
+}
+
+func TestValidateCreateWithInferenceBYOWithoutClient(t *testing.T) {
+	RegisterValidationTestModels()
+	r := &ResourceSpec{
+		Count:         pointerToInt(1),
+		LabelSelector: &metav1.LabelSelector{MatchLabels: map[string]string{"pool": "gpu"}},
+	}
+	spec := &InferenceSpec{Preset: &PresetSpec{PresetMeta: PresetMeta{Name: "test-validation"}}}
+	errs := r.validateCreateWithInference(testCtx(withNodeProvisioner(env.NodeProvisionerBYO)), spec, false, model.RuntimeNameVLLM, "")
+	if errs == nil || !strings.Contains(errs.Error(), env.ErrNoClient.Error()) {
+		t.Fatalf("validateCreateWithInference() error = %v, want missing client error", errs)
 	}
 }

@@ -14,24 +14,17 @@
 package v1beta1
 
 import (
-	"context"
 	"testing"
 
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
+	"github.com/kaito-project/kaito/api/env"
 	"github.com/kaito-project/kaito/pkg/consts"
-	"github.com/kaito-project/kaito/pkg/featuregates"
 	"github.com/kaito-project/kaito/pkg/model"
 )
 
 func TestValidateCreateWithInference_AllowsCPUNAPInstanceTypes(t *testing.T) {
 	RegisterValidationTestModels()
-	oldNAPGate := featuregates.FeatureGates[featuregates.FeatureFlagDisableNodeAutoProvisioning]
-	defer func() {
-		featuregates.FeatureGates[featuregates.FeatureFlagDisableNodeAutoProvisioning] = oldNAPGate
-	}()
-	featuregates.FeatureGates[featuregates.FeatureFlagDisableNodeAutoProvisioning] = false
-
 	cpuInference := &InferenceSpec{Preset: &PresetSpec{PresetMeta: PresetMeta{Name: "test-validation"}}}
 
 	tests := []struct {
@@ -44,26 +37,26 @@ func TestValidateCreateWithInference_AllowsCPUNAPInstanceTypes(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			t.Setenv("CLOUD_PROVIDER", tt.provider)
+			ctx := testCtx(withCloud(tt.provider))
 			resourceSpec := &ResourceSpec{
 				InstanceType:  tt.instanceType,
 				Count:         pointerToInt(1),
 				LabelSelector: &metav1.LabelSelector{MatchLabels: map[string]string{"kaito.sh/cpu-inference": "true"}},
 			}
-			if err := resourceSpec.validateCreateWithInference(context.TODO(), cpuInference, false, model.RuntimeNameVLLM, ""); err != nil {
+			if err := resourceSpec.validateCreateWithInference(ctx, cpuInference, false, model.RuntimeNameVLLM, ""); err != nil {
 				t.Fatalf("expected cpu instance type %s to pass validation, got %v", tt.instanceType, err)
 			}
 		})
 	}
 
 	t.Run("azure rejects non-azure cpu sku strings", func(t *testing.T) {
-		t.Setenv("CLOUD_PROVIDER", consts.AzureCloudName)
+		ctx := testCtx()
 		resourceSpec := &ResourceSpec{
 			InstanceType:  "m6i.2xlarge",
 			Count:         pointerToInt(1),
 			LabelSelector: &metav1.LabelSelector{MatchLabels: map[string]string{"kaito.sh/cpu-inference": "true"}},
 		}
-		if err := resourceSpec.validateCreateWithInference(context.TODO(), cpuInference, false, model.RuntimeNameVLLM, ""); err == nil {
+		if err := resourceSpec.validateCreateWithInference(ctx, cpuInference, false, model.RuntimeNameVLLM, ""); err == nil {
 			t.Fatalf("expected aws-style instance type to be rejected when CLOUD_PROVIDER=azure")
 		}
 	})
@@ -82,20 +75,20 @@ func TestValidateCreateWithInference_AllowsCPUNAPInstanceTypes(t *testing.T) {
 
 	for _, tt := range unsupportedProviderCases {
 		t.Run(tt.name, func(t *testing.T) {
-			t.Setenv("CLOUD_PROVIDER", tt.provider)
+			ctx := testCtx(withCloud(tt.provider))
 			resourceSpec := &ResourceSpec{
 				InstanceType:  tt.instanceType,
 				Count:         pointerToInt(1),
 				LabelSelector: &metav1.LabelSelector{MatchLabels: map[string]string{"kaito.sh/cpu-inference": "true"}},
 			}
-			if err := resourceSpec.validateCreateWithInference(context.TODO(), cpuInference, false, model.RuntimeNameVLLM, ""); err == nil {
+			if err := resourceSpec.validateCreateWithInference(ctx, cpuInference, false, model.RuntimeNameVLLM, ""); err == nil {
 				t.Fatalf("expected AWS CPU instance type %s to be rejected for CPU inference", tt.instanceType)
 			}
 		})
 	}
 
 	t.Run("cpu nap path rejects conflicting sku selector", func(t *testing.T) {
-		t.Setenv("CLOUD_PROVIDER", consts.AzureCloudName)
+		ctx := testCtx()
 		resourceSpec := &ResourceSpec{
 			InstanceType: "Standard_D8s_v5",
 			Count:        pointerToInt(1),
@@ -104,13 +97,13 @@ func TestValidateCreateWithInference_AllowsCPUNAPInstanceTypes(t *testing.T) {
 				LabelSKU:                 "pool-a",
 			}},
 		}
-		if err := resourceSpec.validateCreateWithInference(context.TODO(), cpuInference, false, model.RuntimeNameVLLM, ""); err == nil {
+		if err := resourceSpec.validateCreateWithInference(ctx, cpuInference, false, model.RuntimeNameVLLM, ""); err == nil {
 			t.Fatalf("expected conflicting sku selector to be rejected for cpu nap workload")
 		}
 	})
 
 	t.Run("cpu nap path still rejects partitioned workloads", func(t *testing.T) {
-		t.Setenv("CLOUD_PROVIDER", consts.AzureCloudName)
+		ctx := testCtx()
 		resourceSpec := &ResourceSpec{
 			InstanceType: "Standard_D8s_v5",
 			Count:        pointerToInt(1),
@@ -119,18 +112,13 @@ func TestValidateCreateWithInference_AllowsCPUNAPInstanceTypes(t *testing.T) {
 				"kaito.sh/cpu-inference": "true",
 			}},
 		}
-		if err := resourceSpec.validateCreateWithInference(context.TODO(), cpuInference, false, model.RuntimeNameVLLM, ""); err == nil {
+		if err := resourceSpec.validateCreateWithInference(ctx, cpuInference, false, model.RuntimeNameVLLM, ""); err == nil {
 			t.Fatalf("expected partitioned cpu nap workload to be rejected")
 		}
 	})
 
 	t.Run("cpu byo path still rejects partitioned workloads", func(t *testing.T) {
-		t.Setenv("CLOUD_PROVIDER", consts.AzureCloudName)
-		oldDisableNAP := featuregates.FeatureGates[featuregates.FeatureFlagDisableNodeAutoProvisioning]
-		defer func() {
-			featuregates.FeatureGates[featuregates.FeatureFlagDisableNodeAutoProvisioning] = oldDisableNAP
-		}()
-		featuregates.FeatureGates[featuregates.FeatureFlagDisableNodeAutoProvisioning] = true
+		ctx := testCtx(withNodeProvisioner(env.NodeProvisionerBYO))
 
 		resourceSpec := &ResourceSpec{
 			Count:     pointerToInt(1),
@@ -139,7 +127,7 @@ func TestValidateCreateWithInference_AllowsCPUNAPInstanceTypes(t *testing.T) {
 				"kaito.sh/cpu-inference": "true",
 			}},
 		}
-		if err := resourceSpec.validateCreateWithInference(context.TODO(), cpuInference, false, model.RuntimeNameVLLM, ""); err == nil {
+		if err := resourceSpec.validateCreateWithInference(ctx, cpuInference, false, model.RuntimeNameVLLM, ""); err == nil {
 			t.Fatalf("expected partitioned cpu byo workload to be rejected")
 		}
 	})

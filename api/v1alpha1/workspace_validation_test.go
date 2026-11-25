@@ -14,7 +14,6 @@
 package v1alpha1
 
 import (
-	"context"
 	"fmt"
 	"strings"
 	"testing"
@@ -25,8 +24,6 @@ import (
 	"knative.dev/pkg/apis"
 	"sigs.k8s.io/controller-runtime/pkg/client/fake"
 
-	"github.com/kaito-project/kaito/pkg/consts"
-	"github.com/kaito-project/kaito/pkg/k8sclient"
 	"github.com/kaito-project/kaito/pkg/model"
 )
 
@@ -421,8 +418,6 @@ func TestResourceSpecValidateCreate(t *testing.T) {
 		},
 	}
 
-	t.Setenv("CLOUD_PROVIDER", consts.AzureCloudName)
-
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
 			if tc.validateTuning {
@@ -464,7 +459,7 @@ func TestResourceSpecValidateCreate(t *testing.T) {
 				totalSafeTensorFileSize = tc.totalSafeTensorFileSize
 				perGPUMemoryRequirement = tc.modelPerGPUMemory
 
-				errs := tc.resourceSpec.validateCreateWithInference(&spec, false)
+				errs := tc.resourceSpec.validateCreateWithInference(testCtx(), &spec, false)
 				hasErrs := errs != nil
 				if hasErrs != tc.expectErrs {
 					t.Errorf("validateCreate() errors = %v, expectErrs %v", errs, tc.expectErrs)
@@ -563,11 +558,6 @@ func TestResourceSpecValidateUpdate(t *testing.T) {
 
 func TestInferenceSpecValidateCreate(t *testing.T) {
 	RegisterValidationTestModels()
-	ctx := context.Background()
-
-	// Set environment variables
-	t.Setenv("CLOUD_PROVIDER", consts.AzureCloudName)
-	t.Setenv(k8sclient.DefaultReleaseNamespaceEnvVar, DefaultReleaseNamespace)
 
 	// Create fake client with default ConfigMap
 	scheme := runtime.NewScheme()
@@ -593,7 +583,7 @@ func TestInferenceSpecValidateCreate(t *testing.T) {
 			},
 		},
 	).Build()
-	k8sclient.SetGlobalClient(client)
+	ctx := testCtx(withClient(client))
 
 	tests := []struct {
 		name          string
@@ -832,8 +822,6 @@ func TestInferenceSpecValidateCreate(t *testing.T) {
 
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
-			// Set CLOUD_PROVIDER environment variable for all test cases
-			t.Setenv("CLOUD_PROVIDER", consts.AzureCloudName)
 			// If the test expects an error, setup defer function to catch the panic.
 			if tc.expectErrs {
 				defer func() {
@@ -1177,17 +1165,13 @@ func TestWorkspaceValidateCreate(t *testing.T) {
 func TestWorkspaceValidateName(t *testing.T) {
 	RegisterValidationTestModels()
 
-	// Set environment variables
-	t.Setenv("CLOUD_PROVIDER", consts.AzureCloudName)
-	t.Setenv(k8sclient.DefaultReleaseNamespaceEnvVar, DefaultReleaseNamespace)
-
 	// Create fake client with default ConfigMap
 	scheme := runtime.NewScheme()
 	_ = v1.AddToScheme(scheme)
 	client := fake.NewClientBuilder().WithScheme(scheme).WithRuntimeObjects(
 		defaultInferenceConfigMapManifest(),
 	).Build()
-	k8sclient.SetGlobalClient(client)
+	baseCtx := testCtx(withClient(client))
 
 	testWorkspace := &Workspace{
 		ObjectMeta: metav1.ObjectMeta{
@@ -1255,7 +1239,7 @@ func TestWorkspaceValidateName(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			workspace := testWorkspace.DeepCopy()
 			workspace.Name = tt.workspaceName
-			ctx := context.Background()
+			ctx := baseCtx
 			if tt.update {
 				ctx = apis.WithinUpdate(ctx, workspace.DeepCopy())
 			}
@@ -1348,16 +1332,12 @@ func TestWorkspaceValidateUpdate(t *testing.T) {
 
 func TestTuningSpecValidateCreate(t *testing.T) {
 	RegisterValidationTestModels()
-	// Set ReleaseNamespace Env
-	t.Setenv(k8sclient.DefaultReleaseNamespaceEnvVar, DefaultReleaseNamespace)
 
 	// Create fake client with default ConfigMap
 	scheme := runtime.NewScheme()
 	_ = v1.AddToScheme(scheme)
 	client := fake.NewClientBuilder().WithScheme(scheme).WithRuntimeObjects(defaultConfigMapManifest(), qloraConfigMapManifest()).Build()
-	k8sclient.SetGlobalClient(client)
-	// Include client in ctx
-	ctx := context.Background()
+	ctx := testCtx(withClient(client))
 
 	tests := []struct {
 		name       string
@@ -1851,11 +1831,6 @@ func TestDataDestinationValidateUpdate(t *testing.T) {
 
 func TestInferenceConfigMapValidation(t *testing.T) {
 	RegisterValidationTestModels()
-	ctx := context.Background()
-
-	// Set environment variables
-	t.Setenv("CLOUD_PROVIDER", consts.AzureCloudName)
-	t.Setenv(k8sclient.DefaultReleaseNamespaceEnvVar, DefaultReleaseNamespace)
 
 	// Create fake client with test ConfigMaps
 	scheme := runtime.NewScheme()
@@ -1913,7 +1888,7 @@ other_field: value
 			},
 		},
 	).Build()
-	k8sclient.SetGlobalClient(client)
+	ctx := testCtx(withClient(client))
 
 	tests := []struct {
 		name       string

@@ -32,13 +32,12 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client/fake"
 	"sigs.k8s.io/controller-runtime/pkg/client/interceptor"
 
+	"github.com/kaito-project/kaito/api/env"
 	kaitov1beta1 "github.com/kaito-project/kaito/api/v1beta1"
 	"github.com/kaito-project/kaito/internal/testutil"
 	"github.com/kaito-project/kaito/pkg/consts"
-	"github.com/kaito-project/kaito/pkg/featuregates"
-	"github.com/kaito-project/kaito/pkg/k8sclient"
 	pkgmodel "github.com/kaito-project/kaito/pkg/model"
-	mmconsts "github.com/kaito-project/kaito/pkg/modelmirror/consts"
+	"github.com/kaito-project/kaito/pkg/sku"
 )
 
 func TestUpdateStatusConditionIfNotMatch(t *testing.T) {
@@ -814,7 +813,7 @@ func TestNewWorkspaceForInferenceSetPropagatesCapacityType(t *testing.T) {
 		},
 	}
 
-	ws := NewWorkspaceForInferenceSet(is)
+	ws := NewWorkspaceForInferenceSet(context.Background(), is)
 	assert.Equal(t, kaitov1beta1.CapacityTypeSpot, ws.Annotations[kaitov1beta1.AnnotationCapacityType])
 }
 
@@ -838,7 +837,7 @@ func TestNewWorkspaceForInferenceSetGenerateName(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			is := &kaitov1beta1.InferenceSet{ObjectMeta: metav1.ObjectMeta{Name: tt.inferenceSetName, Namespace: "default"}}
-			ws := NewWorkspaceForInferenceSet(is)
+			ws := NewWorkspaceForInferenceSet(context.Background(), is)
 			assert.Equal(t, tt.want, ws.GenerateName)
 			assert.LessOrEqual(t, len(ws.GenerateName)+5, kaitov1beta1.MaxWorkspaceNameLength)
 			assert.Equal(t, tt.inferenceSetName, ws.Labels[kaitov1beta1.WorkspaceCreatedByInferenceSetLabel])
@@ -847,8 +846,6 @@ func TestNewWorkspaceForInferenceSetGenerateName(t *testing.T) {
 }
 
 func TestNewWorkspaceForInferenceSetSelectors(t *testing.T) {
-	orig := featuregates.FeatureGates[featuregates.FeatureFlagDisableNodeAutoProvisioning]
-	t.Cleanup(func() { featuregates.FeatureGates[featuregates.FeatureFlagDisableNodeAutoProvisioning] = orig })
 
 	specSelector := &metav1.LabelSelector{MatchLabels: map[string]string{"app": "llm"}}
 	nodeSelector := &metav1.LabelSelector{MatchLabels: map[string]string{"pool": "gpu"}}
@@ -868,7 +865,6 @@ func TestNewWorkspaceForInferenceSetSelectors(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			featuregates.FeatureGates[featuregates.FeatureFlagDisableNodeAutoProvisioning] = tt.byo
 			is := &kaitov1beta1.InferenceSet{
 				ObjectMeta: metav1.ObjectMeta{Name: "test-is", Namespace: "default"},
 				Spec: kaitov1beta1.InferenceSetSpec{
@@ -880,7 +876,11 @@ func TestNewWorkspaceForInferenceSetSelectors(t *testing.T) {
 				},
 			}
 
-			ws := NewWorkspaceForInferenceSet(is)
+			provisioner := env.NodeProvisionerAzureGPU
+			if tt.byo {
+				provisioner = env.NodeProvisionerBYO
+			}
+			ws := NewWorkspaceForInferenceSet(env.WithEnv(context.Background(), &env.Env{NodeProvisioner: provisioner}), is)
 			assert.Equal(t, tt.want, ws.Resource.LabelSelector)
 			assert.Equal(t, map[string]string{
 				"app":  "llm",
@@ -903,17 +903,11 @@ func TestNewWorkspaceForInferenceSetPropagatesRuntimeAnnotation(t *testing.T) {
 		Spec: kaitov1beta1.InferenceSetSpec{},
 	}
 
-	ws := NewWorkspaceForInferenceSet(is)
+	ws := NewWorkspaceForInferenceSet(context.Background(), is)
 	assert.Equal(t, "transformers", ws.Annotations[kaitov1beta1.AnnotationWorkspaceRuntime])
 }
 
 func TestValidateWorkspaceForInferenceSet(t *testing.T) {
-	// BYO mode so an empty instanceType is valid and node-listing is skipped.
-	orig := featuregates.FeatureGates[featuregates.FeatureFlagDisableNodeAutoProvisioning]
-	featuregates.FeatureGates[featuregates.FeatureFlagDisableNodeAutoProvisioning] = true
-	t.Cleanup(func() {
-		featuregates.FeatureGates[featuregates.FeatureFlagDisableNodeAutoProvisioning] = orig
-	})
 
 	newIS := func(inf kaitov1beta1.InferenceSpec) *kaitov1beta1.InferenceSet {
 		return &kaitov1beta1.InferenceSet{
@@ -962,7 +956,7 @@ func TestValidateWorkspaceForInferenceSet(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			err := ValidateWorkspaceForInferenceSet(context.Background(), newIS(tt.inference))
+			err := ValidateWorkspaceForInferenceSet(validationCtx(context.Background(), env.NodeProvisionerBYO, false), newIS(tt.inference))
 			if tt.wantErr {
 				assert.NotNil(t, err)
 				assert.Contains(t, err.Error(), tt.errContent)
@@ -977,14 +971,6 @@ func TestValidateWorkspaceForInferenceSet(t *testing.T) {
 // that a template-level instanceType is projected onto the child Workspace in
 // BYO mode, where Workspace accepts it to filter BYO nodes by SKU.
 func TestValidateWorkspaceForInferenceSet_InstanceTypeProjectedOnBYO(t *testing.T) {
-	orig := featuregates.FeatureGates[featuregates.FeatureFlagDisableNodeAutoProvisioning]
-	origProvisioner := featuregates.NodeProvisioner
-	featuregates.FeatureGates[featuregates.FeatureFlagDisableNodeAutoProvisioning] = true
-	featuregates.NodeProvisioner = featuregates.NodeProvisionerBYO
-	t.Cleanup(func() {
-		featuregates.FeatureGates[featuregates.FeatureFlagDisableNodeAutoProvisioning] = orig
-		featuregates.NodeProvisioner = origProvisioner
-	})
 
 	is := &kaitov1beta1.InferenceSet{
 		ObjectMeta: metav1.ObjectMeta{Name: "test-is", Namespace: "default"},
@@ -996,28 +982,25 @@ func TestValidateWorkspaceForInferenceSet_InstanceTypeProjectedOnBYO(t *testing.
 		},
 	}
 
-	assert.Equal(t, "Standard_NC6s_v3", NewWorkspaceForInferenceSet(is).Resource.InstanceType)
-	assert.Nil(t, ValidateWorkspaceForInferenceSet(context.Background(), is))
+	assert.Equal(t, "Standard_NC6s_v3", NewWorkspaceForInferenceSet(env.WithEnv(context.Background(), &env.Env{NodeProvisioner: env.NodeProvisionerBYO}), is).Resource.InstanceType)
+	assert.Nil(t, ValidateWorkspaceForInferenceSet(validationCtx(context.Background(), env.NodeProvisionerBYO, false), is))
 }
 
-// useFakeGlobalClient installs an empty fake client for the BYO create-time
-// checks of preset inference, which list nodes and read ConfigMaps.
-func useFakeGlobalClient(t *testing.T) {
-	orig := k8sclient.GetGlobalClient()
-	k8sclient.SetGlobalClient(fake.NewClientBuilder().Build())
-	t.Cleanup(func() { k8sclient.SetGlobalClient(orig) })
+// validationCtx injects an Azure Env with an empty fake client for the BYO
+// create-time checks of preset inference, which list nodes and read ConfigMaps.
+func validationCtx(ctx context.Context, provisioner env.NodeProvisioner, streaming bool) context.Context {
+	return env.WithEnv(ctx, &env.Env{
+		Client:           fake.NewClientBuilder().Build(),
+		Features:         env.Features{ModelStreaming: streaming},
+		NodeProvisioner:  provisioner,
+		NodeClassNames:   func() []string { return nil },
+		CloudProvider:    consts.AzureCloudName,
+		ReleaseNamespace: "kaito-workspace",
+		SKUHandler:       sku.GetCloudSKUHandler(consts.AzureCloudName),
+	})
 }
 
 func TestValidateWorkspaceForInferenceSet_Update(t *testing.T) {
-	origNAP := featuregates.FeatureGates[featuregates.FeatureFlagDisableNodeAutoProvisioning]
-	origStreaming := featuregates.FeatureGates[featuregates.FeatureFlagModelStreaming]
-	origProvisioner := featuregates.NodeProvisioner
-	useFakeGlobalClient(t)
-	t.Cleanup(func() {
-		featuregates.FeatureGates[featuregates.FeatureFlagDisableNodeAutoProvisioning] = origNAP
-		featuregates.FeatureGates[featuregates.FeatureFlagModelStreaming] = origStreaming
-		featuregates.NodeProvisioner = origProvisioner
-	})
 
 	base := func() *kaitov1beta1.InferenceSet {
 		return &kaitov1beta1.InferenceSet{
@@ -1054,7 +1037,7 @@ func TestValidateWorkspaceForInferenceSet_Update(t *testing.T) {
 
 	tests := []struct {
 		name        string
-		provisioner string
+		provisioner env.NodeProvisioner
 		streaming   bool
 		mutateOld   func(*kaitov1beta1.InferenceSet)
 		mutateNew   func(*kaitov1beta1.InferenceSet)
@@ -1063,19 +1046,19 @@ func TestValidateWorkspaceForInferenceSet_Update(t *testing.T) {
 	}{
 		{
 			name:        "instanceType change is rejected with node auto-provisioning",
-			provisioner: featuregates.NodeProvisionerKarpenter,
+			provisioner: env.NodeProvisionerKarpenter,
 			mutateNew:   func(is *kaitov1beta1.InferenceSet) { is.Spec.Template.Resource.InstanceType = "Standard_NC12s_v3" },
 			wantErr:     "instanceType cannot be changed once set",
 		},
 		{
 			name:        "instanceType change is rejected on BYO nodes",
-			provisioner: featuregates.NodeProvisionerBYO,
+			provisioner: env.NodeProvisionerBYO,
 			mutateNew:   func(is *kaitov1beta1.InferenceSet) { is.Spec.Template.Resource.InstanceType = "Standard_NC12s_v3" },
 			wantErr:     "instanceType cannot be changed once set",
 		},
 		{
 			name:        "partition change is rejected",
-			provisioner: featuregates.NodeProvisionerBYO,
+			provisioner: env.NodeProvisionerBYO,
 			mutateNew: func(is *kaitov1beta1.InferenceSet) {
 				is.Spec.Template.Resource.Partition = &kaitov1beta1.PartitionSpec{Mode: kaitov1beta1.PartitionModeAccelerator, Count: lo.ToPtr(2)}
 			},
@@ -1083,13 +1066,13 @@ func TestValidateWorkspaceForInferenceSet_Update(t *testing.T) {
 		},
 		{
 			name:        "labelSelector change is rejected at spec.labelSelector",
-			provisioner: featuregates.NodeProvisionerBYO,
+			provisioner: env.NodeProvisionerBYO,
 			mutateNew:   func(is *kaitov1beta1.InferenceSet) { is.Spec.Selector.MatchLabels["app"] = "other" },
 			wantErrOnce: "field is immutable: spec.labelSelector",
 		},
 		{
 			name:        "template.resource.labelSelector change is rejected",
-			provisioner: featuregates.NodeProvisionerBYO,
+			provisioner: env.NodeProvisionerBYO,
 			mutateNew: func(is *kaitov1beta1.InferenceSet) {
 				is.Spec.Template.Resource.LabelSelector = &metav1.LabelSelector{MatchLabels: map[string]string{"pool": "gpu"}}
 			},
@@ -1097,59 +1080,59 @@ func TestValidateWorkspaceForInferenceSet_Update(t *testing.T) {
 		},
 		{
 			name:        "inherited labelSelector change is reported only at spec.labelSelector",
-			provisioner: featuregates.NodeProvisionerKarpenter,
+			provisioner: env.NodeProvisionerKarpenter,
 			mutateNew:   func(is *kaitov1beta1.InferenceSet) { is.Spec.Selector.MatchLabels["app"] = "other" },
 			wantErrOnce: "labelSelector",
 		},
 		{
 			name:        "preset change is rejected",
-			provisioner: featuregates.NodeProvisionerBYO,
+			provisioner: env.NodeProvisionerBYO,
 			mutateOld:   withPreset("old-preset"),
 			mutateNew:   withPreset("new-preset"),
 			wantErr:     "field is immutable: spec.template.inference.preset\n",
 		},
 		{
 			name:        "custom preset config change is rejected",
-			provisioner: featuregates.NodeProvisionerBYO,
+			provisioner: env.NodeProvisionerBYO,
 			mutateOld:   withCustomConfig("model-a"),
 			mutateNew:   withCustomConfig("model-b"),
 			wantErr:     "field is immutable for preset \"custom\"",
 		},
 		{
 			name:        "setting inference.template is rejected",
-			provisioner: featuregates.NodeProvisionerBYO,
+			provisioner: env.NodeProvisionerBYO,
 			mutateOld:   withPreset("some-preset"),
 			mutateNew:   func(is *kaitov1beta1.InferenceSet) { is.Spec.Template.Inference.Template = &corev1.PodTemplateSpec{} },
 			wantErr:     "field cannot be unset/set if it was set/unset: spec.template.inference.template",
 		},
 		{
 			name:        "unsetting inference.template is rejected",
-			provisioner: featuregates.NodeProvisionerBYO,
+			provisioner: env.NodeProvisionerBYO,
 			mutateNew:   withPreset("some-preset"),
 			wantErr:     "field cannot be unset/set if it was set/unset: spec.template.inference.template",
 		},
 		{
 			name:        "capacity type change is rejected",
-			provisioner: featuregates.NodeProvisionerKarpenter,
+			provisioner: env.NodeProvisionerKarpenter,
 			mutateNew:   setAnnotation(kaitov1beta1.AnnotationCapacityType, kaitov1beta1.CapacityTypeSpot),
 			wantErr:     "annotation kaito.sh/capacity-type is immutable after creation",
 		},
 		{
 			name:        "model-streaming annotation change is rejected when ModelStreaming is enabled",
-			provisioner: featuregates.NodeProvisionerBYO,
+			provisioner: env.NodeProvisionerBYO,
 			streaming:   true,
-			mutateNew:   setAnnotation(mmconsts.AnnotationModelStreaming, "true"),
+			mutateNew:   setAnnotation(kaitov1beta1.AnnotationModelStreaming, "true"),
 			wantErr:     "annotation kaito.sh/model-streaming is immutable after creation",
 		},
 		{
 			name:        "invalid speculative-decoding value on template change is reported once",
-			provisioner: featuregates.NodeProvisionerBYO,
+			provisioner: env.NodeProvisionerBYO,
 			mutateNew:   setAnnotation(kaitov1beta1.AnnotationEnableSpeculativeDecoding, "yes"),
 			wantErrOnce: "spec.template.metadata.annotations[kaito.sh/enable-speculative-decoding]",
 		},
 		{
 			name:        "replicas-only change skips create-time checks",
-			provisioner: featuregates.NodeProvisionerBYO,
+			provisioner: env.NodeProvisionerBYO,
 			mutateOld:   withPreset("removed-preset"),
 			mutateNew: func(is *kaitov1beta1.InferenceSet) {
 				withPreset("removed-preset")(is)
@@ -1158,7 +1141,7 @@ func TestValidateWorkspaceForInferenceSet_Update(t *testing.T) {
 		},
 		{
 			name:        "template change re-runs create-time checks",
-			provisioner: featuregates.NodeProvisionerBYO,
+			provisioner: env.NodeProvisionerBYO,
 			mutateOld:   withPreset("removed-preset"),
 			mutateNew: func(is *kaitov1beta1.InferenceSet) {
 				withPreset("removed-preset")(is)
@@ -1170,9 +1153,6 @@ func TestValidateWorkspaceForInferenceSet_Update(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			featuregates.NodeProvisioner = tt.provisioner
-			featuregates.FeatureGates[featuregates.FeatureFlagDisableNodeAutoProvisioning] = tt.provisioner == featuregates.NodeProvisionerBYO
-			featuregates.FeatureGates[featuregates.FeatureFlagModelStreaming] = tt.streaming
 
 			old, updated := base(), base()
 			if tt.mutateOld != nil {
@@ -1182,7 +1162,8 @@ func TestValidateWorkspaceForInferenceSet_Update(t *testing.T) {
 				tt.mutateNew(updated)
 			}
 
-			err := ValidateWorkspaceForInferenceSet(apis.WithinUpdate(context.Background(), old), updated)
+			ctx := validationCtx(apis.WithinUpdate(context.Background(), old), tt.provisioner, tt.streaming)
+			err := ValidateWorkspaceForInferenceSet(ctx, updated)
 			switch {
 			case tt.wantErr != "":
 				assert.NotNil(t, err)
@@ -1198,13 +1179,6 @@ func TestValidateWorkspaceForInferenceSet_Update(t *testing.T) {
 }
 
 func TestValidateWorkspaceForInferenceSet_CreateAnnotations(t *testing.T) {
-	origNAP := featuregates.FeatureGates[featuregates.FeatureFlagDisableNodeAutoProvisioning]
-	origProvisioner := featuregates.NodeProvisioner
-	useFakeGlobalClient(t)
-	t.Cleanup(func() {
-		featuregates.FeatureGates[featuregates.FeatureFlagDisableNodeAutoProvisioning] = origNAP
-		featuregates.NodeProvisioner = origProvisioner
-	})
 
 	newIS := func(annotations map[string]string, inference kaitov1beta1.InferenceSpec) *kaitov1beta1.InferenceSet {
 		return &kaitov1beta1.InferenceSet{
@@ -1222,31 +1196,31 @@ func TestValidateWorkspaceForInferenceSet_CreateAnnotations(t *testing.T) {
 
 	tests := []struct {
 		name        string
-		provisioner string
+		provisioner env.NodeProvisioner
 		is          *kaitov1beta1.InferenceSet
 		wantErr     string
 	}{
 		{
 			name:        "unsupported capacity type is rejected with Karpenter",
-			provisioner: featuregates.NodeProvisionerKarpenter,
+			provisioner: env.NodeProvisionerKarpenter,
 			is:          newIS(map[string]string{kaitov1beta1.AnnotationCapacityType: "reserved"}, podTemplate),
 			wantErr:     "\"reserved\" is not a supported capacity type",
 		},
 		{
 			name:        "invalid speculative-decoding value is rejected",
-			provisioner: featuregates.NodeProvisionerBYO,
+			provisioner: env.NodeProvisionerBYO,
 			is:          newIS(map[string]string{kaitov1beta1.AnnotationEnableSpeculativeDecoding: "yes"}, podTemplate),
 			wantErr:     specDecodingField,
 		},
 		{
 			name:        "speculative decoding without a preset is rejected",
-			provisioner: featuregates.NodeProvisionerBYO,
+			provisioner: env.NodeProvisionerBYO,
 			is:          newIS(map[string]string{kaitov1beta1.AnnotationEnableSpeculativeDecoding: "true"}, podTemplate),
 			wantErr:     "requires a preset inference",
 		},
 		{
 			name:        "speculative decoding with the transformers runtime is rejected",
-			provisioner: featuregates.NodeProvisionerBYO,
+			provisioner: env.NodeProvisionerBYO,
 			is: newIS(map[string]string{
 				kaitov1beta1.AnnotationEnableSpeculativeDecoding: "true",
 				kaitov1beta1.AnnotationWorkspaceRuntime:          "transformers",
@@ -1259,10 +1233,8 @@ func TestValidateWorkspaceForInferenceSet_CreateAnnotations(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			featuregates.NodeProvisioner = tt.provisioner
-			featuregates.FeatureGates[featuregates.FeatureFlagDisableNodeAutoProvisioning] = tt.provisioner == featuregates.NodeProvisionerBYO
 
-			err := ValidateWorkspaceForInferenceSet(context.Background(), tt.is)
+			err := ValidateWorkspaceForInferenceSet(validationCtx(context.Background(), tt.provisioner, false), tt.is)
 			assert.NotNil(t, err)
 			assert.Contains(t, err.Error(), tt.wantErr)
 		})
@@ -1274,15 +1246,6 @@ func TestValidateWorkspaceForInferenceSet_CreateAnnotations(t *testing.T) {
 // path in validateCreateWithInference dereferenced r.Count, which panicked the
 // InferenceSet admission webhook. Validation now guards the nil deref.
 func TestValidateWorkspaceForInferenceSet_NAPDoesNotPanicOnNilCount(t *testing.T) {
-	t.Setenv("CLOUD_PROVIDER", consts.AzureCloudName)
-	origNAP := featuregates.FeatureGates[featuregates.FeatureFlagDisableNodeAutoProvisioning]
-	origProvisioner := featuregates.NodeProvisioner
-	featuregates.FeatureGates[featuregates.FeatureFlagDisableNodeAutoProvisioning] = false
-	featuregates.NodeProvisioner = featuregates.NodeProvisionerAzureGPU
-	t.Cleanup(func() {
-		featuregates.FeatureGates[featuregates.FeatureFlagDisableNodeAutoProvisioning] = origNAP
-		featuregates.NodeProvisioner = origProvisioner
-	})
 
 	is := &kaitov1beta1.InferenceSet{
 		ObjectMeta: metav1.ObjectMeta{Name: "test-is", Namespace: "default"},
@@ -1295,7 +1258,7 @@ func TestValidateWorkspaceForInferenceSet_NAPDoesNotPanicOnNilCount(t *testing.T
 	}
 
 	assert.NotPanics(t, func() {
-		_ = ValidateWorkspaceForInferenceSet(context.Background(), is)
+		_ = ValidateWorkspaceForInferenceSet(validationCtx(context.Background(), env.NodeProvisionerAzureGPU, false), is)
 	})
 }
 
@@ -1303,11 +1266,6 @@ func TestValidateWorkspaceForInferenceSet_NAPDoesNotPanicOnNilCount(t *testing.T
 // similarly labeled nodes selected by the InferenceSet's Workspace selector.
 func TestNewWorkspaceForInferenceSetCPUSelectorConsistency(t *testing.T) {
 	testutil.RegisterTestModel()
-	oldBYO := featuregates.FeatureGates[featuregates.FeatureFlagDisableNodeAutoProvisioning]
-	t.Cleanup(func() {
-		featuregates.FeatureGates[featuregates.FeatureFlagDisableNodeAutoProvisioning] = oldBYO
-	})
-	featuregates.FeatureGates[featuregates.FeatureFlagDisableNodeAutoProvisioning] = true
 
 	for _, tt := range []struct {
 		name         string
@@ -1325,12 +1283,13 @@ func TestNewWorkspaceForInferenceSetCPUSelectorConsistency(t *testing.T) {
 			iObj.Spec.Selector = &metav1.LabelSelector{MatchLabels: map[string]string{"app": "workspaces"}}
 			iObj.Spec.Template.Resource.LabelSelector = tt.nodeSelector
 			before := iObj.DeepCopy()
-			ws := NewWorkspaceForInferenceSet(iObj)
+			ctx := env.WithEnv(context.Background(), &env.Env{NodeProvisioner: env.NodeProvisionerBYO})
+			ws := NewWorkspaceForInferenceSet(ctx, iObj)
 			assert.Equal(t, tt.nodeSelector, ws.Resource.LabelSelector)
 			assert.Equal(t, "workspaces", ws.Labels["app"])
-			got := kaitov1beta1.IsCPUInferenceTarget(&iObj.Spec.Template.Inference, iObj.Spec.Template.Resource.InstanceType)
+			got := kaitov1beta1.IsCPUInferenceTarget(ctx, &iObj.Spec.Template.Inference, iObj.Spec.Template.Resource.InstanceType)
 			assert.Equal(t, tt.wantCPU, got)
-			childCPU := kaitov1beta1.IsCPUInferenceWorkspace(ws)
+			childCPU := kaitov1beta1.IsCPUInferenceWorkspace(ctx, ws)
 			assert.Equal(t, got, childCPU)
 			assert.Equal(t, before, iObj, "construction and CPU resolution must not mutate the parent")
 		})

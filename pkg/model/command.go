@@ -15,8 +15,10 @@ package model
 
 import (
 	"fmt"
+	"maps"
 	"math"
 	"net/url"
+	"slices"
 	"strconv"
 	"strings"
 
@@ -42,7 +44,9 @@ func ParseGPUMemoryUtilization(value string) (float64, error) {
 func buildCmdStr(baseCommand string, runParams ...map[string]string) string {
 	updatedBaseCommand := baseCommand
 	for _, runParam := range runParams {
-		for key, value := range runParam {
+		// Sort keys so the generated command is deterministic.
+		for _, key := range slices.Sorted(maps.Keys(runParam)) {
+			value := runParam[key]
 			if value == "" {
 				updatedBaseCommand = fmt.Sprintf("%s --%s", updatedBaseCommand, key)
 			} else {

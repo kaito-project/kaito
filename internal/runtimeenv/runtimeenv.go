@@ -21,8 +21,8 @@ import (
 	"k8s.io/klog/v2"
 
 	"github.com/kaito-project/kaito/api/env"
-	"github.com/kaito-project/kaito/pkg/featuregates"
-	"github.com/kaito-project/kaito/pkg/k8sclient"
+	"github.com/kaito-project/kaito/internal/featuregates"
+	"github.com/kaito-project/kaito/internal/k8s/k8sclient"
 	"github.com/kaito-project/kaito/pkg/sku"
 )
 
@@ -39,10 +39,11 @@ func New(skuHandler sku.CloudSKUHandler) *env.Env {
 			EnableMIG:         featuregates.FeatureGates[featuregates.FeatureFlagEnableMIG],
 			EnableAccelerator: featuregates.FeatureGates[featuregates.FeatureFlagEnableAccelerator],
 		},
-		NodeProvisioner:  env.NodeProvisioner(featuregates.NodeProvisioner),
-		NodeClassNames:   featuregates.AllowedNodeClassNames,
-		CloudProvider:    env.CloudProvider(os.Getenv("CLOUD_PROVIDER")),
-		ReleaseNamespace: releaseNamespace,
-		SKUHandler:       skuHandler,
+		NodeProvisioner:     env.NodeProvisioner(featuregates.NodeProvisioner),
+		NodeClassNames:      featuregates.AllowedNodeClassNames,
+		CloudProvider:       env.CloudProvider(os.Getenv("CLOUD_PROVIDER")),
+		ReleaseNamespace:    releaseNamespace,
+		ReleaseNamespaceErr: err,
+		SKUHandler:          skuHandler,
 	}
 }

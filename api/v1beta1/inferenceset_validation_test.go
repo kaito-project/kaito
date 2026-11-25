@@ -21,7 +21,6 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"knative.dev/pkg/apis"
 
-	"github.com/kaito-project/kaito/pkg/consts"
 	"github.com/kaito-project/kaito/pkg/model"
 )
 
@@ -122,13 +121,13 @@ func TestInferenceSetBenchmarkHelpers(t *testing.T) {
 	}
 	assert.Equal(t, model.RuntimeNameVLLM, GetInferenceSetRuntimeName(is))
 	assert.True(t, IsInferenceSetBenchmarkEnabled(is))
-	assert.True(t, ShouldRunInferenceSetBenchmark(is))
+	assert.True(t, ShouldRunInferenceSetBenchmark(testCtx(), is))
 
 	is.Spec.Template.Resource.InstanceType = "Standard_D8s_v5"
-	assert.False(t, ShouldRunInferenceSetBenchmark(is), "basic CPU inference should skip parent benchmark applicability")
+	assert.False(t, ShouldRunInferenceSetBenchmark(testCtx(), is), "basic CPU inference should skip parent benchmark applicability")
 
 	is.Annotations[AnnotationDisableBenchmark] = "true"
-	assert.False(t, ShouldRunInferenceSetBenchmark(is))
+	assert.False(t, ShouldRunInferenceSetBenchmark(testCtx(), is))
 }
 
 func TestInferenceSetValidatePassesBaselineToWorkspaceValidation(t *testing.T) {
@@ -239,11 +238,10 @@ func TestInferenceSetValidateSelector(t *testing.T) {
 }
 
 func TestInferenceSetBenchmarkApplicabilityRequiresDeclaredCPUType(t *testing.T) {
-	t.Setenv("CLOUD_PROVIDER", consts.AzureCloudName)
 	is := &InferenceSet{Spec: InferenceSetSpec{Template: InferenceSetTemplate{Inference: InferenceSpec{Preset: &PresetSpec{PresetMeta: PresetMeta{Name: "test-model"}}}}}}
-	assert.True(t, ShouldRunInferenceSetBenchmark(is), "label-only targets do not select CPU")
+	assert.True(t, ShouldRunInferenceSetBenchmark(testCtx(), is), "label-only targets do not select CPU")
 	is.Spec.Template.Resource.InstanceType = "Standard_D16s_v6"
-	assert.False(t, ShouldRunInferenceSetBenchmark(is), "declared CPU skips benchmark")
+	assert.False(t, ShouldRunInferenceSetBenchmark(testCtx(), is), "declared CPU skips benchmark")
 	is.Spec.Template.Resource.InstanceType = "Standard_NC6s_v3"
-	assert.True(t, ShouldRunInferenceSetBenchmark(is), "GPU behavior unchanged")
+	assert.True(t, ShouldRunInferenceSetBenchmark(testCtx(), is), "GPU behavior unchanged")
 }

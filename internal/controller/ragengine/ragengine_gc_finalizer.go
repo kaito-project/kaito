@@ -22,8 +22,8 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 
 	kaitov1beta1 "github.com/kaito-project/kaito/api/v1beta1"
+	"github.com/kaito-project/kaito/internal/featuregates"
 	"github.com/kaito-project/kaito/internal/k8s/nodeclaim"
-	"github.com/kaito-project/kaito/pkg/featuregates"
 )
 
 // garbageCollectRAGEngine remove finalizer associated with ragengine object.

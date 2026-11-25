@@ -20,9 +20,8 @@ import (
 	"github.com/stretchr/testify/require"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
-	"github.com/kaito-project/kaito/pkg/featuregates"
+	"github.com/kaito-project/kaito/api/env"
 	"github.com/kaito-project/kaito/pkg/model"
-	mmconsts "github.com/kaito-project/kaito/pkg/modelmirror/consts"
 )
 
 func customInferenceSpec() *InferenceSpec {
@@ -95,12 +94,9 @@ func TestValidateCustomPresetIgnoresOtherPresets(t *testing.T) {
 }
 
 func TestValidateCustomModelStreaming(t *testing.T) {
-	original := featuregates.FeatureGates[featuregates.FeatureFlagModelStreaming]
-	t.Cleanup(func() { featuregates.FeatureGates[featuregates.FeatureFlagModelStreaming] = original })
-
 	streamingAnnotations := map[string]string{
-		mmconsts.AnnotationModelStreaming: "true",
-		AnnotationStreamSourceType:        StreamSourceTypeBYO,
+		AnnotationModelStreaming:   "true",
+		AnnotationStreamSourceType: StreamSourceTypeBYO,
 	}
 
 	tests := []struct {
@@ -122,7 +118,7 @@ func TestValidateCustomModelStreaming(t *testing.T) {
 			name:        "feature gate disabled",
 			gateEnabled: false,
 			annotations: streamingAnnotations,
-			errSubstr:   featuregates.FeatureFlagModelStreaming,
+			errSubstr:   "ModelStreaming",
 		},
 		{
 			// Streaming defaults to on, so the annotation is optional.
@@ -134,17 +130,17 @@ func TestValidateCustomModelStreaming(t *testing.T) {
 			name:        "streaming explicitly disabled",
 			gateEnabled: true,
 			annotations: map[string]string{
-				mmconsts.AnnotationModelStreaming: "disabled",
-				AnnotationStreamSourceType:        StreamSourceTypeBYO,
+				AnnotationModelStreaming:   "disabled",
+				AnnotationStreamSourceType: StreamSourceTypeBYO,
 			},
-			errSubstr: mmconsts.AnnotationModelStreaming,
+			errSubstr: AnnotationModelStreaming,
 		},
 		{
 			name:        "wrong source type",
 			gateEnabled: true,
 			annotations: map[string]string{
-				mmconsts.AnnotationModelStreaming: "true",
-				AnnotationStreamSourceType:        StreamSourceTypePublic,
+				AnnotationModelStreaming:   "true",
+				AnnotationStreamSourceType: StreamSourceTypePublic,
 			},
 			errSubstr: AnnotationStreamSourceType,
 		},
@@ -159,8 +155,6 @@ func TestValidateCustomModelStreaming(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			featuregates.FeatureGates[featuregates.FeatureFlagModelStreaming] = tt.gateEnabled
-
 			presetName := model.PresetNameCustom
 			if tt.presetName != "" {
 				presetName = tt.presetName
@@ -173,7 +167,7 @@ func TestValidateCustomModelStreaming(t *testing.T) {
 				},
 			}
 
-			err := ws.validateCustomModelStreaming()
+			err := ws.validateCustomModelStreaming(testCtx(withFeatures(env.Features{ModelStreaming: tt.gateEnabled})))
 			if tt.errSubstr == "" || tt.expectNoRule {
 				assert.Nil(t, err)
 				return

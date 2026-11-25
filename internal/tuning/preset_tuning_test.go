@@ -18,6 +18,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/go-logr/logr"
 	"github.com/stretchr/testify/assert"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -27,6 +28,7 @@ import (
 
 	kaitov1beta1 "github.com/kaito-project/kaito/api/v1beta1"
 	"github.com/kaito-project/kaito/internal/image"
+	"github.com/kaito-project/kaito/internal/k8s/nodes"
 	"github.com/kaito-project/kaito/internal/manifests"
 	"github.com/kaito-project/kaito/internal/manifests/builder"
 	"github.com/kaito-project/kaito/pkg/consts"
@@ -670,6 +672,30 @@ func TestDefaultTolerations(t *testing.T) {
 
 			assert.Equal(t, tc.expectSpot, hasSpot)
 		})
+	}
+}
+
+func TestDefaultTolerationsToleratesGPUTaints(t *testing.T) {
+	t.Setenv("CLOUD_PROVIDER", consts.AWSCloudName)
+
+	taints := []corev1.Taint{
+		// Common taint on GPU nodes, e.g. EKS GPU node groups or the NVIDIA GPU operator.
+		{Key: nodes.CapacityNvidiaGPU, Value: "present", Effect: corev1.TaintEffectNoSchedule},
+		{Key: nodes.CapacityNvidiaGPU, Effect: corev1.TaintEffectNoSchedule},
+		// Taint KAITO puts on the GPU nodes it provisions.
+		{Key: kaitov1beta1.LabelSKU, Value: kaitov1beta1.SKUGPU, Effect: corev1.TaintEffectNoSchedule},
+	}
+
+	tolerations := defaultTolerations()
+	for _, taint := range taints {
+		tolerated := false
+		for i := range tolerations {
+			if tolerations[i].ToleratesTaint(logr.Discard(), &taint, false) {
+				tolerated = true
+				break
+			}
+		}
+		assert.Truef(t, tolerated, "taint %s=%s:%s is not tolerated", taint.Key, taint.Value, taint.Effect)
 	}
 }
 

@@ -14,6 +14,7 @@
 package v1beta1
 
 import (
+	"context"
 	"path"
 	"strings"
 
@@ -114,6 +115,13 @@ const (
 	// weights live, one subdirectory per preset (see GetLocalWeightsPath). Used
 	// when kaito.sh/use-local-weights is enabled.
 	LocalWeightsHostPathPrefix = "/opt/kaito/models"
+)
+
+// Model streaming and mirror annotations on a Workspace.
+const (
+	AnnotationModelStreaming          = KAITOPrefix + "model-streaming"
+	AnnotationModelMirrorStorageClass = KAITOPrefix + "model-mirror-storage-class"
+	AnnotationStreamingServiceAccount = KAITOPrefix + "streaming-service-account"
 )
 
 // Valid values for AnnotationPerformanceMode.
@@ -384,9 +392,9 @@ func IsInferenceSetBenchmarkEnabled(iObj *InferenceSet) bool {
 
 // ShouldRunInferenceSetBenchmark reports whether the InferenceSet's child workspaces should
 // run the post-load benchmark.
-func ShouldRunInferenceSetBenchmark(iObj *InferenceSet) bool {
+func ShouldRunInferenceSetBenchmark(ctx context.Context, iObj *InferenceSet) bool {
 	return IsInferenceSetBenchmarkEnabled(iObj) &&
 		GetInferenceSetRuntimeName(iObj) == model.RuntimeNameVLLM &&
 		iObj.Spec.Template.Inference.Preset != nil &&
-		!IsCPUInferenceTarget(&iObj.Spec.Template.Inference, iObj.Spec.Template.Resource.InstanceType)
+		!IsCPUInferenceTarget(ctx, &iObj.Spec.Template.Inference, iObj.Spec.Template.Resource.InstanceType)
 }

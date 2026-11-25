@@ -20,14 +20,14 @@ import (
 
 	kaitov1beta1 "github.com/kaito-project/kaito/api/v1beta1"
 	"github.com/kaito-project/kaito/internal/cache"
+	"github.com/kaito-project/kaito/internal/featuregates"
 	"github.com/kaito-project/kaito/internal/k8s/resources"
 	"github.com/kaito-project/kaito/internal/manifests"
 	"github.com/kaito-project/kaito/internal/nodeprovision"
-	"github.com/kaito-project/kaito/pkg/featuregates"
 )
 
 func CreateTemplateInference(ctx context.Context, workspaceObj *kaitov1beta1.Workspace, kubeClient client.Client, provisioner nodeprovision.NodeProvisioner) (client.Object, error) {
-	ssObj := manifests.GenerateManifestWithPodTemplate(workspaceObj, defaultTolerations(workspaceObj))
+	ssObj := manifests.GenerateManifestWithPodTemplate(workspaceObj, defaultTolerations(ctx, workspaceObj))
 	// Pin the pod to nodes provisioned for this workspace. Without this, a
 	// custom-template pod could schedule onto a sibling workspace's node when
 	// they share the same user label selector (e.g. InferenceSet replicas).

@@ -173,3 +173,13 @@ func TestGPUConfigMemoryIsQuantity(t *testing.T) {
 		})
 	}
 }
+
+func TestSKURowsNameAccelerator(t *testing.T) {
+	for _, handler := range []CloudSKUHandler{NewAzureSKUHandler(), NewAwsSKUHandler(), NewArcSKUHandler()} {
+		for _, name := range handler.GetSupportedSKUs() {
+			if handler.GetGPUConfigBySKU(name).Accelerator == "" {
+				t.Errorf("SKU %s has no accelerator type", name)
+			}
+		}
+	}
+}

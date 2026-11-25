@@ -14,6 +14,7 @@
 package karpenter
 
 import (
+	"context"
 	"crypto/sha256"
 	"encoding/hex"
 	"fmt"
@@ -25,7 +26,7 @@ import (
 	karpenterv1 "sigs.k8s.io/karpenter/pkg/apis/v1"
 
 	kaitov1beta1 "github.com/kaito-project/kaito/api/v1beta1"
-	"github.com/kaito-project/kaito/pkg/featuregates"
+	"github.com/kaito-project/kaito/internal/featuregates"
 )
 
 const (
@@ -124,7 +125,7 @@ func nodePoolRequirements(ws *kaitov1beta1.Workspace, cfg NodeClassConfig, capac
 }
 
 // generateNodePool builds a karpenter NodePool manifest for the given Workspace.
-func generateNodePool(ws *kaitov1beta1.Workspace, cfg NodeClassConfig, nodeClassName, capacityType string) *karpenterv1.NodePool {
+func generateNodePool(ctx context.Context, ws *kaitov1beta1.Workspace, cfg NodeClassConfig, nodeClassName, capacityType string) *karpenterv1.NodePool {
 	nodePoolName := NodePoolName(ws.Namespace, ws.Name)
 
 	// Drift budget: InferenceSet workspaces start with "0" (blocked),
@@ -170,7 +171,7 @@ func generateNodePool(ws *kaitov1beta1.Workspace, cfg NodeClassConfig, nodeClass
 		Value:  kaitov1beta1.SKUGPU,
 		Effect: corev1.TaintEffectNoSchedule,
 	}}
-	if kaitov1beta1.IsCPUInferenceWorkspace(ws) {
+	if kaitov1beta1.IsCPUInferenceWorkspace(ctx, ws) {
 		templateLabels[kaitov1beta1.LabelSKU] = kaitov1beta1.SKUCPU
 		nodePoolTaints = []corev1.Taint{{
 			Key:    kaitov1beta1.LabelSKU,

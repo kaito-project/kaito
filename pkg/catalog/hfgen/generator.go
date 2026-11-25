@@ -28,8 +28,8 @@ import (
 
 	"gopkg.in/yaml.v2"
 
+	"github.com/kaito-project/kaito/pkg/accelerator/nvidia"
 	"github.com/kaito-project/kaito/pkg/model"
-	"github.com/kaito-project/kaito/pkg/sku"
 )
 
 const (
@@ -488,14 +488,8 @@ var (
 	// ceilings should be estimated. The estimator only emits an override when
 	// the calculated ceiling is below vLLM's default.
 	maxNumSeqsTargets = map[architectureGPUKey]struct{}{
-		{architecture: "Qwen3_5ForConditionalGeneration", gpuModel: "NVIDIA H100"}:    {},
-		{architecture: "Qwen3_5MoeForConditionalGeneration", gpuModel: "NVIDIA H100"}: {},
-	}
-
-	// gpuMemoryUtilizationByGPUModel reserves additional runtime headroom on
-	// tight-VRAM GPUs.
-	gpuMemoryUtilizationByGPUModel = map[string]string{
-		"NVIDIA A10": "0.82",
+		{architecture: "Qwen3_5ForConditionalGeneration", gpuModel: nvidia.GPUModelH100}:    {},
+		{architecture: "Qwen3_5MoeForConditionalGeneration", gpuModel: nvidia.GPUModelH100}: {},
 	}
 
 	// gpuMemoryUtilizationByGPUCount overrides the per-GPU utilization for models
@@ -507,7 +501,7 @@ var (
 		8: {
 			// The first request OOMs at 0.92 on 8xH100; 0.90 is validated.
 			// source: https://github.com/kaito-project/kaito/issues/2501
-			{modelName: "deepseek-v4-flash-0731", gpuModel: "NVIDIA H100"}: "0.90",
+			{modelName: "deepseek-v4-flash-0731", gpuModel: nvidia.GPUModelH100}: "0.90",
 		},
 	}
 
@@ -515,25 +509,25 @@ var (
 	// incompatibilities using model name prefixes. An empty GPU model applies to
 	// every GPU; the longest matching prefix wins within each GPU scope.
 	cudagraphModeByModelAndGPU = map[modelGPUKey]string{
-		{modelName: "nvidia-nemotron-nano-9b-v2", gpuModel: "NVIDIA A10"}:     "FULL_DECODE_ONLY",
-		{modelName: "nvidia-nemotron-3-nano-4b-bf16", gpuModel: "NVIDIA A10"}: "FULL_DECODE_ONLY",
-		{modelName: "deepseek-v4-flash-0731"}:                                 "NONE",
-		{modelName: "deepseek-v4.1-flash", gpuModel: "NVIDIA H100"}:           "FULL_DECODE_ONLY",
+		{modelName: "nvidia-nemotron-nano-9b-v2", gpuModel: nvidia.GPUModelA10}:     "FULL_DECODE_ONLY",
+		{modelName: "nvidia-nemotron-3-nano-4b-bf16", gpuModel: nvidia.GPUModelA10}: "FULL_DECODE_ONLY",
+		{modelName: "deepseek-v4-flash-0731"}:                                       "NONE",
+		{modelName: "deepseek-v4.1-flash", gpuModel: nvidia.GPUModelH100}:           "FULL_DECODE_ONLY",
 	}
 
 	// linearBackendByModelAndGPU overrides vLLM's default linear backend.
 	linearBackendByModelAndGPU = map[modelGPUKey]string{
-		{modelName: "mistral-medium-3.5-128b", gpuModel: "NVIDIA A100"}: "marlin",
+		{modelName: "mistral-medium-3.5-128b", gpuModel: nvidia.GPUModelA100}: "marlin",
 	}
 
 	// indexerKVDtypeByArchitectureAndGPU configures Qwen's sparse-attention
 	// indexer. Hopper supports FP8; Ampere must use BF16.
 	// source: https://recipes.vllm.ai/Qwen/Qwen3.8-Flash-Next
 	indexerKVDtypeByArchitectureAndGPU = map[architectureGPUKey]string{
-		{architecture: "Qwen4ExpForCausalLM", gpuModel: "NVIDIA H100"}:              "fp8",
-		{architecture: "Qwen4ExpForConditionalGeneration", gpuModel: "NVIDIA H100"}: "fp8",
-		{architecture: "Qwen4ExpForCausalLM", gpuModel: "NVIDIA A100"}:              "bf16",
-		{architecture: "Qwen4ExpForConditionalGeneration", gpuModel: "NVIDIA A100"}: "bf16",
+		{architecture: "Qwen4ExpForCausalLM", gpuModel: nvidia.GPUModelH100}:              "fp8",
+		{architecture: "Qwen4ExpForConditionalGeneration", gpuModel: nvidia.GPUModelH100}: "fp8",
+		{architecture: "Qwen4ExpForCausalLM", gpuModel: nvidia.GPUModelA100}:              "bf16",
+		{architecture: "Qwen4ExpForConditionalGeneration", gpuModel: nvidia.GPUModelA100}: "bf16",
 	}
 
 	// engramConfigByArchitectureAndGPU sets a GPU-specific vLLM Engram
@@ -542,8 +536,8 @@ var (
 	// lookup kernel, so keep the PLE table resident on-device.
 	// source: https://github.com/vllm-project/vllm/blob/v0.32.0/docs/features/engram.md
 	engramConfigByArchitectureAndGPU = map[architectureGPUKey]string{
-		{architecture: "Qwen4ExpForCausalLM", gpuModel: "NVIDIA A100"}:              `'{"cpu_offload":false}'`,
-		{architecture: "Qwen4ExpForConditionalGeneration", gpuModel: "NVIDIA A100"}: `'{"cpu_offload":false}'`,
+		{architecture: "Qwen4ExpForCausalLM", gpuModel: nvidia.GPUModelA100}:              `'{"cpu_offload":false}'`,
+		{architecture: "Qwen4ExpForConditionalGeneration", gpuModel: nvidia.GPUModelA100}: `'{"cpu_offload":false}'`,
 	}
 )
 
@@ -568,7 +562,7 @@ func ResolveGPUMemoryUtilization(modelName, gpuModel string, gpuCount int) strin
 	if utilization, ok := resolveModelGPUPolicy(gpuMemoryUtilizationByGPUCount[gpuCount], modelName, gpuModel); ok {
 		return utilization
 	}
-	if utilization, ok := gpuMemoryUtilizationByGPUModel[sku.CanonicalGPUModel(gpuModel)]; ok {
+	if utilization, ok := nvidia.GPUMemoryUtilization(nvidia.CanonicalGPUModel(gpuModel)); ok {
 		return utilization
 	}
 	return defaultGPUMemoryUtilization
@@ -583,7 +577,7 @@ func ResolveCUDAGraphMode(modelName, gpuModel string) (string, bool) {
 // resolveModelGPUPolicy returns the value of the longest model name prefix in
 // table for the target GPU, falling back to prefixes that apply to every GPU.
 func resolveModelGPUPolicy(table map[modelGPUKey]string, modelName, gpuModel string) (string, bool) {
-	canonicalGPUModel := sku.CanonicalGPUModel(gpuModel)
+	canonicalGPUModel := nvidia.CanonicalGPUModel(gpuModel)
 	for _, targetGPUModel := range []string{canonicalGPUModel, ""} {
 		prefixes := make(map[string]string)
 		for key, value := range table {
@@ -602,7 +596,7 @@ func resolveModelGPUPolicy(table map[modelGPUKey]string, modelName, gpuModel str
 func ResolveLinearBackend(modelName, gpuModel string) (string, bool) {
 	backend, ok := linearBackendByModelAndGPU[modelGPUKey{
 		modelName: modelName,
-		gpuModel:  sku.CanonicalGPUModel(gpuModel),
+		gpuModel:  nvidia.CanonicalGPUModel(gpuModel),
 	}]
 	return backend, ok
 }
@@ -610,7 +604,7 @@ func ResolveLinearBackend(modelName, gpuModel string) (string, bool) {
 // ResolveIndexerKVDtype returns the sparse-attention indexer dtype for a model's
 // architecture and target GPU.
 func ResolveIndexerKVDtype(architectures []string, gpuModel string) (string, bool) {
-	canonicalGPUModel := sku.CanonicalGPUModel(gpuModel)
+	canonicalGPUModel := nvidia.CanonicalGPUModel(gpuModel)
 	for _, architecture := range architectures {
 		if dtype, ok := indexerKVDtypeByArchitectureAndGPU[architectureGPUKey{
 			architecture: architecture,
@@ -625,7 +619,7 @@ func ResolveIndexerKVDtype(architectures []string, gpuModel string) (string, boo
 // ResolveEngramConfig returns the vLLM Engram configuration for a model's
 // architecture and target GPU.
 func ResolveEngramConfig(architectures []string, gpuModel string) (string, bool) {
-	canonicalGPUModel := sku.CanonicalGPUModel(gpuModel)
+	canonicalGPUModel := nvidia.CanonicalGPUModel(gpuModel)
 	for _, architecture := range architectures {
 		if config, ok := engramConfigByArchitectureAndGPU[architectureGPUKey{
 			architecture: architecture,

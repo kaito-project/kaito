@@ -23,13 +23,13 @@ import (
 	"k8s.io/client-go/tools/record"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
+	"github.com/kaito-project/kaito/internal/featuregates"
 	"github.com/kaito-project/kaito/internal/k8s/expectations"
 	"github.com/kaito-project/kaito/internal/nodeprovision"
 	byoprovisioner "github.com/kaito-project/kaito/internal/nodeprovision/byo-provisioner"
 	gpuprovisioner "github.com/kaito-project/kaito/internal/nodeprovision/gpu-provisioner"
 	karpenterprov "github.com/kaito-project/kaito/internal/nodeprovision/karpenter"
 	"github.com/kaito-project/kaito/internal/nodeprovision/resource"
-	"github.com/kaito-project/kaito/pkg/featuregates"
 )
 
 // ProvisionerConfig holds all parameters needed to create a NodeProvisioner.

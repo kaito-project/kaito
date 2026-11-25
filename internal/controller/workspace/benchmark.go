@@ -27,7 +27,7 @@ import (
 	"k8s.io/klog/v2"
 
 	kaitov1beta1 "github.com/kaito-project/kaito/api/v1beta1"
-	"github.com/kaito-project/kaito/pkg/k8sclient"
+	"github.com/kaito-project/kaito/internal/k8s/k8sclient"
 )
 
 const (

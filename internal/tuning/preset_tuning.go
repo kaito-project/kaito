@@ -61,13 +61,14 @@ func defaultTolerations() []corev1.Toleration {
 	tolerations := []corev1.Toleration{
 		{
 			Effect:   corev1.TaintEffectNoSchedule,
-			Operator: corev1.TolerationOpEqual,
-			Key:      "gpu",
+			Operator: corev1.TolerationOpExists,
+			Key:      nodes.CapacityNvidiaGPU,
 		},
 		{
-			Effect: corev1.TaintEffectNoSchedule,
-			Value:  kaitov1beta1.SKUGPU,
-			Key:    kaitov1beta1.LabelSKU,
+			Effect:   corev1.TaintEffectNoSchedule,
+			Value:    kaitov1beta1.SKUGPU,
+			Key:      kaitov1beta1.LabelSKU,
+			Operator: corev1.TolerationOpEqual,
 		},
 	}
 

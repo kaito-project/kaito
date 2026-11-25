@@ -119,3 +119,7 @@ The controller reports progress through `status.conditions`. The most relevant o
 | `WorkspaceSucceeded` | Summary condition: resources and inference are ready. |
 
 When inference is ready (and the benchmark, if enabled, has completed), `status.state` becomes `Ready`.
+
+### CPU runtime and target lifecycle
+
+Select the serving runtime and CPU/GPU target when creating a Workspace or InferenceSet. Live runtime switching and CPU/GPU target migration of an existing workload are not supported by basic CPU inference. Create a new Workspace or InferenceSet for a different runtime or target. Ordinary same-runtime image upgrades remain supported.

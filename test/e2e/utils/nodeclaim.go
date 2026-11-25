@@ -30,7 +30,6 @@ import (
 
 	"github.com/kaito-project/kaito/api/v1beta1"
 	"github.com/kaito-project/kaito/pkg/apis"
-	"github.com/kaito-project/kaito/pkg/utils/consts"
 )
 
 // ValidateNodeClaimCreation Logic to validate the nodeClaim creation.
@@ -70,8 +69,8 @@ func GetAllValidNodeClaims(ctx context.Context, workspaceObj *v1beta1.Workspace)
 	// The karpenter provisioner labels NodeClaims via its NodePool template.
 	if os.Getenv("TEST_SUITE") == "azkarpenter" {
 		ls = labels.Set{
-			consts.KarpenterWorkspaceNameKey:      workspaceObj.Name,
-			consts.KarpenterWorkspaceNamespaceKey: workspaceObj.Namespace,
+			v1beta1.LabelKarpenterWorkspaceName:      workspaceObj.Name,
+			v1beta1.LabelKarpenterWorkspaceNamespace: workspaceObj.Namespace,
 		}
 	}
 

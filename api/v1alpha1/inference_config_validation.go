@@ -24,11 +24,9 @@ import (
 	"knative.dev/pkg/apis"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
-	"github.com/kaito-project/kaito/pkg/k8sclient"
+	"github.com/kaito-project/kaito/api/env"
 	"github.com/kaito-project/kaito/pkg/model"
 	"github.com/kaito-project/kaito/pkg/sku"
-	"github.com/kaito-project/kaito/pkg/utils"
-	"github.com/kaito-project/kaito/pkg/utils/consts"
 )
 
 // InferenceConfig represents the structure of the inference configuration
@@ -44,6 +42,7 @@ func (w *Workspace) validateInferenceConfig(ctx context.Context) (errs *apis.Fie
 		return nil
 	}
 
+	e := env.FromContext(ctx)
 	var (
 		cmName = w.Inference.Config
 		cmNS   = w.Namespace
@@ -52,7 +51,7 @@ func (w *Workspace) validateInferenceConfig(ctx context.Context) (errs *apis.Fie
 	if cmName == "" {
 		klog.Infof("Inference config not specified. Using default: %q", DefaultInferenceConfigTemplate)
 		cmName = DefaultInferenceConfigTemplate
-		cmNS, err = utils.GetReleaseNamespace()
+		cmNS, err = e.RequireReleaseNamespace()
 		if err != nil {
 			errs = errs.Also(apis.ErrGeneric(fmt.Sprintf("Failed to determine release namespace: %v", err), "namespace"))
 			return errs
@@ -61,11 +60,12 @@ func (w *Workspace) validateInferenceConfig(ctx context.Context) (errs *apis.Fie
 
 	// Check if the ConfigMap exists
 	var cm corev1.ConfigMap
-	if k8sclient.Client == nil {
-		errs = errs.Also(apis.ErrGeneric("Failed to obtain client from context.Context"))
+	c, err := e.RequireClient()
+	if err != nil {
+		errs = errs.Also(apis.ErrGeneric(err.Error()))
 		return errs
 	}
-	err = k8sclient.Client.Get(ctx, client.ObjectKey{Name: cmName, Namespace: cmNS}, &cm)
+	err = c.Get(ctx, client.ObjectKey{Name: cmName, Namespace: cmNS}, &cm)
 	if err != nil {
 		if errors.IsNotFound(err) {
 			errs = errs.Also(apis.ErrGeneric(fmt.Sprintf("ConfigMap '%s' specified in 'config' not found in namespace '%s'", cmName, cmNS), "config"))
@@ -91,7 +91,7 @@ func (w *Workspace) validateInferenceConfig(ctx context.Context) (errs *apis.Fie
 	modelLenRequired := false
 
 	// Get SKU handler to check GPU configuration
-	skuHandler, err := sku.GetSKUHandler()
+	skuHandler, err := e.RequireSKUHandler()
 	if err != nil {
 		return apis.ErrGeneric(fmt.Sprintf("Failed to get SKU handler: %v", err), "instanceType")
 	}
@@ -99,7 +99,7 @@ func (w *Workspace) validateInferenceConfig(ctx context.Context) (errs *apis.Fie
 		// Check if this is a multi-GPU instance with less than 20GiB per GPU
 		gpuMemPerGPU := skuConfig.GPUMem.Value() / int64(skuConfig.GPUCount)
 		// For multi-GPU instances with less than 20GiB per GPU, max-model-len is required
-		if skuConfig.GPUCount > 1 && gpuMemPerGPU < 20*consts.GiBToBytes {
+		if skuConfig.GPUCount > 1 && gpuMemPerGPU < 20*sku.GiB {
 			modelLenRequired = true
 		}
 	}

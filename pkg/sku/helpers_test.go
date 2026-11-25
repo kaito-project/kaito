@@ -21,7 +21,9 @@ import (
 	"k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
-	"github.com/kaito-project/kaito/pkg/utils/consts"
+	"github.com/kaito-project/kaito/pkg/accelerator"
+	"github.com/kaito-project/kaito/pkg/accelerator/nvidia"
+	"github.com/kaito-project/kaito/pkg/consts"
 )
 
 func TestGetSKUHandler(t *testing.T) {
@@ -45,236 +47,6 @@ func TestGetSKUHandler(t *testing.T) {
 	})
 }
 
-func TestGetGPUConfigFromNvidiaLabels(t *testing.T) {
-	tests := []struct {
-		name     string
-		node     *corev1.Node
-		wantErr  bool
-		expected *GPUConfig
-	}{
-		{
-			name: "valid nvidia.com labels",
-			node: &corev1.Node{
-				ObjectMeta: metav1.ObjectMeta{
-					Name: "gpu-node",
-					Labels: map[string]string{
-						"nvidia.com/gpu.product": "Tesla-V100-SXM2-32GB",
-						"nvidia.com/gpu.count":   "2",
-						"nvidia.com/gpu.memory":  "32768", // 32GiB per GPU in MiB
-					},
-				},
-			},
-			wantErr: false,
-			expected: &GPUConfig{
-				SKU:      "unknown",
-				GPUCount: 2,
-				GPUModel: "Tesla-V100-SXM2-32GB",
-				GPUMem:   resource.MustParse("64Gi"), // total node VRAM = 2 × 32Gi
-			},
-		},
-		{
-			name: "valid labels with CUDA compute capability",
-			node: &corev1.Node{
-				ObjectMeta: metav1.ObjectMeta{
-					Name: "gpu-node-a100",
-					Labels: map[string]string{
-						"nvidia.com/gpu.product":        "A100-SXM4-80GB",
-						"nvidia.com/gpu.count":          "1",
-						"nvidia.com/gpu.memory":         "81920",
-						"nvidia.com/cuda.compute.major": "8",
-						"nvidia.com/cuda.compute.minor": "0",
-					},
-				},
-			},
-			wantErr: false,
-			expected: &GPUConfig{
-				SKU:                   "unknown",
-				GPUCount:              1,
-				GPUModel:              "A100-SXM4-80GB",
-				GPUMem:                resource.MustParse("80Gi"),
-				CUDAComputeCapability: 8.0,
-			},
-		},
-		{
-			name: "valid labels with CUDA compute capability 7.5",
-			node: &corev1.Node{
-				ObjectMeta: metav1.ObjectMeta{
-					Name: "gpu-node-t4",
-					Labels: map[string]string{
-						"nvidia.com/gpu.product":        "Tesla-T4",
-						"nvidia.com/gpu.count":          "1",
-						"nvidia.com/gpu.memory":         "16384",
-						"nvidia.com/cuda.compute.major": "7",
-						"nvidia.com/cuda.compute.minor": "5",
-					},
-				},
-			},
-			wantErr: false,
-			expected: &GPUConfig{
-				SKU:                   "unknown",
-				GPUCount:              1,
-				GPUModel:              "Tesla-T4",
-				GPUMem:                resource.MustParse("16Gi"),
-				CUDAComputeCapability: 7.5,
-			},
-		},
-		{
-			name: "MIG active (mixed/single) sets IsMIG",
-			node: &corev1.Node{
-				ObjectMeta: metav1.ObjectMeta{
-					Name: "gpu-node-mig",
-					Labels: map[string]string{
-						"nvidia.com/gpu.product":      "NVIDIA-H100-NVL",
-						"nvidia.com/gpu.count":        "3",
-						"nvidia.com/gpu.memory":       "24576",
-						"nvidia.com/mig.config":       "all-2g.24gb",
-						"nvidia.com/mig.config.state": "success",
-					},
-				},
-			},
-			wantErr: false,
-			expected: &GPUConfig{
-				SKU:      "unknown",
-				GPUCount: 3,
-				GPUModel: "NVIDIA-H100-NVL",
-				GPUMem:   resource.MustParse("72Gi"),
-				IsMIG:    true,
-			},
-		},
-		{
-			name: "MIG disabled does not set IsMIG",
-			node: &corev1.Node{
-				ObjectMeta: metav1.ObjectMeta{
-					Name: "gpu-node-mig-disabled",
-					Labels: map[string]string{
-						"nvidia.com/gpu.product":      "NVIDIA-H100-NVL",
-						"nvidia.com/gpu.count":        "1",
-						"nvidia.com/gpu.memory":       "96256",
-						"nvidia.com/mig.config":       "all-disabled",
-						"nvidia.com/mig.config.state": "success",
-					},
-				},
-			},
-			wantErr: false,
-			expected: &GPUConfig{
-				SKU:      "unknown",
-				GPUCount: 1,
-				GPUModel: "NVIDIA-H100-NVL",
-				GPUMem:   resource.MustParse("94Gi"),
-				IsMIG:    false,
-			},
-		},
-		{
-			name: "MIG config not yet applied (state != success) does not set IsMIG",
-			node: &corev1.Node{
-				ObjectMeta: metav1.ObjectMeta{
-					Name: "gpu-node-mig-pending",
-					Labels: map[string]string{
-						"nvidia.com/gpu.product":      "NVIDIA-H100-NVL",
-						"nvidia.com/gpu.count":        "3",
-						"nvidia.com/gpu.memory":       "24576",
-						"nvidia.com/mig.config":       "all-2g.24gb",
-						"nvidia.com/mig.config.state": "pending",
-					},
-				},
-			},
-			wantErr: false,
-			expected: &GPUConfig{
-				SKU:      "unknown",
-				GPUCount: 3,
-				GPUModel: "NVIDIA-H100-NVL",
-				GPUMem:   resource.MustParse("72Gi"),
-				IsMIG:    false,
-			},
-		},
-		{
-			name: "missing nvidia.com/gpu.product label",
-			node: &corev1.Node{
-				ObjectMeta: metav1.ObjectMeta{
-					Name: "gpu-node",
-					Labels: map[string]string{
-						"nvidia.com/gpu.count":  "1",
-						"nvidia.com/gpu.memory": "16384",
-					},
-				},
-			},
-			wantErr: true,
-		},
-		{
-			name: "missing nvidia.com/gpu.count label",
-			node: &corev1.Node{
-				ObjectMeta: metav1.ObjectMeta{
-					Name: "gpu-node",
-					Labels: map[string]string{
-						"nvidia.com/gpu.product": "Tesla-T4",
-						"nvidia.com/gpu.memory":  "16384",
-					},
-				},
-			},
-			wantErr: true,
-		},
-		{
-			name: "missing nvidia.com/gpu.memory label",
-			node: &corev1.Node{
-				ObjectMeta: metav1.ObjectMeta{
-					Name: "gpu-node",
-					Labels: map[string]string{
-						"nvidia.com/gpu.product": "Tesla-T4",
-						"nvidia.com/gpu.count":   "1",
-					},
-				},
-			},
-			wantErr: true,
-		},
-		{
-			name: "invalid nvidia.com/gpu.count value",
-			node: &corev1.Node{
-				ObjectMeta: metav1.ObjectMeta{
-					Name: "gpu-node",
-					Labels: map[string]string{
-						"nvidia.com/gpu.product": "Tesla-T4",
-						"nvidia.com/gpu.count":   "invalid",
-						"nvidia.com/gpu.memory":  "16384",
-					},
-				},
-			},
-			wantErr: true,
-		},
-		{
-			name: "invalid nvidia.com/gpu.memory value",
-			node: &corev1.Node{
-				ObjectMeta: metav1.ObjectMeta{
-					Name: "gpu-node",
-					Labels: map[string]string{
-						"nvidia.com/gpu.product": "Tesla-T4",
-						"nvidia.com/gpu.count":   "1",
-						"nvidia.com/gpu.memory":  "invalid",
-					},
-				},
-			},
-			wantErr: true,
-		},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			got, err := getGPUConfigFromNodeLabels(tt.node)
-			if tt.wantErr {
-				assert.Error(t, err)
-				assert.Nil(t, got)
-			} else {
-				assert.NoError(t, err)
-				assert.Equal(t, tt.expected.SKU, got.SKU)
-				assert.Equal(t, tt.expected.GPUCount, got.GPUCount)
-				assert.Equal(t, tt.expected.GPUModel, got.GPUModel)
-				assert.True(t, tt.expected.GPUMem.Cmp(got.GPUMem) == 0, "expected GPUMem %s, got %s", tt.expected.GPUMem.String(), got.GPUMem.String())
-				assert.Equal(t, tt.expected.CUDAComputeCapability, got.CUDAComputeCapability)
-				assert.Equal(t, tt.expected.IsMIG, got.IsMIG)
-			}
-		})
-	}
-}
-
 func TestGetGPUConfigFromNode(t *testing.T) {
 	t.Setenv("CLOUD_PROVIDER", consts.AzureCloudName)
 
@@ -294,6 +66,8 @@ func TestGetGPUConfigFromNode(t *testing.T) {
 		assert.Equal(t, 1, got.GPUCount)
 		assert.Equal(t, "NVIDIA A100", got.GPUModel)
 		assert.Equal(t, resource.MustParse("80Gi"), got.GPUMem)
+		assert.Equal(t, accelerator.TypeNVIDIA, got.Accelerator)
+		assert.Equal(t, nvidia.GPUModelA100, got.CanonicalGPUModel())
 	})
 
 	t.Run("unknown instance type falls back to GFD labels", func(t *testing.T) {
@@ -302,9 +76,9 @@ func TestGetGPUConfigFromNode(t *testing.T) {
 				Name: "unknown-sku-node",
 				Labels: map[string]string{
 					corev1.LabelInstanceTypeStable: "custom-gpu-node",
-					consts.NvidiaGPUProduct:        "Custom-GPU",
-					consts.NvidiaGPUCount:          "2",
-					consts.NvidiaGPUMemory:         "24576",
+					nvidia.LabelGPUProduct:         "Custom-GPU",
+					nvidia.LabelGPUCount:           "2",
+					nvidia.LabelGPUMemory:          "24576",
 				},
 			},
 		}
@@ -315,6 +89,7 @@ func TestGetGPUConfigFromNode(t *testing.T) {
 		assert.Equal(t, 2, got.GPUCount)
 		assert.Equal(t, "Custom-GPU", got.GPUModel)
 		assert.Equal(t, resource.MustParse("48Gi"), got.GPUMem)
+		assert.Equal(t, accelerator.TypeNVIDIA, got.Accelerator)
 	})
 
 	t.Run("MIG reconfiguration uses GFD labels instead of the known instance type", func(t *testing.T) {
@@ -323,11 +98,11 @@ func TestGetGPUConfigFromNode(t *testing.T) {
 				Name: "pending-mig-node",
 				Labels: map[string]string{
 					corev1.LabelInstanceTypeStable: "Standard_NC24ads_A100_v4",
-					consts.NvidiaGPUProduct:        "NVIDIA-A100-SXM4-80GB",
-					consts.NvidiaGPUCount:          "1",
-					consts.NvidiaGPUMemory:         "81920",
-					consts.NvidiaMIGConfig:         "all-1g.10gb",
-					consts.NvidiaMIGConfigState:    "pending",
+					nvidia.LabelGPUProduct:         "NVIDIA-A100-SXM4-80GB",
+					nvidia.LabelGPUCount:           "1",
+					nvidia.LabelGPUMemory:          "81920",
+					nvidia.LabelMIGConfig:          "all-1g.10gb",
+					nvidia.LabelMIGConfigState:     "pending",
 				},
 			},
 		}
@@ -344,11 +119,11 @@ func TestGetGPUConfigFromNode(t *testing.T) {
 				Name: "mig-node",
 				Labels: map[string]string{
 					corev1.LabelInstanceTypeStable: "Standard_NC24ads_A100_v4",
-					consts.NvidiaGPUProduct:        "NVIDIA-A100-SXM4-80GB-MIG-1g.10gb",
-					consts.NvidiaGPUCount:          "1",
-					consts.NvidiaGPUMemory:         "10240",
-					consts.NvidiaMIGConfig:         "all-1g.10gb",
-					consts.NvidiaMIGConfigState:    "success",
+					nvidia.LabelGPUProduct:         "NVIDIA-A100-SXM4-80GB-MIG-1g.10gb",
+					nvidia.LabelGPUCount:           "1",
+					nvidia.LabelGPUMemory:          "10240",
+					nvidia.LabelMIGConfig:          "all-1g.10gb",
+					nvidia.LabelMIGConfigState:     "success",
 				},
 			},
 		}
@@ -360,11 +135,12 @@ func TestGetGPUConfigFromNode(t *testing.T) {
 		expectedMemory := resource.MustParse("10Gi")
 		assert.Zero(t, expectedMemory.Cmp(got.GPUMem))
 		assert.True(t, got.IsMIG)
+		assert.Equal(t, nvidia.GPUModelA100, got.CanonicalGPUModel())
 	})
 }
 
 func TestScaleGPUConfigToCount(t *testing.T) {
-	perGPU := int64(80) * consts.GiBToBytes
+	perGPU := int64(80) * GiB
 	nodeCfg := &GPUConfig{
 		GPUCount: 8,
 		GPUModel: "NVIDIA-A100",

@@ -25,10 +25,9 @@ import (
 	"knative.dev/pkg/apis"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
-	"github.com/kaito-project/kaito/pkg/k8sclient"
+	"github.com/kaito-project/kaito/api/env"
+	"github.com/kaito-project/kaito/pkg/catalog"
 	"github.com/kaito-project/kaito/pkg/model"
-	"github.com/kaito-project/kaito/pkg/utils/plugin"
-	"github.com/kaito-project/kaito/presets/workspace/models"
 )
 
 // InferenceConfig represents the structure of the inference configuration
@@ -55,11 +54,12 @@ func (w *Workspace) validateInferenceConfig(ctx context.Context) (errs *apis.Fie
 
 	// Check if the ConfigMap exists
 	var cm corev1.ConfigMap
-	if k8sclient.Client == nil {
-		errs = errs.Also(apis.ErrGeneric("Failed to obtain client from context.Context"))
+	kubeClient, err := env.FromContext(ctx).RequireClient()
+	if err != nil {
+		errs = errs.Also(apis.ErrGeneric(err.Error()))
 		return errs
 	}
-	err = k8sclient.Client.Get(ctx, client.ObjectKey{Name: cmName, Namespace: cmNS}, &cm)
+	err = kubeClient.Get(ctx, client.ObjectKey{Name: cmName, Namespace: cmNS}, &cm)
 	if err != nil {
 		if errors.IsNotFound(err) {
 			errs = errs.Also(apis.ErrGeneric(fmt.Sprintf("ConfigMap '%s' specified in 'config' not found in namespace '%s'", cmName, cmNS), "config"))
@@ -74,7 +74,7 @@ func (w *Workspace) validateInferenceConfig(ctx context.Context) (errs *apis.Fie
 	// optional and its absence simply means "use the defaults".
 	inferenceConfigYAML, ok := cm.Data["inference_config.yaml"]
 	if !ok {
-		if _, isCustomModel := cm.Data[models.CustomModelConfigKey]; isCustomModel {
+		if _, isCustomModel := cm.Data[catalog.CustomModelConfigKey]; isCustomModel {
 			return errs
 		}
 		return apis.ErrMissingField("inference_config.yaml in ConfigMap")
@@ -94,8 +94,8 @@ func (w *Workspace) validateInferenceConfig(ctx context.Context) (errs *apis.Fie
 		if rawMaxModelLen, exists := inferenceConfig.VLLM["max-model-len"]; exists && strings.TrimSpace(rawMaxModelLen) != "" {
 			if w.Inference != nil && w.Inference.Preset != nil {
 				presetName := strings.ToLower(string(w.Inference.Preset.Name))
-				if plugin.IsValidPreset(presetName) {
-					modelPreset, err := models.GetModelByName(ctx, presetName, w.Inference.Config, w.Inference.Preset.PresetOptions.ModelAccessSecret, w.Namespace, k8sclient.Client)
+				if model.IsValidPreset(presetName) {
+					modelPreset, err := catalog.GetModelByName(ctx, presetName, w.Inference.Config, w.Inference.Preset.PresetOptions.ModelAccessSecret, w.Namespace, kubeClient)
 					if err != nil {
 						return apis.ErrInvalidValue(fmt.Sprintf("failed to get model preset: %v", err), "preset")
 					}

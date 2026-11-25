@@ -14,7 +14,6 @@
 package v1alpha1
 
 import (
-	"context"
 	"strings"
 	"testing"
 
@@ -23,8 +22,6 @@ import (
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/utils/ptr"
 	"sigs.k8s.io/controller-runtime/pkg/client/fake"
-
-	"github.com/kaito-project/kaito/pkg/k8sclient"
 )
 
 func newStorageScheme() *runtime.Scheme {
@@ -43,7 +40,6 @@ func storageClass(name string) *storagev1.StorageClass {
 // and should pass validation.
 func TestModelMirrorValidate_Static_Passes(t *testing.T) {
 	client := fake.NewClientBuilder().WithScheme(newStorageScheme()).Build()
-	k8sclient.SetGlobalClient(client)
 
 	m := &ModelMirror{
 		Spec: ModelMirrorSpec{
@@ -52,7 +48,7 @@ func TestModelMirrorValidate_Static_Passes(t *testing.T) {
 		},
 	}
 
-	if err := m.Validate(context.Background()); err != nil {
+	if err := m.Validate(testCtx(withClient(client))); err != nil {
 		t.Errorf("expected nil error for static mirror, got: %v", err)
 	}
 }
@@ -61,7 +57,6 @@ func TestModelMirrorValidate_Static_Passes(t *testing.T) {
 // (the weights already exist in BYO storage; there is nothing to download).
 func TestModelMirrorValidate_Static_WithSource_Fails(t *testing.T) {
 	client := fake.NewClientBuilder().WithScheme(newStorageScheme()).Build()
-	k8sclient.SetGlobalClient(client)
 
 	m := &ModelMirror{
 		Spec: ModelMirrorSpec{
@@ -70,7 +65,7 @@ func TestModelMirrorValidate_Static_WithSource_Fails(t *testing.T) {
 		},
 	}
 
-	if err := m.Validate(context.Background()); err == nil {
+	if err := m.Validate(testCtx(withClient(client))); err == nil {
 		t.Error("expected error when a static mirror sets spec.source, got nil")
 	}
 }
@@ -82,7 +77,6 @@ func TestModelMirrorValidate_Static_WithStorage_Fails(t *testing.T) {
 		WithScheme(newStorageScheme()).
 		WithRuntimeObjects(storageClass("blob-fuse")).
 		Build()
-	k8sclient.SetGlobalClient(client)
 
 	m := &ModelMirror{
 		Spec: ModelMirrorSpec{
@@ -91,7 +85,7 @@ func TestModelMirrorValidate_Static_WithStorage_Fails(t *testing.T) {
 		},
 	}
 
-	if err := m.Validate(context.Background()); err == nil {
+	if err := m.Validate(testCtx(withClient(client))); err == nil {
 		t.Error("expected error when a static mirror sets spec.storage, got nil")
 	}
 }
@@ -103,7 +97,6 @@ func TestModelMirrorValidate_Managed_StillValidates(t *testing.T) {
 		WithScheme(newStorageScheme()).
 		WithRuntimeObjects(storageClass("blob-fuse")).
 		Build()
-	k8sclient.SetGlobalClient(client)
 
 	m := &ModelMirror{
 		Spec: ModelMirrorSpec{
@@ -113,7 +106,7 @@ func TestModelMirrorValidate_Managed_StillValidates(t *testing.T) {
 		},
 	}
 
-	if err := m.Validate(context.Background()); err != nil {
+	if err := m.Validate(testCtx(withClient(client))); err != nil {
 		t.Errorf("expected nil error when StorageClass exists, got: %v", err)
 	}
 }
@@ -124,7 +117,6 @@ func TestModelMirrorValidate_Managed_MissingSource_Fails(t *testing.T) {
 		WithScheme(newStorageScheme()).
 		WithRuntimeObjects(storageClass("blob-fuse")).
 		Build()
-	k8sclient.SetGlobalClient(client)
 
 	m := &ModelMirror{
 		Spec: ModelMirrorSpec{
@@ -133,7 +125,7 @@ func TestModelMirrorValidate_Managed_MissingSource_Fails(t *testing.T) {
 		},
 	}
 
-	if err := m.Validate(context.Background()); err == nil {
+	if err := m.Validate(testCtx(withClient(client))); err == nil {
 		t.Error("expected error when a managed mirror omits spec.source, got nil")
 	}
 }
@@ -141,7 +133,6 @@ func TestModelMirrorValidate_Managed_MissingSource_Fails(t *testing.T) {
 // TestModelMirrorValidate_Managed_MissingStorage_Fails: a managed mirror with no Storage must fail.
 func TestModelMirrorValidate_Managed_MissingStorage_Fails(t *testing.T) {
 	client := fake.NewClientBuilder().WithScheme(newStorageScheme()).Build()
-	k8sclient.SetGlobalClient(client)
 
 	m := &ModelMirror{
 		Spec: ModelMirrorSpec{
@@ -150,7 +141,7 @@ func TestModelMirrorValidate_Managed_MissingStorage_Fails(t *testing.T) {
 		},
 	}
 
-	if err := m.Validate(context.Background()); err == nil {
+	if err := m.Validate(testCtx(withClient(client))); err == nil {
 		t.Error("expected error when a managed mirror omits spec.storage, got nil")
 	}
 }
@@ -159,7 +150,6 @@ func TestModelMirrorValidate_Managed_MissingStorage_Fails(t *testing.T) {
 // StorageClassName that does not exist in the cluster should return an error.
 func TestModelMirrorValidate_Managed_MissingStorageClass_Fails(t *testing.T) {
 	client := fake.NewClientBuilder().WithScheme(newStorageScheme()).Build()
-	k8sclient.SetGlobalClient(client)
 
 	m := &ModelMirror{
 		Spec: ModelMirrorSpec{
@@ -169,7 +159,7 @@ func TestModelMirrorValidate_Managed_MissingStorageClass_Fails(t *testing.T) {
 		},
 	}
 
-	if err := m.Validate(context.Background()); err == nil {
+	if err := m.Validate(testCtx(withClient(client))); err == nil {
 		t.Error("expected error when StorageClass is missing, got nil")
 	}
 }
@@ -178,7 +168,6 @@ func TestModelMirrorValidate_Managed_MissingStorageClass_Fails(t *testing.T) {
 // return a validation error.
 func TestModelMirrorValidate_BadRegistry_Fails(t *testing.T) {
 	client := fake.NewClientBuilder().WithScheme(newStorageScheme()).Build()
-	k8sclient.SetGlobalClient(client)
 
 	m := &ModelMirror{
 		Spec: ModelMirrorSpec{
@@ -188,7 +177,7 @@ func TestModelMirrorValidate_BadRegistry_Fails(t *testing.T) {
 		},
 	}
 
-	if err := m.Validate(context.Background()); err == nil {
+	if err := m.Validate(testCtx(withClient(client))); err == nil {
 		t.Error("expected error for unsupported registry, got nil")
 	}
 }
@@ -198,7 +187,6 @@ func TestModelMirrorValidate_BadRegistry_Fails(t *testing.T) {
 // An empty Mode defaults to Managed, so this also covers the default case.
 func TestModelMirrorValidate_Managed_NilStorageClass_Fails(t *testing.T) {
 	client := fake.NewClientBuilder().WithScheme(newStorageScheme()).Build()
-	k8sclient.SetGlobalClient(client)
 
 	m := &ModelMirror{
 		Spec: ModelMirrorSpec{
@@ -208,7 +196,7 @@ func TestModelMirrorValidate_Managed_NilStorageClass_Fails(t *testing.T) {
 		},
 	}
 
-	if err := m.Validate(context.Background()); err == nil {
+	if err := m.Validate(testCtx(withClient(client))); err == nil {
 		t.Error("expected error when managed StorageClassName is nil, got nil")
 	}
 }
@@ -217,7 +205,6 @@ func TestModelMirrorValidate_Managed_NilStorageClass_Fails(t *testing.T) {
 // empty-string StorageClassName must also fail validation.
 func TestModelMirrorValidate_Managed_EmptyStorageClass_Fails(t *testing.T) {
 	client := fake.NewClientBuilder().WithScheme(newStorageScheme()).Build()
-	k8sclient.SetGlobalClient(client)
 
 	m := &ModelMirror{
 		Spec: ModelMirrorSpec{
@@ -227,7 +214,7 @@ func TestModelMirrorValidate_Managed_EmptyStorageClass_Fails(t *testing.T) {
 		},
 	}
 
-	if err := m.Validate(context.Background()); err == nil {
+	if err := m.Validate(testCtx(withClient(client))); err == nil {
 		t.Error("expected error when managed StorageClassName is empty string, got nil")
 	}
 }
@@ -240,7 +227,6 @@ func TestModelMirrorValidate_Managed_EmptyValues_ReportMissing(t *testing.T) {
 		WithScheme(newStorageScheme()).
 		WithRuntimeObjects(storageClass("blob-fuse")).
 		Build()
-	k8sclient.SetGlobalClient(client)
 
 	m := &ModelMirror{
 		Spec: ModelMirrorSpec{
@@ -250,7 +236,7 @@ func TestModelMirrorValidate_Managed_EmptyValues_ReportMissing(t *testing.T) {
 		},
 	}
 
-	err := m.Validate(context.Background())
+	err := m.Validate(testCtx(withClient(client)))
 	if err == nil {
 		t.Fatal("expected error for blank required subfields, got nil")
 	}
@@ -276,7 +262,6 @@ func TestModelMirrorValidate_Managed_BadSize_ReportsInvalid(t *testing.T) {
 		WithScheme(newStorageScheme()).
 		WithRuntimeObjects(storageClass("blob-fuse")).
 		Build()
-	k8sclient.SetGlobalClient(client)
 
 	m := &ModelMirror{
 		Spec: ModelMirrorSpec{
@@ -286,7 +271,7 @@ func TestModelMirrorValidate_Managed_BadSize_ReportsInvalid(t *testing.T) {
 		},
 	}
 
-	err := m.Validate(context.Background())
+	err := m.Validate(testCtx(withClient(client)))
 	if err == nil {
 		t.Fatal("expected error for unparsable size, got nil")
 	}

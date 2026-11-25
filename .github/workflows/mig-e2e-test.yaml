@@ -21,11 +21,10 @@ on:
       - "api/v1beta1/inferenceset_validation.go"
       - "api/v1alpha1/inferenceset_types.go"
       - "api/v1alpha1/inferenceset_validation.go"
-      - "pkg/utils/mig/**"
-      - "pkg/workspace/estimator/**"
+      - "pkg/accelerator/nvidia/**"
+      - "pkg/estimator/**"
       - "pkg/sku/**"
-      - "pkg/workspace/inference/preset_inferences.go"
-      - "pkg/utils/common.go"
+      - "internal/inference/preset_inferences.go"
       - "pkg/model/interface.go"
       - "examples/mig/**"
       - "examples/inference/kaito_inferenceset_mig_*.yaml"
@@ -37,6 +36,11 @@ on:
         description: "MIG-capable GPU VM size for the BYO node pool"
         required: true
         default: "Standard_NC24ads_A100_v4"
+        type: string
+      region:
+        description: "Azure region; vm_size must be allowed there"
+        required: true
+        default: "eastus"
         type: string
       mig_strategy:
         description: "NVIDIA device-plugin MIG strategy (mixed or single)"
@@ -67,13 +71,21 @@ permissions:
   contents: read
 
 env:
-  GO_VERSION: "1.26.10"
+  GO_VERSION: "1.26.11"
   VM_SIZE: ${{ github.event.inputs.vm_size || 'Standard_NC24ads_A100_v4' }}
+  # The default e2e region (polandcentral) allows only A10 VMs; A100 runs in
+  # eastus, as in preset-model-regression.
+  REGION: ${{ github.event.inputs.region || 'eastus' }}
   MIG_STRATEGY: ${{ github.event.inputs.mig_strategy || 'mixed' }}
   MIG_PROFILE: ${{ github.event.inputs.mig_profile || '3g.40gb' }}
   MIG_SLICE_COUNT: ${{ github.event.inputs.mig_slice_count || '2' }}
   MODEL: ${{ github.event.inputs.model || 'microsoft/Phi-4-mini-instruct' }}
   GPU_OPERATOR_VERSION: "v25.3.0"
+  # The chart default (570.124.06) does not compile on current AKS node
+  # kernels: linux-azure 5.15.0-1123+ and 6.8.0-1071+ backport a fourth
+  # (exclude_bars) argument to pci_resize_resource(). 580.126.09 is the first
+  # driver release that handles both signatures; no 570.x release does.
+  NVIDIA_DRIVER_VERSION: "580.126.20"
   MIG_CONFIG_NAME: "kaito-mig-e2e"
 
 jobs:
@@ -106,6 +118,8 @@ jobs:
           git_sha: ${{ github.event.pull_request.head.sha || github.sha }}
           build_kaito_base_image: ${{ env.BUILD_KAITO_BASE_IMAGE }}
           skip_helm_install: true
+          region: ${{ env.REGION }}
+          node_vm_size: Standard_D4d_v4
 
       - name: Build workspace controller
         run: |
@@ -128,12 +142,15 @@ jobs:
           # owns the full driver + toolkit + device-plugin + MIG-manager stack.
           # Taint with the standard sku=gpu:NoSchedule that KAITO GPU workloads tolerate;
           # GPU Operator DaemonSets tolerate everything.
+          # Pin Ubuntu 22.04 so the node OS, and with it the driver image tag
+          # (<version>-ubuntu22.04), does not change with the AKS default.
           az aks nodepool add \
             --cluster-name "$CLUSTER_NAME" \
             --resource-group "$CLUSTER_NAME" \
             --name migpool \
             --node-vm-size "$VM_SIZE" \
             --node-count 1 \
+            --os-sku Ubuntu2204 \
             --skip-gpu-driver-install \
             --node-taints "sku=gpu:NoSchedule" \
             --labels kaito.sh/mig-enabled=true \
@@ -176,6 +193,7 @@ jobs:
           helm upgrade --install gpu-operator nvidia/gpu-operator \
             --namespace gpu-operator \
             --version "$GPU_OPERATOR_VERSION" \
+            --set-string driver.version="$NVIDIA_DRIVER_VERSION" \
             --set mig.strategy="$MIG_STRATEGY" \
             --set migManager.enabled=true \
             --set migManager.config.name=custom-mig-config \
@@ -210,6 +228,8 @@ jobs:
             kubectl get node -l kaito.sh/mig-enabled=true -o json | jq '.items[0].metadata.labels'
             kubectl -n gpu-operator get pods
             kubectl -n gpu-operator logs -l app=nvidia-mig-manager --tail=100 || true
+            kubectl -n gpu-operator logs -l app=nvidia-driver-daemonset --all-containers --tail=100 || true
+            kubectl -n gpu-operator logs -l app=nvidia-driver-daemonset --all-containers --previous --tail=100 || true
             exit 1
           fi
 

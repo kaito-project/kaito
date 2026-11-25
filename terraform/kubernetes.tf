@@ -6,6 +6,13 @@ resource "azurerm_kubernetes_cluster" "example" {
   oidc_issuer_enabled       = true
   workload_identity_enabled = true
 
+  dynamic "azure_active_directory_role_based_access_control" {
+    for_each = var.enable_aad ? [1] : []
+    content {
+      tenant_id = data.azurerm_client_config.current.tenant_id
+    }
+  }
+
   default_node_pool {
     name       = "default"
     node_count = var.node_pool_count

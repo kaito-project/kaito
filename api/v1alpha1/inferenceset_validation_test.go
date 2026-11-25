@@ -22,9 +22,8 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"knative.dev/pkg/apis"
 
+	"github.com/kaito-project/kaito/api/env"
 	kaitov1beta1 "github.com/kaito-project/kaito/api/v1beta1"
-	"github.com/kaito-project/kaito/pkg/featuregates"
-	"github.com/kaito-project/kaito/pkg/utils/consts"
 )
 
 func TestInferenceSet_SupportedVerbs(t *testing.T) {
@@ -286,7 +285,7 @@ func TestInferenceSet_validateCreate(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			err := tt.is.validateCreate()
+			err := tt.is.validateCreate(context.Background())
 			if tt.wantErr {
 				assert.NotNil(t, err)
 				if tt.errField != "" {
@@ -302,7 +301,7 @@ func TestInferenceSet_validateCreate(t *testing.T) {
 func TestInferenceSet_validateUpdate(t *testing.T) {
 	is := &InferenceSet{}
 	old := &InferenceSet{}
-	err := is.validateUpdate(old)
+	err := is.validateUpdate(context.Background(), old)
 	assert.Nil(t, err)
 }
 
@@ -378,22 +377,6 @@ func TestInferenceSet_validateSpeculativeDecoding(t *testing.T) {
 			}
 		})
 	}
-
-	t.Run("vllm feature gate disabled - rejected", func(t *testing.T) {
-		orig := featuregates.FeatureGates[consts.FeatureFlagVLLM]
-		featuregates.FeatureGates[consts.FeatureFlagVLLM] = false
-		defer func() { featuregates.FeatureGates[consts.FeatureFlagVLLM] = orig }()
-
-		tpl := presetTpl("deepseek-r1-0528")
-		tpl.Annotations = map[string]string{AnnotationEnableSpeculativeDecoding: "true"}
-		is := &InferenceSet{
-			ObjectMeta: metav1.ObjectMeta{Name: "is", Namespace: "default"},
-			Spec:       InferenceSetSpec{Template: tpl},
-		}
-		if err := is.validateSpeculativeDecoding(); err == nil {
-			t.Fatalf("expected rejection when vLLM feature gate is disabled")
-		}
-	})
 }
 
 func TestValidateMaintenanceWindow(t *testing.T) {
@@ -502,46 +485,46 @@ func TestValidateMaintenanceWindow(t *testing.T) {
 func TestInferenceSet_validateInstanceType(t *testing.T) {
 	tests := []struct {
 		name            string
-		nodeProvisioner string
+		nodeProvisioner env.NodeProvisioner
 		instanceType    string
 		wantErr         bool
 		errField        string
 	}{
 		{
 			name:            "BYO mode with empty instanceType - valid",
-			nodeProvisioner: consts.NodeProvisionerBYO,
+			nodeProvisioner: env.NodeProvisionerBYO,
 			instanceType:    "",
 			wantErr:         false,
 		},
 		{
 			name:            "BYO mode with instanceType set - invalid",
-			nodeProvisioner: consts.NodeProvisionerBYO,
+			nodeProvisioner: env.NodeProvisionerBYO,
 			instanceType:    "Standard_NC6s_v3",
 			wantErr:         true,
 			errField:        "resource.instanceType",
 		},
 		{
 			name:            "Karpenter mode with instanceType set - valid",
-			nodeProvisioner: consts.NodeProvisionerKarpenter,
+			nodeProvisioner: env.NodeProvisionerKarpenter,
 			instanceType:    "Standard_NC6s_v3",
 			wantErr:         false,
 		},
 		{
 			name:            "Karpenter mode with empty instanceType - invalid",
-			nodeProvisioner: consts.NodeProvisionerKarpenter,
+			nodeProvisioner: env.NodeProvisionerKarpenter,
 			instanceType:    "",
 			wantErr:         true,
 			errField:        "resource.instanceType",
 		},
 		{
 			name:            "AzureGPU mode with instanceType set - valid",
-			nodeProvisioner: consts.NodeProvisionerAzureGPU,
+			nodeProvisioner: env.NodeProvisionerAzureGPU,
 			instanceType:    "Standard_NC6s_v3",
 			wantErr:         false,
 		},
 		{
 			name:            "AzureGPU mode with empty instanceType - invalid",
-			nodeProvisioner: consts.NodeProvisionerAzureGPU,
+			nodeProvisioner: env.NodeProvisionerAzureGPU,
 			instanceType:    "",
 			wantErr:         true,
 			errField:        "resource.instanceType",
@@ -562,11 +545,6 @@ func TestInferenceSet_validateInstanceType(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			// Save and restore global state
-			orig := consts.ActiveNodeProvisioner
-			consts.ActiveNodeProvisioner = tt.nodeProvisioner
-			defer func() { consts.ActiveNodeProvisioner = orig }()
-
 			is := &InferenceSet{
 				Spec: InferenceSetSpec{
 					Template: InferenceSetTemplate{
@@ -576,7 +554,7 @@ func TestInferenceSet_validateInstanceType(t *testing.T) {
 					},
 				},
 			}
-			err := is.validateInstanceType()
+			err := is.validateInstanceType(testCtx(withNodeProvisioner(tt.nodeProvisioner)))
 			if tt.wantErr {
 				assert.NotNil(t, err)
 				if tt.errField != "" {

@@ -17,6 +17,7 @@ import os
 import sys
 
 import pytest
+from guardrail_core.streaming import scanners as shared_scanners
 from guardrail_core.streaming.sse import DEFAULT_MAX_EVENT_BYTES
 
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "../../..")))
@@ -32,7 +33,6 @@ from ragengine.guardrails.scanner_schemas import (  # noqa: E402
 )
 from ragengine.streaming.guardrails import (  # noqa: E402
     STREAMING_GUARDRAILS_SUPPORTED_SCANNERS,
-    _redact_secrets_and_verify,
     apply_streaming_guardrails,
     validate_streaming_guardrails,
 )
@@ -134,6 +134,30 @@ def _emitted_text(chunks):
 
 
 @pytest.mark.asyncio
+async def test_empty_policy_preserves_upstream_bytes_and_closes_upstream():
+    closed = False
+    upstream_bytes = [b": keepalive\n\n", b"data: [DONE]\n\n"]
+
+    async def upstream():
+        nonlocal closed
+        try:
+            for chunk in upstream_bytes:
+                yield chunk
+        finally:
+            closed = True
+
+    chunks = [
+        chunk
+        async for chunk in apply_streaming_guardrails(
+            upstream(), _streaming_guardrails(), {}
+        )
+    ]
+
+    assert chunks == upstream_bytes
+    assert closed
+
+
+@pytest.mark.asyncio
 @pytest.mark.parametrize("scan_stage", ["feed", "done", "finish", "eof"])
 async def test_scanner_exception_refuses_without_releasing_pending_text(
     monkeypatch, caplog, scan_stage
@@ -143,7 +167,7 @@ async def test_scanner_exception_refuses_without_releasing_pending_text(
     def failing_scan(scanners, prompt, output, fail_fast):
         raise RuntimeError("scanner failed")
 
-    monkeypatch.setattr("ragengine.streaming.guardrails.scan_output", failing_scan)
+    monkeypatch.setattr(shared_scanners, "scan_output", failing_scan)
 
     async def upstream():
         nonlocal closed
@@ -566,11 +590,13 @@ def test_validate_streaming_guardrails_rejects_non_all_secrets_redaction(
         ("unexpected mutation", {"secrets": True}),
     ],
 )
-def test_redact_secrets_and_verify_fails_closed_on_invalid_result(
+@pytest.mark.asyncio
+async def test_secrets_invalid_result_refuses_without_releasing_pending_text(
     monkeypatch, scanner_output, results_valid
 ):
     monkeypatch.setattr(
-        "ragengine.streaming.guardrails.scan_output",
+        shared_scanners,
+        "scan_output",
         lambda scanners, prompt, output, fail_fast: (
             scanner_output,
             results_valid,
@@ -578,10 +604,16 @@ def test_redact_secrets_and_verify_fails_closed_on_invalid_result(
         ),
     )
 
-    assert _redact_secrets_and_verify(object(), "prompt", "secret") is None
+    chunks = await _apply_text("secret", _streaming_guardrails(_secrets_scanner()))
+
+    assert _emitted_text(chunks) == "blocked-by-policy"
+    assert len(chunks) == 3
+    assert "content_filter" in chunks[-2]
+    assert chunks[-1] == "data: [DONE]\n\n"
 
 
-def test_redact_secrets_and_verify_scans_once_then_verifies_clean(monkeypatch):
+@pytest.mark.asyncio
+async def test_secrets_redaction_scans_once_then_verifies_clean(monkeypatch):
     scan_results = iter(
         [
             ("******", {"secrets": False}, {"secrets": 1.0}),
@@ -595,12 +627,42 @@ def test_redact_secrets_and_verify_scans_once_then_verifies_clean(monkeypatch):
         scan_count += 1
         return next(scan_results)
 
+    monkeypatch.setattr(shared_scanners, "scan_output", scan_once_then_verify)
+
+    chunks = await _apply_text("secret", _streaming_guardrails(_secrets_scanner()))
+
+    assert _emitted_text(chunks) == "******"
+    assert scan_count == 2
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize(
+    ("verified_output", "verified_valid"),
+    [
+        ("******", False),
+        ("changed", True),
+        (None, True),
+    ],
+)
+async def test_secrets_failed_verification_refuses_without_releasing_redaction(
+    monkeypatch, verified_output, verified_valid
+):
+    results = iter(
+        [
+            ("******", {"secrets": False}, {"secrets": 1.0}),
+            (verified_output, {"secrets": verified_valid}, {"secrets": 0.0}),
+        ]
+    )
     monkeypatch.setattr(
-        "ragengine.streaming.guardrails.scan_output", scan_once_then_verify
+        shared_scanners, "scan_output", lambda *args, **kwargs: next(results)
     )
 
-    assert _redact_secrets_and_verify(object(), "prompt", "secret") == "******"
-    assert scan_count == 2
+    chunks = await _apply_text("secret", _streaming_guardrails(_secrets_scanner()))
+
+    assert _emitted_text(chunks) == "blocked-by-policy"
+    assert len(chunks) == 3
+    assert "content_filter" in chunks[-2]
+    assert chunks[-1] == "data: [DONE]\n\n"
 
 
 @pytest.mark.asyncio
@@ -903,9 +965,7 @@ async def test_invisible_redaction_without_modified_text_fails_closed(monkeypatc
     def scan_without_redaction(scanners, prompt, output, fail_fast):
         return output, {"invisible_text": False}, {"invisible_text": 1.0}
 
-    monkeypatch.setattr(
-        "ragengine.streaming.guardrails.scan_output", scan_without_redaction
-    )
+    monkeypatch.setattr(shared_scanners, "scan_output", scan_without_redaction)
 
     chunks = await _apply_text(
         "hello\u200bworld", _streaming_guardrails(_invisible_text_scanner())
@@ -1209,6 +1269,102 @@ async def test_ban_substrings_redaction_runs_before_later_block_scanner():
     )
 
     assert _emitted_text(chunks) == "blocked-by-policy"
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize("block_first", [False, True])
+async def test_redactors_preserve_policy_order_before_blockers(block_first):
+    redactors = [
+        _invisible_text_scanner(),
+        _ban_substrings_scanner("unsafe", action="redact"),
+    ]
+    blocker = _ban_substrings_scanner("unsafe", action="block")
+    scanners = [blocker, *redactors] if block_first else [*redactors, blocker]
+
+    chunks = await _apply_text("un\u200bsafe", _streaming_guardrails(*scanners))
+
+    assert _emitted_text(chunks) == "[REDACTED]"
+    assert "content_filter" not in "".join(chunks)
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize("action", ["block", "redact"])
+@pytest.mark.parametrize(
+    ("contents", "matches"),
+    [
+        (["un", "safe"], True),
+        (["un", "safe", "ish"], False),
+        (["xun", "safe"], False),
+    ],
+)
+async def test_legacy_policy_keeps_default_word_mode(
+    tmp_path, action, contents, matches
+):
+    policy_path = tmp_path / "policy.yaml"
+    policy_path.write_text(
+        f"action: {action}\n"
+        "blockMessage: blocked-by-policy\n"
+        "scanners:\n"
+        "  - type: banSubstrings\n"
+        "    substrings: [unsafe, null, '', 1]\n"
+        "    caseSensitive: false\n",
+        encoding="utf-8",
+    )
+    guardrails = OutputGuardrails(enabled=True, fail_open=False)._apply_policy_file(
+        str(policy_path)
+    )
+
+    assert len(guardrails.scanner_configs) == 1
+    assert guardrails.scanner_configs[0].config.match_type == "word"
+    assert validate_streaming_guardrails(guardrails).supported
+    chunks = await _apply_content_chunks(contents, guardrails)
+
+    expected = "".join(contents)
+    if matches:
+        expected = "blocked-by-policy" if action == "block" else "[REDACTED]"
+    assert _emitted_text(chunks) == expected
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize("default_action", ["block", "redact"])
+async def test_shared_adapter_receives_configs_default_action_and_prompt(
+    monkeypatch, default_action
+):
+    calls = []
+    real_scan = shared_scanners.scan_output
+
+    def scan(scanners, prompt, output, fail_fast):
+        calls.append((prompt, output, fail_fast))
+        return real_scan(scanners, prompt, output, fail_fast)
+
+    monkeypatch.setattr(shared_scanners, "scan_output", scan)
+    guardrails = OutputGuardrails(
+        enabled=True,
+        fail_open=False,
+        action_on_hit=default_action,
+        block_message="blocked-by-policy",
+        scanner_configs=(
+            ParsedScannerConfig(type="invisible_text", config=InvisibleTextConfig()),
+        ),
+    )
+
+    async def upstream():
+        yield b'data: {"choices":[{"index":0,"delta":{"content":"hello\\u200bworld"}}]}\n\n'
+        yield b"data: [DONE]\n\n"
+
+    chunks = [
+        chunk
+        async for chunk in apply_streaming_guardrails(
+            upstream(),
+            guardrails,
+            {"messages": [{"role": "user", "content": "request prompt"}]},
+        )
+    ]
+
+    assert calls == [("request prompt", "hello\u200bworld", False)]
+    assert _emitted_text(chunks) == (
+        "blocked-by-policy" if default_action == "block" else "helloworld"
+    )
 
 
 @pytest.mark.asyncio

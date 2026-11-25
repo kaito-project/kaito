@@ -38,7 +38,6 @@ import (
 
 	kaitov1beta1 "github.com/kaito-project/kaito/api/v1beta1"
 	"github.com/kaito-project/kaito/pkg/model"
-	mmconsts "github.com/kaito-project/kaito/pkg/modelmirror/consts"
 )
 
 var (
@@ -305,7 +304,7 @@ func DisableModelStreaming(annotations map[string]string) map[string]string {
 	if annotations == nil {
 		annotations = map[string]string{}
 	}
-	annotations[mmconsts.AnnotationModelStreaming] = "disabled"
+	annotations[kaitov1beta1.AnnotationModelStreaming] = "disabled"
 	return annotations
 }
 

@@ -13,49 +13,53 @@
 
 package sku
 
-import "k8s.io/apimachinery/pkg/api/resource"
+import (
+	"k8s.io/apimachinery/pkg/api/resource"
+
+	"github.com/kaito-project/kaito/pkg/accelerator"
+)
 
 func NewAwsSKUHandler() CloudSKUHandler {
 	// Reference: https://aws.amazon.com/ec2/instance-types/
 	// KAITO only supports GPUs with CUDA compute capability >= 8.0 (Ampere and newer).
 	// Older architectures (K80, V100, T4, M60, etc.) have been removed.
 	supportedSKUs := []GPUConfig{
-		{SKU: "p4d.24xlarge", GPUCount: 8, GPUMem: resource.MustParse("320Gi"), GPUModel: "NVIDIA A100", NVMeDiskEnabled: true, CUDAComputeCapability: 8.0},
-		{SKU: "p4de.24xlarge", GPUCount: 8, GPUMem: resource.MustParse("640Gi"), GPUModel: "NVIDIA A100", NVMeDiskEnabled: true, CUDAComputeCapability: 8.0},
-		{SKU: "p5.48xlarge", GPUCount: 8, GPUMem: resource.MustParse("640Gi"), GPUModel: "NVIDIA H100", NVMeDiskEnabled: true, CUDAComputeCapability: 9.0},
-		{SKU: "p5e.48xlarge", GPUCount: 8, GPUMem: resource.MustParse("1128Gi"), GPUModel: "NVIDIA H200", NVMeDiskEnabled: true, CUDAComputeCapability: 9.0},
-		{SKU: "p5en.48xlarge", GPUCount: 8, GPUMem: resource.MustParse("1128Gi"), GPUModel: "NVIDIA H200", NVMeDiskEnabled: true, CUDAComputeCapability: 9.0},
-		{SKU: "g6.xlarge", GPUCount: 1, GPUMem: resource.MustParse("24Gi"), GPUModel: "NVIDIA L4", NVMeDiskEnabled: true, CUDAComputeCapability: 8.9},
-		{SKU: "g6.2xlarge", GPUCount: 1, GPUMem: resource.MustParse("24Gi"), GPUModel: "NVIDIA L4", NVMeDiskEnabled: true, CUDAComputeCapability: 8.9},
-		{SKU: "g6.4xlarge", GPUCount: 1, GPUMem: resource.MustParse("24Gi"), GPUModel: "NVIDIA L4", NVMeDiskEnabled: true, CUDAComputeCapability: 8.9},
-		{SKU: "g6.8xlarge", GPUCount: 1, GPUMem: resource.MustParse("24Gi"), GPUModel: "NVIDIA L4", NVMeDiskEnabled: true, CUDAComputeCapability: 8.9},
-		{SKU: "g6.16xlarge", GPUCount: 1, GPUMem: resource.MustParse("24Gi"), GPUModel: "NVIDIA L4", NVMeDiskEnabled: true, CUDAComputeCapability: 8.9},
-		{SKU: "gr6.4xlarge", GPUCount: 1, GPUMem: resource.MustParse("24Gi"), GPUModel: "NVIDIA L4", NVMeDiskEnabled: true, CUDAComputeCapability: 8.9},
-		{SKU: "gr6.8xlarge", GPUCount: 1, GPUMem: resource.MustParse("24Gi"), GPUModel: "NVIDIA L4", NVMeDiskEnabled: true, CUDAComputeCapability: 8.9},
-		{SKU: "g6.12xlarge", GPUCount: 4, GPUMem: resource.MustParse("96Gi"), GPUModel: "NVIDIA L4", NVMeDiskEnabled: true, CUDAComputeCapability: 8.9},
-		{SKU: "g6.24xlarge", GPUCount: 4, GPUMem: resource.MustParse("96Gi"), GPUModel: "NVIDIA L4", NVMeDiskEnabled: true, CUDAComputeCapability: 8.9},
-		{SKU: "g6.48xlarge", GPUCount: 8, GPUMem: resource.MustParse("192Gi"), GPUModel: "NVIDIA L4", NVMeDiskEnabled: true, CUDAComputeCapability: 8.9},
-		{SKU: "g5.xlarge", GPUCount: 1, GPUMem: resource.MustParse("24Gi"), GPUModel: "NVIDIA A10G", NVMeDiskEnabled: true, CUDAComputeCapability: 8.6},
-		{SKU: "g5.2xlarge", GPUCount: 1, GPUMem: resource.MustParse("24Gi"), GPUModel: "NVIDIA A10G", NVMeDiskEnabled: true, CUDAComputeCapability: 8.6},
-		{SKU: "g5.4xlarge", GPUCount: 1, GPUMem: resource.MustParse("24Gi"), GPUModel: "NVIDIA A10G", NVMeDiskEnabled: true, CUDAComputeCapability: 8.6},
-		{SKU: "g5.8xlarge", GPUCount: 1, GPUMem: resource.MustParse("24Gi"), GPUModel: "NVIDIA A10G", NVMeDiskEnabled: true, CUDAComputeCapability: 8.6},
-		{SKU: "g5.12xlarge", GPUCount: 4, GPUMem: resource.MustParse("96Gi"), GPUModel: "NVIDIA A10G", NVMeDiskEnabled: true, CUDAComputeCapability: 8.6},
-		{SKU: "g5.16xlarge", GPUCount: 1, GPUMem: resource.MustParse("24Gi"), GPUModel: "NVIDIA A10G", NVMeDiskEnabled: true, CUDAComputeCapability: 8.6},
-		{SKU: "g5.24xlarge", GPUCount: 4, GPUMem: resource.MustParse("96Gi"), GPUModel: "NVIDIA A10G", NVMeDiskEnabled: true, CUDAComputeCapability: 8.6},
-		{SKU: "g5.48xlarge", GPUCount: 8, GPUMem: resource.MustParse("192Gi"), GPUModel: "NVIDIA A10G", NVMeDiskEnabled: true, CUDAComputeCapability: 8.6},
-		{SKU: "g4ad.xlarge", GPUCount: 1, GPUMem: resource.MustParse("8Gi"), GPUModel: "AMD Radeon Pro V520", NVMeDiskEnabled: true},
-		{SKU: "g4ad.2xlarge", GPUCount: 1, GPUMem: resource.MustParse("8Gi"), GPUModel: "AMD Radeon Pro V520", NVMeDiskEnabled: true},
-		{SKU: "g4ad.4xlarge", GPUCount: 1, GPUMem: resource.MustParse("8Gi"), GPUModel: "AMD Radeon Pro V520", NVMeDiskEnabled: true},
-		{SKU: "g4ad.8xlarge", GPUCount: 2, GPUMem: resource.MustParse("16Gi"), GPUModel: "AMD Radeon Pro V520", NVMeDiskEnabled: true},
-		{SKU: "g4ad.16xlarge", GPUCount: 4, GPUMem: resource.MustParse("32Gi"), GPUModel: "AMD Radeon Pro V520", NVMeDiskEnabled: true},
+		{SKU: "p4d.24xlarge", GPUCount: 8, GPUMem: resource.MustParse("320Gi"), Accelerator: accelerator.TypeNVIDIA, GPUModel: "NVIDIA A100", NVMeDiskEnabled: true, CUDAComputeCapability: 8.0},
+		{SKU: "p4de.24xlarge", GPUCount: 8, GPUMem: resource.MustParse("640Gi"), Accelerator: accelerator.TypeNVIDIA, GPUModel: "NVIDIA A100", NVMeDiskEnabled: true, CUDAComputeCapability: 8.0},
+		{SKU: "p5.48xlarge", GPUCount: 8, GPUMem: resource.MustParse("640Gi"), Accelerator: accelerator.TypeNVIDIA, GPUModel: "NVIDIA H100", NVMeDiskEnabled: true, CUDAComputeCapability: 9.0},
+		{SKU: "p5e.48xlarge", GPUCount: 8, GPUMem: resource.MustParse("1128Gi"), Accelerator: accelerator.TypeNVIDIA, GPUModel: "NVIDIA H200", NVMeDiskEnabled: true, CUDAComputeCapability: 9.0},
+		{SKU: "p5en.48xlarge", GPUCount: 8, GPUMem: resource.MustParse("1128Gi"), Accelerator: accelerator.TypeNVIDIA, GPUModel: "NVIDIA H200", NVMeDiskEnabled: true, CUDAComputeCapability: 9.0},
+		{SKU: "g6.xlarge", GPUCount: 1, GPUMem: resource.MustParse("24Gi"), Accelerator: accelerator.TypeNVIDIA, GPUModel: "NVIDIA L4", NVMeDiskEnabled: true, CUDAComputeCapability: 8.9},
+		{SKU: "g6.2xlarge", GPUCount: 1, GPUMem: resource.MustParse("24Gi"), Accelerator: accelerator.TypeNVIDIA, GPUModel: "NVIDIA L4", NVMeDiskEnabled: true, CUDAComputeCapability: 8.9},
+		{SKU: "g6.4xlarge", GPUCount: 1, GPUMem: resource.MustParse("24Gi"), Accelerator: accelerator.TypeNVIDIA, GPUModel: "NVIDIA L4", NVMeDiskEnabled: true, CUDAComputeCapability: 8.9},
+		{SKU: "g6.8xlarge", GPUCount: 1, GPUMem: resource.MustParse("24Gi"), Accelerator: accelerator.TypeNVIDIA, GPUModel: "NVIDIA L4", NVMeDiskEnabled: true, CUDAComputeCapability: 8.9},
+		{SKU: "g6.16xlarge", GPUCount: 1, GPUMem: resource.MustParse("24Gi"), Accelerator: accelerator.TypeNVIDIA, GPUModel: "NVIDIA L4", NVMeDiskEnabled: true, CUDAComputeCapability: 8.9},
+		{SKU: "gr6.4xlarge", GPUCount: 1, GPUMem: resource.MustParse("24Gi"), Accelerator: accelerator.TypeNVIDIA, GPUModel: "NVIDIA L4", NVMeDiskEnabled: true, CUDAComputeCapability: 8.9},
+		{SKU: "gr6.8xlarge", GPUCount: 1, GPUMem: resource.MustParse("24Gi"), Accelerator: accelerator.TypeNVIDIA, GPUModel: "NVIDIA L4", NVMeDiskEnabled: true, CUDAComputeCapability: 8.9},
+		{SKU: "g6.12xlarge", GPUCount: 4, GPUMem: resource.MustParse("96Gi"), Accelerator: accelerator.TypeNVIDIA, GPUModel: "NVIDIA L4", NVMeDiskEnabled: true, CUDAComputeCapability: 8.9},
+		{SKU: "g6.24xlarge", GPUCount: 4, GPUMem: resource.MustParse("96Gi"), Accelerator: accelerator.TypeNVIDIA, GPUModel: "NVIDIA L4", NVMeDiskEnabled: true, CUDAComputeCapability: 8.9},
+		{SKU: "g6.48xlarge", GPUCount: 8, GPUMem: resource.MustParse("192Gi"), Accelerator: accelerator.TypeNVIDIA, GPUModel: "NVIDIA L4", NVMeDiskEnabled: true, CUDAComputeCapability: 8.9},
+		{SKU: "g5.xlarge", GPUCount: 1, GPUMem: resource.MustParse("24Gi"), Accelerator: accelerator.TypeNVIDIA, GPUModel: "NVIDIA A10G", NVMeDiskEnabled: true, CUDAComputeCapability: 8.6},
+		{SKU: "g5.2xlarge", GPUCount: 1, GPUMem: resource.MustParse("24Gi"), Accelerator: accelerator.TypeNVIDIA, GPUModel: "NVIDIA A10G", NVMeDiskEnabled: true, CUDAComputeCapability: 8.6},
+		{SKU: "g5.4xlarge", GPUCount: 1, GPUMem: resource.MustParse("24Gi"), Accelerator: accelerator.TypeNVIDIA, GPUModel: "NVIDIA A10G", NVMeDiskEnabled: true, CUDAComputeCapability: 8.6},
+		{SKU: "g5.8xlarge", GPUCount: 1, GPUMem: resource.MustParse("24Gi"), Accelerator: accelerator.TypeNVIDIA, GPUModel: "NVIDIA A10G", NVMeDiskEnabled: true, CUDAComputeCapability: 8.6},
+		{SKU: "g5.12xlarge", GPUCount: 4, GPUMem: resource.MustParse("96Gi"), Accelerator: accelerator.TypeNVIDIA, GPUModel: "NVIDIA A10G", NVMeDiskEnabled: true, CUDAComputeCapability: 8.6},
+		{SKU: "g5.16xlarge", GPUCount: 1, GPUMem: resource.MustParse("24Gi"), Accelerator: accelerator.TypeNVIDIA, GPUModel: "NVIDIA A10G", NVMeDiskEnabled: true, CUDAComputeCapability: 8.6},
+		{SKU: "g5.24xlarge", GPUCount: 4, GPUMem: resource.MustParse("96Gi"), Accelerator: accelerator.TypeNVIDIA, GPUModel: "NVIDIA A10G", NVMeDiskEnabled: true, CUDAComputeCapability: 8.6},
+		{SKU: "g5.48xlarge", GPUCount: 8, GPUMem: resource.MustParse("192Gi"), Accelerator: accelerator.TypeNVIDIA, GPUModel: "NVIDIA A10G", NVMeDiskEnabled: true, CUDAComputeCapability: 8.6},
+		{SKU: "g4ad.xlarge", GPUCount: 1, GPUMem: resource.MustParse("8Gi"), Accelerator: accelerator.TypeAMD, GPUModel: "AMD Radeon Pro V520", NVMeDiskEnabled: true},
+		{SKU: "g4ad.2xlarge", GPUCount: 1, GPUMem: resource.MustParse("8Gi"), Accelerator: accelerator.TypeAMD, GPUModel: "AMD Radeon Pro V520", NVMeDiskEnabled: true},
+		{SKU: "g4ad.4xlarge", GPUCount: 1, GPUMem: resource.MustParse("8Gi"), Accelerator: accelerator.TypeAMD, GPUModel: "AMD Radeon Pro V520", NVMeDiskEnabled: true},
+		{SKU: "g4ad.8xlarge", GPUCount: 2, GPUMem: resource.MustParse("16Gi"), Accelerator: accelerator.TypeAMD, GPUModel: "AMD Radeon Pro V520", NVMeDiskEnabled: true},
+		{SKU: "g4ad.16xlarge", GPUCount: 4, GPUMem: resource.MustParse("32Gi"), Accelerator: accelerator.TypeAMD, GPUModel: "AMD Radeon Pro V520", NVMeDiskEnabled: true},
 		//accelerator optimized
-		{SKU: "trn1.2xlarge", GPUCount: 1, GPUMem: resource.MustParse("32Gi"), GPUModel: "AWS Trainium accelerators", NVMeDiskEnabled: true},
-		{SKU: "trn1.32xlarge", GPUCount: 16, GPUMem: resource.MustParse("512Gi"), GPUModel: "AWS Trainium accelerators", NVMeDiskEnabled: true},
-		{SKU: "trn1n.32xlarge", GPUCount: 16, GPUMem: resource.MustParse("512Gi"), GPUModel: "AWS Trainium accelerators", NVMeDiskEnabled: true},
-		{SKU: "inf2.xlarge", GPUCount: 1, GPUMem: resource.MustParse("32Gi"), GPUModel: "AWS Inferentia2 accelerators"},
-		{SKU: "inf2.8xlarge", GPUCount: 1, GPUMem: resource.MustParse("32Gi"), GPUModel: "AWS Inferentia2 accelerators"},
-		{SKU: "inf2.24xlarge", GPUCount: 6, GPUMem: resource.MustParse("192Gi"), GPUModel: "AWS Inferentia2 accelerators"},
-		{SKU: "inf2.48xlarge", GPUCount: 12, GPUMem: resource.MustParse("384Gi"), GPUModel: "AWS Inferentia2 accelerators"},
+		{SKU: "trn1.2xlarge", GPUCount: 1, GPUMem: resource.MustParse("32Gi"), Accelerator: accelerator.TypeNeuron, GPUModel: "AWS Trainium accelerators", NVMeDiskEnabled: true},
+		{SKU: "trn1.32xlarge", GPUCount: 16, GPUMem: resource.MustParse("512Gi"), Accelerator: accelerator.TypeNeuron, GPUModel: "AWS Trainium accelerators", NVMeDiskEnabled: true},
+		{SKU: "trn1n.32xlarge", GPUCount: 16, GPUMem: resource.MustParse("512Gi"), Accelerator: accelerator.TypeNeuron, GPUModel: "AWS Trainium accelerators", NVMeDiskEnabled: true},
+		{SKU: "inf2.xlarge", GPUCount: 1, GPUMem: resource.MustParse("32Gi"), Accelerator: accelerator.TypeNeuron, GPUModel: "AWS Inferentia2 accelerators"},
+		{SKU: "inf2.8xlarge", GPUCount: 1, GPUMem: resource.MustParse("32Gi"), Accelerator: accelerator.TypeNeuron, GPUModel: "AWS Inferentia2 accelerators"},
+		{SKU: "inf2.24xlarge", GPUCount: 6, GPUMem: resource.MustParse("192Gi"), Accelerator: accelerator.TypeNeuron, GPUModel: "AWS Inferentia2 accelerators"},
+		{SKU: "inf2.48xlarge", GPUCount: 12, GPUMem: resource.MustParse("384Gi"), Accelerator: accelerator.TypeNeuron, GPUModel: "AWS Inferentia2 accelerators"},
 	}
 	return NewGeneralSKUHandler(supportedSKUs)
 }

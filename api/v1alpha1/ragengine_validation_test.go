@@ -16,8 +16,6 @@ package v1alpha1
 import (
 	"strings"
 	"testing"
-
-	"github.com/kaito-project/kaito/pkg/utils/consts"
 )
 
 func TestRAGEngineValidateCreate(t *testing.T) {
@@ -154,10 +152,9 @@ func TestRAGEngineValidateCreate(t *testing.T) {
 			errField: "ContextWindowSize must be a positive integer",
 		},
 	}
-	t.Setenv("CLOUD_PROVIDER", consts.AzureCloudName)
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			err := tt.ragEngine.validateCreate()
+			err := tt.ragEngine.validateCreate(testCtx())
 			hasErr := err != nil
 
 			if hasErr != tt.wantErr {

@@ -16,7 +16,6 @@ package v1alpha1
 import (
 	"context"
 	"fmt"
-	"os"
 	"reflect"
 	"strconv"
 	"strings"
@@ -29,13 +28,12 @@ import (
 	"k8s.io/klog/v2"
 	"knative.dev/pkg/apis"
 
+	"github.com/kaito-project/kaito/api/env"
+	"github.com/kaito-project/kaito/api/internal/speculativedecoding"
 	kaitov1beta1 "github.com/kaito-project/kaito/api/v1beta1"
+	"github.com/kaito-project/kaito/pkg/consts"
 	"github.com/kaito-project/kaito/pkg/model"
 	"github.com/kaito-project/kaito/pkg/sku"
-	"github.com/kaito-project/kaito/pkg/utils"
-	"github.com/kaito-project/kaito/pkg/utils/consts"
-	"github.com/kaito-project/kaito/pkg/utils/plugin"
-	"github.com/kaito-project/kaito/pkg/utils/speculativedecoding"
 )
 
 const (
@@ -78,7 +76,7 @@ func (w *Workspace) Validate(ctx context.Context) (errs *apis.FieldError) {
 			runtime := GetWorkspaceRuntimeName(w)
 			// TODO: Add Adapter Spec Validation - Including DataSource Validation for Adapter
 			errs = errs.Also(w.Resource.validateCreateWithInference(
-				w.Inference, bypassResourceChecks).ViaField("resource"),
+				ctx, w.Inference, bypassResourceChecks).ViaField("resource"),
 				w.Inference.validateCreate(ctx, runtime).ViaField("inference"),
 				w.validateInferenceConfig(ctx),
 			)
@@ -144,7 +142,7 @@ func (w *Workspace) validateSpeculativeDecoding() (errs *apis.FieldError) {
 	// Any preset is accepted: presets registered in generator.speculativeDecodingByPreset
 	// get their preset-tuned config (e.g. mtp for DeepSeek R1/V3/V3.2); everything else
 	// falls back to the universal ngram default at pod-spec generation time
-	// (pkg/workspace/inference/preset_inferences.go applySpeculativeDecoding).
+	// (internal/inference/preset_inferences.go applySpeculativeDecoding).
 	// So there is no admission-time "preset must be in the supported list" gate.
 	//
 	// Current reachable methods in this PR are only preset-tuned mtp and the
@@ -181,7 +179,7 @@ func (w *Workspace) validateNodeImageFamilyAnnotation() (errs *apis.FieldError) 
 		return nil
 	}
 
-	if _, valid := consts.NormalizeSupportedNodeImageFamily(nodeImageFamily); !valid {
+	if _, valid := kaitov1beta1.NormalizeSupportedNodeImageFamily(nodeImageFamily); !valid {
 		return apis.ErrInvalidValue(
 			fmt.Sprintf("unsupported node image family %q, supported values are azurelinux, ubuntu", nodeImageFamily),
 			fmt.Sprintf("metadata.annotations[%q]", AnnotationNodeImageFamily),
@@ -243,7 +241,7 @@ func (r *TuningSpec) validateCreate(ctx context.Context, workspaceNamespace stri
 	}
 	if r.Config == "" {
 		klog.InfoS("Tuning config not specified. Using default based on method.")
-		releaseNamespace, err := utils.GetReleaseNamespace()
+		releaseNamespace, err := env.FromContext(ctx).RequireReleaseNamespace()
 		if err != nil {
 			errs = errs.Also(apis.ErrGeneric(fmt.Sprintf("Failed to determine release namespace: %v", err), "namespace"))
 		}
@@ -274,7 +272,7 @@ func (r *TuningSpec) validateCreate(ctx context.Context, workspaceNamespace stri
 	// Currently require a preset to specified, in future we can consider defining a template
 	if r.Preset == nil {
 		errs = errs.Also(apis.ErrMissingField("Preset"))
-	} else if presetName := string(r.Preset.Name); !plugin.IsValidPreset(presetName) {
+	} else if presetName := string(r.Preset.Name); !model.IsValidPreset(presetName) {
 		errs = errs.Also(apis.ErrInvalidValue(fmt.Sprintf("Unsupported tuning preset name %s", presetName), "presetName"))
 	}
 	return errs
@@ -383,19 +381,20 @@ func (r *ResourceSpec) validateCreateWithTuning(tuning *TuningSpec) (errs *apis.
 	return errs
 }
 
-func (r *ResourceSpec) validateCreateWithInference(inference *InferenceSpec, bypassResourceChecks bool) (errs *apis.FieldError) {
+func (r *ResourceSpec) validateCreateWithInference(ctx context.Context, inference *InferenceSpec, bypassResourceChecks bool) (errs *apis.FieldError) {
 	var presetName string
 	if inference.Preset != nil {
 		presetName = strings.ToLower(string(inference.Preset.Name))
 		// Since inference.Preset exists, we must validate preset name.
-		if !plugin.IsValidPreset(presetName) {
+		if !model.IsValidPreset(presetName) {
 			// Return to skip the rest of checks, the Inference spec validation will return proper err msg.
 			return errs
 		}
 	}
 	instanceType := string(r.InstanceType)
+	e := env.FromContext(ctx)
 
-	skuHandler, err := sku.GetSKUHandler()
+	skuHandler, err := e.RequireSKUHandler()
 	if err != nil {
 		errs = errs.Also(apis.ErrGeneric(fmt.Sprintf("Failed to get SKU handler: %v", err), "instanceType"))
 		return errs
@@ -404,8 +403,8 @@ func (r *ResourceSpec) validateCreateWithInference(inference *InferenceSpec, byp
 	// Check if instancetype exists in our SKUs map for the particular cloud provider
 	if skuConfig := skuHandler.GetGPUConfigBySKU(instanceType); skuConfig != nil {
 		if presetName != "" {
-			model := plugin.KaitoModelRegister.MustGet(presetName) // InferenceSpec has been validated so the name is valid.
-			params := model.GetInferenceParameters()
+			m := model.KaitoModelRegister.MustGet(presetName) // InferenceSpec has been validated so the name is valid.
+			params := m.GetInferenceParameters()
 
 			machineCount := *r.Count
 			machineTotalGPUMem := resource.NewQuantity(int64(machineCount)*skuConfig.GPUMem.Value(), resource.BinarySI) // Total GPU memory
@@ -440,9 +439,8 @@ func (r *ResourceSpec) validateCreateWithInference(inference *InferenceSpec, byp
 			}
 		}
 	} else {
-		provider := os.Getenv("CLOUD_PROVIDER")
 		// Check for other instance types pattern matches if cloud provider is Azure
-		if provider != consts.AzureCloudName || !sku.HasSKUNamePrefix(instanceType, N_SERIES_PREFIX, D_SERIES_PREFIX) {
+		if e.CloudProvider != consts.AzureCloudName || !sku.HasSKUNamePrefix(instanceType, N_SERIES_PREFIX, D_SERIES_PREFIX) {
 			errs = errs.Also(apis.ErrInvalidValue(fmt.Sprintf("Unsupported instance type %s. Supported SKUs: %s", instanceType, skuHandler.GetSupportedSKUs()), "instanceType"))
 		}
 	}
@@ -489,12 +487,12 @@ func (i *InferenceSpec) validateCreate(ctx context.Context, runtime model.Runtim
 	if i.Preset != nil {
 		presetName := string(i.Preset.Name)
 		// Validate preset name
-		if !plugin.IsValidPreset(presetName) {
+		if !model.IsValidPreset(presetName) {
 			errs = errs.Also(apis.ErrInvalidValue(fmt.Sprintf("Unsupported inference preset name %s", presetName), "presetName"))
 			// Need to return here. Otherwise, a panic will be hit when doing following checks.
 			return errs
 		}
-		modelPreset := plugin.KaitoModelRegister.MustGet(string(i.Preset.Name))
+		modelPreset := model.KaitoModelRegister.MustGet(string(i.Preset.Name))
 		params := modelPreset.GetInferenceParameters()
 		// Validate private preset has private image specified
 		if params.ImageAccessMode == string(ModelImageAccessModePrivate) &&

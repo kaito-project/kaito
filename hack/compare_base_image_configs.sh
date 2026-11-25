@@ -62,7 +62,7 @@ while [[ $# -gt 0 ]]; do
     esac
 done
 
-BASE_IMAGES_FILE="presets/workspace/models/base_images.yaml"
+BASE_IMAGES_FILE="pkg/catalog/base_images.yaml"
 CONFIGMAP_FILE="charts/kaito/workspace/templates/base-images-configmap.yaml"
 
 # Check if files exist

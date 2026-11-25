@@ -92,7 +92,7 @@ When the workspace `STATE` becomes `Succeeded`, the adapter weights have been sa
 
 Once you have an adapter image (from fine-tuning or a pre-built image), attach it to a base model workspace.
 
-> **Runtime note:** The `strength` field and multiple adapter support require the **Transformers** runtime. If your cluster uses the **vLLM** runtime (default when the vLLM feature gate is enabled), vLLM will reject Workspaces that set `strength`. To use adapter strength, add the annotation `kaito.sh/runtime: transformers` to your Workspace metadata. If using vLLM, omit the `strength` field entirely.
+> **Runtime note:** The `strength` field and multiple adapter support require the **Transformers** runtime. If your Workspace uses the **vLLM** runtime (the default), vLLM will reject Workspaces that set `strength`. To use adapter strength, add the annotation `kaito.sh/runtime: transformers` to your Workspace metadata. If using vLLM, omit the `strength` field entirely.
 
 **Example with Transformers runtime (supports `strength`):**
 

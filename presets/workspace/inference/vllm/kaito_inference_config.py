@@ -23,17 +23,19 @@ class KaitoInferenceConfig:
 
     vllm: dict[str, Any]
     max_probe_steps: int
-    kv_cache_cpu_memory_utilization: float
+    kv_cache_cpu_memory_utilization: float | None
 
     @staticmethod
-    def from_yaml(yaml_file: str) -> "KaitoInferenceConfig":
+    def from_yaml(
+        yaml_file: str, *, default_cpu_memory_utilization: float | None = 0.5
+    ) -> "KaitoInferenceConfig":
         with open(yaml_file) as file:
             config_data = yaml.safe_load(file) or {}
         return KaitoInferenceConfig(
             vllm=config_data.get("vllm", {}),
             max_probe_steps=config_data.get("max_probe_steps", 6),
             kv_cache_cpu_memory_utilization=config_data.get(
-                "kv_cache_cpu_memory_utilization", 0.5
+                "kv_cache_cpu_memory_utilization", default_cpu_memory_utilization
             ),
         )
 

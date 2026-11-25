@@ -699,6 +699,33 @@ func TestComputeHashIncludesOnlyEnabledSpeculativeDecodingState(t *testing.T) {
 	assert.NotEqual(t, legacy, ComputeHash(wsTrue), "enabled speculative-decoding annotation must affect workspace revision hash")
 }
 
+func TestComputeHashIncludesAdapterNamePrefix(t *testing.T) {
+	base := testutil.MockWorkspaceWithComputeHash.DeepCopy()
+	if base.Annotations == nil {
+		base.Annotations = map[string]string{}
+	}
+	delete(base.Annotations, v1beta1.AnnotationEnableSpeculativeDecoding)
+	base.Inference.Adapters = []v1beta1.AdapterSpec{{Source: &v1beta1.DataSource{Name: "a", Image: "registry.example.com/a:1"}}}
+
+	withPrefix := base.DeepCopy()
+	withPrefix.Annotations[v1beta1.AnnotationEnableAdapterNamePrefix] = "true"
+	assert.NotEqual(t, ComputeHash(base), ComputeHash(withPrefix), "enabling the prefix must change the revision hash")
+
+	disabled := base.DeepCopy()
+	disabled.Annotations[v1beta1.AnnotationEnableAdapterNamePrefix] = "false"
+	assert.Equal(t, ComputeHash(base), ComputeHash(disabled), "a disabled prefix must preserve the hash")
+
+	noAdaptersBase := base.DeepCopy()
+	noAdaptersBase.Inference.Adapters = nil
+	noAdaptersPrefixed := withPrefix.DeepCopy()
+	noAdaptersPrefixed.Inference.Adapters = nil
+	assert.NotEqual(t, ComputeHash(noAdaptersBase), ComputeHash(noAdaptersPrefixed), "toggling the prefix must roll pods even without adapters")
+
+	speculative := base.DeepCopy()
+	speculative.Annotations[v1beta1.AnnotationEnableSpeculativeDecoding] = "true"
+	assert.NotEqual(t, ComputeHash(speculative), ComputeHash(withPrefix), "prefix and speculative decoding must hash differently")
+}
+
 func TestSyncInferenceMutablePodSpec(t *testing.T) {
 	makeSpecs := func() (*corev1.PodSpec, *corev1.PodSpec) {
 		existing := &corev1.PodSpec{

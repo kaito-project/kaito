@@ -25,7 +25,10 @@ import (
 	"knative.dev/pkg/apis"
 
 	"github.com/kaito-project/kaito/api/env"
+	"github.com/kaito-project/kaito/api/internal/loraadapter"
 	"github.com/kaito-project/kaito/api/internal/speculativedecoding"
+	kaitov1beta1 "github.com/kaito-project/kaito/api/v1beta1"
+	"github.com/kaito-project/kaito/pkg/model"
 )
 
 func (is *InferenceSet) SupportedVerbs() []admissionregistrationv1.OperationType {
@@ -44,14 +47,22 @@ func (is *InferenceSet) Validate(ctx context.Context) (errs *apis.FieldError) {
 	if base == nil {
 		klog.InfoS("Validate creation", "inferenceset", fmt.Sprintf("%s/%s", is.Namespace, is.Name))
 		errs = errs.Also(is.validateCreate(ctx).ViaField("spec"))
+		errs = errs.Also(
+			kaitov1beta1.ValidateAdapters(is.Spec.Template.Inference.Adapters).ViaField("spec", "template", "inference"),
+			is.validateAdapterVolumes(),
+		)
 	} else {
 		klog.InfoS("Validate update", "inferenceset", fmt.Sprintf("%s/%s", is.Namespace, is.Name))
 		old := base.(*InferenceSet)
 		errs = errs.Also(
 			is.validateUpdate(ctx, old).ViaField("spec"),
 		)
+		if old.DeletionTimestamp.IsZero() && is.DeletionTimestamp.IsZero() {
+			errs = errs.Also(is.validateAdapterImmutability(old))
+		}
 	}
 	errs = errs.Also(is.validateSpeculativeDecoding())
+	errs = errs.Also(is.validateAdapterNamePrefix())
 	return errs
 }
 
@@ -157,4 +168,48 @@ func (is *InferenceSet) validateInstanceType(ctx context.Context) (errs *apis.Fi
 		// Unknown or unset provisioner: no validation (backward compat).
 	}
 	return errs
+}
+
+// effectiveRuntime mirrors how the child Workspace resolves its runtime: the
+// InferenceSet's own runtime annotation wins over the template's.
+func (is *InferenceSet) effectiveRuntime() model.RuntimeName {
+	if runtime := is.GetAnnotations()[AnnotationWorkspaceRuntime]; runtime != "" {
+		return EffectiveInferenceRuntime(map[string]string{AnnotationWorkspaceRuntime: runtime})
+	}
+	return EffectiveInferenceRuntime(is.Spec.Template.Annotations)
+}
+
+func (is *InferenceSet) validateAdapterNamePrefix() *apis.FieldError {
+	presetName := ""
+	if is.Spec.Template.Inference.Preset != nil {
+		presetName = string(is.Spec.Template.Inference.Preset.Name)
+	}
+	return loraadapter.ValidatePrefixOptIn(is.Spec.Template.Annotations, AnnotationEnableAdapterNamePrefix, presetName,
+		is.effectiveRuntime(), "spec.template.metadata.annotations")
+}
+
+// validateAdapterVolumes enforces the adapter volume allowlist. It runs only on
+// create because adapters are immutable afterwards.
+func (is *InferenceSet) validateAdapterVolumes() *apis.FieldError {
+	adapters := is.Spec.Template.Inference.Adapters
+	sources := make([]loraadapter.VolumeSource, 0, len(adapters))
+	for _, a := range adapters {
+		if a.Source != nil {
+			sources = append(sources, loraadapter.VolumeSource{Name: a.Source.Name, Volume: a.Source.Volume})
+		}
+	}
+	return loraadapter.ValidateVolumes(sources, nil).ViaField("spec", "template", "inference")
+}
+
+// validateAdapterImmutability rejects changes to the template adapters or the
+// adapter-name-prefix annotation, which would otherwise roll out per replica
+// and briefly serve different adapter sets behind one endpoint.
+func (is *InferenceSet) validateAdapterImmutability(old *InferenceSet) *apis.FieldError {
+	return loraadapter.ValidateImmutable(
+		is.Spec.Template.Inference.Adapters, old.Spec.Template.Inference.Adapters,
+		is.Spec.Template.Annotations, old.Spec.Template.Annotations,
+		AnnotationEnableAdapterNamePrefix,
+		"spec.template.inference.adapters", "spec.template.metadata.annotations",
+		loraadapter.ImmutableMessage,
+	)
 }

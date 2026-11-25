@@ -13,6 +13,7 @@
 
 import argparse
 import collections
+import json
 import logging
 import os
 import socket
@@ -22,6 +23,7 @@ import threading
 import time
 from http.server import BaseHTTPRequestHandler, HTTPServer
 from pathlib import Path
+from typing import get_args
 
 import rate_limit
 import uvloop
@@ -31,7 +33,9 @@ from _workarounds import model_asset_prefetch
 from huggingface_hub import HfFileSystem, scan_cache_dir
 from kaito_inference_config import KaitoInferenceConfig
 from prometheus_client import CONTENT_TYPE_LATEST, Gauge, generate_latest
+from vllm.config.lora import MaxLoRARanks
 from vllm.entrypoints.openai.models.protocol import LoRAModulePath
+from vllm.lora.peft_helper import PEFTHelper
 from vllm.utils.argparse_utils import FlexibleArgumentParser
 from vllm.v1.metrics.prometheus import get_prometheus_registry
 from vllm_kv_transfer import configure_kv_transfer_and_lmcache, is_cpu_runtime
@@ -115,6 +119,18 @@ class KAITOArgumentParser(argparse.ArgumentParser):
             default=False,
             help="Disable the loopback endpoint used to abort startup benchmark requests.",
         )
+        self.add_argument(
+            "--kaito-adapter-name-prefix",
+            action="store_true",
+            default=False,
+            help="Register LoRA adapters as '<served-model-name>/<adapter>' and fail startup if a declared adapter is unusable.",
+        )
+        self.add_argument(
+            "--kaito-expected-adapters",
+            type=str,
+            default="",
+            help="Comma-separated adapter names declared on the workspace; used with --kaito-adapter-name-prefix.",
+        )
         model_asset_prefetch.register_args(self)
 
     def _reset_vllm_defaults(self):
@@ -145,6 +161,7 @@ class KAITOArgumentParser(argparse.ArgumentParser):
         runtime_args = args[1]  # Remaining args
 
         # Load KAITO config
+        kaito_args.kaito_config_vllm_keys = set()
         if kaito_args.kaito_config_file:
             # Defer the offload default until the runtime device is known.
             file_config = KaitoInferenceConfig.from_yaml(
@@ -158,10 +175,23 @@ class KAITOArgumentParser(argparse.ArgumentParser):
                 )
 
             for key, value in file_config.vllm.items():
+                kaito_args.kaito_config_vllm_keys.add(str(key).replace("_", "-"))
                 runtime_args.append(f"--{key}")
                 runtime_args.append(str(value))
 
-        vllm_args = self.vllm_parser.parse_args(runtime_args, **kwargs)
+        if _adapter_name_prefix_enabled(kaito_args):
+            # None marks LoRA sizing the user did not set, so it can be derived
+            # from the adapters without overriding explicit CLI or config values.
+            saved = {
+                dest: self.vllm_parser.get_default(dest) for dest in _LORA_SIZING_ARGS
+            }
+            self.vllm_parser.set_defaults(**dict.fromkeys(_LORA_SIZING_ARGS))
+            try:
+                vllm_args = self.vllm_parser.parse_args(runtime_args, **kwargs)
+            finally:
+                self.vllm_parser.set_defaults(**saved)
+        else:
+            vllm_args = self.vllm_parser.parse_args(runtime_args, **kwargs)
         if vllm_args.gpu_memory_utilization is None:
             # Despite its name, this is also the native CPU memory budget.
             # vLLM 0.25.1's 0.92 default can exceed available RAM; leave OS and
@@ -428,6 +458,149 @@ def load_lora_adapters(adapters_dir: str) -> LoRAModulePath | None:
     return lora_list
 
 
+_LORA_SIZING_ARGS = ("max_loras", "max_lora_rank")
+
+
+class LoRAAdapterError(Exception):
+    """A declared LoRA adapter cannot be served."""
+
+
+def _expected_adapters(args: argparse.Namespace) -> list[str]:
+    raw = getattr(args, "kaito_expected_adapters", "") or ""
+    return [name.strip() for name in raw.split(",") if name.strip()]
+
+
+def _adapter_name_prefix_enabled(args: argparse.Namespace) -> bool:
+    return bool(getattr(args, "kaito_adapter_name_prefix", False)) and bool(
+        _expected_adapters(args)
+    )
+
+
+def _accepted_lora_ranks() -> tuple[int, ...]:
+    ranks = tuple(sorted(r for r in get_args(MaxLoRARanks) if isinstance(r, int)))
+    if not ranks:
+        # MaxLoRARanks is no longer a Literal of ints in this vLLM version.
+        raise LoRAAdapterError(
+            "cannot read the accepted max-lora-rank values from vLLM; set max-lora-rank in the inference config"
+        )
+    return ranks
+
+
+def _effective_rank(name: str, config: dict) -> int:
+    """Return the highest rank in the adapter, as vLLM checks it on load."""
+    try:
+        helper = PEFTHelper.from_dict(config)
+    except (TypeError, ValueError, AttributeError) as exc:
+        raise LoRAAdapterError(
+            f"adapter {name!r}: invalid adapter_config.json: {exc}"
+        ) from None
+    return max([helper.r, *helper.rank_pattern.values()])
+
+
+def _round_lora_rank(name: str, rank: int) -> int:
+    accepted_ranks = _accepted_lora_ranks()
+    for accepted in accepted_ranks:
+        if rank <= accepted:
+            return accepted
+    raise LoRAAdapterError(
+        f"adapter {name!r}: rank {rank} exceeds the maximum supported LoRA rank {accepted_ranks[-1]}"
+    )
+
+
+def _read_adapter_rank(adapters_dir: str, name: str) -> int:
+    if name in (".", "..") or os.path.basename(name) != name:
+        raise LoRAAdapterError(f"adapter {name!r}: invalid adapter name")
+    adapter_path = os.path.join(adapters_dir, name)
+    if not os.path.isdir(adapter_path):
+        raise LoRAAdapterError(f"adapter {name!r}: directory {adapter_path} is missing")
+    if not os.listdir(adapter_path):
+        raise LoRAAdapterError(f"adapter {name!r}: directory {adapter_path} is empty")
+    config_path = os.path.join(adapter_path, "adapter_config.json")
+    try:
+        with open(config_path, encoding="utf-8") as f:
+            config = json.load(f)
+    except FileNotFoundError:
+        raise LoRAAdapterError(f"adapter {name!r}: {config_path} is missing") from None
+    except (OSError, ValueError) as exc:
+        raise LoRAAdapterError(
+            f"adapter {name!r}: cannot parse {config_path}: {exc}"
+        ) from None
+    if not isinstance(config, dict):
+        raise LoRAAdapterError(
+            f"adapter {name!r}: {config_path} must contain a JSON object"
+        )
+    return _effective_rank(name, config)
+
+
+def configure_lora_adapters(args: argparse.Namespace) -> None:
+    """Set args.lora_modules and, with the adapter name prefix, LoRA sizing.
+
+    Without the prefix, adapters are discovered from the adapter directory as
+    before. With it, only the declared adapters are registered, as
+    '<served-model-name>/<adapter>', and any unusable one raises
+    LoRAAdapterError so the pod never becomes Ready.
+    """
+    if not _adapter_name_prefix_enabled(args):
+        if args.lora_modules is None:
+            args.lora_modules = load_lora_adapters(args.kaito_adapters_dir)
+        return
+
+    if args.lora_modules is not None:
+        raise LoRAAdapterError(
+            "lora-modules must not be set when adapter name prefixing is enabled; "
+            "KAITO registers the declared adapters"
+        )
+    if "served-model-name" in getattr(args, "kaito_config_vllm_keys", set()):
+        raise LoRAAdapterError(
+            "served-model-name must not be set in the inference config when adapter "
+            "name prefixing is enabled"
+        )
+    served = args.served_model_name
+    if isinstance(served, str):
+        served = [served]
+    if not served or not served[0]:
+        raise LoRAAdapterError(
+            "served-model-name is required when adapter name prefixing is enabled"
+        )
+    base_name = served[0]
+
+    expected = _expected_adapters(args)
+    adapters_dir = args.kaito_adapters_dir
+    ranks = {name: _read_adapter_rank(adapters_dir, name) for name in expected}
+
+    extra = sorted(
+        entry
+        for entry in os.listdir(adapters_dir)
+        if entry not in ranks and os.path.isdir(os.path.join(adapters_dir, entry))
+    )
+    if extra:
+        logger.warning("Ignoring undeclared adapter directories: %s", ", ".join(extra))
+
+    max_name = max(ranks, key=ranks.get)
+    max_rank = ranks[max_name]
+    if args.max_loras is None:
+        args.max_loras = len(expected)
+    if args.max_lora_rank is None:
+        args.max_lora_rank = _round_lora_rank(max_name, max_rank)
+    elif max_rank > args.max_lora_rank:
+        raise LoRAAdapterError(
+            f"adapter {max_name!r}: rank {max_rank} exceeds max-lora-rank {args.max_lora_rank}"
+        )
+
+    args.lora_modules = [
+        LoRAModulePath(
+            name=f"{base_name}/{name}", path=os.path.join(adapters_dir, name)
+        )
+        for name in expected
+    ]
+    logger.info(
+        "Registering LoRA adapters %s (max_loras=%s, max_lora_rank=%s)",
+        ", ".join(f"{base_name}/{name}" for name in expected),
+        args.max_loras,
+        args.max_lora_rank,
+    )
+
+
 # Snippet executed in a throwaway subprocess to read GPU memory.
 # torch.cuda.mem_get_info reports per-slice memory correctly under MIG (unlike
 # NVML/pynvml, which fails with NVMLError_NoPermission or reports the parent
@@ -536,8 +709,11 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     # set LoRA adapters
-    if args.lora_modules is None:
-        args.lora_modules = load_lora_adapters(args.kaito_adapters_dir)
+    try:
+        configure_lora_adapters(args)
+    except LoRAAdapterError as exc:
+        logger.error("LoRA adapter preflight failed: %s", exc)
+        sys.exit(1)
 
     configure_kv_transfer_and_lmcache(args)
 

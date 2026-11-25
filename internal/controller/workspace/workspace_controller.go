@@ -626,6 +626,9 @@ func ComputeHash(w *kaitov1beta1.Workspace) string {
 	if w.GetAnnotations()[kaitov1beta1.AnnotationEnableSpeculativeDecoding] == "true" {
 		encoder.Encode(true)
 	}
+	if w.GetAnnotations()[kaitov1beta1.AnnotationEnableAdapterNamePrefix] == "true" {
+		encoder.Encode("adapter-name-prefix")
+	}
 	return hex.EncodeToString(hasher.Sum(nil))
 }
 

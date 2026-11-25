@@ -102,6 +102,11 @@ const (
 	// decoding on a Workspace. Only "true" and "false" are valid values.
 	AnnotationEnableSpeculativeDecoding = KAITOPrefix + "enable-speculative-decoding"
 
+	// AnnotationEnableAdapterNamePrefix makes vLLM register each LoRA adapter as
+	// "<served-model-name>/<adapter>". Only "true" and "false" are valid values,
+	// and "true" requires a vLLM preset.
+	AnnotationEnableAdapterNamePrefix = KAITOPrefix + "enable-adapter-name-prefix"
+
 	// AnnotationUseLocalWeights makes the inference workload load model weights that
 	// are already present on the node instead of downloading them from HuggingFace at
 	// runtime. Set it to "true" to enable. When enabled, KAITO reads the weights from

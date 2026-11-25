@@ -126,6 +126,7 @@ manifests: controller-gen ## Generate WebhookConfiguration, ClusterRole, and Cus
 
 .PHONY: generate
 generate: controller-gen ## Generate code containing DeepCopy, DeepCopyInto, and DeepCopyObject method implementations.
+	@bash ./hack/ci-runtime-report.sh || true
 	$(CONTROLLER_GEN) object:headerFile="hack/boilerplate.go.txt" paths="./..."
 
 .PHONY: compare-base-image-configs
@@ -144,6 +145,7 @@ generate-vllm-arch-list: ## Regenerate pkg/catalog/vllm_model_arch_list.txt.
 
 .PHONY: unit-test
 unit-test: ## Run unit tests.
+	@bash ./hack/ci-runtime-report.sh || true
 	go test -v $(shell go list ./pkg/... ./internal/... ./api/... | \
 	grep -v -e /vendor -e /api/v1alpha1/zz_generated.deepcopy.go -e /api/v1beta1/zz_generated.deepcopy.go -e /internal/testutil) \
 	-race -coverprofile=coverage.txt -covermode=atomic

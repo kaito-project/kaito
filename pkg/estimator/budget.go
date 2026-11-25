@@ -49,9 +49,14 @@ const (
 	OverheadWeightFactor = 0.05
 )
 
-// ResolveGPUMemoryUtilization resolves an explicit setting before the GPU default.
+// ResolveGPUMemoryUtilization resolves an explicit setting before the model and
+// GPU default.
 func ResolveGPUMemoryUtilization(gpuModel string, params *pkgmodel.PresetParam) (float64, error) {
-	value := hfgen.ResolveGPUMemoryUtilization(gpuModel)
+	modelName := ""
+	if params != nil {
+		modelName = params.VLLM.ModelName
+	}
+	value := hfgen.ResolveGPUMemoryUtilization(modelName, gpuModel)
 	if params != nil {
 		if override, ok := params.VLLM.ModelRunParams["gpu-memory-utilization"]; ok {
 			value = override

@@ -1401,7 +1401,7 @@ func applyGeneratorRuntimeOverrides(params *pkgmodel.PresetParam, gpuConfig *sku
 	}
 	if _, configured := params.VLLM.ModelRunParams["gpu-memory-utilization"]; !configured {
 		params.VLLM.ModelRunParams["gpu-memory-utilization"] =
-			hfgen.ResolveGPUMemoryUtilization(gpuConfig.GPUModel)
+			hfgen.ResolveGPUMemoryUtilization(params.VLLM.ModelName, gpuConfig.GPUModel)
 	}
 	if _, configured := params.VLLM.ModelRunParams["compilation-config.cudagraph_mode"]; !configured {
 		if mode, ok := hfgen.ResolveCUDAGraphMode(params.VLLM.ModelName, gpuConfig.GPUModel); ok {

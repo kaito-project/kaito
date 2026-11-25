@@ -2985,6 +2985,32 @@ func TestDeepSeekV41FlashDSparkRuntimeConfigOverrides(t *testing.T) {
 	}
 }
 
+// TestGLM53RuntimeOverrides checks that the catalog's GLM-5.3 preset picks up
+// its H100 memory utilization and graph mode for FlashMLA's sparse decode
+// scratch, and that explicit inference config values still win.
+func TestGLM53RuntimeOverrides(t *testing.T) {
+	m, err := catalog.GetModelByNameWithToken(context.Background(), "zai-org/GLM-5.3", "")
+	require.NoError(t, err)
+	for _, tc := range []struct {
+		gpuModel  string
+		override  string
+		want      string
+		wantGraph string
+	}{
+		{gpuModel: "NVIDIA-H100-80GB-HBM3", want: "0.90", wantGraph: "FULL_DECODE_ONLY"},
+		{gpuModel: "NVIDIA H100", override: "0.8", want: "0.8", wantGraph: "FULL_DECODE_ONLY"},
+		{gpuModel: "NVIDIA A100", want: "0.92"},
+	} {
+		params := m.GetInferenceParameters()
+		if tc.override != "" {
+			params.VLLM.ModelRunParams["gpu-memory-utilization"] = tc.override
+		}
+		applyGeneratorRuntimeOverrides(params, &sku.GPUConfig{GPUCount: 8, GPUMem: resource.MustParse("640Gi"), GPUModel: tc.gpuModel})
+		assert.Equal(t, tc.want, params.VLLM.ModelRunParams["gpu-memory-utilization"], tc.gpuModel)
+		assert.Equal(t, tc.wantGraph, params.VLLM.ModelRunParams["compilation-config.cudagraph_mode"], tc.gpuModel)
+	}
+}
+
 func TestDeepSeekV41FlashDSparkGPUMemoryUtilizationOverride(t *testing.T) {
 	for _, tc := range []struct {
 		name       string

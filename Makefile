@@ -637,8 +637,9 @@ vet: ## Run go vet against code.
 	go vet ./...
 
 .PHONY: lint
-lint: $(GOLANGCI_LINT) ## Run golangci-lint against code.
+lint: $(GOLANGCI_LINT) ## Run golangci-lint and layout checks against code.
 	$(GOLANGCI_LINT) run -v
+	./hack/verify-accelerator-strings.sh
 	
 .PHONY: lint-fix
 lint-fix: $(GOLANGCI_LINT) ## Run golangci-lint against code.

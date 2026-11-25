@@ -22,15 +22,14 @@ import (
 
 	"gopkg.in/yaml.v2"
 	corev1 "k8s.io/api/core/v1"
-	"k8s.io/apimachinery/pkg/api/resource"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/klog/v2"
 	"knative.dev/pkg/apis"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
 	kaitov1beta1 "github.com/kaito-project/kaito/api/v1beta1"
+	iaccel "github.com/kaito-project/kaito/internal/accelerator"
 	"github.com/kaito-project/kaito/internal/image"
-	"github.com/kaito-project/kaito/internal/k8s/nodes"
 	"github.com/kaito-project/kaito/internal/k8s/resources"
 	"github.com/kaito-project/kaito/internal/manifests"
 	"github.com/kaito-project/kaito/internal/manifests/builder"
@@ -57,20 +56,8 @@ var (
 	// TODO: readinessProbe = &corev1.Probe{}
 )
 
-func defaultTolerations() []corev1.Toleration {
-	tolerations := []corev1.Toleration{
-		{
-			Effect:   corev1.TaintEffectNoSchedule,
-			Operator: corev1.TolerationOpExists,
-			Key:      nodes.CapacityNvidiaGPU,
-		},
-		{
-			Effect:   corev1.TaintEffectNoSchedule,
-			Value:    kaitov1beta1.SKUGPU,
-			Key:      kaitov1beta1.LabelSKU,
-			Operator: corev1.TolerationOpEqual,
-		},
-	}
+func defaultTolerations(driver iaccel.Driver) []corev1.Toleration {
+	tolerations := driver.Tolerations()
 
 	if sku.IsAzureCloudProvider() {
 		tolerations = append(tolerations, corev1.Toleration{
@@ -201,15 +188,8 @@ func GenerateBasicTuningPodSpec(skuNumGPUs int) func(*builder.WorkspaceGenerator
 		volumeMounts = append(volumeMounts, manifests.DefaultModelWeightsVolumeMount)
 		spec.InitContainers = append(spec.InitContainers, generateTuningModelPullerContainer(tuningParam))
 
-		// resource requirements
-		resourceRequirements := corev1.ResourceRequirements{
-			Requests: corev1.ResourceList{
-				corev1.ResourceName(nodes.CapacityNvidiaGPU): *resource.NewQuantity(int64(skuNumGPUs), resource.DecimalSI),
-			},
-			Limits: corev1.ResourceList{
-				corev1.ResourceName(nodes.CapacityNvidiaGPU): *resource.NewQuantity(int64(skuNumGPUs), resource.DecimalSI),
-			},
-		}
+		driver := iaccel.ForWorkspace(ctx.Ctx, ctx.Workspace)
+		resourceRequirements := driver.ResourceRequirements(skuNumGPUs, "")
 
 		// default env
 		var envVars []corev1.EnvVar
@@ -233,7 +213,7 @@ func GenerateBasicTuningPodSpec(skuNumGPUs int) func(*builder.WorkspaceGenerator
 			SKUNumGPUs: skuNumGPUs,
 		})
 
-		spec.Tolerations = defaultTolerations()
+		spec.Tolerations = defaultTolerations(driver)
 		spec.Containers = []corev1.Container{
 			{
 				Name:         ctx.Workspace.Name,

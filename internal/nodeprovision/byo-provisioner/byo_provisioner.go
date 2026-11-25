@@ -25,6 +25,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
 	kaitov1beta1 "github.com/kaito-project/kaito/api/v1beta1"
+	iaccel "github.com/kaito-project/kaito/internal/accelerator"
 	"github.com/kaito-project/kaito/internal/k8s/nodes"
 	"github.com/kaito-project/kaito/internal/nodeprovision"
 	"github.com/kaito-project/kaito/pkg/consts"
@@ -169,11 +170,11 @@ func (n *BYOProvisioner) effectiveInstanceType(ctx context.Context, ws *kaitov1b
 
 // nodeHasAllocatableGPU reports registered schedulable GPU capacity, not currently
 // free GPUs.
-func nodeHasAllocatableGPU(node *corev1.Node) bool {
+func nodeHasAllocatableGPU(node *corev1.Node, gpuConfig *sku.GPUConfig) bool {
 	if node.Status.Allocatable == nil {
 		return false
 	}
-	return !node.Status.Allocatable.Name(nodes.CapacityNvidiaGPU, "").IsZero()
+	return iaccel.For(gpuConfig).HasDevices(node.Status.Allocatable)
 }
 
 // SelectInstanceType returns the SKU with the most per-node GPU memory among ready,
@@ -196,9 +197,6 @@ func SelectInstanceType(ctx context.Context, c client.Client, ws *kaitov1beta1.W
 		if !nodes.NodeIsReadyAndNotDeleting(node) {
 			continue
 		}
-		if !nodeHasAllocatableGPU(node) {
-			continue
-		}
 		instanceType := node.Labels[corev1.LabelInstanceTypeStable]
 		if instanceType == "" {
 			continue
@@ -207,7 +205,7 @@ func SelectInstanceType(ctx context.Context, c client.Client, ws *kaitov1beta1.W
 			continue
 		}
 		gpuConfig, err := sku.GetGPUConfigFromNode(node)
-		if err != nil {
+		if err != nil || !nodeHasAllocatableGPU(node, gpuConfig) {
 			continue
 		}
 		groups[instanceType] = &skuGroup{instanceType: instanceType, gpuMem: gpuConfig.GPUMem}

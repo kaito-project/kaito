@@ -25,6 +25,12 @@ import (
 	pkgmodel "github.com/kaito-project/kaito/pkg/model"
 )
 
+// LabelDevicePlugin=LabelValueDevicePlugin is set on provisioned NVIDIA nodes.
+const (
+	LabelDevicePlugin      = "accelerator"
+	LabelValueDevicePlugin = "nvidia"
+)
+
 // Driver renders NVIDIA device requests, tolerations and images.
 type Driver struct{}
 
@@ -83,3 +89,11 @@ func (Driver) InferenceBaseImage(pkgmodel.RuntimeName) (pkgmodel.Metadata, error
 }
 
 func (Driver) ExclusiveNodeLabels() map[string]string { return nil }
+
+func (Driver) DevicePluginNodeLabels() map[string]string {
+	return map[string]string{LabelDevicePlugin: LabelValueDevicePlugin}
+}
+
+func (Driver) HasDevices(resources corev1.ResourceList) bool {
+	return !resources.Name(pkgnvidia.ResourceGPU, "").IsZero()
+}

@@ -23,6 +23,7 @@ import (
 	karpenterv1 "sigs.k8s.io/karpenter/pkg/apis/v1"
 
 	kaitov1beta1 "github.com/kaito-project/kaito/api/v1beta1"
+	iaccel "github.com/kaito-project/kaito/internal/accelerator"
 	nodeutil "github.com/kaito-project/kaito/internal/k8s/nodes"
 	"github.com/kaito-project/kaito/pkg/sku"
 )
@@ -37,9 +38,9 @@ func NewNodeManager(c client.Client) *NodeManager {
 	}
 }
 
-// CheckIfNodePluginsReady is used for ensuring node label(accelerator:nvidia) and GPU capacity on all auto-provisioned nodes for the workspace.
+// CheckIfNodePluginsReady ensures the device plugin labels and device capacity on all auto-provisioned nodes for the workspace.
 func (c *NodeManager) CheckIfNodePluginsReady(ctx context.Context, wObj *kaitov1beta1.Workspace, existingNodeClaims []*karpenterv1.NodeClaim) (bool, error) {
-	// ensure Nvidia device plugins are ready for the workspace when instance type is known.
+	// ensure device plugins are ready for the workspace when instance type is known.
 	knownGPUConfig, _ := sku.GetGPUConfigBySKU(wObj.Resource.InstanceType)
 	if knownGPUConfig != nil {
 		if areReady, err := c.checkNodePlugin(ctx, wObj, existingNodeClaims); err != nil {
@@ -52,8 +53,9 @@ func (c *NodeManager) CheckIfNodePluginsReady(ctx context.Context, wObj *kaitov1
 	return true, nil
 }
 
-// checkNodePlugin ensures that NVIDIA device plugins are ready on all nodes for the workspace
+// checkNodePlugin ensures that the driver's device plugin is ready on all nodes for the workspace
 func (c *NodeManager) checkNodePlugin(ctx context.Context, wObj *kaitov1beta1.Workspace, existingNodeClaims []*karpenterv1.NodeClaim) (bool, error) {
+	driver := iaccel.ForInstanceType(wObj.Resource.InstanceType)
 	nodes, err := c.getReadyNodesFromNodeClaims(ctx, wObj, existingNodeClaims)
 	if err != nil {
 		return false, fmt.Errorf("failed to get ready nodes from nodeClaims: %w", err)
@@ -62,21 +64,13 @@ func (c *NodeManager) checkNodePlugin(ctx context.Context, wObj *kaitov1beta1.Wo
 		return false, nil
 	}
 
-	// Check each node for NVIDIA accelerator label and GPU capacity
+	// Check each node for the device plugin labels and device capacity
 	for _, node := range nodes {
-		if accelerator, exists := node.Labels[nodeutil.LabelKeyNvidia]; !exists || accelerator != nodeutil.LabelValueNvidia {
-			if node.Labels == nil {
-				node.Labels = make(map[string]string)
-			}
-			node.Labels[nodeutil.LabelKeyNvidia] = nodeutil.LabelValueNvidia
-
-			if err := c.Client.Update(ctx, node); err != nil {
-				return false, fmt.Errorf("failed to update node %s with accelerator label: %w", node.Name, err)
-			}
+		if err := nodeutil.EnsureLabels(ctx, node, driver.DevicePluginNodeLabels(), c.Client); err != nil {
+			return false, fmt.Errorf("failed to update node %s with accelerator label: %w", node.Name, err)
 		}
 
-		gpuCapacity := node.Status.Capacity[nodeutil.CapacityNvidiaGPU]
-		if gpuCapacity.IsZero() {
+		if !driver.HasDevices(node.Status.Capacity) {
 			klog.Infof("node plugins not ready, %s does not have GPU capacity for workspace %s/%s", node.Name, wObj.Namespace, wObj.Name)
 			return false, nil
 		}

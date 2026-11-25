@@ -24,13 +24,9 @@ import (
 	karpenterv1 "sigs.k8s.io/karpenter/pkg/apis/v1"
 
 	"github.com/kaito-project/kaito/api/v1beta1"
+	nvidiadriver "github.com/kaito-project/kaito/internal/accelerator/nvidia"
+	pkgnvidia "github.com/kaito-project/kaito/pkg/accelerator/nvidia"
 	"github.com/kaito-project/kaito/pkg/model"
-)
-
-const (
-	LabelKeyNvidia    = "accelerator"
-	LabelValueNvidia  = "nvidia"
-	CapacityNvidiaGPU = "nvidia.com/gpu"
 )
 
 var ValidStrength string = "0.5"
@@ -1245,7 +1241,7 @@ var (
 				Name: "node1",
 				Labels: map[string]string{
 					corev1.LabelInstanceTypeStable: "Standard_NV36ads_A10_v5",
-					LabelKeyNvidia:                 LabelValueNvidia,
+					nvidiadriver.LabelDevicePlugin: nvidiadriver.LabelValueDevicePlugin,
 				},
 			},
 			Status: corev1.NodeStatus{
@@ -1256,7 +1252,7 @@ var (
 					},
 				},
 				Capacity: corev1.ResourceList{
-					CapacityNvidiaGPU: resource.MustParse("1"),
+					pkgnvidia.ResourceGPU: resource.MustParse("1"),
 				},
 			},
 		},

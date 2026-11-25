@@ -1,6 +1,6 @@
 # GSM8K regression data
 
-See the [preset regression test guide](../../.github/scripts/preset-regression-tests/preset-regression-test.md) for running the suite, interpreting results, and promoting baselines.
+See the [preset regression test guide](../../../.github/scripts/preset-regression-tests/preset-regression-test.md) for running the suite, interpreting results, and promoting baselines.
 
 `config.yaml` defines the pinned GSM8K task and named generation profiles. `baselines.yaml` contains reviewed measurements keyed by `(model, instanceType, nodes, profile)`.
 

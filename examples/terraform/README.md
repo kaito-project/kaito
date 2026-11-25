@@ -82,7 +82,7 @@ kubectl get po -n kaito-workspace
 
 ## Use
 
-KAITO is now installed on the AKS cluster but no workspaces have been created. To use the KAITO workspaces, please refer to the YAML manifests found in the [examples](../examples/) directory or KAITO [docs](../docs/).
+KAITO is now installed on the AKS cluster but no workspaces have been created. To use the KAITO workspaces, please refer to the YAML manifests found in the [examples](../) directory or KAITO [docs](../../docs/).
 
 ## Cleanup
 

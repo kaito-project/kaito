@@ -19,8 +19,8 @@ After each model reaches `WorkspaceSucceeded=True` and `BenchmarkCompleted=True`
 
 Benchmark definitions and measured results remain separate:
 
-- `benchmarks/gsm8k/config.yaml` stores benchmark identity, profiles, execution limits, and comparison policy.
-- `benchmarks/gsm8k/baselines.yaml` stores reviewed correctness results by deployment target.
+- `test/benchmarks/gsm8k/config.yaml` stores benchmark identity, profiles, execution limits, and comparison policy.
+- `test/benchmarks/gsm8k/baselines.yaml` stores reviewed correctness results by deployment target.
 
 The existing startup benchmark remains part of normal Workspace readiness.
 
@@ -44,14 +44,14 @@ MMLU measures broader factual knowledge but exercises less of the generated-answ
 ## Repository layout
 
 ```text
-benchmarks/
+test/benchmarks/
   gsm8k/
     README.md
     config.yaml
     baselines.yaml
 ```
 
-`.github/preset-regression-config.json` continues to own infrastructure and target-matrix policy. Correctness identity, execution limits, and tolerances belong in `benchmarks/gsm8k/config.yaml`.
+`.github/preset-regression-config.json` continues to own infrastructure and target-matrix policy. Correctness identity, execution limits, and tolerances belong in `test/benchmarks/gsm8k/config.yaml`.
 
 ## Configuration
 

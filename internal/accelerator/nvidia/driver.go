@@ -82,4 +82,10 @@ func (Driver) InferenceBaseImage(pkgmodel.RuntimeName) (pkgmodel.Metadata, error
 	return catalog.MustGet("base"), nil
 }
 
+// SharedDeviceRuntimeClass is the RuntimeClass the NVIDIA GPU Operator
+// creates. With CDI enabled, the operator can leave runc as the containerd
+// default, which injects only requested GPUs and ignores
+// NVIDIA_VISIBLE_DEVICES; only this RuntimeClass honors it.
+func (Driver) SharedDeviceRuntimeClass() string { return "nvidia" }
+
 func (Driver) ExclusiveNodeLabels() map[string]string { return nil }

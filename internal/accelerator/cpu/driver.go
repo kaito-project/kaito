@@ -51,6 +51,8 @@ func (Driver) PartitionTolerations(string) []corev1.Toleration { return nil }
 
 func (Driver) SharedDeviceEnv() []corev1.EnvVar { return nil }
 
+func (Driver) SharedDeviceRuntimeClass() string { return "" }
+
 // InferenceBaseImage supports only vLLM; never silently select an image for
 // an unsupported CPU runtime.
 func (Driver) InferenceBaseImage(runtime pkgmodel.RuntimeName) (pkgmodel.Metadata, error) {

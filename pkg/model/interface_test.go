@@ -841,48 +841,126 @@ func TestGetInferenceCommandVLLMSmallModelOnMultiNodeUsesTP(t *testing.T) {
 	assert.NotContains(t, cmd[2], "data-parallel-size")
 }
 
-func TestBuildVLLMInferenceCommandDisablesKVCacheForHybridModels(t *testing.T) {
-	p := &PresetParam{
-		Metadata: Metadata{
-			Architectures: []string{"NemotronHForCausalLM"},
-		},
-		RuntimeParam: RuntimeParam{
-			VLLM: VLLMParam{
-				BaseCommand:    "vllm serve",
-				ModelRunParams: map[string]string{},
-			},
-		},
+func TestBuildVLLMInferenceCommandCapsAlignedMambaMaxNumSeqs(t *testing.T) {
+	h100 := &sku.GPUConfig{GPUModel: "NVIDIA H100", GPUCount: 1, GPUMem: resource.MustParse("94Gi")}
+	a100 := &sku.GPUConfig{GPUModel: "NVIDIA A100", GPUCount: 1, GPUMem: resource.MustParse("80Gi")}
+	for _, tt := range []struct {
+		name       string
+		params     map[string]string
+		gpu        *sku.GPUConfig
+		estimated  int
+		wantSeqs   string
+		wantAbsent bool
+	}{
+		{"aligned large GPU default", map[string]string{"mamba-cache-mode": "align"}, h100, 0, "512", false},
+		{"aligned estimator above cap", map[string]string{"mamba-cache-mode": "align"}, h100, 800, "512", false},
+		{"aligned estimator below cap", map[string]string{"mamba-cache-mode": "align"}, h100, 128, "128", false},
+		{"aligned preset below cap", map[string]string{"mamba-cache-mode": "align", "max-num-seqs": "64"}, h100, 0, "64", false},
+		{"aligned small default kept", map[string]string{"mamba-cache-mode": "align"}, a100, 0, "", true},
+		{"aligned unknown GPU kept", map[string]string{"mamba-cache-mode": "align"}, nil, 0, "", true},
+		{"not aligned", map[string]string{}, h100, 0, "", true},
+	} {
+		t.Run(tt.name, func(t *testing.T) {
+			p := &PresetParam{
+				TotalSafeTensorFileSize: "200Gi",
+				RuntimeParam: RuntimeParam{
+					VLLM: VLLMParam{BaseCommand: "vllm serve", ModelRunParams: tt.params},
+				},
+			}
+			cmd := p.GetInferenceCommand(RuntimeContext{
+				RuntimeName: RuntimeNameVLLM,
+				GPUConfig:   tt.gpu,
+				SKUNumGPUs:  1,
+				NumNodes:    1,
+				MaxNumSeqs:  tt.estimated,
+			})
+			require.Len(t, cmd, 3)
+			if tt.wantAbsent {
+				assert.NotContains(t, cmd[2], "max-num-seqs")
+			} else {
+				assert.Contains(t, cmd[2], "--max-num-seqs="+tt.wantSeqs)
+			}
+		})
 	}
-	rc := RuntimeContext{
-		RuntimeName: RuntimeNameVLLM,
-		SKUNumGPUs:  2,
-		NumNodes:    1,
-	}
-	cmd := p.GetInferenceCommand(rc)
-	require.Len(t, cmd, 3)
-	assert.Contains(t, cmd[2], "kaito-kv-cache-cpu-memory-utilization=0")
 }
 
-func TestBuildVLLMInferenceCommandNoKVCacheOverrideForNonHybrid(t *testing.T) {
-	p := &PresetParam{
-		Metadata: Metadata{
-			Architectures: []string{"LlamaForCausalLM"},
-		},
-		RuntimeParam: RuntimeParam{
-			VLLM: VLLMParam{
-				BaseCommand:    "vllm serve",
-				ModelRunParams: map[string]string{},
-			},
-		},
+func TestBuildVLLMInferenceCommandCoversHybridBlockWithPrefillBudget(t *testing.T) {
+	h100x8 := &sku.GPUConfig{GPUModel: "NVIDIA H100", GPUCount: 8, GPUMem: resource.MustParse("640Gi")}
+	nemotronUltra := Metadata{MambaStateBytesPerLayer: 8499200, AttnElementsPerToken: 512, NumKeyValueHeads: 2}
+	glmFlashMLA := Metadata{MambaStateBytesPerLayer: 4341760, AttnElementsPerToken: 576, NumKeyValueHeads: 1}
+	for _, tt := range []struct {
+		name     string
+		metadata Metadata
+		params   map[string]string
+		numGPUs  int
+		want     string
+	}{
+		// vLLM picks 4160 tokens: 1062400 B of Mamba state per rank over 256 B of FP8 KV per token.
+		{"raises for FP8-KV block above default", nemotronUltra, map[string]string{"max-num-batched-tokens": "4096"}, 8, "4352"},
+		{"MLA latent cache is not sharded", glmFlashMLA, map[string]string{"max-num-batched-tokens": "4096"}, 1, "7680"},
+		{"keeps default above block", glmFlashMLA, map[string]string{"max-num-batched-tokens": "4096"}, 8, "4096"},
+		{"keeps larger preset value", nemotronUltra, map[string]string{"max-num-batched-tokens": "8192"}, 8, "8192"},
+		{"LMCache disabled", nemotronUltra, map[string]string{"max-num-batched-tokens": "4096", "kaito-kv-cache-cpu-memory-utilization": "0"}, 8, "4096"},
+	} {
+		t.Run(tt.name, func(t *testing.T) {
+			tt.params["mamba-cache-mode"] = "align"
+			gpu := *h100x8
+			gpu.GPUCount = tt.numGPUs
+			p := &PresetParam{
+				Metadata:                tt.metadata,
+				TotalSafeTensorFileSize: "300Gi",
+				RuntimeParam: RuntimeParam{
+					VLLM: VLLMParam{BaseCommand: "vllm serve", ModelRunParams: tt.params},
+				},
+			}
+			cmd := p.GetInferenceCommand(RuntimeContext{
+				RuntimeName: RuntimeNameVLLM,
+				GPUConfig:   &gpu,
+				SKUNumGPUs:  tt.numGPUs,
+				NumNodes:    1,
+			})
+			require.Len(t, cmd, 3)
+			assert.Contains(t, strings.Fields(cmd[2]), "--max-num-batched-tokens="+tt.want)
+		})
 	}
-	rc := RuntimeContext{
-		RuntimeName: RuntimeNameVLLM,
-		SKUNumGPUs:  2,
-		NumNodes:    1,
+}
+
+func TestBuildVLLMInferenceCommandLMCacheEnabledForAllArchitectures(t *testing.T) {
+	for _, architecture := range []string{
+		"LlamaForCausalLM",
+		"DeepseekV32ForCausalLM",
+		"DeepseekV4ForCausalLM",
+		"DeepseekV41ForCausalLM",
+		"GlmMoeDsaForCausalLM",
+		"Glm5NextForCausalLM",
+		"Glm5NextForConditionalGeneration",
+		"NemotronHForCausalLM",
+		"NemotronH_Nano_VL_V2",
+		"Qwen3NextForCausalLM",
+		"Qwen3_5ForConditionalGeneration",
+		"Qwen3_5MoeForConditionalGeneration",
+		"Qwen4ExpForCausalLM",
+		"Qwen4ExpForConditionalGeneration",
+	} {
+		t.Run(architecture, func(t *testing.T) {
+			p := &PresetParam{
+				Metadata: Metadata{Architectures: []string{architecture}},
+				RuntimeParam: RuntimeParam{
+					VLLM: VLLMParam{
+						BaseCommand:    "vllm serve",
+						ModelRunParams: map[string]string{},
+					},
+				},
+			}
+			cmd := p.GetInferenceCommand(RuntimeContext{
+				RuntimeName: RuntimeNameVLLM,
+				SKUNumGPUs:  8,
+				NumNodes:    1,
+			})
+			require.Len(t, cmd, 3)
+			assert.NotContains(t, cmd[2], "kaito-kv-cache-cpu-memory-utilization")
+		})
 	}
-	cmd := p.GetInferenceCommand(rc)
-	require.Len(t, cmd, 3)
-	assert.NotContains(t, cmd[2], "kaito-kv-cache-cpu-memory-utilization")
 }
 
 func TestPresetParamDeepCopyDSparkSpeculativeDecoding(t *testing.T) {

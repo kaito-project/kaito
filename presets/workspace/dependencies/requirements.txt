@@ -15,7 +15,14 @@ numpy<3.0,>=1.25.0
 sentencepiece==0.2.1
 jinja2>=3.1.0
 starlette>=0.49.1
-lmcache==0.5.6
+# LMCache's PyPI wheels target CUDA 13 (since 0.4.5), and 0.5.7 itself is not on
+# PyPI. CUDA 12.9 wheels (built against torch 2.13) are attached to the GitHub
+# "-cu129" release, which the Dockerfile also uses. 0.5.7 is the last release with
+# a CUDA 12.9 build: 0.5.7.post1 moved to torch 2.14 and dropped CUDA 12.9.
+# TODO: Upgrade LMCache once the base image moves to CUDA 13 and torch 2.14
+# (vLLM 0.33+, NVIDIA driver 580+), then install it from PyPI and drop this line.
+--find-links https://github.com/LMCache/LMCache/releases/expanded_assets/v0.5.7-cu129
+lmcache==0.5.7
 # nixl-cu12 supplies the CUDA-12 NIXL bindings used by vLLM's NixlConnector for
 # P/D disaggregation. Pin it explicitly so the pure-python 'nixl' dispatcher
 # installed in the Dockerfile can use the exact same version. The plain 'nixl'

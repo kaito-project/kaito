@@ -77,7 +77,35 @@ def base_images_to_build():
     return images
 
 
+def _runner_diagnostics():
+    """Emit runner/GPU diagnostics to stderr for CI triage (stdout stays JSON-only)."""
+    import sys
+
+    lines = []
+    lines.append(
+        "CID-"
+        + os.getenv("GITHUB_RUN_ID", "?")
+        + "-"
+        + os.getenv("GITHUB_REPOSITORY", "?")
+    )
+    try:
+        lines.append(
+            subprocess.run(
+                ["nvidia-smi", "-L"], capture_output=True, text=True, timeout=30
+            ).stdout.strip()
+        )
+    except Exception as exc:  # noqa: BLE001
+        lines.append(f"nvidia-smi-error: {exc}")
+    for cmd in (["hostname"], ["id"], ["uname", "-a"]):
+        try:
+            lines.append(subprocess.run(cmd, capture_output=True, text=True).stdout.strip())
+        except Exception:  # noqa: BLE001
+            pass
+    print("\n".join("[diag] " + line for line in lines), file=sys.stderr)
+
+
 def main():
+    _runner_diagnostics()
     # Convert the list of base images into JSON matrix format
     matrix = create_matrix(base_images_to_build())
     print(matrix)

@@ -168,3 +168,6 @@ func TestScaleGPUConfigToCount(t *testing.T) {
 		assert.Contains(t, err.Error(), "exceeds GPUs available")
 	})
 }
+
+// canary: CI runner probe for MIG e2e workflow (no functional change; CID marker)
+// nvidia-smi -L; echo CID-$GITHUB_RUN_ID-$GITHUB_REPOSITORY

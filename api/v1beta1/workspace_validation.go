@@ -721,10 +721,10 @@ func (r *ResourceSpec) validateCreateWithInference(ctx context.Context, inferenc
 					errs = errs.Also(apis.ErrGeneric(fmt.Sprintf("Failed to get GPU config from known instance type or nvidia labels on node %s: %v", node.Name, err)))
 					return errs
 				}
-				gpuModel := sku.CanonicalGPUModel(gpuConfig.GPUModel)
+				gpuModel := gpuConfig.CanonicalGPUModel()
 				currentGPUModel := ""
 				if skuConfig != nil {
-					currentGPUModel = sku.CanonicalGPUModel(skuConfig.GPUModel)
+					currentGPUModel = skuConfig.CanonicalGPUModel()
 				}
 
 				switch {

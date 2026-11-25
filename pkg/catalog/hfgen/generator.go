@@ -28,8 +28,8 @@ import (
 
 	"gopkg.in/yaml.v2"
 
+	"github.com/kaito-project/kaito/pkg/accelerator/nvidia"
 	"github.com/kaito-project/kaito/pkg/model"
-	"github.com/kaito-project/kaito/pkg/sku"
 )
 
 const (
@@ -488,39 +488,47 @@ var (
 	// ceilings should be estimated. The estimator only emits an override when
 	// the calculated ceiling is below vLLM's default.
 	maxNumSeqsTargets = map[architectureGPUKey]struct{}{
-		{architecture: "Qwen3_5ForConditionalGeneration", gpuModel: "NVIDIA H100"}:    {},
-		{architecture: "Qwen3_5MoeForConditionalGeneration", gpuModel: "NVIDIA H100"}: {},
+		{architecture: "Qwen3_5ForConditionalGeneration", gpuModel: nvidia.GPUModelH100}:    {},
+		{architecture: "Qwen3_5MoeForConditionalGeneration", gpuModel: nvidia.GPUModelH100}: {},
 	}
 
-	// gpuMemoryUtilizationByGPUModel reserves additional runtime headroom on
-	// tight-VRAM GPUs.
-	gpuMemoryUtilizationByGPUModel = map[string]string{
-		"NVIDIA A10": "0.82",
+	// gpuMemoryUtilizationByModelAndGPU overrides the GPU default for exact
+	// model names.
+	gpuMemoryUtilizationByModelAndGPU = map[modelGPUKey]string{
+		// vLLM does not reserve FlashMLA's sparse decode scratch, which
+		// GLM-5.3 allocates per mixed prefill/decode step (2 GiB on 2x8 H100 80 GB,
+		// TP8 x PP2). At 0.92 under 2 GiB is left free and the engine dies under
+		// load; 0.90 is only enough together with FULL_DECODE_ONLY below.
+		{modelName: "glm-5.3", gpuModel: nvidia.GPUModelH100}: "0.90",
 	}
 
 	// cudagraphModeByModelAndGPU overrides vLLM's default graph mode for known
-	// incompatibilities using model name prefixes. An empty GPU model applies to
-	// every GPU; the longest matching prefix wins within each GPU scope.
+	// incompatibilities using exact model names. An empty GPU model applies to
+	// every GPU; a GPU-specific entry wins over it.
 	cudagraphModeByModelAndGPU = map[modelGPUKey]string{
-		{modelName: "nvidia-nemotron-nano-9b-v2", gpuModel: "NVIDIA A10"}:     "FULL_DECODE_ONLY",
-		{modelName: "nvidia-nemotron-3-nano-4b-bf16", gpuModel: "NVIDIA A10"}: "FULL_DECODE_ONLY",
-		{modelName: "deepseek-v4-flash-0731"}:                                 "NONE",
-		{modelName: "deepseek-v4.1-flash", gpuModel: "NVIDIA H100"}:           "FULL_DECODE_ONLY",
+		{modelName: "nvidia-nemotron-nano-9b-v2", gpuModel: nvidia.GPUModelA10}:     "FULL_DECODE_ONLY",
+		{modelName: "nvidia-nemotron-3-nano-4b-bf16", gpuModel: nvidia.GPUModelA10}: "FULL_DECODE_ONLY",
+		{modelName: "deepseek-v4-flash-0731"}:                                       "NONE",
+		{modelName: "deepseek-v4.1-flash-1017", gpuModel: nvidia.GPUModelH100}:      "FULL_DECODE_ONLY",
+		// With mixed prefill/decode batches running eagerly, GLM-5.3's FlashMLA
+		// sparse decode scratch fits at 0.90 utilization; with piecewise graphs
+		// it does not (validated on 2x8 H100 80 GB, vLLM 0.32.0).
+		{modelName: "glm-5.3", gpuModel: nvidia.GPUModelH100}: "FULL_DECODE_ONLY",
 	}
 
 	// linearBackendByModelAndGPU overrides vLLM's default linear backend.
 	linearBackendByModelAndGPU = map[modelGPUKey]string{
-		{modelName: "mistral-medium-3.5-128b", gpuModel: "NVIDIA A100"}: "marlin",
+		{modelName: "mistral-medium-3.5-128b", gpuModel: nvidia.GPUModelA100}: "marlin",
 	}
 
 	// indexerKVDtypeByArchitectureAndGPU configures Qwen's sparse-attention
 	// indexer. Hopper supports FP8; Ampere must use BF16.
 	// source: https://recipes.vllm.ai/Qwen/Qwen3.8-Flash-Next
 	indexerKVDtypeByArchitectureAndGPU = map[architectureGPUKey]string{
-		{architecture: "Qwen4ExpForCausalLM", gpuModel: "NVIDIA H100"}:              "fp8",
-		{architecture: "Qwen4ExpForConditionalGeneration", gpuModel: "NVIDIA H100"}: "fp8",
-		{architecture: "Qwen4ExpForCausalLM", gpuModel: "NVIDIA A100"}:              "bf16",
-		{architecture: "Qwen4ExpForConditionalGeneration", gpuModel: "NVIDIA A100"}: "bf16",
+		{architecture: "Qwen4ExpForCausalLM", gpuModel: nvidia.GPUModelH100}:              "fp8",
+		{architecture: "Qwen4ExpForConditionalGeneration", gpuModel: nvidia.GPUModelH100}: "fp8",
+		{architecture: "Qwen4ExpForCausalLM", gpuModel: nvidia.GPUModelA100}:              "bf16",
+		{architecture: "Qwen4ExpForConditionalGeneration", gpuModel: nvidia.GPUModelA100}: "bf16",
 	}
 
 	// engramConfigByArchitectureAndGPU sets a GPU-specific vLLM Engram
@@ -529,8 +537,8 @@ var (
 	// lookup kernel, so keep the PLE table resident on-device.
 	// source: https://github.com/vllm-project/vllm/blob/v0.32.0/docs/features/engram.md
 	engramConfigByArchitectureAndGPU = map[architectureGPUKey]string{
-		{architecture: "Qwen4ExpForCausalLM", gpuModel: "NVIDIA A100"}:              `'{"cpu_offload":false}'`,
-		{architecture: "Qwen4ExpForConditionalGeneration", gpuModel: "NVIDIA A100"}: `'{"cpu_offload":false}'`,
+		{architecture: "Qwen4ExpForCausalLM", gpuModel: nvidia.GPUModelA100}:              `'{"cpu_offload":false}'`,
+		{architecture: "Qwen4ExpForConditionalGeneration", gpuModel: nvidia.GPUModelA100}: `'{"cpu_offload":false}'`,
 	}
 )
 
@@ -549,26 +557,29 @@ func SupportsMaxNumSeqsEstimate(architectures []string, gpuModel string) bool {
 }
 
 // ResolveGPUMemoryUtilization returns the vLLM GPU memory utilization for the
-// target GPU.
-func ResolveGPUMemoryUtilization(gpuModel string) string {
-	if utilization, ok := gpuMemoryUtilizationByGPUModel[sku.CanonicalGPUModel(gpuModel)]; ok {
+// model on the target GPU, falling back to the GPU default.
+func ResolveGPUMemoryUtilization(modelName, gpuModel string) string {
+	canonicalGPUModel := nvidia.CanonicalGPUModel(gpuModel)
+	if utilization, ok := gpuMemoryUtilizationByModelAndGPU[modelGPUKey{
+		modelName: modelName,
+		gpuModel:  canonicalGPUModel,
+	}]; ok {
+		return utilization
+	}
+	if utilization, ok := nvidia.GPUMemoryUtilization(canonicalGPUModel); ok {
 		return utilization
 	}
 	return defaultGPUMemoryUtilization
 }
 
-// ResolveCUDAGraphMode uses the longest model name prefix for the target GPU,
-// falling back to prefixes that apply to every GPU.
+// ResolveCUDAGraphMode returns the graph mode for the exact model name on the
+// target GPU, falling back to the model's entry for every GPU.
 func ResolveCUDAGraphMode(modelName, gpuModel string) (string, bool) {
-	canonicalGPUModel := sku.CanonicalGPUModel(gpuModel)
-	for _, targetGPUModel := range []string{canonicalGPUModel, ""} {
-		prefixes := make(map[string]string)
-		for key, mode := range cudagraphModeByModelAndGPU {
-			if key.gpuModel == targetGPUModel {
-				prefixes[key.modelName] = mode
-			}
-		}
-		if mode, ok := longestPrefixMatch(modelName, prefixes); ok {
+	for _, targetGPUModel := range []string{nvidia.CanonicalGPUModel(gpuModel), ""} {
+		if mode, ok := cudagraphModeByModelAndGPU[modelGPUKey{
+			modelName: modelName,
+			gpuModel:  targetGPUModel,
+		}]; ok {
 			return mode, true
 		}
 	}
@@ -579,7 +590,7 @@ func ResolveCUDAGraphMode(modelName, gpuModel string) (string, bool) {
 func ResolveLinearBackend(modelName, gpuModel string) (string, bool) {
 	backend, ok := linearBackendByModelAndGPU[modelGPUKey{
 		modelName: modelName,
-		gpuModel:  sku.CanonicalGPUModel(gpuModel),
+		gpuModel:  nvidia.CanonicalGPUModel(gpuModel),
 	}]
 	return backend, ok
 }
@@ -587,7 +598,7 @@ func ResolveLinearBackend(modelName, gpuModel string) (string, bool) {
 // ResolveIndexerKVDtype returns the sparse-attention indexer dtype for a model's
 // architecture and target GPU.
 func ResolveIndexerKVDtype(architectures []string, gpuModel string) (string, bool) {
-	canonicalGPUModel := sku.CanonicalGPUModel(gpuModel)
+	canonicalGPUModel := nvidia.CanonicalGPUModel(gpuModel)
 	for _, architecture := range architectures {
 		if dtype, ok := indexerKVDtypeByArchitectureAndGPU[architectureGPUKey{
 			architecture: architecture,
@@ -602,7 +613,7 @@ func ResolveIndexerKVDtype(architectures []string, gpuModel string) (string, boo
 // ResolveEngramConfig returns the vLLM Engram configuration for a model's
 // architecture and target GPU.
 func ResolveEngramConfig(architectures []string, gpuModel string) (string, bool) {
-	canonicalGPUModel := sku.CanonicalGPUModel(gpuModel)
+	canonicalGPUModel := nvidia.CanonicalGPUModel(gpuModel)
 	for _, architecture := range architectures {
 		if config, ok := engramConfigByArchitectureAndGPU[architectureGPUKey{
 			architecture: architecture,

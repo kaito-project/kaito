@@ -42,6 +42,8 @@ import (
 	"github.com/kaito-project/kaito/api/env"
 	kaitov1alpha1 "github.com/kaito-project/kaito/api/v1alpha1"
 	"github.com/kaito-project/kaito/api/v1beta1"
+	iaccel "github.com/kaito-project/kaito/internal/accelerator"
+	acceleratorcpu "github.com/kaito-project/kaito/internal/accelerator/cpu"
 	"github.com/kaito-project/kaito/internal/cache"
 	"github.com/kaito-project/kaito/internal/estimator/nodesestimator"
 	"github.com/kaito-project/kaito/internal/featuregates"
@@ -50,6 +52,7 @@ import (
 	"github.com/kaito-project/kaito/internal/manifests"
 	"github.com/kaito-project/kaito/internal/manifests/builder"
 	"github.com/kaito-project/kaito/internal/testutil"
+	"github.com/kaito-project/kaito/pkg/accelerator"
 	"github.com/kaito-project/kaito/pkg/accelerator/nvidia"
 	"github.com/kaito-project/kaito/pkg/catalog"
 	"github.com/kaito-project/kaito/pkg/consts"
@@ -1542,7 +1545,7 @@ func TestApplyCPUDedicatedPlacement(t *testing.T) {
 	cpuWS.Resource = v1beta1.ResourceSpec{InstanceType: "Standard_D16s_v6"}
 
 	spec := &corev1.PodSpec{}
-	applyCPUDedicatedPlacement(cpuWS, spec, true)
+	applyExclusivePlacement(cpuWS, spec, iaccel.ForType(accelerator.TypeCPU))
 	if spec.Affinity == nil || spec.Affinity.PodAntiAffinity == nil {
 		t.Fatalf("expected pod anti-affinity to be configured")
 	}
@@ -1553,18 +1556,18 @@ func TestApplyCPUDedicatedPlacement(t *testing.T) {
 	if terms[0].TopologyKey != corev1.LabelHostname {
 		t.Fatalf("topologyKey = %q, want %q", terms[0].TopologyKey, corev1.LabelHostname)
 	}
-	if got := terms[0].LabelSelector.MatchLabels[cpuInferenceWorkloadLabel]; got != "true" {
+	if got := terms[0].LabelSelector.MatchLabels[acceleratorcpu.LabelExclusiveWorkload]; got != "true" {
 		t.Fatalf("CPU workload selector = %q, want true", got)
 	}
 
 	require.NotNil(t, terms[0].NamespaceSelector, "CPU exclusivity must span all namespaces")
 	require.Empty(t, terms[0].NamespaceSelector.MatchLabels)
 	standaloneSpec := &corev1.PodSpec{}
-	applyCPUDedicatedPlacement(&v1beta1.Workspace{ObjectMeta: metav1.ObjectMeta{Name: "ws-b"}}, standaloneSpec, true)
+	applyExclusivePlacement(&v1beta1.Workspace{ObjectMeta: metav1.ObjectMeta{Name: "ws-b"}}, standaloneSpec, iaccel.ForType(accelerator.TypeCPU))
 	if standaloneSpec.Affinity == nil || standaloneSpec.Affinity.PodAntiAffinity == nil {
 		t.Fatalf("expected standalone cpu workspace to get pod anti-affinity")
 	}
-	if got := standaloneSpec.Affinity.PodAntiAffinity.RequiredDuringSchedulingIgnoredDuringExecution[0].LabelSelector.MatchLabels[cpuInferenceWorkloadLabel]; got != "true" {
+	if got := standaloneSpec.Affinity.PodAntiAffinity.RequiredDuringSchedulingIgnoredDuringExecution[0].LabelSelector.MatchLabels[acceleratorcpu.LabelExclusiveWorkload]; got != "true" {
 		t.Fatalf("CPU workload selector = %q, want true", got)
 	}
 }
@@ -1995,7 +1998,7 @@ func TestInjectLMCacheSidecar(t *testing.T) {
 		}},
 	}
 
-	injectLMCacheSidecar(spec, "workspace", "2")
+	injectLMCacheSidecar(spec, "workspace", "2", iaccel.ForType(accelerator.TypeNVIDIA).SharedDeviceEnv())
 
 	assert.Nil(t, spec.RuntimeClassName)
 	require.Len(t, spec.InitContainers, 1)
@@ -2109,6 +2112,7 @@ func TestConfigureLMCacheSidecarReturnsConfigErrors(t *testing.T) {
 			modifier := ConfigureLMCacheSidecar(&lmCacheResolvedConfig{
 				runtimeName: pkgmodel.RuntimeNameVLLM,
 				runParams:   map[string]string{"tensor-parallel-size": "1"},
+				driver:      iaccel.ForType(accelerator.TypeNVIDIA),
 			})
 
 			err := modifier(&builder.WorkspaceGeneratorContext{
@@ -2649,10 +2653,14 @@ func TestConfigureLMCacheSidecarCPUAndGPU(t *testing.T) {
 				LivenessProbe: &corev1.Probe{ProbeHandler: corev1.ProbeHandler{HTTPGet: &corev1.HTTPGetAction{Path: "/health", Port: intstr.FromInt32(5000)}}},
 			}}}
 			before := spec.DeepCopy()
+			driver := iaccel.ForType(accelerator.TypeNVIDIA)
+			if tc.cpu {
+				driver = iaccel.ForType(accelerator.TypeCPU)
+			}
 			modifier := ConfigureLMCacheSidecar(&lmCacheResolvedConfig{
 				runtimeName: pkgmodel.RuntimeNameVLLM,
 				runParams:   map[string]string{"tensor-parallel-size": "1", "kaito-kv-cache-cpu-memory-utilization": "0.5"},
-				targetCPU:   tc.cpu,
+				driver:      driver,
 			})
 			// CPU must return before querying a user ConfigMap or modifying the pod.
 			err := modifier(&builder.WorkspaceGeneratorContext{Ctx: t.Context(), Workspace: workspace}, spec)
@@ -2679,9 +2687,9 @@ func TestCPUPlacementPreservesNodeAffinity(t *testing.T) {
 			spec.Affinity.NodeAffinity.RequiredDuringSchedulingIgnoredDuringExecution.NodeSelectorTerms = append(spec.Affinity.NodeAffinity.RequiredDuringSchedulingIgnoredDuringExecution.NodeSelectorTerms, corev1.NodeSelectorTerm{MatchExpressions: []corev1.NodeSelectorRequirement{{Key: "pool", Operator: corev1.NodeSelectorOpIn, Values: []string{"cpu"}}}})
 		}
 		original := spec.DeepCopy()
-		applyCPUDedicatedPlacement(ws, spec, false)
+		applyExclusivePlacement(ws, spec, iaccel.ForType(accelerator.TypeNVIDIA))
 		require.Equal(t, original, spec, "GPU affinity must stay unchanged")
-		applyCPUDedicatedPlacement(ws, spec, true)
+		applyExclusivePlacement(ws, spec, iaccel.ForType(accelerator.TypeCPU))
 		require.Equal(t, original.Affinity.NodeAffinity, spec.Affinity.NodeAffinity, "CPU placement must not impose an architecture")
 		require.Len(t, spec.Affinity.PodAntiAffinity.RequiredDuringSchedulingIgnoredDuringExecution, 1)
 	}
@@ -2742,11 +2750,26 @@ func TestGeneratePresetInference_CapturedTarget(t *testing.T) {
 			spec := &corev1.PodSpec{}
 			require.NoError(t, GenerateInferencePodSpec(config, 1, "", "", "", &lmCacheResolvedConfig{})(gctx, spec))
 			require.Equal(t, readsAtCapture, reads, "pod generation must reuse the captured target")
-			require.Equal(t, getPresetInferenceImageName(pkgmodel.RuntimeNameVLLM, cpu), spec.Containers[0].Image)
+			wantImage := GetBaseImageName(catalog.MustGet("base"))
+			wantTolerations := []corev1.Toleration{
+				{Effect: corev1.TaintEffectNoSchedule, Operator: corev1.TolerationOpExists, Key: "nvidia.com/gpu"},
+				{Effect: corev1.TaintEffectNoSchedule, Operator: corev1.TolerationOpEqual, Key: "sku", Value: "gpu"},
+			}
+			if cpu {
+				wantImage = GetBaseImageName(catalog.MustGet("base-cpu"))
+				wantTolerations = []corev1.Toleration{
+					{Effect: corev1.TaintEffectNoSchedule, Operator: corev1.TolerationOpEqual, Key: "sku", Value: "cpu"},
+				}
+			}
+			wantTolerations = append(wantTolerations, corev1.Toleration{
+				Effect: corev1.TaintEffectNoSchedule, Operator: corev1.TolerationOpEqual,
+				Key: "kubernetes.azure.com/scalesetpriority", Value: "spot",
+			})
+			require.Equal(t, wantImage, spec.Containers[0].Image)
 			_, hasGPU := spec.Containers[0].Resources.Limits[corev1.ResourceName("nvidia.com/gpu")]
 			require.Equal(t, !cpu, hasGPU)
 			require.NotNil(t, spec.Containers[0].ReadinessProbe.HTTPGet)
-			require.Equal(t, defaultTolerationsForTarget(cpu), spec.Tolerations)
+			require.Equal(t, wantTolerations, spec.Tolerations)
 			_, err = getGPUConfig(gctx)
 			if cpu {
 				require.NoError(t, err)
@@ -2782,7 +2805,7 @@ func TestCPUNodeExclusivityAcrossParentsAndNamespaces(t *testing.T) {
 		for _, namespace := range []string{"first", "second"} {
 			ws := &v1beta1.Workspace{ObjectMeta: metav1.ObjectMeta{Namespace: namespace, Labels: map[string]string{v1beta1.WorkspaceCreatedByInferenceSetLabel: parent}}}
 			pod := &corev1.PodTemplateSpec{}
-			applyCPUDedicatedPlacement(ws, &pod.Spec, true)
+			applyExclusivePlacement(ws, &pod.Spec, iaccel.ForType(accelerator.TypeCPU))
 			require.Len(t, pod.Spec.Affinity.PodAntiAffinity.RequiredDuringSchedulingIgnoredDuringExecution, 1)
 			term := pod.Spec.Affinity.PodAntiAffinity.RequiredDuringSchedulingIgnoredDuringExecution[0]
 			require.Equal(t, corev1.LabelHostname, term.TopologyKey)
@@ -2792,8 +2815,8 @@ func TestCPUNodeExclusivityAcrossParentsAndNamespaces(t *testing.T) {
 			require.True(t, nsSelector.Matches(labels.Set{"kubernetes.io/metadata.name": "other-namespace"}))
 			selector, err := metav1.LabelSelectorAsSelector(term.LabelSelector)
 			require.NoError(t, err)
-			require.True(t, selector.Matches(labels.Set{cpuInferenceWorkloadLabel: "true", v1beta1.WorkspaceCreatedByInferenceSetLabel: "different-parent"}))
-			require.False(t, selector.Matches(labels.Set{cpuInferenceWorkloadLabel: "false"}))
+			require.True(t, selector.Matches(labels.Set{acceleratorcpu.LabelExclusiveWorkload: "true", v1beta1.WorkspaceCreatedByInferenceSetLabel: "different-parent"}))
+			require.False(t, selector.Matches(labels.Set{acceleratorcpu.LabelExclusiveWorkload: "false"}))
 		}
 	}
 }
@@ -2959,6 +2982,32 @@ func TestDeepSeekV41FlashDSparkRuntimeConfigOverrides(t *testing.T) {
 			require.NoError(t, kubeClient.Get(t.Context(), client.ObjectKeyFromObject(cm), &after))
 			assert.Equal(t, cm.Data, after.Data, "the user's settings must not be rewritten")
 		})
+	}
+}
+
+// TestGLM53RuntimeOverrides checks that the catalog's GLM-5.3 preset picks up
+// its H100 memory utilization and graph mode for FlashMLA's sparse decode
+// scratch, and that explicit inference config values still win.
+func TestGLM53RuntimeOverrides(t *testing.T) {
+	m, err := catalog.GetModelByNameWithToken(context.Background(), "zai-org/GLM-5.3", "")
+	require.NoError(t, err)
+	for _, tc := range []struct {
+		gpuModel  string
+		override  string
+		want      string
+		wantGraph string
+	}{
+		{gpuModel: "NVIDIA-H100-80GB-HBM3", want: "0.90", wantGraph: "FULL_DECODE_ONLY"},
+		{gpuModel: "NVIDIA H100", override: "0.8", want: "0.8", wantGraph: "FULL_DECODE_ONLY"},
+		{gpuModel: "NVIDIA A100", want: "0.92"},
+	} {
+		params := m.GetInferenceParameters()
+		if tc.override != "" {
+			params.VLLM.ModelRunParams["gpu-memory-utilization"] = tc.override
+		}
+		applyGeneratorRuntimeOverrides(params, &sku.GPUConfig{GPUCount: 8, GPUMem: resource.MustParse("640Gi"), GPUModel: tc.gpuModel})
+		assert.Equal(t, tc.want, params.VLLM.ModelRunParams["gpu-memory-utilization"], tc.gpuModel)
+		assert.Equal(t, tc.wantGraph, params.VLLM.ModelRunParams["compilation-config.cudagraph_mode"], tc.gpuModel)
 	}
 }
 

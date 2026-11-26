@@ -25,7 +25,7 @@ import yaml
 from preset_regression_test_utils import deployment_key, load_yaml
 
 REPO_ROOT = Path(__file__).resolve().parents[3]
-DEFAULT_GSM8K_BASELINES = REPO_ROOT / "benchmarks/gsm8k/baselines.yaml"
+DEFAULT_GSM8K_BASELINES = REPO_ROOT / "test/benchmarks/gsm8k/baselines.yaml"
 
 
 def _matching_paths(root: Path, pattern: str) -> list[Path]:

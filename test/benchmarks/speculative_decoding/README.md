@@ -35,7 +35,7 @@ Acceptance, and so the benefit, depends on the traffic, so pick datasets close t
 ## Usage
 
 ```bash
-python3 benchmarks/speculative_decoding/specdec_bench.py \
+python3 test/benchmarks/speculative_decoding/specdec_bench.py \
   --preset deepseek-ai/DeepSeek-V4.1-Flash-1017 \
   --instance-type Standard_ND96isr_H100_v5 \
   --label-selector kubernetes.io/hostname=my-gpu-node \
@@ -60,5 +60,5 @@ Run `--help` for the remaining options (`--context`, `--namespace`, `--workspace
 ## Tests
 
 ```bash
-pytest benchmarks/speculative_decoding
+pytest test/benchmarks/speculative_decoding
 ```

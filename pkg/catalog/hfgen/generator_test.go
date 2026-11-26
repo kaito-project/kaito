@@ -772,6 +772,9 @@ func TestResolveEngramConfig(t *testing.T) {
 func TestResolveGPUModelPolicies(t *testing.T) {
 	assert.Equal(t, "0.82", ResolveGPUMemoryUtilization("", "NVIDIA-A10", 1))
 	assert.Equal(t, "0.92", ResolveGPUMemoryUtilization("", "NVIDIA A100", 1))
+	assert.Equal(t, "0.90", ResolveGPUMemoryUtilization("glm-5.3", "NVIDIA-H100-80GB-HBM3", 8))
+	assert.Equal(t, "0.92", ResolveGPUMemoryUtilization("glm-5.3", "NVIDIA A100", 1))
+	assert.Equal(t, "0.92", ResolveGPUMemoryUtilization("glm-5.3-flash", "NVIDIA H100", 8))
 	assert.Equal(t, "0.92", ResolveGPUMemoryUtilization("other-model", "NVIDIA H100", 8))
 	assert.Equal(t, "0.90", ResolveGPUMemoryUtilization("deepseek-v4-flash-0731", "NVIDIA-H100-80GB-HBM3", 8))
 	assert.Equal(t, "0.92", ResolveGPUMemoryUtilization("deepseek-v4.1-flash-1017", "NVIDIA-H100-80GB-HBM3", 8))
@@ -788,17 +791,25 @@ func TestResolveGPUModelPolicies(t *testing.T) {
 	assert.True(t, ok)
 	assert.Equal(t, "NONE", mode)
 
-	for _, modelName := range []string{"deepseek-v4.1-flash", "deepseek-v4.1-flash-1017", "deepseek-v4.1-flash-1101"} {
-		mode, ok = ResolveCUDAGraphMode(modelName, "NVIDIA-H100-80GB-HBM3")
-		assert.True(t, ok)
-		assert.Equal(t, "FULL_DECODE_ONLY", mode)
-
-		_, ok = ResolveCUDAGraphMode(modelName, "NVIDIA A100")
-		assert.False(t, ok)
-	}
+	mode, ok = ResolveCUDAGraphMode("deepseek-v4.1-flash-1017", "NVIDIA-H100-80GB-HBM3")
+	assert.True(t, ok)
+	assert.Equal(t, "FULL_DECODE_ONLY", mode)
+	_, ok = ResolveCUDAGraphMode("deepseek-v4.1-flash-1017", "NVIDIA A100")
+	assert.False(t, ok)
 
 	_, ok = ResolveCUDAGraphMode("other-model", "NVIDIA H100")
 	assert.False(t, ok)
+
+	mode, ok = ResolveCUDAGraphMode("glm-5.3", "NVIDIA-H100-80GB-HBM3")
+	assert.True(t, ok)
+	assert.Equal(t, "FULL_DECODE_ONLY", mode)
+	for _, tc := range []struct{ modelName, gpuModel string }{
+		{"glm-5.3", "NVIDIA A100"},
+		{"glm-5.3-flash", "NVIDIA H100"},
+	} {
+		_, ok = ResolveCUDAGraphMode(tc.modelName, tc.gpuModel)
+		assert.False(t, ok, tc)
+	}
 
 	backend, ok := ResolveLinearBackend("mistral-medium-3.5-128b", "A100-SXM4-80GB")
 	assert.True(t, ok)
@@ -808,17 +819,14 @@ func TestResolveGPUModelPolicies(t *testing.T) {
 	assert.False(t, ok)
 }
 
-func TestResolveCUDAGraphModePrefixPrecedence(t *testing.T) {
+func TestResolveCUDAGraphModeExactMatch(t *testing.T) {
 	original := cudagraphModeByModelAndGPU
 	t.Cleanup(func() {
 		cudagraphModeByModelAndGPU = original
 	})
 	cudagraphModeByModelAndGPU = map[modelGPUKey]string{
-		{modelName: "example"}:                                  "NONE",
-		{modelName: "example-specific"}:                         "PIECEWISE",
-		{modelName: "example", gpuModel: "NVIDIA H100"}:         "FULL_DECODE_ONLY",
-		{modelName: "example-special", gpuModel: "NVIDIA H100"}: "FULL",
-		{modelName: "example-longest", gpuModel: "NVIDIA A100"}: "NONE",
+		{modelName: "example"}:                          "NONE",
+		{modelName: "example", gpuModel: "NVIDIA H100"}: "FULL_DECODE_ONLY",
 	}
 
 	for _, tc := range []struct {
@@ -827,14 +835,10 @@ func TestResolveCUDAGraphModePrefixPrecedence(t *testing.T) {
 		gpuModel  string
 		want      string
 	}{
-		{"exact match", "example", "NVIDIA H100", "FULL_DECODE_ONLY"},
-		{"longest GPU-specific prefix", "example-special-update", "NVIDIA-H100-80GB-HBM3", "FULL"},
-		{"GPU-specific before longer generic prefix", "example-specific-update", "NVIDIA H100", "FULL_DECODE_ONLY"},
-		{"longest generic prefix", "example-specific-update", "NVIDIA A100", "PIECEWISE"},
-		{"generic fallback", "example-update", "NVIDIA A100", "NONE"},
-		{"unrelated GPU policy ignored", "example-longest-update", "NVIDIA H100", "FULL_DECODE_ONLY"},
-		{"unknown GPU uses generic policy", "example-special-update", "other-gpu", "NONE"},
-		{"unanchored name does not match", "other-example", "NVIDIA H100", ""},
+		{"GPU-specific entry", "example", "NVIDIA-H100-80GB-HBM3", "FULL_DECODE_ONLY"},
+		{"generic fallback", "example", "NVIDIA A100", "NONE"},
+		{"unknown GPU uses generic entry", "example", "other-gpu", "NONE"},
+		{"longer name does not match", "example-update", "NVIDIA H100", ""},
 		{"shorter name does not match", "exam", "NVIDIA H100", ""},
 		{"empty name does not match", "", "NVIDIA H100", ""},
 	} {
@@ -866,12 +870,13 @@ func TestResolveGPUMemoryUtilizationPrecedence(t *testing.T) {
 		gpuCount  int
 		want      string
 	}{
-		{"GPU-specific model policy", "example-large-1017", "NVIDIA-H100-80GB-HBM3", 8, "0.85"},
-		{"GPU-specific model policy overrides GPU policy", "example-small-1017", "NVIDIA-A10", 8, "0.75"},
-		{"generic model policy", "example-large-1017", "NVIDIA A100", 8, "0.88"},
-		{"generic model policy overrides GPU policy", "example-medium", "NVIDIA-A10", 8, "0.88"},
-		{"other GPU count skips model policy", "example-large-1017", "NVIDIA-H100-80GB-HBM3", 2, "0.92"},
-		{"other GPU count uses GPU policy", "example-small-1017", "NVIDIA-A10", 1, "0.82"},
+		{"GPU-specific model policy", "example-large", "NVIDIA-H100-80GB-HBM3", 8, "0.85"},
+		{"GPU-specific model policy overrides GPU policy", "example-small", "NVIDIA-A10", 8, "0.75"},
+		{"generic model policy", "example", "NVIDIA A100", 8, "0.88"},
+		{"generic model policy overrides GPU policy", "example", "NVIDIA-A10", 8, "0.88"},
+		{"model name must match exactly", "example-large-1017", "NVIDIA-H100-80GB-HBM3", 8, "0.92"},
+		{"other GPU count skips model policy", "example-large", "NVIDIA-H100-80GB-HBM3", 2, "0.92"},
+		{"other GPU count uses GPU policy", "example-small", "NVIDIA-A10", 1, "0.82"},
 		{"GPU policy without model policy", "other-model", "NVIDIA-A10", 8, "0.82"},
 		{"default without any policy", "other-model", "NVIDIA H100", 8, "0.92"},
 		{"empty name uses GPU policy", "", "NVIDIA-A10", 8, "0.82"},

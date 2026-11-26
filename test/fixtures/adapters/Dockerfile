@@ -1,6 +1,6 @@
 FROM busybox:latest
 
-ARG ADAPTER_PATH=docker/adapters/adapter1
+ARG ADAPTER_PATH=test/fixtures/adapters/adapter1
 
 RUN mkdir -p /data
 

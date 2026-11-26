@@ -52,7 +52,7 @@ func BuildDownloadJob(cr *kaitov1alpha1.ModelMirror, resources DownloadJobResour
 export HF_HUB_DOWNLOAD_TIMEOUT=300
 
 %s
-pip install -q "huggingface-hub==%s" "certifi==%s"
+pip install -q "huggingface-hub==%s" "certifi==%s" "filelock==%s"
 
 # The native Xet client needs a complete, current CA bundle for the CAS endpoint.
 # Resolve it separately from export so set -e catches a failed certifi lookup.
@@ -70,6 +70,7 @@ find "/models/${MODEL_ID}/" -mindepth 1 -type d -exec rm -rf {} + 2>/dev/null ||
 		image.PipBootstrapCommand,
 		HuggingFaceHubVersion,
 		CertifiVersion,
+		FileLockVersion,
 		excludeFlags,
 	)
 

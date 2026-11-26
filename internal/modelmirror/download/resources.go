@@ -23,6 +23,10 @@ const (
 	// huggingface-hub version
 	HuggingFaceHubVersion = "2.3.0"
 
+	// FileLockVersion avoids the 4.3.0 named-probe cleanup that fails on BlobFuse.
+	// Revisit after https://github.com/tox-dev/filelock/pull/1115 is BlobFuse-compatible.
+	FileLockVersion = "4.2.12"
+
 	// certifi version provides the CA bundle used by the HF clients, including native Xet.
 	CertifiVersion = "2026.10.19"
 

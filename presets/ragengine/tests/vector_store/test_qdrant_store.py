@@ -21,6 +21,7 @@ from unittest.mock import patch
 import httpx
 import pytest
 import respx
+from fastapi import HTTPException
 from llama_index.core.embeddings import MockEmbedding
 
 from ragengine.models import Document
@@ -412,3 +413,50 @@ async def test_retrieve_applies_metadata_filter():
         "test_index", "What is KAITO?", metadata_filter={"branch": "main"}
     )
     assert [r["metadata"]["branch"] for r in filtered["results"]] == ["main"]
+
+
+async def _handler_with_one_document():
+    handler = QdrantVectorStoreHandler(MockEmbedding(embed_dim=8))
+    await handler.index_documents(
+        "test_index",
+        [Document(text="KAITO overview from main.", metadata={"branch": "main"})],
+    )
+    return handler
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize(
+    "metadata_filter",
+    [{"score": 0.9}, {"branch": ["main", "dev"]}, {"branch": None}],
+)
+async def test_retrieve_invalid_metadata_filter_keeps_fusion_fn(metadata_filter):
+    """A filter value that Qdrant's MatchValue rejects fails the request but
+    leaves the shared vector store's fusion function as it was."""
+    handler = await _handler_with_one_document()
+    vector_store = handler.index_map["test_index"].vector_store
+    original_fusion_fn = vector_store._hybrid_fusion_fn
+
+    with pytest.raises(HTTPException) as exc_info:
+        await handler.retrieve(
+            "test_index", "What is KAITO?", metadata_filter=metadata_filter
+        )
+
+    assert exc_info.value.status_code == 500
+    assert vector_store._hybrid_fusion_fn == original_fusion_fn
+
+
+@pytest.mark.asyncio
+async def test_retrieve_failure_restores_fusion_fn():
+    """The original fusion function is restored when retrieval itself fails."""
+    handler = await _handler_with_one_document()
+    index = handler.index_map["test_index"]
+    original_fusion_fn = index.vector_store._hybrid_fusion_fn
+
+    with (
+        patch.object(index, "as_retriever", side_effect=RuntimeError("boom")),
+        pytest.raises(HTTPException) as exc_info,
+    ):
+        await handler.retrieve("test_index", "What is KAITO?")
+
+    assert exc_info.value.status_code == 500
+    assert index.vector_store._hybrid_fusion_fn == original_fusion_fn

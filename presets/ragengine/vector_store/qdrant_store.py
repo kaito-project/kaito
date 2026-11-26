@@ -159,22 +159,25 @@ class QdrantVectorStoreHandler(BaseVectorStore):
                 _captured_sparse = sparse_result
                 return original_fusion_fn(dense_result, sparse_result, **kwargs)
 
+            # Build the filter before swapping in the instrumented fusion
+            # function, so a filter value that Qdrant rejects fails the
+            # request without touching the shared vector store.
+            qdrant_filter = self._build_metadata_filter(metadata_filter)
+
             vector_store._hybrid_fusion_fn = _instrumented_fusion
+            try:
+                retriever = self.index_map[index_name].as_retriever(
+                    similarity_top_k=top_k,
+                    vector_store_query_mode="hybrid",
+                    vector_store_kwargs={"qdrant_filters": qdrant_filter},
+                )
 
-            retriever = self.index_map[index_name].as_retriever(
-                similarity_top_k=top_k,
-                vector_store_query_mode="hybrid",
-                vector_store_kwargs={
-                    "qdrant_filters": self._build_metadata_filter(metadata_filter)
-                },
-            )
-
-            start_time = time.time()
-            source_nodes = await retriever.aretrieve(query)
-            elapsed = time.time() - start_time
-
-            # Restore original fusion function
-            vector_store._hybrid_fusion_fn = original_fusion_fn
+                start_time = time.time()
+                source_nodes = await retriever.aretrieve(query)
+                elapsed = time.time() - start_time
+            finally:
+                # Restore original fusion function
+                vector_store._hybrid_fusion_fn = original_fusion_fn
 
             # Build dense/sparse score lookup tables from captured results
             dense_scores: dict[str, float] = {}

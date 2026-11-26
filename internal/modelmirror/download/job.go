@@ -43,9 +43,9 @@ func BuildDownloadJob(cr *kaitov1alpha1.ModelMirror, resources DownloadJobResour
 		excludeFlags += fmt.Sprintf("\n  --exclude %q \\", pattern)
 	}
 
-	// Cleanup runs only after hf download succeeds. Preserve the local cache mount
-	// and its .cache ancestor, but remove their contents and other directories
-	// that would otherwise become zero-byte objects on blob storage.
+	// Cleanup runs only after hf download succeeds. Preserve the local cache and
+	// its ancestor; Kubernetes reclaims emptyDir when the Pod is removed. Keep
+	// the existing cleanup of other PVC directories for blob-streamer compatibility.
 	script := fmt.Sprintf(`set -e
 export HF_HUB_DOWNLOAD_TIMEOUT=300
 
@@ -61,8 +61,6 @@ hf download "${MODEL_ID}" \
   --max-workers 4 \%s
   --local-dir "/models/${MODEL_ID}"
 
-# Empty the cache without removing the mount root or its .cache ancestor.
-find "/models/${MODEL_ID}/.cache/huggingface" -mindepth 1 -maxdepth 1 -exec rm -rf -- {} + 2>/dev/null || true
 # Prune .cache so the PVC cleanup cannot traverse the mount or delete its ancestor.
 find "/models/${MODEL_ID}/" -mindepth 1 -path "/models/${MODEL_ID}/.cache" -prune -o -type d -prune -exec rm -rf -- {} + 2>/dev/null || true`,
 		image.PipBootstrapCommand,

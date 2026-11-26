@@ -234,15 +234,13 @@ func TestBuildDownloadJobScript(t *testing.T) {
 		assert.Less(t, pinIdx, strings.Index(script, `pip install -q "huggingface-hub==`))
 	})
 
-	t.Run("cache cleanup runs after the download", func(t *testing.T) {
+	t.Run("PVC cleanup runs after the download and leaves local cache to Kubernetes", func(t *testing.T) {
 		downloadIdx := strings.Index(script, `hf download "${MODEL_ID}"`)
-		cleanupIdx := strings.Index(script, `find "/models/${MODEL_ID}/.cache/huggingface"`)
+		cleanupIdx := strings.Index(script, `find "/models/${MODEL_ID}/"`)
 		require.NotEqual(t, -1, downloadIdx)
 		require.NotEqual(t, -1, cleanupIdx)
-		// .cache holds the *.incomplete files sampler.py reads to detect an
-		// in-flight download. Cleaning it before the download finishes would make
-		// the sampler report "finished" while bytes were still arriving.
 		assert.Less(t, downloadIdx, cleanupIdx)
+		assert.NotContains(t, script, `find "/models/${MODEL_ID}/.cache/huggingface"`)
 	})
 }
 
@@ -383,7 +381,8 @@ func TestDownloadJobCleanupPreservesCacheMount(t *testing.T) {
 			job := BuildDownloadJob(newTestModelMirror(), DefaultDownloadJobResources(), nil)
 			script := job.Spec.Template.Spec.Containers[0].Args[0]
 			// Run the actual post-download shell with an isolated fake download result.
-			cleanup := script[strings.Index(script, "# Empty the cache"):]
+			_, cleanup, found := strings.Cut(script, `--local-dir "/models/${MODEL_ID}"`)
+			require.True(t, found, "exercise all cleanup commands after the download")
 			result := "true"
 			if !downloadSucceeds {
 				result = "false"
@@ -399,14 +398,16 @@ func TestDownloadJobCleanupPreservesCacheMount(t *testing.T) {
 			assert.DirExists(t, cache)
 			assert.DirExists(t, filepath.Dir(cache))
 			assert.FileExists(t, filepath.Join(modelDir, "model.safetensors"))
-			entries, err := os.ReadDir(cache)
-			require.NoError(t, err)
+			// The Pod owns the emptyDir lifecycle; PVC cleanup must not alter its contents.
+			for _, name := range []string{".gitignore", "download/shard.incomplete"} {
+				content, err := os.ReadFile(filepath.Join(cache, name))
+				require.NoError(t, err)
+				assert.Equal(t, "data", string(content))
+			}
+			assert.NotContains(t, script, `find "/models/${MODEL_ID}/.cache/huggingface"`)
 			if downloadSucceeds {
-				assert.Empty(t, entries)
 				assert.NoDirExists(t, filepath.Join(modelDir, "other"))
 			} else {
-				assert.NotEmpty(t, entries)
-				assert.FileExists(t, filepath.Join(cache, "download", "shard.incomplete"))
 				assert.DirExists(t, filepath.Join(modelDir, "other"))
 			}
 		})

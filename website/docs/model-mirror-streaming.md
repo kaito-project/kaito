@@ -316,32 +316,16 @@ Streaming is skipped (the Workspace falls back to the normal download-at-runtime
 - the Workspace has the `kaito.sh/model-streaming: "disabled"` annotation, or
 - the Workspace uses the Transformers runtime — streaming requires vLLM.
 
-### Downloader local cache and disk usage
+### Download cache storage
 
-The controller renders a model-specific mount path from `spec.source.modelID`:
-`/models/<modelID>/.cache/huggingface`. A disk-backed `emptyDir` named
-`hf-local-cache` is mounted there in both the downloader and the native progress
-sampler (read-only in the sampler). Kubernetes does not expand environment
-variables in mount paths. Hugging Face's unmodified `hf download --local-dir`
-command therefore keeps its locks, probes, download metadata, and temporary
-`.incomplete` weight files on local disk rather than the model-storage PVC.
-Final model files remain on the PVC; the sampler sees both those files and the
-local incomplete files. After success, cleanup empties the local cache without
-removing its mount root or its `.cache` ancestor.
+ModelMirror downloads use node-local temporary storage for Hugging Face
+cache files, including incomplete model weights. Final model files remain
+on the model-storage PVC. Ensure sufficient node disk space for concurrent
+downloads, in addition to any BlobFuse cache usage.
 
-This is **not a lock-only cache and does not eliminate OS/node disk pressure**.
-Size node-local storage for concurrent weight shards (`--max-workers 4`), plus
-BlobFuse's node-side cache, images, and runtime dependencies. Cross-filesystem
-completion copies files from local disk to the PVC rather than using an atomic
-rename, adding disk I/O. There is no small fixed `emptyDir` size limit or memory
-medium. Pod replacement loses the local metadata and temporary download state;
-a retry must re-download affected files, not resume them from the PVC.
-
-Local locks coordinate only workers sharing this Pod's cache, not independent
-Pods. Existing Job lifecycle/concurrency behavior is unchanged; do not run
-independent downloaders against the same storage destination. Offline tests
-cover the pinned HF client's cross-filesystem copy fallback, but do not validate
-real BlobFuse behavior; a cluster end-to-end test is still required.
+Kubernetes reclaims the local cache when the download Pod is removed from
+the node; no manual cache cleanup is needed. Replacing a Pod discards its
+local download state, so incomplete files may need to be downloaded again.
 
 ## Related Documentation
 

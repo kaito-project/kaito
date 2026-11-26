@@ -11,6 +11,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import asyncio
 import json
 import re
 import textwrap
@@ -1519,6 +1520,68 @@ async def test_chat_completions_rag_clamps_max_tokens_to_context_window(
     sent = json.loads(route.calls.last.request.content)
     # Each message with content counts as 300 tokens; the rest is left for the answer.
     assert sent["max_tokens"] == 4000 - 300 * len(sent["messages"])
+
+
+@pytest.mark.asyncio
+@respx.mock
+@patch("requests.get")
+async def test_chat_completions_rag_concurrent_requests_keep_their_max_tokens(
+    mock_get, async_client
+):
+    """Concurrent RAG chats each send their own max_tokens to the LLM."""
+    mock_get.return_value.status_code = 200
+    mock_get.return_value.json.return_value = {
+        "data": [{"id": "mock-model", "max_model_len": 2048}]
+    }
+
+    mock_response = {
+        "id": "chatcmpl-max-tokens-concurrent",
+        "object": "chat.completion",
+        "created": int(time.time()),
+        "model": "mock-model",
+        "choices": [
+            {
+                "index": 0,
+                "message": {"role": "assistant", "content": "Short answer."},
+                "finish_reason": "stop",
+            }
+        ],
+    }
+    route = respx.post("http://localhost:5000/v1/chat/completions").mock(
+        return_value=httpx.Response(200, json=mock_response)
+    )
+
+    index_request = {
+        "index_name": "max_tokens_concurrent_index",
+        "documents": [
+            {"text": "This is a test document about AI and machine learning."}
+        ],
+    }
+    response = await async_client.post("/index", json=index_request)
+    assert response.status_code == 200
+
+    def chat_request(tag: str, max_tokens: int) -> dict:
+        return {
+            "index_name": "max_tokens_concurrent_index",
+            "model": "mock-model",
+            "messages": [
+                {"role": "user", "content": f"What can you tell me about AI? {tag}"}
+            ],
+            "max_tokens": max_tokens,
+        }
+
+    responses = await asyncio.gather(
+        async_client.post("/v1/chat/completions", json=chat_request("req-a", 100)),
+        async_client.post("/v1/chat/completions", json=chat_request("req-b", 7)),
+    )
+    assert [r.status_code for r in responses] == [200, 200]
+
+    sent = {}
+    for call in route.calls:
+        body = json.loads(call.request.content)
+        tag = "req-a" if "req-a" in json.dumps(body["messages"]) else "req-b"
+        sent[tag] = body["max_tokens"]
+    assert sent == {"req-a": 100, "req-b": 7}
 
 
 @pytest.mark.asyncio

@@ -14,6 +14,7 @@
 
 import asyncio
 import concurrent.futures
+import contextvars
 import json
 import logging
 from collections.abc import AsyncIterator, Sequence
@@ -63,9 +64,15 @@ DEFAULT_HEADERS = {
     "User-Agent": USER_AGENT,
 }
 
+# The LLM params of the request this task serves. One Inference serves every
+# request and requests run side by side, so the params must not live on the
+# instance, or one request's params would leak into another's.
+_request_params: contextvars.ContextVar[dict] = contextvars.ContextVar(
+    "ragengine_llm_params", default={}
+)
+
 
 class Inference(CustomLLM):
-    params: dict = {}
     _default_model: str = None
     _default_max_model_len: int = None
     _model_retrieval_attempted: bool = False
@@ -82,10 +89,10 @@ class Inference(CustomLLM):
         return self._async_http_client
 
     def set_params(self, params: dict) -> None:
-        self.params = params
+        _request_params.set(params)
 
     def get_param(self, key, default=None):
-        return self.params.get(key, default)
+        return _request_params.get().get(key, default)
 
     @llm_completion_callback()
     def stream_complete(self, prompt: str, **kwargs: Any) -> CompletionResponseGen:
@@ -93,8 +100,10 @@ class Inference(CustomLLM):
 
     def run_async_coroutine(self, coro):
         with concurrent.futures.ThreadPoolExecutor() as executor:
-            # Submit a task that creates its own event loop using asyncio.run
-            future = executor.submit(asyncio.run, coro)
+            # Submit a task that creates its own event loop using asyncio.run.
+            # Run it in a copy of this context so it sees the request's params.
+            ctx = contextvars.copy_context()
+            future = executor.submit(ctx.run, asyncio.run, coro)
             return future.result()
 
     @llm_completion_callback()
@@ -120,7 +129,9 @@ class Inference(CustomLLM):
         self, prompt: str, formatted: bool = False, **kwargs: Any
     ) -> CompletionResponse:
         try:
-            return await self._async_completions(prompt, **kwargs, **self.params)
+            return await self._async_completions(
+                prompt, **kwargs, **_request_params.get()
+            )
         except HTTPException as http_exc:
             raise http_exc
         except Exception as e:
@@ -130,7 +141,7 @@ class Inference(CustomLLM):
             )
         finally:
             # Clear params after the completion is done
-            self.params = {}
+            _request_params.set({})
 
     @llm_chat_callback()
     def chat(
@@ -234,8 +245,8 @@ class Inference(CustomLLM):
                 ],
             }
 
-            # Add any additional parameters from self.params onto request
-            for key, value in self.params.items():
+            # Add any additional parameters of this request onto the LLM request
+            for key, value in _request_params.get().items():
                 if key not in req:
                     req[key] = value
 
@@ -264,7 +275,7 @@ class Inference(CustomLLM):
             )
         finally:
             # Clear params after the completion is done
-            self.params = {}
+            _request_params.set({})
 
     async def chat_completions_passthrough(
         self, chatCompletionsRequest: CompletionCreateParams, **kwargs: Any
@@ -390,7 +401,7 @@ class Inference(CustomLLM):
         # self._debug_curl_command(data)
         try:
             # add extended params
-            for key, value in self.params.items():
+            for key, value in _request_params.get().items():
                 if key not in data:
                     data[key] = value
             resp = await self._async_post_request_raw(data, headers=DEFAULT_HEADERS)

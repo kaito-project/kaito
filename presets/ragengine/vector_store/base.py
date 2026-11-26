@@ -877,6 +877,8 @@ class BaseVectorStore(ABC):
             )
             self.index_map[index_name] = loaded_index
             logger.info(f"Successfully loaded index {index_name}.")
+        except HTTPException:
+            raise
         except Exception as e:
             logger.error(f"Failed to load index {index_name}. Error: {str(e)}")
             raise HTTPException(status_code=500, detail=f"Loading failed: {str(e)}")

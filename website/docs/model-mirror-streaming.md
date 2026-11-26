@@ -316,6 +316,17 @@ Streaming is skipped (the Workspace falls back to the normal download-at-runtime
 - the Workspace has the `kaito.sh/model-streaming: "disabled"` annotation, or
 - the Workspace uses the Transformers runtime — streaming requires vLLM.
 
+### Download cache storage
+
+ModelMirror downloads use node-local temporary storage for Hugging Face
+cache files, including incomplete model weights. Final model files remain
+on the model-storage PVC. Ensure sufficient node disk space for concurrent
+downloads, in addition to any BlobFuse cache usage.
+
+Kubernetes reclaims the local cache when the download Pod is removed from
+the node; no manual cache cleanup is needed. Replacing a Pod discards its
+local download state, so incomplete files may need to be downloaded again.
+
 ## Related Documentation
 
 - [Installation](./installation.md) - Install the KAITO workspace controller

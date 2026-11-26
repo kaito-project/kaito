@@ -32,6 +32,10 @@ import (
 // cloud workload-identity label); pass nil to add none.
 func BuildDownloadJob(cr *kaitov1alpha1.ModelMirror, resources DownloadJobResources, podLabels map[string]string) *batchv1.Job {
 	modelID := cr.Spec.Source.ModelID
+	// Match hf download's local directory; Kubernetes mount paths do not expand env vars.
+	cacheMount := corev1.VolumeMount{
+		Name: "hf-local-cache", MountPath: fmt.Sprintf("/models/%s/.cache/huggingface", modelID),
+	}
 
 	// Build --exclude flags from DownloadExcludePatterns
 	excludeFlags := ""
@@ -39,15 +43,9 @@ func BuildDownloadJob(cr *kaitov1alpha1.ModelMirror, resources DownloadJobResour
 		excludeFlags += fmt.Sprintf("\n  --exclude %q \\", pattern)
 	}
 
-	// Post-download cleanup: empty directories left on the PVC become zero-byte
-	// blob objects on Azure Blob NFS. RunAI model streamer iterates all objects in
-	// the container and crashes on directories (IsADirectoryError). We remove all
-	// subdirectories as a safety net.
-	//
-	// The cleanup must stay after `hf download` returns. It deletes
-	// /models/<id>/.cache, which is where huggingface_hub keeps its *.incomplete
-	// files — the signal sampler.py uses to decide whether a download is still in
-	// flight.
+	// Cleanup runs only after hf download succeeds. Preserve the local cache and
+	// its ancestor; Kubernetes reclaims emptyDir when the Pod is removed. Keep
+	// the existing cleanup of other PVC directories for blob-streamer compatibility.
 	script := fmt.Sprintf(`set -e
 export HF_HUB_DOWNLOAD_TIMEOUT=300
 
@@ -63,10 +61,8 @@ hf download "${MODEL_ID}" \
   --max-workers 4 \%s
   --local-dir "/models/${MODEL_ID}"
 
-# Remove all subdirectories — on HNS-enabled blob (NFS), directories become
-# zero-byte objects that cause RunAI model streamer to fail with FileExistsError.
-rm -rf "/models/${MODEL_ID}/.cache" 2>/dev/null || true
-find "/models/${MODEL_ID}/" -mindepth 1 -type d -exec rm -rf {} + 2>/dev/null || true`,
+# Prune .cache so the PVC cleanup cannot traverse the mount or delete its ancestor.
+find "/models/${MODEL_ID}/" -mindepth 1 -path "/models/${MODEL_ID}/.cache" -prune -o -type d -prune -exec rm -rf -- {} + 2>/dev/null || true`,
 		image.PipBootstrapCommand,
 		HuggingFaceHubVersion,
 		CertifiVersion,
@@ -110,8 +106,34 @@ find "/models/${MODEL_ID}/" -mindepth 1 -type d -exec rm -rf {} + 2>/dev/null ||
 		},
 		VolumeMounts: []corev1.VolumeMount{
 			{Name: "model-storage", MountPath: "/models"},
+			cacheMount,
 		},
 	}
+
+	// Create the nested mount destination before the sampler mounts /models
+	// read-only. Otherwise runc cannot create it on a fresh PVC. This ordinary
+	// init container mounts only the writable PVC and must finish first.
+	prepare := corev1.Container{
+		Name:    "prepare-model-cache",
+		Image:   image.PythonHelperImage,
+		Command: []string{"/bin/sh", "-c"},
+		Args:    []string{`mkdir -p "/models/${MODEL_ID}/.cache/huggingface"`},
+		Env:     []corev1.EnvVar{{Name: "MODEL_ID", Value: modelID}},
+		Resources: corev1.ResourceRequirements{
+			Requests: corev1.ResourceList{
+				corev1.ResourceCPU:    resource.MustParse("10m"),
+				corev1.ResourceMemory: resource.MustParse("16Mi"),
+			},
+		},
+		VolumeMounts: []corev1.VolumeMount{
+			{Name: "model-storage", MountPath: "/models"},
+		},
+	}
+
+	sampler := buildSamplerContainer(envVars)
+	samplerCacheMount := cacheMount
+	samplerCacheMount.ReadOnly = true
+	sampler.VolumeMounts = append(sampler.VolumeMounts, samplerCacheMount)
 
 	job := &batchv1.Job{
 		ObjectMeta: metav1.ObjectMeta{
@@ -128,8 +150,12 @@ find "/models/${MODEL_ID}/" -mindepth 1 -type d -exec rm -rf {} + 2>/dev/null ||
 				Spec: corev1.PodSpec{
 					RestartPolicy:  corev1.RestartPolicyNever,
 					Containers:     []corev1.Container{container},
-					InitContainers: []corev1.Container{buildSamplerContainer(envVars)},
+					InitContainers: []corev1.Container{prepare, sampler},
 					Volumes: []corev1.Volume{
+						{
+							Name:         "hf-local-cache",
+							VolumeSource: corev1.VolumeSource{EmptyDir: &corev1.EmptyDirVolumeSource{}},
+						},
 						{
 							Name: "model-storage",
 							VolumeSource: corev1.VolumeSource{

@@ -276,7 +276,7 @@ func (r *ModelMirrorReconciler) ensureDownloadJob(ctx context.Context, cr *kaito
 	var latestFailTime *metav1.Time
 	for i := range jobList.Items {
 		job := &jobList.Items[i]
-		if !isJobFailed(job) {
+		if !job.DeletionTimestamp.IsZero() || !isJobFailed(job) {
 			return nil // Active or succeeded Job exists
 		}
 		// Track the most recent failure time
@@ -294,12 +294,26 @@ func (r *ModelMirrorReconciler) ensureDownloadJob(ctx context.Context, cr *kaito
 		return nil
 	}
 
+	// Locks are Pod-local. Foreground deletion keeps failed (including legacy
+	// generated-name) Jobs visible until their Pods are gone before retrying.
+	if len(jobList.Items) > 0 {
+		for i := range jobList.Items {
+			if err := r.Delete(ctx, &jobList.Items[i], client.PropagationPolicy(metav1.DeletePropagationForeground)); err != nil && !errors.IsNotFound(err) {
+				return err
+			}
+		}
+		return nil
+	}
+
 	job := download.BuildDownloadJob(cr, r.DownloadResources, download.WorkloadIdentityPodLabels(os.Getenv("CLOUD_PROVIDER")))
 	if err := controllerutil.SetControllerReference(cr, job, r.Scheme()); err != nil {
 		return err
 	}
 	log.Info("Creating download Job", "namespace", cr.Namespace)
 	if err := r.Create(ctx, job); err != nil {
+		if errors.IsAlreadyExists(err) {
+			return nil // Another reconciler won the deterministic-name create.
+		}
 		setCondition(cr, kaitov1alpha1.ModelMirrorConditionTypeReady, metav1.ConditionFalse, kaitov1alpha1.ModelMirrorReasonJobCreateFailed,
 			fmt.Sprintf("failed to create download Job in namespace %s: %v", cr.Namespace, err))
 		if updateErr := r.Status().Update(ctx, cr); updateErr != nil {

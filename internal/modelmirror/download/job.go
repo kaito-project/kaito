@@ -14,6 +14,8 @@
 package download
 
 import (
+	"crypto/sha256"
+	_ "embed"
 	"fmt"
 
 	batchv1 "k8s.io/api/batch/v1"
@@ -25,6 +27,9 @@ import (
 	kaitov1alpha1 "github.com/kaito-project/kaito/api/v1alpha1"
 	"github.com/kaito-project/kaito/internal/image"
 )
+
+//go:embed scripts/hf_download.py
+var hfDownloadScript string
 
 // BuildDownloadJob constructs the Job that downloads model files to the PVC.
 // resources sets the CPU/memory requests and limits on the downloader container.
@@ -52,14 +57,14 @@ func BuildDownloadJob(cr *kaitov1alpha1.ModelMirror, resources DownloadJobResour
 export HF_HUB_DOWNLOAD_TIMEOUT=300
 
 %s
-pip install -q "huggingface-hub==%s" "certifi==%s"
+pip install -q "huggingface-hub==%s" "certifi==%s" "filelock==%s"
 
 # The native Xet client needs a complete, current CA bundle for the CAS endpoint.
 # Resolve it separately from export so set -e catches a failed certifi lookup.
 SSL_CERT_FILE="$(python3 -m certifi)"
 export SSL_CERT_FILE
 
-hf download "${MODEL_ID}" \
+python3 -c "$HF_DOWNLOAD_SCRIPT" download "${MODEL_ID}" \
   --max-workers 4 \%s
   --local-dir "/models/${MODEL_ID}"
 
@@ -70,6 +75,7 @@ find "/models/${MODEL_ID}/" -mindepth 1 -type d -exec rm -rf {} + 2>/dev/null ||
 		image.PipBootstrapCommand,
 		HuggingFaceHubVersion,
 		CertifiVersion,
+		FileLockVersion,
 		excludeFlags,
 	)
 
@@ -97,7 +103,7 @@ find "/models/${MODEL_ID}/" -mindepth 1 -type d -exec rm -rf {} + 2>/dev/null ||
 		Image:   image.PythonHelperImage,
 		Command: []string{"/bin/sh", "-c"},
 		Args:    []string{script},
-		Env:     envVars,
+		Env:     append(append([]corev1.EnvVar{}, envVars...), corev1.EnvVar{Name: "HF_DOWNLOAD_SCRIPT", Value: hfDownloadScript}),
 		Resources: corev1.ResourceRequirements{
 			Requests: corev1.ResourceList{
 				corev1.ResourceCPU:    resource.MustParse(resources.CPU),
@@ -110,19 +116,25 @@ find "/models/${MODEL_ID}/" -mindepth 1 -type d -exec rm -rf {} + 2>/dev/null ||
 		},
 		VolumeMounts: []corev1.VolumeMount{
 			{Name: "model-storage", MountPath: "/models"},
+			{Name: "hf-locks", MountPath: "/hf-locks"},
 		},
 	}
 
 	job := &batchv1.Job{
 		ObjectMeta: metav1.ObjectMeta{
-			GenerateName: cr.Name + "-download-",
-			Namespace:    cr.Namespace,
+			// A stable name makes concurrent create attempts atomic at the API server.
+			Name:      downloadJobName(cr),
+			Namespace: cr.Namespace,
 			Labels: map[string]string{
 				kaitov1alpha1.LabelModelMirrorName: cr.Name,
 			},
 		},
 		Spec: batchv1.JobSpec{
-			BackoffLimit:            ptr.To(int32(3)),
+			BackoffLimit: ptr.To(int32(3)),
+			Parallelism:  ptr.To(int32(1)),
+			Completions:  ptr.To(int32(1)),
+			// Do not start a replacement while the previous Pod is terminating.
+			PodReplacementPolicy:    ptr.To(batchv1.Failed),
 			TTLSecondsAfterFinished: ptr.To(int32(3600)), // 1 hour — keeps failed pods for debugging
 			Template: corev1.PodTemplateSpec{
 				Spec: corev1.PodSpec{
@@ -130,6 +142,12 @@ find "/models/${MODEL_ID}/" -mindepth 1 -type d -exec rm -rf {} + 2>/dev/null ||
 					Containers:     []corev1.Container{container},
 					InitContainers: []corev1.Container{buildSamplerContainer(envVars)},
 					Volumes: []corev1.Volume{
+						{
+							Name: "hf-locks",
+							VolumeSource: corev1.VolumeSource{EmptyDir: &corev1.EmptyDirVolumeSource{
+								SizeLimit: ptr.To(resource.MustParse("64Mi")),
+							}},
+						},
 						{
 							Name: "model-storage",
 							VolumeSource: corev1.VolumeSource{
@@ -157,4 +175,9 @@ find "/models/${MODEL_ID}/" -mindepth 1 -type d -exec rm -rf {} + 2>/dev/null ||
 		}
 	}
 	return job
+}
+
+func downloadJobName(cr *kaitov1alpha1.ModelMirror) string {
+	digest := sha256.Sum256([]byte(string(cr.UID) + "/" + cr.Name))
+	return fmt.Sprintf("model-download-%x", digest[:20])
 }

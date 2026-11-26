@@ -19,6 +19,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	batchv1 "k8s.io/api/batch/v1"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -115,7 +116,7 @@ func TestBuildDownloadJobScript(t *testing.T) {
 	})
 
 	t.Run("still downloads and still cleans up", func(t *testing.T) {
-		assert.Contains(t, script, `hf download "${MODEL_ID}"`)
+		assert.Contains(t, script, `python3 -c "$HF_DOWNLOAD_SCRIPT" download "${MODEL_ID}"`)
 		assert.Contains(t, script, "--exclude")
 		assert.Contains(t, script, "-mindepth 1 -type d")
 	})
@@ -127,7 +128,7 @@ func TestBuildDownloadJobScript(t *testing.T) {
 	})
 
 	t.Run("cache cleanup runs after the download", func(t *testing.T) {
-		downloadIdx := strings.Index(script, `hf download "${MODEL_ID}"`)
+		downloadIdx := strings.Index(script, `python3 -c "$HF_DOWNLOAD_SCRIPT" download "${MODEL_ID}"`)
 		cleanupIdx := strings.Index(script, `rm -rf "/models/${MODEL_ID}/.cache"`)
 		require.NotEqual(t, -1, downloadIdx)
 		require.NotEqual(t, -1, cleanupIdx)
@@ -151,7 +152,7 @@ func TestBuildDownloadJobXetTrust(t *testing.T) {
 				container corev1.Container
 				client    string
 			}{
-				{job.Spec.Template.Spec.Containers[0], `hf download "${MODEL_ID}"`},
+				{job.Spec.Template.Spec.Containers[0], `python3 -c "$HF_DOWNLOAD_SCRIPT" download "${MODEL_ID}"`},
 				{job.Spec.Template.Spec.InitContainers[0], `exec python3 -c "$SAMPLER_SCRIPT"`},
 			} {
 				t.Run(tc.container.Name, func(t *testing.T) {
@@ -223,4 +224,42 @@ func TestDownloadJobStillCompletesWithSidecar(t *testing.T) {
 		"the sampler must not be a regular container")
 	require.Len(t, job.Spec.Template.Spec.InitContainers, 1)
 	require.NotNil(t, job.Spec.Template.Spec.InitContainers[0].RestartPolicy)
+}
+
+func TestDownloadJobLocalLocks(t *testing.T) {
+	cr := newTestModelMirror()
+	job := BuildDownloadJob(cr, DefaultDownloadJobResources(), nil)
+	assert.Empty(t, job.GenerateName)
+	assert.Equal(t, job.Name, BuildDownloadJob(cr, DefaultDownloadJobResources(), nil).Name)
+	cr.UID = "another-generation"
+	assert.NotEqual(t, job.Name, BuildDownloadJob(cr, DefaultDownloadJobResources(), nil).Name)
+	assert.EqualValues(t, 1, *job.Spec.Parallelism)
+	assert.EqualValues(t, 1, *job.Spec.Completions)
+	assert.Equal(t, batchv1.Failed, *job.Spec.PodReplacementPolicy)
+	volumes := job.Spec.Template.Spec.Volumes
+	require.Len(t, volumes, 2)
+	assert.Equal(t, "hf-locks", volumes[0].Name)
+	require.NotNil(t, volumes[0].EmptyDir)
+	assert.Empty(t, volumes[0].EmptyDir.Medium, "locks use disk, not tmpfs")
+	assert.Equal(t, "64Mi", volumes[0].EmptyDir.SizeLimit.String())
+	assert.Equal(t, cr.Name, volumes[1].PersistentVolumeClaim.ClaimName)
+	container := job.Spec.Template.Spec.Containers[0]
+	assert.Contains(t, container.VolumeMounts, corev1.VolumeMount{Name: "hf-locks", MountPath: "/hf-locks"})
+	assert.Contains(t, container.VolumeMounts, corev1.VolumeMount{Name: "model-storage", MountPath: "/models"})
+	assert.Contains(t, container.Env, corev1.EnvVar{Name: "HF_DOWNLOAD_SCRIPT", Value: hfDownloadScript})
+	assert.Contains(t, container.Args[0], `--local-dir "/models/${MODEL_ID}"`)
+	assert.Contains(t, container.Args[0], "--max-workers 4")
+	assert.Contains(t, container.Args[0], `"filelock==`+FileLockVersion+`"`)
+	assert.Contains(t, container.Args[0], "HF_HUB_DOWNLOAD_TIMEOUT=300")
+	assert.NotEmpty(t, hfDownloadScript)
+	for _, pattern := range DownloadExcludePatterns {
+		assert.Contains(t, container.Args[0], pattern)
+	}
+	for _, mount := range job.Spec.Template.Spec.InitContainers[0].VolumeMounts {
+		assert.NotEqual(t, "hf-locks", mount.Name, "only the downloader mounts local locks")
+	}
+	for _, env := range container.Env {
+		assert.NotEqual(t, "HF_HOME", env.Name)
+		assert.NotEqual(t, "HF_HUB_CACHE", env.Name)
+	}
 }

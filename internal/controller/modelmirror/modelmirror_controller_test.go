@@ -603,3 +603,76 @@ func TestHandleJobSuccessZeroesDownloadMetrics(t *testing.T) {
 	assert.Equal(t, int64(0), cr.Status.Download.RemainingSeconds)
 	assert.NotNil(t, cr.Status.LastDownloadTime)
 }
+
+func TestEnsureDownloadJobConcurrentCreate(t *testing.T) {
+	cr := newManagedTestCR("concurrent")
+	c := fake.NewClientBuilder().WithScheme(testScheme()).WithObjects(cr).Build()
+	// Both reconcilers observe an empty list, as can happen around leader changes.
+	r := newTestReconciler(c)
+	r.APIReader = interceptor.NewClient(c, interceptor.Funcs{
+		List: func(_ context.Context, _ client.WithWatch, list client.ObjectList, _ ...client.ListOption) error {
+			list.(*batchv1.JobList).Items = nil
+			return nil
+		},
+	})
+	for range 2 {
+		require.NoError(t, r.ensureDownloadJob(context.Background(), cr, r.Log))
+	}
+	jobs := &batchv1.JobList{}
+	require.NoError(t, c.List(context.Background(), jobs))
+	require.Len(t, jobs.Items, 1, "API-server name uniqueness prevents duplicate downloads")
+}
+
+func TestEnsureDownloadJobWaitsForForegroundRetry(t *testing.T) {
+	cr := newManagedTestCR("retry")
+	job := download.BuildDownloadJob(cr, download.DefaultDownloadJobResources(), nil)
+	job.Name = "legacy-generated-download"
+	job.Finalizers = []string{"foregroundDeletion"}
+	job.Status.Conditions = []batchv1.JobCondition{{
+		Type: batchv1.JobFailed, Status: corev1.ConditionTrue,
+		LastTransitionTime: metav1.NewTime(time.Now().Add(-2 * jobRetryInterval)),
+	}}
+	deleted := false
+	c := fake.NewClientBuilder().WithScheme(testScheme()).WithObjects(cr, job).
+		WithInterceptorFuncs(interceptor.Funcs{
+			Delete: func(ctx context.Context, c client.WithWatch, obj client.Object, opts ...client.DeleteOption) error {
+				options := &client.DeleteOptions{}
+				for _, opt := range opts {
+					opt.ApplyToDelete(options)
+				}
+				require.Equal(t, metav1.DeletePropagationForeground, *options.PropagationPolicy)
+				deleted = true
+				return c.Delete(ctx, obj, opts...)
+			},
+		}).Build()
+	r := newTestReconciler(c)
+	ctx := context.Background()
+	require.NoError(t, r.ensureDownloadJob(ctx, cr, r.Log))
+	require.True(t, deleted)
+	require.NoError(t, r.ensureDownloadJob(ctx, cr, r.Log))
+	jobs := &batchv1.JobList{}
+	require.NoError(t, c.List(ctx, jobs))
+	require.Len(t, jobs.Items, 1)
+	assert.Equal(t, job.Name, jobs.Items[0].Name)
+	assert.False(t, jobs.Items[0].DeletionTimestamp.IsZero())
+	// Simulate the garbage collector completing dependent Pod deletion.
+	jobs.Items[0].Finalizers = nil
+	require.NoError(t, c.Update(ctx, &jobs.Items[0]))
+	require.NoError(t, r.ensureDownloadJob(ctx, cr, r.Log))
+	require.NoError(t, c.List(ctx, jobs))
+	require.Len(t, jobs.Items, 1)
+	assert.NotEqual(t, job.Name, jobs.Items[0].Name)
+}
+
+func TestEnsureDownloadJobUsesUncachedActiveJob(t *testing.T) {
+	cr := newManagedTestCR("active")
+	job := download.BuildDownloadJob(cr, download.DefaultDownloadJobResources(), nil)
+	api := fake.NewClientBuilder().WithScheme(testScheme()).WithObjects(cr, job).Build()
+	cache := fake.NewClientBuilder().WithScheme(testScheme()).WithObjects(cr).Build()
+	r := newTestReconciler(cache)
+	r.APIReader = api
+	require.NoError(t, r.ensureDownloadJob(context.Background(), cr, r.Log))
+	jobs := &batchv1.JobList{}
+	require.NoError(t, cache.List(context.Background(), jobs))
+	assert.Empty(t, jobs.Items)
+}

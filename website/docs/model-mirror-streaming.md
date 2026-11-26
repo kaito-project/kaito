@@ -316,6 +316,27 @@ Streaming is skipped (the Workspace falls back to the normal download-at-runtime
 - the Workspace has the `kaito.sh/model-streaming: "disabled"` annotation, or
 - the Workspace uses the Transformers runtime — streaming requires vLLM.
 
+### Downloader locks and local disk usage
+
+The downloader keeps only Hugging Face lock files in a **64 MiB disk-backed
+`emptyDir` at `/hf-locks`**. The pinned HF adapter maps each original local-dir
+lock path to a SHA-256 filename before constructing a native file lock. It does
+not disable locking or fall back to soft locks. Model files, download metadata,
+and resumable `.incomplete` files stay on the model-storage PVC under
+`/models/<modelID>`; the sampler continues to observe that directory. The cache
+cleanup still runs only after a successful download.
+
+These locks coordinate workers **within one Pod**, not different Pods. The
+controller uses a stable Job name to reject duplicate creates, waits for
+foreground deletion of failed Jobs and their Pods before retrying, and configures
+Jobs to replace Pods only after failure (not while they are terminating). Do not
+run independent downloaders against the same storage destination or force-delete
+a running downloader: Pod-local locks cannot fence an orphaned writer. Failed
+Jobs are retained until the retry interval, then removed before the next attempt.
+
+This does **not** eliminate node disk usage: BlobFuse's own node-side cache,
+container images, and runtime dependencies still require disk capacity.
+
 ## Related Documentation
 
 - [Installation](./installation.md) - Install the KAITO workspace controller

@@ -42,6 +42,108 @@ func newTestModelMirror() *kaitov1alpha1.ModelMirror {
 	}
 }
 
+func downloadJobContainer(t *testing.T, containers []corev1.Container, name string) corev1.Container {
+	t.Helper()
+	for _, container := range containers {
+		if container.Name == name {
+			return container
+		}
+	}
+	t.Fatalf("container %q not found", name)
+	return corev1.Container{}
+}
+
+func TestDownloadJobPrepareModelCache(t *testing.T) {
+	cr := newTestModelMirror()
+	cr.Spec.Source.AccessSecretName = "hf-access"
+	job := BuildDownloadJob(cr, DefaultDownloadJobResources(), nil)
+	pod := job.Spec.Template.Spec
+	require.Len(t, pod.InitContainers, 2)
+	assert.Equal(t, "prepare-model-cache", pod.InitContainers[0].Name)
+	assert.Equal(t, "sampler", pod.InitContainers[1].Name)
+	prepare := downloadJobContainer(t, pod.InitContainers, "prepare-model-cache")
+	assert.Nil(t, prepare.RestartPolicy, "ordinary init must finish before the native sidecar starts")
+	assert.Equal(t, image.PythonHelperImage, prepare.Image)
+	assert.Equal(t, []string{"/bin/sh", "-c"}, prepare.Command)
+	assert.Equal(t, []string{`mkdir -p "/models/${MODEL_ID}/.cache/huggingface"`}, prepare.Args)
+	assert.Equal(t, []corev1.EnvVar{{Name: "MODEL_ID", Value: cr.Spec.Source.ModelID}}, prepare.Env,
+		"preparation needs no HF token or other credentials")
+	assert.Empty(t, prepare.EnvFrom)
+	assert.Nil(t, prepare.SecurityContext, "preparation needs no extra privileges")
+	assert.Equal(t, []corev1.VolumeMount{{Name: "model-storage", MountPath: "/models"}}, prepare.VolumeMounts,
+		"only mount the PVC read-write, never the nested cache before creating its destination")
+	assert.True(t, prepare.Resources.Requests.Cpu().Equal(resource.MustParse("10m")))
+	assert.True(t, prepare.Resources.Requests.Memory().Equal(resource.MustParse("16Mi")))
+	sampler := downloadJobContainer(t, pod.InitContainers, "sampler")
+	require.NotNil(t, sampler.RestartPolicy)
+	assert.Equal(t, corev1.ContainerRestartPolicyAlways, *sampler.RestartPolicy)
+	require.Len(t, pod.Containers, 1)
+	assert.Equal(t, "downloader", pod.Containers[0].Name)
+}
+
+func TestDownloadJobPrepareModelCacheScript(t *testing.T) {
+	for _, modelID := range []string{"gpt2", "Qwen/Qwen3-Coder-30B-A3B-Instruct", "org/nested/model", "org/model $(touch injected); 'quoted'"} {
+		t.Run(modelID, func(t *testing.T) {
+			root := t.TempDir()
+			cr := newTestModelMirror()
+			cr.Spec.Source.ModelID = modelID
+			job := BuildDownloadJob(cr, DefaultDownloadJobResources(), nil)
+			prepare := downloadJobContainer(t, job.Spec.Template.Spec.InitContainers, "prepare-model-cache")
+			require.Equal(t, []corev1.EnvVar{{Name: "MODEL_ID", Value: modelID}}, prepare.Env)
+			// Run the rendered script on an empty stand-in PVC, changing only its
+			// mount root via an environment variable (no shell path interpolation).
+			script := strings.ReplaceAll(prepare.Args[0], "/models/", "${TEST_MODEL_ROOT}/")
+			run := func() {
+				t.Helper()
+				cmd := exec.Command(prepare.Command[0], append(prepare.Command[1:], script)...)
+				cmd.Dir = root
+				cmd.Env = append(os.Environ(), "TEST_MODEL_ROOT="+root, "MODEL_ID="+prepare.Env[0].Value)
+				output, err := cmd.CombinedOutput()
+				require.NoError(t, err, "%s", output)
+			}
+			run()
+			// The exact destination of the later read-only nested mount now exists.
+			sampler := downloadJobContainer(t, job.Spec.Template.Spec.InitContainers, "sampler")
+			for _, mount := range sampler.VolumeMounts {
+				assert.True(t, mount.ReadOnly)
+				assert.DirExists(t, filepath.Join(root, strings.TrimPrefix(mount.MountPath, "/models")))
+			}
+			cache := filepath.Join(root, modelID, ".cache", "huggingface")
+			assert.DirExists(t, cache)
+			// Re-running preparation must preserve both final payload and cache data.
+			for _, path := range []string{filepath.Join(root, modelID, "model.safetensors"), filepath.Join(cache, "shard.incomplete")} {
+				require.NoError(t, os.WriteFile(path, []byte("keep existing data"), 0600))
+			}
+			run()
+			for _, path := range []string{filepath.Join(root, modelID, "model.safetensors"), filepath.Join(cache, "shard.incomplete")} {
+				data, err := os.ReadFile(path)
+				require.NoError(t, err)
+				assert.Equal(t, "keep existing data", string(data))
+			}
+			assert.NoFileExists(t, filepath.Join(root, "injected"))
+		})
+	}
+
+	t.Run("mkdir failure prevents successful initialization", func(t *testing.T) {
+		root := t.TempDir()
+		cr := newTestModelMirror()
+		cr.Spec.Source.ModelID = "org/model"
+		job := BuildDownloadJob(cr, DefaultDownloadJobResources(), nil)
+		prepare := downloadJobContainer(t, job.Spec.Template.Spec.InitContainers, "prepare-model-cache")
+		// A file blocking the parent path fails even when tests run as root.
+		blocker := filepath.Join(root, "org")
+		require.NoError(t, os.WriteFile(blocker, []byte("keep"), 0600))
+		script := strings.ReplaceAll(prepare.Args[0], "/models/", "${TEST_MODEL_ROOT}/")
+		cmd := exec.Command(prepare.Command[0], append(prepare.Command[1:], script)...)
+		cmd.Env = append(os.Environ(), "TEST_MODEL_ROOT="+root, "MODEL_ID="+prepare.Env[0].Value)
+		output, err := cmd.CombinedOutput()
+		require.Error(t, err, "%s", output)
+		data, err := os.ReadFile(blocker)
+		require.NoError(t, err)
+		assert.Equal(t, "keep", string(data))
+	})
+}
+
 func TestBuildDownloadJobResources(t *testing.T) {
 	cases := []struct {
 		name            string
@@ -151,14 +253,14 @@ func TestBuildDownloadJobXetTrust(t *testing.T) {
 			cr.Spec.Source.AccessSecretName = secretName
 			job := BuildDownloadJob(cr, DefaultDownloadJobResources(), nil)
 			require.Len(t, job.Spec.Template.Spec.Containers, 1)
-			require.Len(t, job.Spec.Template.Spec.InitContainers, 1)
+			require.Len(t, job.Spec.Template.Spec.InitContainers, 2)
 
 			for _, tc := range []struct {
 				container corev1.Container
 				client    string
 			}{
 				{job.Spec.Template.Spec.Containers[0], `hf download "${MODEL_ID}"`},
-				{job.Spec.Template.Spec.InitContainers[0], `exec python3 -c "$SAMPLER_SCRIPT"`},
+				{downloadJobContainer(t, job.Spec.Template.Spec.InitContainers, "sampler"), `exec python3 -c "$SAMPLER_SCRIPT"`},
 			} {
 				t.Run(tc.container.Name, func(t *testing.T) {
 					for _, env := range tc.container.Env {
@@ -227,8 +329,8 @@ func TestDownloadJobStillCompletesWithSidecar(t *testing.T) {
 	// a regular container it would run forever and the Job would hang at 0/1.
 	assert.Len(t, job.Spec.Template.Spec.Containers, 1,
 		"the sampler must not be a regular container")
-	require.Len(t, job.Spec.Template.Spec.InitContainers, 1)
-	require.NotNil(t, job.Spec.Template.Spec.InitContainers[0].RestartPolicy)
+	require.Len(t, job.Spec.Template.Spec.InitContainers, 2)
+	require.NotNil(t, downloadJobContainer(t, job.Spec.Template.Spec.InitContainers, "sampler").RestartPolicy)
 }
 
 func TestDownloadJobLocalCache(t *testing.T) {
@@ -249,7 +351,7 @@ func TestDownloadJobLocalCache(t *testing.T) {
 			assert.Contains(t, container.VolumeMounts, mount)
 			assert.Contains(t, container.VolumeMounts, corev1.VolumeMount{Name: "model-storage", MountPath: "/models"})
 			mount.ReadOnly = true
-			assert.Contains(t, job.Spec.Template.Spec.InitContainers[0].VolumeMounts, mount)
+			assert.Contains(t, downloadJobContainer(t, job.Spec.Template.Spec.InitContainers, "sampler").VolumeMounts, mount)
 			assert.Contains(t, container.Env, corev1.EnvVar{Name: "MODEL_ID", Value: modelID})
 			assert.Contains(t, container.Args[0], `hf download "${MODEL_ID}"`)
 			assert.Contains(t, container.Args[0], `--local-dir "/models/${MODEL_ID}"`)

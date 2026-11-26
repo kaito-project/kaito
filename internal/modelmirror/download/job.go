@@ -112,6 +112,26 @@ find "/models/${MODEL_ID}/" -mindepth 1 -path "/models/${MODEL_ID}/.cache" -prun
 		},
 	}
 
+	// Create the nested mount destination before the sampler mounts /models
+	// read-only. Otherwise runc cannot create it on a fresh PVC. This ordinary
+	// init container mounts only the writable PVC and must finish first.
+	prepare := corev1.Container{
+		Name:    "prepare-model-cache",
+		Image:   image.PythonHelperImage,
+		Command: []string{"/bin/sh", "-c"},
+		Args:    []string{`mkdir -p "/models/${MODEL_ID}/.cache/huggingface"`},
+		Env:     []corev1.EnvVar{{Name: "MODEL_ID", Value: modelID}},
+		Resources: corev1.ResourceRequirements{
+			Requests: corev1.ResourceList{
+				corev1.ResourceCPU:    resource.MustParse("10m"),
+				corev1.ResourceMemory: resource.MustParse("16Mi"),
+			},
+		},
+		VolumeMounts: []corev1.VolumeMount{
+			{Name: "model-storage", MountPath: "/models"},
+		},
+	}
+
 	sampler := buildSamplerContainer(envVars)
 	samplerCacheMount := cacheMount
 	samplerCacheMount.ReadOnly = true
@@ -132,7 +152,7 @@ find "/models/${MODEL_ID}/" -mindepth 1 -path "/models/${MODEL_ID}/.cache" -prun
 				Spec: corev1.PodSpec{
 					RestartPolicy:  corev1.RestartPolicyNever,
 					Containers:     []corev1.Container{container},
-					InitContainers: []corev1.Container{sampler},
+					InitContainers: []corev1.Container{prepare, sampler},
 					Volumes: []corev1.Volume{
 						{
 							Name:         "hf-local-cache",

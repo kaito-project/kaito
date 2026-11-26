@@ -35,8 +35,8 @@ func TestSamplerSidecar(t *testing.T) {
 
 	// A native sidecar is an initContainer with restartPolicy: Always. A plain
 	// second container would run forever and the Job would never reach Succeeded.
-	require.Len(t, job.Spec.Template.Spec.InitContainers, 1)
-	sc := job.Spec.Template.Spec.InitContainers[0]
+	require.Len(t, job.Spec.Template.Spec.InitContainers, 2)
+	sc := downloadJobContainer(t, job.Spec.Template.Spec.InitContainers, "sampler")
 
 	require.NotNil(t, sc.RestartPolicy)
 	assert.Equal(t, corev1.ContainerRestartPolicyAlways, *sc.RestartPolicy)
@@ -104,7 +104,7 @@ func TestSamplerSidecarHFToken(t *testing.T) {
 	}
 
 	job := BuildDownloadJob(cr, DefaultDownloadJobResources(), nil)
-	sc := job.Spec.Template.Spec.InitContainers[0]
+	sc := downloadJobContainer(t, job.Spec.Template.Spec.InitContainers, "sampler")
 
 	// The total-size lookup hits the Hub API, which needs the token for gated repos.
 	var found bool

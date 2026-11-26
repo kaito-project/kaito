@@ -316,26 +316,32 @@ Streaming is skipped (the Workspace falls back to the normal download-at-runtime
 - the Workspace has the `kaito.sh/model-streaming: "disabled"` annotation, or
 - the Workspace uses the Transformers runtime — streaming requires vLLM.
 
-### Downloader locks and local disk usage
+### Downloader local cache and disk usage
 
-The downloader keeps only Hugging Face lock files in a **64 MiB disk-backed
-`emptyDir` at `/hf-locks`**. The pinned HF adapter maps each original local-dir
-lock path to a SHA-256 filename before constructing a native file lock. It does
-not disable locking or fall back to soft locks. Model files, download metadata,
-and resumable `.incomplete` files stay on the model-storage PVC under
-`/models/<modelID>`; the sampler continues to observe that directory. The cache
-cleanup still runs only after a successful download.
+The controller renders a model-specific mount path from `spec.source.modelID`:
+`/models/<modelID>/.cache/huggingface`. A disk-backed `emptyDir` named
+`hf-local-cache` is mounted there in both the downloader and the native progress
+sampler (read-only in the sampler). Kubernetes does not expand environment
+variables in mount paths. Hugging Face's unmodified `hf download --local-dir`
+command therefore keeps its locks, probes, download metadata, and temporary
+`.incomplete` weight files on local disk rather than the model-storage PVC.
+Final model files remain on the PVC; the sampler sees both those files and the
+local incomplete files. After success, cleanup empties the local cache without
+removing its mount root or its `.cache` ancestor.
 
-These locks coordinate workers **within one Pod**, not different Pods. The
-controller uses a stable Job name to reject duplicate creates, waits for
-foreground deletion of failed Jobs and their Pods before retrying, and configures
-Jobs to replace Pods only after failure (not while they are terminating). Do not
-run independent downloaders against the same storage destination or force-delete
-a running downloader: Pod-local locks cannot fence an orphaned writer. Failed
-Jobs are retained until the retry interval, then removed before the next attempt.
+This is **not a lock-only cache and does not eliminate OS/node disk pressure**.
+Size node-local storage for concurrent weight shards (`--max-workers 4`), plus
+BlobFuse's node-side cache, images, and runtime dependencies. Cross-filesystem
+completion copies files from local disk to the PVC rather than using an atomic
+rename, adding disk I/O. There is no small fixed `emptyDir` size limit or memory
+medium. Pod replacement loses the local metadata and temporary download state;
+a retry must re-download affected files, not resume them from the PVC.
 
-This does **not** eliminate node disk usage: BlobFuse's own node-side cache,
-container images, and runtime dependencies still require disk capacity.
+Local locks coordinate only workers sharing this Pod's cache, not independent
+Pods. Existing Job lifecycle/concurrency behavior is unchanged; do not run
+independent downloaders against the same storage destination. Offline tests
+cover the pinned HF client's cross-filesystem copy fallback, but do not validate
+real BlobFuse behavior; a cluster end-to-end test is still required.
 
 ## Related Documentation
 

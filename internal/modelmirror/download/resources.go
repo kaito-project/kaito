@@ -22,8 +22,6 @@ import (
 const (
 	// huggingface-hub version
 	HuggingFaceHubVersion = "2.3.0"
-	// Native lock options are validated together with the HF local-dir adapter.
-	FileLockVersion = "4.3.1"
 
 	// certifi version provides the CA bundle used by the HF clients, including native Xet.
 	CertifiVersion = "2026.10.19"

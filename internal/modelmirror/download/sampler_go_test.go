@@ -42,8 +42,11 @@ func TestSamplerSidecar(t *testing.T) {
 	assert.Equal(t, corev1.ContainerRestartPolicyAlways, *sc.RestartPolicy)
 	assert.Equal(t, image.PythonHelperImage, sc.Image)
 
-	t.Run("mounts the model PVC read-only", func(t *testing.T) {
-		require.Len(t, sc.VolumeMounts, 1)
+	t.Run("mounts the model PVC and local cache read-only", func(t *testing.T) {
+		require.Len(t, sc.VolumeMounts, 2)
+		assert.Equal(t, "hf-local-cache", sc.VolumeMounts[1].Name)
+		assert.Equal(t, "/models/meta-llama/Llama-3.1-8B-Instruct/.cache/huggingface", sc.VolumeMounts[1].MountPath)
+		assert.True(t, sc.VolumeMounts[1].ReadOnly)
 		assert.Equal(t, "model-storage", sc.VolumeMounts[0].Name)
 		assert.Equal(t, "/models", sc.VolumeMounts[0].MountPath)
 		assert.True(t, sc.VolumeMounts[0].ReadOnly)

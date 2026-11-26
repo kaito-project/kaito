@@ -845,13 +845,13 @@ class BaseVectorStore(ABC):
 
     async def _load_internal(self, index_name: str, path: str, overwrite: bool):
         """Common logic for loading an index."""
-        try:
-            if index_name in self.index_map and not overwrite:
-                raise HTTPException(
-                    status_code=409,
-                    detail=f"Index '{index_name}' already exists. Use a different name or delete the existing index first.",
-                )
+        if index_name in self.index_map and not overwrite:
+            raise HTTPException(
+                status_code=409,
+                detail=f"Index '{index_name}' already exists. Use a different name or delete the existing index first.",
+            )
 
+        try:
             logger.info(f"Loading index {index_name} from {path}.")
 
             try:
@@ -877,6 +877,8 @@ class BaseVectorStore(ABC):
             )
             self.index_map[index_name] = loaded_index
             logger.info(f"Successfully loaded index {index_name}.")
+        except HTTPException:
+            raise
         except Exception as e:
             logger.error(f"Failed to load index {index_name}. Error: {str(e)}")
             raise HTTPException(status_code=500, detail=f"Loading failed: {str(e)}")

@@ -21,6 +21,7 @@ from unittest.mock import patch
 import httpx
 import pytest
 import respx
+from fastapi import HTTPException
 
 from ragengine.config import (
     DEFAULT_VECTOR_DB_PERSIST_DIR,
@@ -650,6 +651,23 @@ func main() {}"""
         assert len(result.documents) == 1
         assert result.total_items == 7
         assert result.documents[0].metadata["branch"] == "new_branch"
+
+    @pytest.mark.asyncio
+    async def test_load_existing_index(self, vector_store_manager, tmp_path):
+        index_name = "test_index"
+        await vector_store_manager.index_documents(
+            index_name, [Document(text="Test document")]
+        )
+        existing_index = vector_store_manager.index_map[index_name]
+
+        with pytest.raises(HTTPException) as exc_info:
+            await vector_store_manager.load(index_name, str(tmp_path), overwrite=False)
+
+        assert exc_info.value.status_code == 409
+        assert exc_info.value.detail == (
+            f"Index '{index_name}' already exists. Use a different name or delete the existing index first."
+        )
+        assert vector_store_manager.index_map[index_name] is existing_index
 
     @pytest.mark.asyncio
     async def test_persist_and_load_as_seperate_index(self, vector_store_manager):

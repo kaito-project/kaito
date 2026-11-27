@@ -1,0 +1,11 @@
+{{- if and .Values.cache.providers.dacs.enabled .Values.cache.providers.dacs.cache.enabled }}
+apiVersion: storage.azure.com/v1
+kind: Cache
+metadata:
+  name: {{ .Values.cache.providers.dacs.cache.name }}
+  namespace: {{ .Values.cache.providers.dacs.cache.namespace | default .Release.Namespace }}
+  labels:
+    {{- include "kaito.labels" . | nindent 4 }}
+spec:
+  {{- toYaml .Values.cache.providers.dacs.cache.spec | nindent 2 }}
+{{- end }}

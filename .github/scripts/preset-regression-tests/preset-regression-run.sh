@@ -49,6 +49,8 @@
 #   DIAG_LOG_LINES  pod log lines echoed into the job log on failure (default 200)
 #   KEEP_SUCCESS_ARTIFACTS  retain raw successful benchmark artifacts for baseline collection
 #   PYTHON_BIN  Python interpreter used to create the benchmark virtual environment
+#   STREAMING_ENABLED  route streaming presets through DACS (default false)
+#   DACS_CHART  pinned standalone chart used to prepare fresh streaming nodes
 
 set -euo pipefail
 
@@ -515,9 +517,60 @@ print_diagnostics() {
   echo "::endgroup::"
 }
 
+configure_storage() {
+  local manifest="$1"
+  storage_enabled=false
+  if [[ "${STREAMING_ENABLED:-false}" == "true" &&
+        "$(yq -r '.metadata.annotations."kaito.sh/model-streaming" // ""' "$manifest")" != "disabled" ]]; then
+    yq -i '
+      .metadata.annotations."kaito.sh/cache-config" = "preset-regression-cache" |
+      .resource.labelSelector.matchLabels."dacs.azure.com/processing-unit" = "cpu"
+    ' "$manifest"
+    storage_enabled=true
+  else
+    yq -i 'del(.metadata.annotations."kaito.sh/cache-config") |
+      del(.resource.labelSelector.matchLabels."dacs.azure.com/processing-unit")' "$manifest"
+  fi
+}
+
+prepare_streaming_storage() {
+  local workspace="$1" timeout="$2" node nodes
+  nodes="$(jq -c '.status.workerNodes // []' "$workspace")" || return 1
+  [[ "$nodes" != "[]" ]] || { log "ERROR: no workspace nodes to prepare"; return 1; }
+  while IFS= read -r node; do
+    kubectl get node "$node" -o json --request-timeout=30s |
+      jq -e '.metadata.labels["dacs.azure.com/processing-unit"] == "cpu"' >/dev/null ||
+      { log "ERROR: ${node} lacks its DACS disk-ownership label"; return 1; }
+  done < <(jq -r '.[]' <<<"$nodes")
+  # The chart's rollout hook waits for disk initialization on all selected nodes.
+  helm upgrade dacs "$DACS_CHART" -n kube-system --reuse-values \
+    --set cacheServerPrereq.enabled=true \
+    --set 'cacheServerPrereq.tolerations[0].operator=Exists' \
+    --wait --timeout "${timeout}s" || return 1
+  yq -o=json '.cache.providers.dacs.cache.spec' charts/kaito/workspace/values.yaml |
+    jq --arg uid "$(jq -r '.metadata.uid' "$workspace")" '{
+      apiVersion: "storage.azure.com/v1", kind: "Cache",
+      metadata: {name: "cache-sample", namespace: "kube-system",
+        labels: {"kaito.sh/preset-regression": $uid}},
+      spec: (. + {serverSizeInGB: 64, serverThreads: 16, tolerations: [{operator: "Exists"}]})
+    }' | kubectl create -f - --request-timeout=30s
+}
+
 teardown() {
   # teardown <workspace-name>
   local ws="$1"
+  if [[ "${2:-false}" == "true" ]]; then
+    local cache uid
+    cache="$(kubectl get cache cache-sample -n kube-system --ignore-not-found -o json)"
+    if [[ -n "$cache" ]]; then
+      uid="$(kubectl get workspace "$ws" -n "$NAMESPACE" -o jsonpath='{.metadata.uid}')"
+      if ! jq -e --arg uid "$uid" '.metadata.labels["kaito.sh/preset-regression"] == $uid' <<<"$cache" >/dev/null; then
+        log "ERROR: refusing to delete another workspace's Cache"
+        return 1
+      fi
+      kubectl delete cache cache-sample -n kube-system --wait=true --timeout=300s
+    fi
+  fi
   log "Tearing down workspace ${ws}..."
   kubectl delete workspace "$ws" -n "$NAMESPACE" --ignore-not-found --timeout=10m >/dev/null 2>&1 || true
 
@@ -543,16 +596,20 @@ teardown() {
   # provisioner has released every node claim from this one.
   local drain_deadline=$(($(date +%s) + 900))
   while [[ "$(date +%s)" -lt "$drain_deadline" ]]; do
-    local remaining
-    remaining="$(kubectl get nodeclaims --no-headers 2>/dev/null | grep -c . || true)"
-    if [[ "${remaining:-0}" -eq 0 ]]; then
-      log "All node claims released."
+    local remaining owned_nodes=0
+    remaining="$(kubectl get nodeclaims -o json | jq '.items | length')"
+    if [[ -z "$BYO_NODE_LABEL" ]]; then
+      owned_nodes="$(kubectl get nodes -l "apps=${ws}" -o json | jq '.items | length')"
+    fi
+    if [[ "$remaining" -eq 0 && "$owned_nodes" -eq 0 ]]; then
+      log "All node claims and provisioned workspace nodes released."
       return 0
     fi
     sleep 15
   done
-  log "WARNING: node claims still present after teardown; continuing anyway."
+  log "ERROR: workspace GPU resources still present after teardown; refusing another model."
   kubectl get nodeclaims -o wide || true
+  return 1
 }
 
 # ---------------------------------------------------------------------------
@@ -634,6 +691,8 @@ EOF
 
   local artifact_dir="${ARTIFACT_DIR}/${ws}"
   mkdir -p "$artifact_dir"
+  local storage_enabled storage_prepared=false
+  configure_storage "$ws_yaml"
   cp "$ws_yaml" "${artifact_dir}/workspace-applied.yaml"
 
   local start_epoch
@@ -684,6 +743,17 @@ EOF
 
     actual_nodes="$(jq -r '.status.targetNodeCount // "" | tostring' "$ws_json")"
     peak_tpm="$(jq -r '.status.performance.metrics.peakTokensPerMinute.value // ""' "$ws_json")"
+
+    if [[ "$storage_enabled" == "true" && "$storage_prepared" != "true" &&
+          "$(jq '.status.workerNodes // [] | length' "$ws_json")" -gt 0 ]]; then
+      local storage_timeout=$((deadline - $(date +%s)))
+      [[ "$storage_timeout" -le 300 ]] || storage_timeout=300
+      if [[ "$storage_timeout" -le 0 ]] || ! prepare_streaming_storage "$ws_json" "$storage_timeout"; then
+        reason="DACS preparation failed; see storage setup and pod diagnostics"
+        break
+      fi
+      storage_prepared=true
+    fi
 
     local succeeded_reason
     succeeded_reason="$(condition_of "$ws_json" WorkspaceSucceeded reason)"
@@ -765,7 +835,7 @@ EOF
       log "RETRYABLE: ${reason}"
       print_diagnostics "$ws" 2>&1 |
         tee "${artifact_dir}/diagnostics-attempt-$((transient_failure_retry + 1)).log"
-      teardown "$ws"
+      teardown "$ws" "$storage_enabled"
       log "Retrying ${model} in ${TRANSIENT_FAILURE_RETRY_INTERVAL_SEC}s ($((transient_failure_retry + 1))/${MAX_RETRIES_FOR_TRANSIENT_FAILURE} retries used)..."
       sleep "$TRANSIENT_FAILURE_RETRY_INTERVAL_SEC"
       run_target "$target" "$((transient_failure_retry + 1))" "$overall_start_epoch"
@@ -783,6 +853,13 @@ EOF
   if [[ "$status" == "passed" && ! "$actual_nodes" =~ ^[1-9][0-9]*$ ]]; then
     status="failed"
     reason="Workspace reported an invalid targetNodeCount: ${actual_nodes:-<empty>}"
+  fi
+
+  if [[ "$status" == "passed" && "$storage_enabled" == "true" ]] &&
+    ! { kubectl logs -n "$NAMESPACE" -l "kaito.sh/workspace=${ws}" --all-containers=true --tail=-1 --request-timeout=60s |
+        grep -E 'Remote(Client|Cache)=[1-9][0-9]*' >/dev/null; }; then
+    status="failed"
+    reason="No positive native DACS read counters observed"
   fi
 
   if [[ "$status" == "passed" ]]; then
@@ -817,7 +894,7 @@ EOF
 
   record "$target" "$status" "$reason" "$(($(date +%s) - overall_start_epoch))" \
     "$actual_nodes" "$peak_tpm" "$artifact_dir" "$correctness_result"
-  teardown "$ws"
+  teardown "$ws" "$storage_enabled"
   return 0
 }
 

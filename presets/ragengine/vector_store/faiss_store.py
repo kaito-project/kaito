@@ -14,7 +14,7 @@
 
 import faiss
 from llama_index.core import StorageContext
-from llama_index.vector_stores.faiss import FaissMapVectorStore
+from llama_index.vector_stores.faiss import FaissMapVectorStore, FaissVectorStore
 
 from ragengine.embedding.base import BaseEmbeddingModel
 from ragengine.models import Document
@@ -26,6 +26,12 @@ class FaissVectorStoreHandler(BaseVectorStore):
     def __init__(self, embed_model: BaseEmbeddingModel):
         super().__init__(embed_model, use_rwlock=True)
         self.dimension = self.embed_model.get_embedding_dimension()
+
+    def _filters_in_vector_store(self, index_name: str) -> bool:
+        # llama-index's FAISS stores raise on metadata filters. An index
+        # loaded from llama-index's JSON format uses a SimpleVectorStore,
+        # which applies them.
+        return not isinstance(self.index_map[index_name].vector_store, FaissVectorStore)
 
     def _create_storage_context_for_load(
         self, index_name: str, path: str

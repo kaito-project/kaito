@@ -1,0 +1,35 @@
+apiVersion: iac-guard-v.io/v1alpha1
+kind: InfrastructureContract
+metadata:
+  name: kaito-manager-rbac-relationships
+spec:
+  artifactClass: kubernetes_rendered
+  subjects:
+    include:
+      selector:
+        apiVersions: [rbac.authorization.k8s.io/v1]
+        kinds: [RoleBinding, ClusterRoleBinding]
+        namespaces: [system, _cluster]
+        labelSelector: {matchLabels: {}}
+    cardinality: {min: 7}
+  responsibility:
+    class: PROJECT_MANAGED
+    reason: The component-managed RBAC bindings must resolve their Roles and ServiceAccount with Kubernetes-consistent scope.
+  expect:
+    - id: subject-resolves
+      property:
+        namespace: iac_guard_v
+        id: IACGV_K8S_RBAC_SERVICEACCOUNT_SUBJECT_RESOLVES_V1
+        version: "1"
+      parameters: {complete_expected_domain: true}
+    - id: role-ref-resolves
+      property:
+        namespace: iac_guard_v
+        id: IACGV_K8S_RBAC_ROLE_REF_RESOLVES_V1
+        version: "1"
+      parameters: {complete_expected_domain: true}
+    - id: scope-consistent
+      property:
+        namespace: iac_guard_v
+        id: IACGV_K8S_RBAC_BINDING_SCOPE_CONSISTENT_V1
+        version: "1"

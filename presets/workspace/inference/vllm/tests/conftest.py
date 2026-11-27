@@ -61,6 +61,10 @@ except (ImportError, Exception):
             "v1",
             "v1.metrics",
             "v1.metrics.prometheus",
+            "config",
+            "config.lora",
+            "lora",
+            "lora.peft_helper",
         ],
     )
 
@@ -79,3 +83,51 @@ except (ImportError, Exception):
     protocol_mod = types.ModuleType("vllm.entrypoints.openai.models.protocol")
     protocol_mod.LoRAModulePath = MagicMock()
     sys.modules["vllm.entrypoints.openai.models.protocol"] = protocol_mod
+
+    # Stubs for the LoRA sizing helpers, mirroring vllm/config/lora.py and the
+    # PEFTHelper validation in vllm/lora/peft_helper.py (vLLM 0.32.0). CI
+    # installs vLLM, so there the tests exercise the real implementations.
+    from dataclasses import dataclass, field
+    from typing import Literal
+
+    lora_config_mod = types.ModuleType("vllm.config.lora")
+    lora_config_mod.MaxLoRARanks = Literal[1, 8, 16, 32, 64, 128, 256, 320, 512]
+    sys.modules["vllm.config.lora"] = lora_config_mod
+
+    @dataclass
+    class PEFTHelper:
+        r: int
+        lora_alpha: int
+        target_modules: list[str] | str
+        rank_pattern: dict[str, int] = field(default_factory=dict)
+
+        def __post_init__(self):
+            if self.r <= 0:
+                raise ValueError(
+                    f"LoRA rank `r` must be a positive integer, got {self.r}."
+                )
+            self.rank_pattern = self.rank_pattern or {}
+            for key, rank in self.rank_pattern.items():
+                if not isinstance(rank, int) or rank <= 0:
+                    raise ValueError(
+                        f"LoRA rank for `{key}` must be a positive integer."
+                    )
+            self.vllm_lora_scaling_factor = self.lora_alpha / self.r
+
+        @classmethod
+        def from_dict(cls, config_dict: dict) -> "PEFTHelper":
+            missing = {"r", "lora_alpha", "target_modules"} - set(config_dict)
+            if missing:
+                raise ValueError(f"Missing required configuration fields: {missing}")
+            names = {"r", "lora_alpha", "target_modules", "rank_pattern"}
+            return cls(**{k: v for k, v in config_dict.items() if k in names})
+
+    peft_helper_mod = types.ModuleType("vllm.lora.peft_helper")
+    peft_helper_mod.PEFTHelper = PEFTHelper
+    sys.modules["vllm.lora.peft_helper"] = peft_helper_mod
+else:
+    # Some test modules stub vllm submodules such as vllm.v1 in sys.modules,
+    # which breaks later imports of real vllm modules that depend on them.
+    # Load the real modules inference_api needs before any test is collected.
+    import vllm.config.lora  # noqa: F401
+    import vllm.lora.peft_helper  # noqa: F401

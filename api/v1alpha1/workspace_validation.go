@@ -64,6 +64,7 @@ func (w *Workspace) Validate(ctx context.Context) (errs *apis.FieldError) {
 		errs = errs.Also(kaitov1beta1.ValidateWorkspaceNameLength(w.Name))
 		errs = errs.Also(w.validateCreate().ViaField("spec"))
 		errs = errs.Also(w.validateSpeculativeDecoding())
+		errs = errs.Also(w.validateAdapterNamePrefix())
 		if w.Inference != nil {
 			// Check if the bypass resource checks annotation is set
 			bypassResourceChecks := false
@@ -79,6 +80,8 @@ func (w *Workspace) Validate(ctx context.Context) (errs *apis.FieldError) {
 				ctx, w.Inference, bypassResourceChecks).ViaField("resource"),
 				w.Inference.validateCreate(ctx, runtime).ViaField("inference"),
 				w.validateInferenceConfig(ctx),
+				w.validateAdapterNamePrefixConfig(ctx, nil),
+				w.validateAdapterVolumes(nil),
 			)
 		}
 		if w.Tuning != nil {
@@ -97,6 +100,12 @@ func (w *Workspace) Validate(ctx context.Context) (errs *apis.FieldError) {
 			errs = errs.Also(w.Inference.validateUpdate(old.Inference).ViaField("inference"))
 		}
 		errs = errs.Also(w.validateSpeculativeDecoding())
+		errs = errs.Also(
+			w.validateAdapterNamePrefix(),
+			w.validateAdapterVolumes(old),
+			w.validateChildAdapterImmutability(old),
+			w.validateAdapterNamePrefixConfig(ctx, old),
+		)
 		if w.Tuning != nil {
 			errs = errs.Also(w.Tuning.validateUpdate(old.Tuning).ViaField("tuning"))
 		}
@@ -526,6 +535,10 @@ func (i *InferenceSpec) validateCreate(ctx context.Context, runtime model.Runtim
 		errs = errs.Also(apis.ErrGeneric(fmt.Sprintf("Number of Adapters exceeds the maximum limit, maximum of %s allowed", strconv.Itoa(MaxAdaptersNumber))))
 	}
 
+	for _, adapter := range i.Adapters {
+		errs = errs.Also(adapter.validateCreateorUpdate())
+	}
+
 	// check if adapter names are duplicate
 	if len(i.Adapters) > 0 {
 		nameMap := make(map[string]bool)
@@ -560,6 +573,10 @@ func (i *InferenceSpec) validateUpdate(old *InferenceSpec) (errs *apis.FieldErro
 
 func validateDuplicateName(adapters []AdapterSpec, nameMap map[string]bool) (errs *apis.FieldError) {
 	for _, adapter := range adapters {
+		// Already validated adapter has a source in validateCreateorUpdate
+		if adapter.Source == nil {
+			continue
+		}
 		if _, ok := nameMap[adapter.Source.Name]; ok {
 			errs = errs.Also(apis.ErrGeneric(fmt.Sprintf("Duplicate adapter source name found: %s", adapter.Source.Name)))
 		} else {

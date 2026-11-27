@@ -92,9 +92,18 @@ func (w *Workspace) Validate(ctx context.Context) (errs *apis.FieldError) {
 		klog.InfoS("Validate creation", "workspace", fmt.Sprintf("%s/%s", w.Namespace, w.Name))
 		errs = errs.Also(ValidateWorkspaceNameLength(w.Name))
 		errs = errs.Also(w.ValidateCreate(ctx))
+		errs = errs.Also(w.validateAdapterVolumes(nil))
 	} else {
 		klog.InfoS("Validate update", "workspace", fmt.Sprintf("%s/%s", w.Namespace, w.Name))
-		errs = errs.Also(w.ValidateUpdate(ctx, base.(*Workspace)))
+		old := base.(*Workspace)
+		errs = errs.Also(w.ValidateUpdate(ctx, old))
+		// Adapter rules below are not part of ValidateUpdate because InferenceSets
+		// enforce their own equivalents on the projected child Workspace.
+		errs = errs.Also(
+			w.validateAdapterVolumes(old),
+			w.validateChildAdapterImmutability(old),
+			w.validateAdapterNamePrefixConfig(ctx, old),
+		)
 	}
 	return errs
 }
@@ -120,6 +129,7 @@ func (w *Workspace) ValidateUpdate(ctx context.Context, old *Workspace) (errs *a
 	// Validate speculative decoding annotation on updates too.
 	errs = errs.Also(w.validateAnnotations())
 	errs = errs.Also(w.validateSpeculativeDecoding(ctx))
+	errs = errs.Also(w.validateAdapterNamePrefix())
 	if w.Tuning != nil {
 		errs = errs.Also(w.Tuning.validateUpdate(old.Tuning).ViaField("tuning"))
 	}
@@ -135,6 +145,7 @@ func (w *Workspace) ValidateCreate(ctx context.Context) (errs *apis.FieldError) 
 	errs = errs.Also(w.validateNodeClassNameAnnotation(ctx))
 	errs = errs.Also(w.validateCapacityTypeAnnotation(ctx))
 	errs = errs.Also(w.validateSpeculativeDecoding(ctx))
+	errs = errs.Also(w.validateAdapterNamePrefix())
 	if w.Inference != nil {
 		bypassResourceChecks := false
 		if w.GetAnnotations() != nil {
@@ -150,6 +161,7 @@ func (w *Workspace) ValidateCreate(ctx context.Context) (errs *apis.FieldError) 
 			w.Resource.validateCreateWithInference(ctx, w.Inference, bypassResourceChecks, runtime, w.Namespace).ViaField("resource"),
 			w.Inference.validateCreate(ctx, runtime, w.Namespace).ViaField("inference"),
 			w.validateInferenceConfig(ctx),
+			w.validateAdapterNamePrefixConfig(ctx, nil),
 			w.validateCustomModelStreaming(ctx),
 		)
 		if env.FromContext(ctx).Features.ModelStreaming {
@@ -1087,11 +1099,7 @@ func (i *InferenceSpec) validateCreate(ctx context.Context, runtime model.Runtim
 		errs = errs.Also(apis.ErrGeneric(fmt.Sprintf("Number of Adapters exceeds the maximum limit, maximum of %s allowed", strconv.Itoa(MaxAdaptersNumber))))
 	}
 
-	// check if adapter names are duplicate
-	if len(i.Adapters) > 0 {
-		nameMap := make(map[string]bool)
-		errs = errs.Also(validateDuplicateName(i.Adapters, nameMap))
-	}
+	errs = errs.Also(ValidateAdapters(i.Adapters))
 
 	return errs
 }
@@ -1135,6 +1143,9 @@ func (i *InferenceSpec) validateUpdate(old *InferenceSpec) (errs *apis.FieldErro
 
 func validateDuplicateName(adapters []AdapterSpec, nameMap map[string]bool) (errs *apis.FieldError) {
 	for _, adapter := range adapters {
+		if adapter.Source == nil {
+			continue
+		}
 		if _, ok := nameMap[adapter.Source.Name]; ok {
 			errs = errs.Also(apis.ErrGeneric(fmt.Sprintf("Duplicate adapter source name found: %s", adapter.Source.Name)))
 		} else {

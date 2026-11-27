@@ -24,6 +24,8 @@ import (
 	"k8s.io/apimachinery/pkg/util/validation"
 	"k8s.io/klog/v2"
 	"knative.dev/pkg/apis"
+
+	"github.com/kaito-project/kaito/api/internal/loraadapter"
 )
 
 func (is *InferenceSet) SupportedVerbs() []admissionregistrationv1.OperationType {
@@ -46,9 +48,13 @@ func (is *InferenceSet) Validate(ctx context.Context) (errs *apis.FieldError) {
 	if apis.GetBaseline(ctx) == nil {
 		klog.V(2).InfoS("Validate creation", "inferenceset", fmt.Sprintf("%s/%s", is.Namespace, is.Name))
 		errs = errs.Also(is.validateCreate().ViaField("spec"))
+		errs = errs.Also(is.validateAdapterVolumes())
 	} else {
 		klog.V(2).InfoS("Validate update", "inferenceset", fmt.Sprintf("%s/%s", is.Namespace, is.Name))
 		errs = errs.Also(validateInferenceSetMaintenanceWindow(is.Spec.AutoUpgrade).ViaField("spec"))
+		if old, ok := apis.GetBaseline(ctx).(*InferenceSet); ok {
+			errs = errs.Also(is.validateAdapterImmutability(old))
+		}
 	}
 	// Template-level rules (instanceType, partition, annotations, inference
 	// immutability, ...) are enforced by validating the child Workspace this
@@ -126,4 +132,24 @@ func validateInferenceSetMaintenanceWindow(autoUpgrade *AutoUpgradePolicy) (errs
 			"must be a positive duration"))
 	}
 	return errs
+}
+
+// validateAdapterVolumes enforces the adapter volume allowlist. It runs only on
+// create because adapters are immutable afterwards.
+func (is *InferenceSet) validateAdapterVolumes() *apis.FieldError {
+	return loraadapter.ValidateVolumes(adapterVolumeSources(is.Spec.Template.Inference.Adapters), nil).
+		ViaField("spec", "template", "inference")
+}
+
+// validateAdapterImmutability rejects changes to the template adapters or the
+// adapter-name-prefix annotation, which would otherwise roll out per replica
+// and briefly serve different adapter sets behind one endpoint.
+func (is *InferenceSet) validateAdapterImmutability(old *InferenceSet) *apis.FieldError {
+	return loraadapter.ValidateImmutable(
+		is.Spec.Template.Inference.Adapters, old.Spec.Template.Inference.Adapters,
+		is.Spec.Template.Annotations, old.Spec.Template.Annotations,
+		AnnotationEnableAdapterNamePrefix,
+		"spec.template.inference.adapters", "spec.template.metadata.annotations",
+		loraadapter.ImmutableMessage,
+	)
 }

@@ -12,6 +12,7 @@ This guide walks through the end-to-end workflow for using [LoRA](https://arxiv.
 - [Step 2: Deploy Inference with Adapters](#step-2-deploy-inference-with-adapters)
 - [Step 3: Test the Inference Endpoint](#step-3-test-the-inference-endpoint)
 - [Using Multiple Adapters](#using-multiple-adapters)
+- [Stable Adapter IDs](#stable-adapter-ids)
 - [Adapter Configuration Reference](#adapter-configuration-reference)
 - [Troubleshooting](#troubleshooting)
 
@@ -241,6 +242,56 @@ inference:
 
 ---
 
+## Stable Adapter IDs
+
+By default, vLLM serves each adapter under its bare name (for example `sql`), so two models that use the same adapter name cannot share a router. Set the `kaito.sh/enable-adapter-name-prefix: "true"` annotation to serve each adapter as `<served-model-name>/<adapter-name>` instead. On an InferenceSet the served model name is the InferenceSet name.
+
+```yaml
+apiVersion: kaito.sh/v1beta1
+kind: InferenceSet
+metadata:
+  name: phi4
+spec:
+  replicas: 2
+  labelSelector:
+    matchLabels:
+      apps: phi4
+  template:
+    metadata:
+      labels:
+        apps: phi4
+      annotations:
+        kaito.sh/enable-adapter-name-prefix: "true"
+    resource:
+      instanceType: Standard_NC24ads_A100_v4
+    inference:
+      preset:
+        name: microsoft/Phi-4-mini-instruct
+      adapters:
+        - source:
+            name: sql
+            volumeSource:
+              persistentVolumeClaim:
+                claimName: phi4-sql-adapter
+```
+
+`/v1/models` then lists `phi4` (the base model) and `phi4/sql`, and requests with `"model": "phi4/sql"` use the adapter.
+
+With the annotation set to `"true"` and at least one adapter declared:
+
+- **vLLM runtime only.** The annotation is rejected for the Transformers runtime or a Workspace without a preset. Values other than `"true"` and `"false"` are rejected.
+- **LoRA capacity is sized automatically.** `max-loras` defaults to the number of adapters, and `max-lora-rank` defaults to the largest adapter rank (`r` or any `rank_pattern` value in `adapter_config.json`), rounded up to a value vLLM accepts (1, 8, 16, 32, 64, 128, 256, 320, or 512 in vLLM 0.32.0). Values you set in the inference `config` ConfigMap take precedence.
+- **Startup fails on a bad adapter.** The pod exits before serving, and never becomes Ready, when a declared adapter directory is missing or empty, its `adapter_config.json` is missing or invalid, or its rank is above vLLM's largest accepted rank or above an explicit `max-lora-rank`. Undeclared adapter directories are ignored.
+- **Do not set `served-model-name` or `lora-modules` in the inference config.** Both are rejected: KAITO derives the adapter IDs from the served model name and registers the declared adapters itself.
+
+Without the annotation, or when it is `"false"`, adapters keep their bare names and vLLM's default LoRA limits.
+
+### Adapters are immutable on an InferenceSet
+
+With or without the annotation, an InferenceSet rejects any change to `spec.template.inference.adapters` (adding, removing, reordering, or editing an adapter) and any change to the `kaito.sh/enable-adapter-name-prefix` annotation, with `adapters are immutable; delete and recreate the InferenceSet`. Otherwise a rolling update would briefly serve different adapter sets behind one endpoint. Editing the adapters or the annotation on a Workspace created by an InferenceSet is also rejected. Scaling and other edits still work, and standalone Workspaces stay mutable.
+
+---
+
 ## Adapter Configuration Reference
 
 ### Supported Base Models
@@ -261,6 +312,11 @@ The adapter container image should contain the LoRA weight files (typically `ada
 | Multiple adapters | ✅ | Limited |
 
 To select the Transformers runtime, add `kaito.sh/runtime: transformers` to your Workspace annotations.
+
+### Adapter Validation
+
+- `source.name` must be a valid DNS-1123 subdomain (lowercase letters, digits, `-`, and `.`), adapter names must be unique, and every adapter must set `source`. This is checked when a Workspace or InferenceSet is created as well as when it is updated.
+- A `source.volumeSource` must set exactly one of `persistentVolumeClaim`, `csi`, `azureFile`, or `nfs`. Other volume types, such as `hostPath`, are rejected for new adapters. An existing adapter whose volume is unchanged can still be updated.
 
 ### Fine-Tuning Methods
 

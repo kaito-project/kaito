@@ -672,7 +672,7 @@ func TestInferenceSpecValidateCreate(t *testing.T) {
 				for i := 1; i <= 11; i++ {
 					spec.Adapters = append(spec.Adapters, AdapterSpec{
 						Source: &DataSource{
-							Name:  fmt.Sprintf("Adapter-%d", i),
+							Name:  fmt.Sprintf("adapter-%d", i),
 							Image: fmt.Sprintf("fake.kaito.com/kaito-image:0.0.%d", i),
 						},
 						Strength: &ValidStrength,
@@ -697,7 +697,7 @@ func TestInferenceSpecValidateCreate(t *testing.T) {
 				for i := 1; i <= 2; i++ {
 					spec.Adapters = append(spec.Adapters, AdapterSpec{
 						Source: &DataSource{
-							Name:  fmt.Sprintf("Adapter-%d", i),
+							Name:  fmt.Sprintf("adapter-%d", i),
 							Image: fmt.Sprintf("fake.kaito.com/kaito-image:0.0.%d", i),
 						},
 					})
@@ -719,7 +719,7 @@ func TestInferenceSpecValidateCreate(t *testing.T) {
 				for i := 1; i <= 2; i++ {
 					spec.Adapters = append(spec.Adapters, AdapterSpec{
 						Source: &DataSource{
-							Name:  fmt.Sprintf("Adapter-%d", i),
+							Name:  fmt.Sprintf("adapter-%d", i),
 							Image: fmt.Sprintf("fake.kaito.com/kaito-image:0.0.%d", i),
 						},
 						Strength: &ValidStrength,
@@ -769,7 +769,7 @@ func TestInferenceSpecValidateCreate(t *testing.T) {
 				for i := 1; i <= 2; i++ {
 					spec.Adapters = append(spec.Adapters, AdapterSpec{
 						Source: &DataSource{
-							Name:  fmt.Sprintf("Adapter-%d", i),
+							Name:  fmt.Sprintf("adapter-%d", i),
 							Image: fmt.Sprintf("fake.kaito.com/kaito-image:0.0.%d", i),
 						},
 						Strength: &ValidStrength,

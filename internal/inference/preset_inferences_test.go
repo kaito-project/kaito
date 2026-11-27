@@ -179,6 +179,30 @@ func TestGeneratePresetInference(t *testing.T) {
 			}},
 		},
 
+		"test-model-with-adapters-name-prefix/vllm": {
+			workspace: func() *v1beta1.Workspace {
+				ws := testutil.MockWorkspaceWithPresetVLLM.DeepCopy()
+				if ws.Annotations == nil {
+					ws.Annotations = map[string]string{}
+				}
+				ws.Annotations[v1beta1.AnnotationEnableAdapterNamePrefix] = "true"
+				return ws
+			}(),
+			nodeCount: 1,
+			modelName: "test-model",
+			callMocks: func(c *testutil.MockClient) {
+				c.On("Get", mock.IsType(context.TODO()), mock.Anything, mock.IsType(&corev1.ConfigMap{}), mock.Anything).Return(nil)
+				c.On("Get", mock.IsType(context.TODO()), mock.Anything, mock.IsType(&storagev1.StorageClass{}), mock.Anything).Return(nil)
+			},
+			expectedCmd:    "/bin/sh -c python3 /workspace/vllm/inference_api.py --enable-lora --kaito-adapter-name-prefix --kaito-expected-adapters=Adapter-1 --gpu-memory-utilization=0.92 --max-model-len=auto --tensor-parallel-size=1 --served-model-name=mymodel",
+			hasAdapters:    true,
+			expectedVolume: "adapter-volume",
+			expectedEnvVars: []corev1.EnvVar{flashInferSamplerEnvVar, {
+				Name:  "Adapter-1",
+				Value: "0.5",
+			}},
+		},
+
 		"test-model/transformers": {
 			workspace: testutil.MockWorkspaceWithPreset,
 			nodeCount: 1,

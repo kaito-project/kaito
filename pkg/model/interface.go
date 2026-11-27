@@ -419,7 +419,11 @@ type RuntimeContext struct {
 type RuntimeContextExtraArguments struct {
 	AdaptersEnabled        bool
 	AdapterStrengthEnabled bool
-	PerformanceMode        string // vLLM --performance-mode; defaults to "balanced"
+	// AdapterNamePrefix registers adapters as "<served-model-name>/<adapter>"
+	// and serves only AdapterNames.
+	AdapterNamePrefix bool
+	AdapterNames      []string
+	PerformanceMode   string // vLLM --performance-mode; defaults to "balanced"
 
 	// When set, streaming fields override --model and --load-format.
 	// Distributed streaming (--model-loader-extra-config) is handled automatically
@@ -540,6 +544,10 @@ func (p *PresetParam) buildVLLMInferenceCommand(rc RuntimeContext) []string {
 
 	if !p.VLLM.DisallowLoRA && rc.AdaptersEnabled {
 		p.VLLM.ModelRunParams["enable-lora"] = ""
+		if rc.AdapterNamePrefix && len(rc.AdapterNames) > 0 {
+			p.VLLM.ModelRunParams["kaito-adapter-name-prefix"] = ""
+			p.VLLM.ModelRunParams["kaito-expected-adapters"] = strings.Join(rc.AdapterNames, ",")
+		}
 	}
 	// Model source: streaming (az://) vs download-at-runtime (HF repo).
 	if rc.StreamingModelPath != "" {

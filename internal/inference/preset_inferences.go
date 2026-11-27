@@ -761,6 +761,8 @@ func GenerateInferencePodSpec(gpuConfig *sku.GPUConfig, numNodes int, streamingM
 			InferencePort:        vllmPort,
 			RuntimeContextExtraArguments: pkgmodel.RuntimeContextExtraArguments{
 				AdaptersEnabled:       len(ctx.Workspace.Inference.Adapters) > 0,
+				AdapterNamePrefix:     ctx.Workspace.GetAnnotations()[v1beta1.AnnotationEnableAdapterNamePrefix] == "true",
+				AdapterNames:          adapterNames(ctx.Workspace.Inference.Adapters),
 				PerformanceMode:       v1beta1.GetPerformanceMode(ctx.Workspace),
 				StreamingModelPath:    streamingModelPath,
 				StreamingLoadFormat:   streamingLoadFormat,
@@ -1046,6 +1048,18 @@ func SetHFToken(ctx *builder.WorkspaceGeneratorContext, spec *corev1.PodSpec) er
 		}
 	}
 	return nil
+}
+
+// adapterNames returns the declared adapter names, which are also their
+// directory names under the adapter volume.
+func adapterNames(adapters []v1beta1.AdapterSpec) []string {
+	names := make([]string, 0, len(adapters))
+	for _, adapter := range adapters {
+		if adapter.Source != nil {
+			names = append(names, adapter.Source.Name)
+		}
+	}
+	return names
 }
 
 func SetAdapterPuller(ctx *builder.WorkspaceGeneratorContext, spec *corev1.PodSpec) error {

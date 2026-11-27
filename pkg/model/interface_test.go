@@ -450,6 +450,64 @@ func TestGetInferenceCommandVLLMMultiNode(t *testing.T) {
 	assert.NotContains(t, cmd[2], "exec ")
 }
 
+func TestGetInferenceCommandVLLMAdapterNamePrefix(t *testing.T) {
+	newParam := func(disallowLoRA bool) *PresetParam {
+		return &PresetParam{RuntimeParam: RuntimeParam{VLLM: VLLMParam{
+			BaseCommand:          "vllm serve",
+			ModelRunParams:       map[string]string{},
+			DisallowLoRA:         disallowLoRA,
+			RayLeaderBaseCommand: "ray start --head",
+			RayLeaderParams:      map[string]string{},
+			RayWorkerBaseCommand: "ray start",
+			RayWorkerParams:      map[string]string{},
+		}}}
+	}
+	extra := func(prefix bool, names ...string) RuntimeContextExtraArguments {
+		return RuntimeContextExtraArguments{AdaptersEnabled: len(names) > 0, AdapterNamePrefix: prefix, AdapterNames: names}
+	}
+	singleNode := func(e RuntimeContextExtraArguments) RuntimeContext {
+		return RuntimeContext{RuntimeName: RuntimeNameVLLM, SKUNumGPUs: 1, NumNodes: 1, RuntimeContextExtraArguments: e}
+	}
+
+	t.Run("single node with prefix", func(t *testing.T) {
+		cmd := newParam(false).GetInferenceCommand(singleNode(extra(true, "a", "b")))
+		require.Len(t, cmd, 3)
+		assert.Contains(t, cmd[2], "--enable-lora")
+		assert.Regexp(t, `--kaito-adapter-name-prefix( |$)`, cmd[2])
+		assert.Contains(t, cmd[2], "--kaito-expected-adapters=a,b")
+	})
+	t.Run("without the annotation", func(t *testing.T) {
+		cmd := newParam(false).GetInferenceCommand(singleNode(extra(false, "a")))
+		assert.Contains(t, cmd[2], "--enable-lora")
+		assert.NotContains(t, cmd[2], "kaito-adapter-name-prefix")
+		assert.NotContains(t, cmd[2], "kaito-expected-adapters")
+	})
+	t.Run("prefix without adapters", func(t *testing.T) {
+		cmd := newParam(false).GetInferenceCommand(singleNode(extra(true)))
+		assert.NotContains(t, cmd[2], "kaito-adapter-name-prefix")
+	})
+	t.Run("preset disallows LoRA", func(t *testing.T) {
+		cmd := newParam(true).GetInferenceCommand(singleNode(extra(true, "a")))
+		assert.NotContains(t, cmd[2], "kaito-adapter-name-prefix")
+	})
+	t.Run("multi node passes flags to the leader vLLM server only", func(t *testing.T) {
+		cmd := newParam(false).GetInferenceCommand(RuntimeContext{
+			RuntimeName:                  RuntimeNameVLLM,
+			SKUNumGPUs:                   4,
+			NumNodes:                     2,
+			DistributedInference:         true,
+			WorkspaceMetadata:            metav1.ObjectMeta{Name: "ws", Namespace: "default"},
+			RuntimeContextExtraArguments: extra(true, "a"),
+		})
+		require.Len(t, cmd, 3)
+		serve := strings.Index(cmd[2], "vllm serve")
+		require.GreaterOrEqual(t, serve, 0)
+		assert.Equal(t, 1, strings.Count(cmd[2], "--kaito-expected-adapters=a"), cmd[2])
+		assert.Greater(t, strings.Index(cmd[2], "--kaito-expected-adapters=a"), serve)
+		assert.Greater(t, strings.Index(cmd[2], "--kaito-adapter-name-prefix"), serve)
+	})
+}
+
 func TestMultiNodeRayCommandRequiresReadyCluster(t *testing.T) {
 	p := &PresetParam{RuntimeParam: RuntimeParam{VLLM: VLLMParam{
 		BaseCommand:          "vllm serve",

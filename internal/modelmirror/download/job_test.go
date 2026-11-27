@@ -126,6 +126,18 @@ func TestBuildDownloadJobScript(t *testing.T) {
 		assert.Less(t, pinIdx, strings.Index(script, `pip install -q "huggingface-hub==`))
 	})
 
+	t.Run("pins filelock in the HF dependency install before download", func(t *testing.T) {
+		assert.Equal(t, "4.2.12", FileLockVersion)
+		install := `pip install -q "huggingface-hub==` + HuggingFaceHubVersion +
+			`" "certifi==` + CertifiVersion + `" "filelock==` + FileLockVersion + `"`
+		installIdx := strings.Index(script, install)
+		downloadIdx := strings.Index(script, `hf download "${MODEL_ID}"`)
+		require.NotEqual(t, -1, installIdx)
+		require.NotEqual(t, -1, downloadIdx)
+		assert.Less(t, installIdx, downloadIdx)
+		assert.Equal(t, 1, strings.Count(script, "filelock=="))
+	})
+
 	t.Run("cache cleanup runs after the download", func(t *testing.T) {
 		downloadIdx := strings.Index(script, `hf download "${MODEL_ID}"`)
 		cleanupIdx := strings.Index(script, `rm -rf "/models/${MODEL_ID}/.cache"`)

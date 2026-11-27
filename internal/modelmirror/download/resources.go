@@ -23,6 +23,13 @@ const (
 	// huggingface-hub version
 	HuggingFaceHubVersion = "2.3.0"
 
+	// FileLockVersion is pinned for BlobFuse compatibility. Upgrading to 4.3.x can
+	// break model downloads: 4.3.0 introduced named .filelock-probe-* files whose
+	// unlink failed with OSError: [Errno 5] Input/output error on a BlobFuse PVC.
+	// See https://github.com/tox-dev/filelock/pull/1115. Validate lock/probe behavior
+	// and an end-to-end BlobFuse model download before upgrading this dependency.
+	FileLockVersion = "4.2.12"
+
 	// certifi version provides the CA bundle used by the HF clients, including native Xet.
 	CertifiVersion = "2026.10.19"
 

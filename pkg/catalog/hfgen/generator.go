@@ -492,6 +492,19 @@ var (
 		{architecture: "Qwen3_5MoeForConditionalGeneration", gpuModel: nvidia.GPUModelH100}: {},
 	}
 
+	// gpuMemoryUtilizationByGPUCount overrides the per-GPU utilization for models
+	// that need extra runtime headroom on nodes with a specific GPU count, using
+	// exact model names. It is scoped by count because a lower value can push a
+	// model that barely fits a smaller SKU onto an extra node. An empty GPU model
+	// applies to every GPU; a GPU-specific entry wins over it.
+	gpuMemoryUtilizationByGPUCount = map[int]map[modelGPUKey]string{
+		8: {
+			// The first request OOMs at 0.92 on 8xH100; 0.90 is validated.
+			// source: https://github.com/kaito-project/kaito/issues/2501
+			{modelName: "deepseek-v4-flash-0731", gpuModel: nvidia.GPUModelH100}: "0.90",
+		},
+	}
+
 	// gpuMemoryUtilizationByModelAndGPU overrides the GPU default for exact
 	// model names.
 	gpuMemoryUtilizationByModelAndGPU = map[modelGPUKey]string{
@@ -557,9 +570,16 @@ func SupportsMaxNumSeqsEstimate(architectures []string, gpuModel string) bool {
 }
 
 // ResolveGPUMemoryUtilization returns the vLLM GPU memory utilization for the
-// model on the target GPU, falling back to the GPU default.
-func ResolveGPUMemoryUtilization(modelName, gpuModel string) string {
+// model on a node with gpuCount GPUs of type gpuModel. Model-specific policies
+// take precedence over the per-GPU default.
+func ResolveGPUMemoryUtilization(modelName, gpuModel string, gpuCount int) string {
 	canonicalGPUModel := nvidia.CanonicalGPUModel(gpuModel)
+	for _, targetGPUModel := range []string{canonicalGPUModel, ""} {
+		key := modelGPUKey{modelName: modelName, gpuModel: targetGPUModel}
+		if utilization, ok := gpuMemoryUtilizationByGPUCount[gpuCount][key]; ok {
+			return utilization
+		}
+	}
 	if utilization, ok := gpuMemoryUtilizationByModelAndGPU[modelGPUKey{
 		modelName: modelName,
 		gpuModel:  canonicalGPUModel,

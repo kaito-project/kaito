@@ -136,19 +136,29 @@ func TestKVHeadroomBytesPerGPU_UtilizationOverride(t *testing.T) {
 
 func TestResolveGPUMemoryUtilization(t *testing.T) {
 	for _, tc := range []struct {
-		gpu  string
-		want float64
+		name      string
+		modelName string
+		gpuModel  string
+		gpuCount  int
+		want      float64
 	}{
-		{"NVIDIA H100", 0.92},
-		{"NVIDIA A10", 0.82},
+		{"default", "other-model", "NVIDIA H100", 8, 0.92},
+		{"GPU policy", "other-model", "NVIDIA A10", 1, 0.82},
+		{"model policy on 8xH100", "deepseek-v4-flash-0731", "NVIDIA H100", 8, 0.90},
+		{"model policy does not apply to 2xH100", "deepseek-v4-flash-0731", "NVIDIA H100", 2, 0.92},
+		{"model policy does not apply to other GPUs", "deepseek-v4-flash-0731", "NVIDIA A100", 8, 0.92},
 	} {
-		got, err := ResolveGPUMemoryUtilization(tc.gpu, nil)
-		require.NoError(t, err)
-		assert.Equal(t, tc.want, got)
-		p := params("10Gi", "")
-		p.VLLM.ModelRunParams = map[string]string{"gpu-memory-utilization": "0.70"}
-		got, err = ResolveGPUMemoryUtilization(tc.gpu, p)
-		require.NoError(t, err)
-		assert.Equal(t, 0.70, got)
+		t.Run(tc.name, func(t *testing.T) {
+			p := params("10Gi", "")
+			p.VLLM.ModelName = tc.modelName
+			got, err := ResolveGPUMemoryUtilization(tc.gpuModel, tc.gpuCount, p)
+			require.NoError(t, err)
+			assert.Equal(t, tc.want, got)
+
+			p.VLLM.ModelRunParams = map[string]string{"gpu-memory-utilization": "0.70"}
+			got, err = ResolveGPUMemoryUtilization(tc.gpuModel, tc.gpuCount, p)
+			require.NoError(t, err)
+			assert.Equal(t, 0.70, got)
+		})
 	}
 }

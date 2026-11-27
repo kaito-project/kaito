@@ -371,6 +371,7 @@ class BaseVectorStore(ABC):
                 f"max_tokens ({max_tokens}) is greater than available context after prompt consideration. Setting to {self.llm.metadata.context_window - prompt_len}."
             )
             max_tokens = self.llm.metadata.context_window - prompt_len
+            llm_params["max_tokens"] = max_tokens
 
         logger.info(
             f"Creating chat engine for index '{request.get('index_name')}' with prompt size: {prompt_len}"

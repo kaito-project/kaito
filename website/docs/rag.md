@@ -82,6 +82,16 @@ embedding:
     local:
       modelID: "BAAI/bge-small-en-v1.5"
 ```
+To use a remote embedding service instead, set its URL and, if it requires authentication, the name of a Secret in the RAGEngine's namespace whose `REMOTE_EMBEDDING_ACCESS_SECRET` key holds the token (sent as a `Bearer` token). The endpoint receives `{"inputs": "<text>"}` and must return the embedding as a JSON list, as Hugging Face Inference and TEI endpoints do; the OpenAI `/v1/embeddings` format is not supported.
+```yaml
+embedding:
+    remote:
+      url: "<embedding-url>"
+      accessSecret: "embedding-secret"
+```
+```bash
+kubectl create secret generic embedding-secret --from-literal=REMOTE_EMBEDDING_ACCESS_SECRET=<token>
+```
 InferenceService: points to the LLM endpoint that RAGEngine will call for final text generation.
 ```yaml
 inferenceService:

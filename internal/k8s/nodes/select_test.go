@@ -74,6 +74,18 @@ func TestSelectNodes(t *testing.T) {
 		assert.Equal(t, "karpenter", result[0].Name)
 	})
 
+	t.Run("GPU provisioner nodes are ranked above Karpenter and plain nodes", func(t *testing.T) {
+		nodes := []*corev1.Node{
+			makeNode("node1", nil),
+			makeNode("node2", map[string]string{karpenterv1.NodePoolLabelKey: "default"}),
+			makeNode("node3", map[string]string{labelGPUProvisionerCustom: "gpu"}),
+		}
+		result := SelectNodes(nodes, nil, nil, 2)
+		assert.Len(t, result, 2)
+		assert.Equal(t, "node3", result[0].Name)
+		assert.Equal(t, "node2", result[1].Name)
+	})
+
 	t.Run("alphabetical fallback for equal priority", func(t *testing.T) {
 		nodes := []*corev1.Node{
 			makeNode("node-z", nil),

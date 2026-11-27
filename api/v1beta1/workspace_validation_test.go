@@ -3495,3 +3495,33 @@ func TestValidateCreateWithInferenceBYOWithoutClient(t *testing.T) {
 		t.Fatalf("validateCreateWithInference() error = %v, want missing client error", errs)
 	}
 }
+
+func TestValidateTrainingArgsOutputDir(t *testing.T) {
+	tests := []struct {
+		name      string
+		outputDir string
+		wantErr   bool
+	}{
+		{name: "relative dir", outputDir: "out"},
+		{name: "absolute dir under base", outputDir: "/mnt/out"},
+		{name: "absolute path sharing base prefix is joined under base", outputDir: "/mnt-evil/x"},
+		{name: "sibling of base via traversal", outputDir: "../mnt-evil", wantErr: true},
+		{name: "sibling of base via traversal from base", outputDir: "/mnt/../mnt-evil", wantErr: true},
+		{name: "outside base via traversal from base", outputDir: "/mnt/../etc", wantErr: true},
+		{name: "base itself", outputDir: "/mnt", wantErr: true},
+		{name: "empty", outputDir: "", wantErr: true},
+	}
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			cm := &v1.ConfigMap{
+				ObjectMeta: metav1.ObjectMeta{Name: "cm", Namespace: "ns"},
+				Data: map[string]string{
+					"training_config.yaml": fmt.Sprintf("training_config:\n  TrainingArguments:\n    output_dir: %q\n", tc.outputDir),
+				},
+			}
+			if err := validateTrainingArgsViaConfigMap(cm); (err != nil) != tc.wantErr {
+				t.Errorf("validateTrainingArgsViaConfigMap(%q) err=%v wantErr=%v", tc.outputDir, err, tc.wantErr)
+			}
+		})
+	}
+}

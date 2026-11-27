@@ -27,10 +27,6 @@ import (
 )
 
 const (
-	LabelKeyNvidia    = "accelerator"
-	LabelValueNvidia  = "nvidia"
-	CapacityNvidiaGPU = "nvidia.com/gpu"
-
 	// labelGPUProvisionerCustom marks nodes created by the Azure GPU provisioner.
 	labelGPUProvisionerCustom = "kaito.sh/machine-type"
 )
@@ -58,46 +54,28 @@ func ListNodes(ctx context.Context, kubeClient client.Client, labelSelector clie
 	return nodeList, nil
 }
 
-// UpdateNodeWithLabel update the node object with the label key/value
-func UpdateNodeWithLabel(ctx context.Context, freshNode *corev1.Node, labelKey, labelValue string, kubeClient client.Client) error {
-	klog.InfoS("UpdateNodeWithLabel", "nodeName", freshNode.Name, "labelKey", labelKey, "labelValue", labelValue)
-
-	if nvidiaLabelVal, found := freshNode.Labels[LabelKeyNvidia]; found {
-		if nvidiaLabelVal == LabelValueNvidia {
-			return nil
+// HasLabels reports whether node carries every label in labels.
+func HasLabels(node *corev1.Node, labels map[string]string) bool {
+	for k, v := range labels {
+		if node.Labels[k] != v {
+			return false
 		}
 	}
+	return true
+}
 
-	freshNode.Labels = lo.Assign(freshNode.Labels, map[string]string{labelKey: labelValue})
-	opt := &client.UpdateOptions{}
-
-	err := kubeClient.Update(ctx, freshNode, opt)
-	if err != nil {
-		klog.ErrorS(err, "cannot update node label", "node", freshNode.Name, labelKey, labelValue)
+// EnsureLabels adds labels to node and updates it, unless node already has them.
+func EnsureLabels(ctx context.Context, node *corev1.Node, labels map[string]string, kubeClient client.Client) error {
+	if HasLabels(node, labels) {
+		return nil
+	}
+	klog.InfoS("EnsureLabels", "nodeName", node.Name, "labels", labels)
+	node.Labels = lo.Assign(node.Labels, labels)
+	if err := kubeClient.Update(ctx, node); err != nil {
+		klog.ErrorS(err, "cannot update node labels", "node", node.Name)
 		return err
 	}
 	return nil
-}
-
-func CheckNvidiaPlugin(ctx context.Context, nodeObj *corev1.Node) bool {
-	// check if label accelerator=nvidia exists in the node
-	var foundLabel, foundCapacity bool
-	if nvidiaLabelVal, found := nodeObj.Labels[LabelKeyNvidia]; found {
-		if nvidiaLabelVal == LabelValueNvidia {
-			foundLabel = true
-		}
-	}
-
-	// check Status.Capacity.nvidia.com/gpu has value
-	capacity := nodeObj.Status.Capacity
-	if capacity != nil && !capacity.Name(CapacityNvidiaGPU, "").IsZero() {
-		foundCapacity = true
-	}
-
-	if foundLabel && foundCapacity {
-		return true
-	}
-	return false
 }
 
 func ExtractObjFields(obj client.Object) (instanceType, namespace, name string, labelSelector *metav1.LabelSelector,

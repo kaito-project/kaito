@@ -28,9 +28,9 @@ import (
 
 	"github.com/kaito-project/kaito/api/v1beta1"
 	"github.com/kaito-project/kaito/internal/k8s/k8sclient"
-	"github.com/kaito-project/kaito/internal/k8s/nodes"
 	"github.com/kaito-project/kaito/internal/rag"
 	"github.com/kaito-project/kaito/internal/testutil"
+	pkgnvidia "github.com/kaito-project/kaito/pkg/accelerator/nvidia"
 	"github.com/kaito-project/kaito/pkg/consts"
 )
 
@@ -240,13 +240,13 @@ func TestGPUConfigLogic(t *testing.T) {
 
 			resourceReq := createdObject.(*appsv1.Deployment).Spec.Template.Spec.Containers[0].Resources
 
-			gpuRequests, exists := resourceReq.Requests[corev1.ResourceName(nodes.CapacityNvidiaGPU)]
+			gpuRequests, exists := resourceReq.Requests[corev1.ResourceName(pkgnvidia.ResourceGPU)]
 			if !exists {
 				t.Errorf("GPU requests not found in resource requirements")
 				return
 			}
 
-			gpuLimits, exists := resourceReq.Limits[corev1.ResourceName(nodes.CapacityNvidiaGPU)]
+			gpuLimits, exists := resourceReq.Limits[corev1.ResourceName(pkgnvidia.ResourceGPU)]
 			if !exists {
 				t.Errorf("GPU limits not found in resource requirements")
 				return

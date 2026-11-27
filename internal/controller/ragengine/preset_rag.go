@@ -25,7 +25,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
 	"github.com/kaito-project/kaito/api/v1beta1"
-	"github.com/kaito-project/kaito/internal/k8s/nodes"
+	iaccel "github.com/kaito-project/kaito/internal/accelerator"
 	"github.com/kaito-project/kaito/internal/k8s/resources"
 	"github.com/kaito-project/kaito/internal/manifests"
 	"github.com/kaito-project/kaito/internal/rag"
@@ -63,20 +63,6 @@ var (
 		},
 		InitialDelaySeconds: 30,
 		PeriodSeconds:       10,
-	}
-
-	tolerations = []corev1.Toleration{
-		{
-			Effect:   corev1.TaintEffectNoSchedule,
-			Operator: corev1.TolerationOpExists,
-			Key:      nodes.CapacityNvidiaGPU,
-		},
-		{
-			Effect:   corev1.TaintEffectNoSchedule,
-			Value:    v1beta1.SKUGPU,
-			Key:      v1beta1.LabelSKU,
-			Operator: corev1.TolerationOpEqual,
-		},
 	}
 )
 
@@ -197,6 +183,13 @@ func ensureGuardrailsPolicyConfigMap(ctx context.Context, ragEngineObj *v1beta1.
 	return cm, nil
 }
 
+func ragEngineInstanceType(ragEngineObj *v1beta1.RAGEngine) string {
+	if ragEngineObj.Spec.Compute == nil {
+		return ""
+	}
+	return ragEngineObj.Spec.Compute.InstanceType
+}
+
 func CreatePresetRAG(ctx context.Context, ragEngineObj *v1beta1.RAGEngine, revisionNum string, kubeClient client.Client) (client.Object, error) {
 	var volumes []corev1.Volume
 	var volumeMounts []corev1.VolumeMount
@@ -222,6 +215,7 @@ func CreatePresetRAG(ctx context.Context, ragEngineObj *v1beta1.RAGEngine, revis
 		volumeMounts = append(volumeMounts, guardrailsVolumeMount)
 	}
 
+	driver := iaccel.ForInstanceType(ragEngineInstanceType(ragEngineObj))
 	var resourceReq corev1.ResourceRequirements
 
 	if ragEngineObj.Spec.Embedding.Local != nil && ragEngineObj.Spec.Compute != nil && ragEngineObj.Spec.Compute.InstanceType != "" {
@@ -229,16 +223,7 @@ func CreatePresetRAG(ctx context.Context, ragEngineObj *v1beta1.RAGEngine, revis
 		gpuConfig, err := sku.GetGPUConfigBySKU(instanceType)
 		// If GetGPUConfigBySKU returns error, skip GPU resource allocation (e.g., CPU-only instances)
 		if err == nil && gpuConfig != nil {
-			skuNumGPUs := gpuConfig.GPUCount
-
-			resourceReq = corev1.ResourceRequirements{
-				Requests: corev1.ResourceList{
-					corev1.ResourceName(nodes.CapacityNvidiaGPU): *resource.NewQuantity(int64(skuNumGPUs), resource.DecimalSI),
-				},
-				Limits: corev1.ResourceList{
-					corev1.ResourceName(nodes.CapacityNvidiaGPU): *resource.NewQuantity(int64(skuNumGPUs), resource.DecimalSI),
-				},
-			}
+			resourceReq = driver.ResourceRequirements(gpuConfig.GPUCount, "")
 		}
 	} else {
 		// If embedding is remote or compute instance type is not specified, do not allocate GPU resources by default
@@ -257,7 +242,7 @@ func CreatePresetRAG(ctx context.Context, ragEngineObj *v1beta1.RAGEngine, revis
 	imagePullSecretRefs := []corev1.LocalObjectReference{}
 
 	depObj := rag.GenerateRAGDeploymentManifest(ragEngineObj, revisionNum, image, imagePullSecretRefs, commands,
-		containerPorts, livenessProbe, readinessProbe, resourceReq, tolerations, volumes, volumeMounts)
+		containerPorts, livenessProbe, readinessProbe, resourceReq, driver.Tolerations(), volumes, volumeMounts)
 
 	err = resources.CreateResource(ctx, depObj, kubeClient)
 	if client.IgnoreAlreadyExists(err) != nil {

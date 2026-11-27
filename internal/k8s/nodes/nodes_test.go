@@ -27,7 +27,8 @@ import (
 	"github.com/kaito-project/kaito/internal/testutil"
 )
 
-func TestUpdateNodeWithLabel(t *testing.T) {
+func TestEnsureLabels(t *testing.T) {
+	labels := map[string]string{"fakeKey": "fakeVal"}
 	testcases := map[string]struct {
 		callMocks     func(c *testutil.MockClient)
 		nodeObj       *corev1.Node
@@ -44,17 +45,15 @@ func TestUpdateNodeWithLabel(t *testing.T) {
 			callMocks: func(c *testutil.MockClient) {
 				c.On("Update", mock.IsType(context.Background()), mock.IsType(&corev1.Node{}), mock.Anything).Return(nil)
 			},
-			nodeObj:       &corev1.Node{},
+			nodeObj:       &corev1.Node{ObjectMeta: metav1.ObjectMeta{Labels: map[string]string{"fakeKey": "other"}}},
 			expectedError: nil,
 		},
-		"Skip update node because it already has the label": {
+		"Skip update node because it already has the labels": {
 			callMocks: func(c *testutil.MockClient) {},
 			nodeObj: &corev1.Node{
 				ObjectMeta: metav1.ObjectMeta{
-					Name: "mockNode",
-					Labels: map[string]string{
-						LabelKeyNvidia: LabelValueNvidia,
-					},
+					Name:   "mockNode",
+					Labels: map[string]string{"fakeKey": "fakeVal", "other": "x"},
 				},
 			},
 			expectedError: nil,
@@ -66,12 +65,14 @@ func TestUpdateNodeWithLabel(t *testing.T) {
 			mockClient := testutil.NewClient()
 			tc.callMocks(mockClient)
 
-			err := UpdateNodeWithLabel(context.Background(), tc.nodeObj, "fakeKey", "fakeVal", mockClient)
+			err := EnsureLabels(context.Background(), tc.nodeObj, labels, mockClient)
 			if tc.expectedError == nil {
 				assert.Check(t, err == nil, "Not expected to return error")
+				assert.Check(t, HasLabels(tc.nodeObj, labels), "Node should have the labels")
 			} else {
 				assert.Equal(t, tc.expectedError.Error(), err.Error())
 			}
+			mockClient.AssertExpectations(t)
 		})
 	}
 }
@@ -121,30 +122,6 @@ func TestListNodes(t *testing.T) {
 			} else {
 				assert.Equal(t, tc.expectedError.Error(), err.Error())
 			}
-		})
-	}
-}
-
-func TestCheckNvidiaPlugin(t *testing.T) {
-	testcases := map[string]struct {
-		nodeObj        *corev1.Node
-		isNvidiaPlugin bool
-	}{
-		"Is not nvidia plugin": {
-			nodeObj:        &testutil.MockNodeList.Items[1],
-			isNvidiaPlugin: false,
-		},
-		"Is nvidia plugin": {
-			nodeObj:        &testutil.MockNodeList.Items[0],
-			isNvidiaPlugin: true,
-		},
-	}
-
-	for k, tc := range testcases {
-		t.Run(k, func(t *testing.T) {
-			result := CheckNvidiaPlugin(context.Background(), tc.nodeObj)
-
-			assert.Equal(t, result, tc.isNvidiaPlugin)
 		})
 	}
 }

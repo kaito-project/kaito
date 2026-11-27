@@ -65,3 +65,8 @@ func (Driver) InferenceBaseImage(runtime pkgmodel.RuntimeName) (pkgmodel.Metadat
 func (Driver) ExclusiveNodeLabels() map[string]string {
 	return map[string]string{LabelExclusiveWorkload: "true"}
 }
+
+func (Driver) DevicePluginNodeLabels() map[string]string { return nil }
+
+// HasDevices is always true: CPU workloads need no device plugin.
+func (Driver) HasDevices(corev1.ResourceList) bool { return true }

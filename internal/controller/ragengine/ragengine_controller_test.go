@@ -42,8 +42,10 @@ import (
 
 	"github.com/kaito-project/kaito/api/env"
 	"github.com/kaito-project/kaito/api/v1beta1"
+	nvidiadriver "github.com/kaito-project/kaito/internal/accelerator/nvidia"
 	"github.com/kaito-project/kaito/internal/k8s/resources"
 	"github.com/kaito-project/kaito/internal/testutil"
+	pkgnvidia "github.com/kaito-project/kaito/pkg/accelerator/nvidia"
 	"github.com/kaito-project/kaito/pkg/apis"
 	"github.com/kaito-project/kaito/pkg/consts"
 )
@@ -1411,12 +1413,12 @@ func TestEnsureNodePlugins(t *testing.T) {
 				ObjectMeta: v1.ObjectMeta{
 					Name: "test-node",
 					Labels: map[string]string{
-						testutil.LabelKeyNvidia: testutil.LabelValueNvidia,
+						nvidiadriver.LabelDevicePlugin: nvidiadriver.LabelValueDevicePlugin,
 					},
 				},
 				Status: corev1.NodeStatus{
 					Capacity: corev1.ResourceList{
-						testutil.CapacityNvidiaGPU: resource.MustParse("1"),
+						pkgnvidia.ResourceGPU: resource.MustParse("1"),
 					},
 				},
 			},
@@ -1441,12 +1443,12 @@ func TestEnsureNodePlugins(t *testing.T) {
 					ObjectMeta: v1.ObjectMeta{
 						Name: "test-node",
 						Labels: map[string]string{
-							testutil.LabelKeyNvidia: testutil.LabelValueNvidia,
+							nvidiadriver.LabelDevicePlugin: nvidiadriver.LabelValueDevicePlugin,
 						},
 					},
 					Status: corev1.NodeStatus{
 						Capacity: corev1.ResourceList{
-							testutil.CapacityNvidiaGPU: resource.MustParse("1"),
+							pkgnvidia.ResourceGPU: resource.MustParse("1"),
 						},
 					},
 				}

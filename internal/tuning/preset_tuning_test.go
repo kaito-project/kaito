@@ -27,10 +27,11 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client/fake"
 
 	kaitov1beta1 "github.com/kaito-project/kaito/api/v1beta1"
+	nvidiadriver "github.com/kaito-project/kaito/internal/accelerator/nvidia"
 	"github.com/kaito-project/kaito/internal/image"
-	"github.com/kaito-project/kaito/internal/k8s/nodes"
 	"github.com/kaito-project/kaito/internal/manifests"
 	"github.com/kaito-project/kaito/internal/manifests/builder"
+	pkgnvidia "github.com/kaito-project/kaito/pkg/accelerator/nvidia"
 	"github.com/kaito-project/kaito/pkg/consts"
 	pkgmodel "github.com/kaito-project/kaito/pkg/model"
 )
@@ -661,7 +662,7 @@ func TestDefaultTolerations(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			t.Setenv("CLOUD_PROVIDER", tc.cloudProvider)
 
-			actual := defaultTolerations()
+			actual := defaultTolerations(nvidiadriver.Driver{})
 			hasSpot := false
 			for _, toleration := range actual {
 				if toleration.Key == manifests.SpotInstanceKey && toleration.Value == manifests.SpotInstanceValue {
@@ -680,13 +681,13 @@ func TestDefaultTolerationsToleratesGPUTaints(t *testing.T) {
 
 	taints := []corev1.Taint{
 		// Common taint on GPU nodes, e.g. EKS GPU node groups or the NVIDIA GPU operator.
-		{Key: nodes.CapacityNvidiaGPU, Value: "present", Effect: corev1.TaintEffectNoSchedule},
-		{Key: nodes.CapacityNvidiaGPU, Effect: corev1.TaintEffectNoSchedule},
+		{Key: pkgnvidia.ResourceGPU, Value: "present", Effect: corev1.TaintEffectNoSchedule},
+		{Key: pkgnvidia.ResourceGPU, Effect: corev1.TaintEffectNoSchedule},
 		// Taint KAITO puts on the GPU nodes it provisions.
 		{Key: kaitov1beta1.LabelSKU, Value: kaitov1beta1.SKUGPU, Effect: corev1.TaintEffectNoSchedule},
 	}
 
-	tolerations := defaultTolerations()
+	tolerations := defaultTolerations(nvidiadriver.Driver{})
 	for _, taint := range taints {
 		tolerated := false
 		for i := range tolerations {

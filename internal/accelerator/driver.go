@@ -23,6 +23,7 @@ import (
 	"github.com/kaito-project/kaito/api/v1beta1"
 	"github.com/kaito-project/kaito/internal/accelerator/cpu"
 	"github.com/kaito-project/kaito/internal/accelerator/nvidia"
+	"github.com/kaito-project/kaito/internal/k8s/nodes"
 	"github.com/kaito-project/kaito/pkg/accelerator"
 	pkgmodel "github.com/kaito-project/kaito/pkg/model"
 	"github.com/kaito-project/kaito/pkg/sku"
@@ -47,6 +48,12 @@ type Driver interface {
 	// ExclusiveNodeLabels labels pods that must not share a node with each
 	// other. It is nil when device requests already keep them apart.
 	ExclusiveNodeLabels() map[string]string
+	// DevicePluginNodeLabels are set on provisioned nodes so that this
+	// accelerator's device plugin runs there.
+	DevicePluginNodeLabels() map[string]string
+	// HasDevices reports whether a node's capacity or allocatable list
+	// includes this accelerator's devices.
+	HasDevices(resources corev1.ResourceList) bool
 }
 
 var drivers = map[accelerator.Type]Driver{
@@ -75,6 +82,20 @@ func For(cfg *sku.GPUConfig) Driver {
 	return ForType(cfg.Accelerator)
 }
 
+// ForInstanceType returns the driver for a known GPU SKU, and NVIDIA for any
+// other instance type.
+func ForInstanceType(instanceType string) Driver {
+	if cfg, err := sku.GetGPUConfigBySKU(instanceType); err == nil {
+		return For(cfg)
+	}
+	return ForType(accelerator.TypeNVIDIA)
+}
+
+// NodeReady reports whether node has d's device plugin labels and devices.
+func NodeReady(d Driver, node *corev1.Node) bool {
+	return nodes.HasLabels(node, d.DevicePluginNodeLabels()) && d.HasDevices(node.Status.Capacity)
+}
+
 // ForWorkspace returns the driver for the target ws declares, without reading
 // nodes. A GPU target whose instance type is not a known SKU uses NVIDIA.
 func ForWorkspace(ctx context.Context, ws *v1beta1.Workspace) Driver {
@@ -84,8 +105,5 @@ func ForWorkspace(ctx context.Context, ws *v1beta1.Workspace) Driver {
 	if ws == nil {
 		return ForType(accelerator.TypeNVIDIA)
 	}
-	if cfg, err := sku.GetGPUConfigBySKU(ws.Resource.InstanceType); err == nil {
-		return For(cfg)
-	}
-	return ForType(accelerator.TypeNVIDIA)
+	return ForInstanceType(ws.Resource.InstanceType)
 }

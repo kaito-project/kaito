@@ -17,6 +17,9 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	corev1 "k8s.io/api/core/v1"
+	"k8s.io/apimachinery/pkg/api/resource"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
 	"github.com/kaito-project/kaito/api/v1beta1"
 	"github.com/kaito-project/kaito/pkg/accelerator"
@@ -61,4 +64,23 @@ func TestForWorkspace(t *testing.T) {
 		})
 	}
 	assert.Equal(t, accelerator.TypeNVIDIA, ForWorkspace(t.Context(), nil).Type())
+}
+
+func TestNodeReady(t *testing.T) {
+	gpu := corev1.ResourceList{"nvidia.com/gpu": resource.MustParse("1")}
+	labeled := metav1.ObjectMeta{Labels: map[string]string{"accelerator": "nvidia"}}
+	for _, tt := range []struct {
+		name string
+		node corev1.Node
+		want bool
+	}{
+		{name: "labeled with GPU capacity", node: corev1.Node{ObjectMeta: labeled, Status: corev1.NodeStatus{Capacity: gpu}}, want: true},
+		{name: "unlabeled", node: corev1.Node{Status: corev1.NodeStatus{Capacity: gpu}}, want: false},
+		{name: "no GPU capacity", node: corev1.Node{ObjectMeta: labeled}, want: false},
+	} {
+		t.Run(tt.name, func(t *testing.T) {
+			assert.Equal(t, tt.want, NodeReady(ForType(accelerator.TypeNVIDIA), &tt.node))
+		})
+	}
+	assert.True(t, NodeReady(ForType(accelerator.TypeCPU), &corev1.Node{}))
 }

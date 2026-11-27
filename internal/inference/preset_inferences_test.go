@@ -48,7 +48,6 @@ import (
 	"github.com/kaito-project/kaito/internal/estimator/nodesestimator"
 	"github.com/kaito-project/kaito/internal/featuregates"
 	"github.com/kaito-project/kaito/internal/image"
-	"github.com/kaito-project/kaito/internal/k8s/nodes"
 	"github.com/kaito-project/kaito/internal/manifests"
 	"github.com/kaito-project/kaito/internal/manifests/builder"
 	"github.com/kaito-project/kaito/internal/testutil"
@@ -1517,7 +1516,7 @@ func TestDefaultTolerations(t *testing.T) {
 				if toleration.Key == manifests.SpotInstanceKey && toleration.Value == manifests.SpotInstanceValue {
 					hasSpot = true
 				}
-				if toleration.Key == nodes.CapacityNvidiaGPU || (toleration.Key == v1beta1.LabelSKU && toleration.Value == v1beta1.SKUGPU) {
+				if toleration.Key == nvidia.ResourceGPU || (toleration.Key == v1beta1.LabelSKU && toleration.Value == v1beta1.SKUGPU) {
 					hasGPU = true
 				}
 				if toleration.Key == v1beta1.LabelSKU && toleration.Value == v1beta1.SKUCPU {

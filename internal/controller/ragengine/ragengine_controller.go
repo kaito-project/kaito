@@ -48,6 +48,7 @@ import (
 	karpenterv1 "sigs.k8s.io/karpenter/pkg/apis/v1"
 
 	kaitov1beta1 "github.com/kaito-project/kaito/api/v1beta1"
+	iaccel "github.com/kaito-project/kaito/internal/accelerator"
 	"github.com/kaito-project/kaito/internal/k8s/nodeclaim"
 	"github.com/kaito-project/kaito/internal/k8s/nodes"
 	"github.com/kaito-project/kaito/internal/k8s/resources"
@@ -542,6 +543,7 @@ func (c *RAGEngineReconciler) CreateNodeClaim(ctx context.Context, ragEngineObj 
 
 // ensureNodePlugins ensures node plugins are installed.
 func (c *RAGEngineReconciler) ensureNodePlugins(ctx context.Context, ragEngineObj *kaitov1beta1.RAGEngine, nodeObj *corev1.Node) error {
+	driver := iaccel.ForInstanceType(ragEngineInstanceType(ragEngineObj))
 	timeClock := clock.RealClock{}
 	tick := timeClock.NewTicker(nodePluginInstallTimeout)
 	defer tick.Stop()
@@ -560,14 +562,13 @@ func (c *RAGEngineReconciler) ensureNodePlugins(ctx context.Context, ragEngineOb
 				return err
 			}
 
-			//Nvidia Plugin
-			if found := nodes.CheckNvidiaPlugin(ctx, freshNode); found {
+			if iaccel.NodeReady(driver, freshNode) {
 				return nil
 			}
 
-			err = nodes.UpdateNodeWithLabel(ctx, freshNode, nodes.LabelKeyNvidia, nodes.LabelValueNvidia, c.Client)
+			err = nodes.EnsureLabels(ctx, freshNode, driver.DevicePluginNodeLabels(), c.Client)
 			if apierrors.IsNotFound(err) {
-				klog.ErrorS(err, "nvidia plugin cannot be installed, node not found", "node", freshNode.Name)
+				klog.ErrorS(err, "device plugin cannot be installed, node not found", "node", freshNode.Name)
 				if updateErr := c.updateStatusConditionIfNotMatch(ctx, ragEngineObj, kaitov1beta1.ConditionTypeNodeClaimStatus, metav1.ConditionFalse,
 					"checkNodeClaimStatusFailed", err.Error()); updateErr != nil {
 					klog.ErrorS(updateErr, "failed to update workspace status", "workspace", klog.KObj(ragEngineObj))

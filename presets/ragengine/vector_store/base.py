@@ -39,7 +39,7 @@ from ragengine.config import (
     RAG_SIMILARITY_THRESHOLD,
 )
 from ragengine.embedding.base import BaseEmbeddingModel
-from ragengine.inference.inference import Inference
+from ragengine.inference.inference import Inference, capture_llm_usage
 from ragengine.models import (
     ChatCompletionResponse,
     Document,
@@ -404,17 +404,18 @@ class BaseVectorStore(ABC):
 
         logger.info("Processing chat completion request with prompt.")
         try:
-            if self.use_rwlock:
-                async with self.rwlock.reader_lock:
+            with capture_llm_usage() as captured:
+                if self.use_rwlock:
+                    async with self.rwlock.reader_lock:
+                        self.llm.set_params(llm_params)
+                        chat_result = await chat_engine.achat(
+                            user_prompt, chat_history=chat_history
+                        )
+                else:
                     self.llm.set_params(llm_params)
                     chat_result = await chat_engine.achat(
                         user_prompt, chat_history=chat_history
                     )
-            else:
-                self.llm.set_params(llm_params)
-                chat_result = await chat_engine.achat(
-                    user_prompt, chat_history=chat_history
-                )
 
             # If no relevant context is found, the llamaindex response synthesizers will send an empty response without hitting the llm.
             # We will instead send the passthrough request directly to the llm rather than send an empty response to the user
@@ -428,11 +429,8 @@ class BaseVectorStore(ABC):
                 )
                 return await self.llm.chat_completions_passthrough(openai_request)
 
-            # Try to get usage from LLM response via the last_usage attribute
-            # The Inference class stores usage from the last LLM API call
-            llm_usage = None
-            if hasattr(self.llm, "last_usage") and self.llm.last_usage:
-                llm_usage = self.llm.last_usage
+            # Usage reported by this request's own LLM call, if the LLM returned one
+            llm_usage = captured.get("usage")
 
             if llm_usage:
                 usage = llm_usage

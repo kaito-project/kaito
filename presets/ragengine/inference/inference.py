@@ -16,7 +16,9 @@ import asyncio
 import concurrent.futures
 import json
 import logging
-from collections.abc import AsyncIterator, Sequence
+from collections.abc import AsyncIterator, Iterator, Sequence
+from contextlib import contextmanager
+from contextvars import ContextVar
 from typing import Any
 from urllib.parse import urljoin, urlparse
 
@@ -63,6 +65,29 @@ DEFAULT_HEADERS = {
     "User-Agent": USER_AGENT,
 }
 
+# One Inference instance serves every request, so the usage an LLM call reports is
+# handed to the request that made the call through this context variable, not
+# through an attribute of the instance (see capture_llm_usage).
+_captured_llm_usage: ContextVar[dict | None] = ContextVar(
+    "captured_llm_usage", default=None
+)
+
+
+@contextmanager
+def capture_llm_usage() -> Iterator[dict]:
+    """Capture the usage reported by the LLM calls made within the block.
+
+    Yields a dict. After an LLM call made in this context, or in a task started from
+    it, its "usage" key holds the usage that call reported (the last call's, if
+    there are several). Concurrent requests each capture only their own calls.
+    """
+    captured: dict = {}
+    token = _captured_llm_usage.set(captured)
+    try:
+        yield captured
+    finally:
+        _captured_llm_usage.reset(token)
+
 
 class Inference(CustomLLM):
     params: dict = {}
@@ -71,7 +96,6 @@ class Inference(CustomLLM):
     _model_retrieval_attempted: bool = False
     _async_http_client: httpx.AsyncClient = PrivateAttr(default=None)
     _token_encoder: Any = None
-    last_usage: dict = None  # Store usage from last LLM API call
 
     async def _get_httpx_client(self):
         """Lazily initializes the HTTP client on first request."""
@@ -240,8 +264,10 @@ class Inference(CustomLLM):
 
             resp = await self._async_post_request_raw(data=req, headers=DEFAULT_HEADERS)
 
-            # Store usage information from LLM response for later retrieval
-            self.last_usage = resp.get("usage")
+            # Hand the usage to the request that made this call (see capture_llm_usage)
+            captured = _captured_llm_usage.get()
+            if captured is not None:
+                captured["usage"] = resp.get("usage")
 
             return ChatResponse(
                 logprobs=resp.get("logprobs", None),

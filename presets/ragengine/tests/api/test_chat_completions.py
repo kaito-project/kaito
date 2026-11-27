@@ -11,6 +11,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import asyncio
 import json
 import re
 import textwrap
@@ -139,6 +140,80 @@ async def test_chat_completions_basic_success(mock_get, async_client):
         )
         == 1
     )
+
+
+@pytest.mark.asyncio
+@respx.mock
+@patch("requests.get")
+async def test_concurrent_chat_completions_report_their_own_usage(
+    mock_get, async_client
+):
+    """Each RAG chat reports the token usage of its own LLM call, also when chats overlap."""
+    mock_get.return_value.status_code = 200
+    mock_get.return_value.json.return_value = {
+        "data": [{"id": "mock-model", "max_model_len": 2048}]
+    }
+
+    async def reply(request):
+        # prompt_tokens is the chat's number. Replies arrive in an order other than the
+        # requests', so the LLM calls of different chats overlap.
+        n = int(re.search(r"chat-(\d+)", request.content.decode()).group(1))
+        await asyncio.sleep((n * 7 % 20) * 0.002)
+        return httpx.Response(
+            200,
+            json={
+                "id": f"chatcmpl-{n}",
+                "object": "chat.completion",
+                "created": int(time.time()),
+                "model": "mock-model",
+                "choices": [
+                    {
+                        "index": 0,
+                        "message": {"role": "assistant", "content": "Answer."},
+                        "finish_reason": "stop",
+                    }
+                ],
+                "usage": {
+                    "prompt_tokens": n,
+                    "completion_tokens": 1,
+                    "total_tokens": n + 1,
+                },
+            },
+        )
+
+    respx.post("http://localhost:5000/v1/chat/completions").mock(side_effect=reply)
+
+    response = await async_client.post(
+        "/index",
+        json={
+            "index_name": "usage_index",
+            "documents": [{"text": "This is a test document about AI."}],
+        },
+    )
+    assert response.status_code == 200
+
+    numbers = range(100, 120)
+    responses = await asyncio.gather(
+        *(
+            async_client.post(
+                "/v1/chat/completions",
+                json={
+                    "index_name": "usage_index",
+                    "model": "mock-model",
+                    "messages": [
+                        {"role": "user", "content": f"Tell me about AI, chat-{n}"}
+                    ],
+                },
+            )
+            for n in numbers
+        )
+    )
+    assert all(r.status_code == 200 for r in responses)
+    reported = {
+        n: r.json()["usage"]["prompt_tokens"] for n, r in zip(numbers, responses)
+    }
+    wrong = {n: got for n, got in reported.items() if got != n}
+    assert not wrong, f"{len(wrong)} of 20 chats report another chat's usage: {wrong}"
 
 
 @pytest.mark.asyncio

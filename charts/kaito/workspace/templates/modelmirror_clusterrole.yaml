@@ -26,6 +26,6 @@ rules:
     verbs: ["create", "delete"]
   - apiGroups: ["admissionregistration.k8s.io"]
     resources: ["validatingwebhookconfigurations"]
-    verbs: ["update"]
+    verbs: ["update", "delete"]
     resourceNames: ["validation.modelmirror.kaito.sh"]
 {{- end -}}

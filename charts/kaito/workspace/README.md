@@ -39,7 +39,7 @@ helm install workspace ./charts/kaito/workspace  \
 | securityContext.readOnlyRootFilesystem         | bool   | `true`                                                   | Allowed values: `true`, `false`.                              |
 | securityContext.capabilities.drop[0]           | string | `"ALL"`                                                  | Linux capability name, or the special value `ALL`.            |
 | defaultNodeImageFamily                         | string | `""`                                                     | Default NodeClaim image-family annotation. Only used by the GPU provisioner path (not karpenter). Allowed values: `""` (treated as `ubuntu`), `ubuntu`, `azurelinux`. Any other value causes controller startup failure. |
-| nodeProvisioner                                | string | `"azure-gpu-provisioner"`                                | Node provisioner type. Allowed values: `azure-gpu-provisioner`, `karpenter`, `byo`. |
+| nodeProvisioner                                | string | `"azure-gpu-provisioner"`                                | Node provisioner type. Allowed values: `azure-gpu-provisioner`, `karpenter`, `byo`. `byo` disables node auto-provisioning and uses only existing nodes. |
 | karpenterProvider                              | string | `"azure"`                                                | Selects which provider block under `karpenterProviders` to use. Only used when `nodeProvisioner=karpenter`. |
 | karpenterProviders.azure.group                 | string | `"karpenter.azure.com"`                                  | Karpenter NodeClass API group. |
 | karpenterProviders.azure.kind                  | string | `"AKSNodeClass"`                                         | Karpenter NodeClass API kind. |
@@ -57,7 +57,7 @@ helm install workspace ./charts/kaito/workspace  \
 | nvidiaDevicePlugin.daemonsetName               | string | `"nvidia-device-plugin-daemonset"`                       | DNS-1123 name of the generated DaemonSet.                     |
 | nvidiaDevicePlugin.image                       | string | `"mcr.microsoft.com/oss/v2/nvidia/k8s-device-plugin:v0.20.1-5"` | Full image reference for the device plugin container. |
 | nvidiaDevicePlugin.imagePullPolicy             | string | `"IfNotPresent"`                                         | Allowed values: `Always`, `IfNotPresent`, `Never`.            |
-| featureGates.disableNodeAutoProvisioning       | bool   | `false`                                                  | Allowed values: `true`, `false`. When `true`, disables Node Auto-Provisioning (NAP) and installs the `gpu-feature-discovery` subchart as a standalone replacement. |
+| featureGates.disableNodeAutoProvisioning       | bool   | `false`                                                  | Allowed values: `true`, `false`. When `true`, installs the `gpu-feature-discovery` subchart as a standalone replacement for Node Auto-Provisioning (NAP). It does not disable NAP by itself: the controller derives this gate from `nodeProvisioner`, so set `nodeProvisioner=byo` as well. |
 | featureGates.gatewayAPIInferenceExtension      | bool   | `false`                                                  | Allowed values: `true`, `false`. Enables the Gateway API Inference Extension (also gates installation of the GAIE subchart). |
 | featureGates.enableInferenceSetController      | bool   | `true`                                                  | Allowed values: `true`, `false`. Enables the InferenceSet controller and its RBAC. |
 | gpu-feature-discovery.nfd.enabled              | bool   | `true`                                                   | Allowed values: `true`, `false`. Set to `false` if NFD is already installed (e.g., via the NVIDIA GPU Operator) to avoid CRD conflicts. Only applies when the GFD subchart is active (`featureGates.disableNodeAutoProvisioning=true`). |
@@ -102,11 +102,12 @@ If your cluster already has the [NVIDIA GPU Operator](https://docs.nvidia.com/da
 
 The `gpu-feature-discovery` subchart is **only installed** when `featureGates.disableNodeAutoProvisioning=true`. By default, this value is `false`, so the GFD subchart is not deployed and no NFD/GFD conflicts will occur.
 
-If you have disabled Node Auto-Provisioning (NAP) and the GFD subchart is being installed, you can selectively disable its NFD and GFD components to avoid conflicts with the GPU Operator:
+If you have disabled Node Auto-Provisioning (NAP) with `nodeProvisioner=byo` and the GFD subchart is being installed, you can selectively disable its NFD and GFD components to avoid conflicts with the GPU Operator:
 
 ```bash
 helm install workspace ./charts/kaito/workspace \
   --namespace kaito-workspace --create-namespace \
+  --set nodeProvisioner=byo \
   --set featureGates.disableNodeAutoProvisioning=true \
   --set gpu-feature-discovery.nfd.enabled=false \
   --set gpu-feature-discovery.gfd.enabled=false
@@ -117,6 +118,7 @@ If you also want to skip the bundled NVIDIA device plugin (because the GPU Opera
 ```bash
 helm install workspace ./charts/kaito/workspace \
   --namespace kaito-workspace --create-namespace \
+  --set nodeProvisioner=byo \
   --set featureGates.disableNodeAutoProvisioning=true \
   --set gpu-feature-discovery.nfd.enabled=false \
   --set gpu-feature-discovery.gfd.enabled=false \

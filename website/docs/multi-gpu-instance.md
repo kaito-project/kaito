@@ -8,7 +8,7 @@ title: Multi-Instance GPU (MIG)
 
 | Limitation | Reason |
 | --- | --- |
-| **BYO nodes only** — no node auto-provisioning (NAP/Karpenter) | KAITO does not create or partition MIG nodes; requires `disableNodeAutoProvisioning=true`. |
+| **BYO nodes only** — no node auto-provisioning (NAP/Karpenter) | KAITO does not create or partition MIG nodes; requires `nodeProvisioner=byo` and `disableNodeAutoProvisioning=true`. |
 | **No tensor parallelism** — the model must fit in **one** slice | MIG slices are hardware-isolated with limited cross-slice CUDA IPC; a model requiring more than 1 GPU is rejected. |
 | **No tuning** — inference only | Tuning workloads are not supported on MIG partitions. |
 | **`partition.profile` is immutable** once set | Changing the slice size requires recreating the workspace. |
@@ -20,11 +20,12 @@ title: Multi-Instance GPU (MIG)
 1. **A MIG-capable GPU node** (A100 / H100 / H200 / B200) in your cluster. Supported GPUs are listed in [NVIDIA Multi-Instance GPU User Guide](https://docs.nvidia.com/datacenter/tesla/mig-user-guide/latest/supported-gpus.html).
 2. [**The NVIDIA GPU Operator**](https://docs.nvidia.com/datacenter/cloud-native/gpu-operator/latest/gpu-operator-mig.html#enabling-mig-during-installation) installed, with the MIG manager enabled and a device-plugin **strategy** chosen (`mixed` or `single`).
 3. [**The GPU partitioned** into your desired profile(s)](https://docs.nvidia.com/datacenter/cloud-native/gpu-operator/latest/gpu-operator-mig.html#configuring-mig-profiles), e.g. via the GPU Operator's `nvidia.com/mig.config` node label.
-4. **KAITO installed** with `enableMIG=true` and `disableNodeAutoProvisioning=true`, and with the bundled NFD/GFD disabled (`gpu-feature-discovery.nfd.enabled=false`, `gpu-feature-discovery.gfd.enabled=false`) since the GPU Operator already provides them:
+4. **KAITO installed** with `nodeProvisioner=byo`, `enableMIG=true` and `disableNodeAutoProvisioning=true`, and with the bundled NFD/GFD disabled (`gpu-feature-discovery.nfd.enabled=false`, `gpu-feature-discovery.gfd.enabled=false`) since the GPU Operator already provides them:
     ```bash
     helm install workspace ./charts/kaito/workspace \
         --namespace kaito-workspace --create-namespace \
         --set featureGates.enableMIG=true \
+        --set nodeProvisioner=byo \
         --set featureGates.disableNodeAutoProvisioning=true \
         --set gpu-feature-discovery.nfd.enabled=false \
         --set gpu-feature-discovery.gfd.enabled=false

@@ -75,7 +75,7 @@ You should see the workspace controller pod in a `Running` state.
 
 The inference workload created by KAITO needs to run on GPU nodes. There are two **mutually exclusive** options to set up GPU nodes. You must choose one approach or the other:
 
-- **Auto-provisioning**: Set up automatic GPU node provisioning. This is recommended for GPU nodes provisioned by cloud providers. 
+- **Auto-provisioning**: Set up automatic GPU node provisioning. This is recommended for GPU nodes provisioned by cloud providers.
 - **Bring your own GPU (BYO) nodes**: Create and configure your own GPU nodes. This is recommended for GPUs installed in local or on-prem clusters.
 
 ### Option 1: Auto-provision GPU nodes
@@ -89,7 +89,7 @@ KAITO controller will create new GPU nodes in the cluster when there are insuffi
 
 :::tip
 You can still use this option when you plan to use existing GPU nodes in the cluster as long as:
-- The instance type of the node is known by KAITO (i.e., listed in [here](https://github.com/kaito-project/kaito/blob/main/pkg/sku/azure_sku_handler.go) or [here](https://github.com/kaito-project/kaito/blob/main/pkg/sku/aws_sku_handler.go)). 
+- The instance type of the node is known by KAITO (i.e., listed in [here](https://github.com/kaito-project/kaito/blob/main/pkg/sku/azure_sku_handler.go) or [here](https://github.com/kaito-project/kaito/blob/main/pkg/sku/aws_sku_handler.go)).
 - Follow the [instruction](faq#how-do-i-use-existing-gpus-in-the-cluster-for-my-inference-workload) to add proper labels and make sure the instance type is consistent between the node and the workspace.
 
 When KAITO controller ensures existing GPUs are sufficient to run the workspace, no extra GPU nodes will be created.
@@ -97,7 +97,7 @@ When KAITO controller ensures existing GPUs are sufficient to run the workspace,
 
 ### Option 2: Bring your own GPU nodes
 
-When using this option, you must install/update KAITO with Node Auto Provisioning feature disabled:
+When using this option, you must install/update KAITO with the `byo` node provisioner, which disables Node Auto Provisioning:
 
 ```bash
 export CLUSTER_NAME=kaito
@@ -108,12 +108,13 @@ helm upgrade --install kaito-workspace kaito/workspace \
   --namespace kaito-workspace \
   --create-namespace \
   --set clusterName="$CLUSTER_NAME" \
+  --set nodeProvisioner=byo \
   --set featureGates.disableNodeAutoProvisioning=true \
   --wait \
   --take-ownership
 ```
 Follow this [instruction](faq#how-do-i-use-existing-gpus-in-the-cluster-for-my-inference-workload) to make sure the
-BYO nodes are correctly labeled manually. 
+BYO nodes are correctly labeled manually.
 
 :::note
 For BYO nodes, KAITO first reads GPU count, model, and memory from the node's `node.kubernetes.io/instance-type` label when that instance type is in KAITO's SKU table. If the instance type is unknown, KAITO falls back to Node Feature Discovery and GPU Feature Discovery labels. Nodes with MIG configured always use the GPU Feature Discovery labels. The NVIDIA device plugin is still required to advertise `nvidia.com/gpu` resources. If KAITO does not know the instance type, even though the node is provisioned by the cloud provider, the BYO option has to be chosen.
